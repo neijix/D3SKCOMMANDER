@@ -1,0 +1,42 @@
+[package]
+name = "d3skcommander"
+version = "0.1.0"
+edition = "2024"
+description = "A cross-platform two-panel (orthodox) file manager"
+license = "MIT"
+rust-version = "1.85"
+
+[dependencies]
+eframe = "0.37"
+egui_extras = { version = "0.37", features = ["image", "file"] }
+trash = "5"
+sysinfo = { version = "0.40", default-features = false, features = ["disk"] }
+zip = { version = "9", default-features = false, features = ["deflate"] }
+open = "5"
+chrono = "0.4"
+directories = "6"
+serde = { version = "1", features = ["derive"] }
+serde_json = "1"
+regex = "1"
+similar = "3"
+filetime = "0.2"
+crc32fast = "1"
+md-5 = "0.11"
+sha1 = "0.11"
+sha2 = "0.11"
+tar = "0.4"
+flate2 = "1"
+sevenz-rust2 = "0.24"
+walkdir = "2"
+image = { version = "0.25", default-features = false, features = ["png", "jpeg", "gif", "bmp", "webp", "ico", "tiff"] }
+age = "0.12"
+suppaftp = { version = "12", features = ["rustls-ring"] }
+rustls = { version = "0.23", default-features = false, features = ["ring", "std", "tls12", "logging"] }
+webpki-roots = "1"
+
+[dev-dependencies]
+tempfile = "3"
+
+[profile.release]
+lto = "thin"
+strip = true
