@@ -376,10 +376,10 @@ fn cancel_removes_the_partial_file() {
         &request(OpKind::Copy, &[&src, &small], Some(&dest)),
         &cancel,
         &mut |event| {
-            if let OpEvent::Progress(p) = &event {
-                if p.current == src {
-                    cancel.store(true, Ordering::SeqCst);
-                }
+            if let OpEvent::Progress(p) = &event
+                && p.current == src
+            {
+                cancel.store(true, Ordering::SeqCst);
             }
             out.push(event);
         },

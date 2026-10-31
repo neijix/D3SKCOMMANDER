@@ -4,7 +4,7 @@ version = "0.1.0"
 edition = "2024"
 description = "A cross-platform two-panel (orthodox) file manager"
 license = "MIT"
-rust-version = "1.85"
+rust-version = "1.88"
 
 [dependencies]
 eframe = "0.37"

@@ -1,4 +1,4 @@
-//! File splitter and combiner (Total Commander style): `name.001`, `name.002`, … plus a
+//! File splitter and combiner (classic two-panel style): `name.001`, `name.002`, … plus a
 //! `name.crc` file used to check the recombined file.
 
 use std::fs::{self, File};

@@ -103,9 +103,11 @@ pub fn read_dbf(path: &Path, max_records: usize) -> io::Result<DbfTable> {
     r.read_exact(&mut descriptors)
         .map_err(|_| bad("field descriptors are truncated"))?;
     let fields: Vec<DbfField> = descriptors
-        .chunks_exact(HEADER_LEN)
+        .as_chunks::<HEADER_LEN>()
+        .0
+        .iter()
         .take_while(|d| d[0] != FIELD_TERMINATOR)
-        .map(parse_field)
+        .map(|d| parse_field(d))
         .collect();
     if fields.is_empty() {
         return Err(bad("no fields"));

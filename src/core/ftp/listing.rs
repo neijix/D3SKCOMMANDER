@@ -78,10 +78,10 @@ fn parse_unix(line: &str, today: NaiveDate) -> Option<RemoteEntry> {
     let size: u64 = size_tok.parse().ok()?;
     let modified = unix_date(month_tok, day_tok, when_tok, today);
     let mut name = name_part;
-    if kind == 'l' {
-        if let Some((n, _target)) = name.split_once(" -> ") {
-            name = n;
-        }
+    if kind == 'l'
+        && let Some((n, _target)) = name.split_once(" -> ")
+    {
+        name = n;
     }
     if name.is_empty() {
         return None;
