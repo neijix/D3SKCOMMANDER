@@ -206,8 +206,9 @@ impl App {
         let modal = egui::Modal::new(egui::Id::unique("d3sk-dialog")).show(ctx, |ui| {
             ui.set_min_width(420.0);
             ui.set_max_width(640.0);
-            let d = slot.take().expect("dialog present");
-            outcome = self.dialog_body(ui, d, enter);
+            if let Some(d) = slot.take() {
+                outcome = self.dialog_body(ui, d, enter);
+            }
         });
         if modal.should_close() && matches!(outcome, Outcome::Keep(_)) {
             outcome = Outcome::Close;
@@ -227,165 +228,75 @@ impl App {
 
     fn dialog_body(&mut self, ui: &mut egui::Ui, d: Dialog, enter: bool) -> Outcome {
         match d {
-            Dialog::Message { title, text } => {
-                ui.heading(&title);
-                egui::ScrollArea::vertical()
-                    .max_height(400.0)
-                    .show(ui, |ui| ui.add(egui::Label::new(&text).selectable(true)));
-                ui.separator();
-                if ui.button(tr("ok")).clicked() || enter {
-                    Outcome::Close
-                } else {
-                    Outcome::Keep(Dialog::Message { title, text })
-                }
-            }
+            Dialog::Message { title, text } => message_ui(ui, title, text, enter),
             Dialog::Input {
                 title,
                 label,
-                mut text,
+                text,
                 action,
                 focused,
-            } => {
-                ui.heading(&title);
-                ui.label(&label);
-                let r = ui.add(egui::TextEdit::singleline(&mut text).desired_width(f32::INFINITY));
-                if !focused {
-                    r.request_focus();
-                }
-                let (ok, cancel) = ok_cancel(ui, true);
-                let d = Dialog::Input {
-                    title,
-                    label,
-                    text,
-                    action,
-                    focused: true,
-                };
-                decide(ok || enter, cancel, d)
-            }
+            } => input_ui(ui, [title, label, text], action, focused, enter),
             Dialog::Confirm {
                 title,
                 text,
                 action,
-            } => {
-                ui.heading(&title);
-                ui.label(&text);
-                let (ok, cancel) = ok_cancel(ui, true);
-                decide(
-                    ok || enter,
-                    cancel,
-                    Dialog::Confirm {
-                        title,
-                        text,
-                        action,
-                    },
-                )
-            }
+            } => confirm_ui(ui, title, text, action, enter),
             Dialog::Pack(f) => pack_ui(ui, f, enter),
-            Dialog::Unpack(mut f) => {
-                ui.heading(tr("dlg.unpack"));
-                files_line(ui, &f.archives);
-                ui.label(tr("target"));
-                ui.add(egui::TextEdit::singleline(&mut f.dest).desired_width(f32::INFINITY));
-                let (ok, cancel) = ok_cancel(ui, !f.dest.trim().is_empty());
-                decide(ok || enter, cancel, Dialog::Unpack(f))
-            }
+            Dialog::Unpack(f) => unpack_ui(ui, f, enter),
             Dialog::Split(f) => split_ui(ui, f, enter),
             Dialog::Checksum(f) => checksum_ui(ui, f, enter),
             Dialog::Time(f) => time_ui(ui, f, enter),
             Dialog::Crypt(f) => crypt_ui(ui, f, enter),
-            Dialog::OpenWith(mut f) => {
-                ui.heading(tr("cmd.open_with"));
-                files_line(ui, &f.files);
-                ui.label(tr("command"));
-                ui.add(egui::TextEdit::singleline(&mut f.command).desired_width(f32::INFINITY));
-                ui.weak(t(
-                    "%s = the selected files; without %s they are appended.",
-                    "%s = les fichiers sélectionnés ; sans %s ils sont ajoutés à la fin.",
-                ));
-                ui.horizontal(|ui| {
-                    ui.radio_value(&mut f.once_per_file, true, tr("dlg.once_per_file"));
-                    ui.radio_value(&mut f.once_per_file, false, tr("dlg.all_at_once"));
-                });
-                let (ok, cancel) = ok_cancel(ui, !f.command.trim().is_empty());
-                decide(ok || enter, cancel, Dialog::OpenWith(f))
-            }
+            Dialog::OpenWith(f) => open_with_ui(ui, f, enter),
             Dialog::Hotlist => self.hotlist_ui(ui),
-            Dialog::History => {
-                ui.heading(tr("cmd.history"));
-                let mut go = None;
-                egui::ScrollArea::vertical()
-                    .max_height(420.0)
-                    .show(ui, |ui| {
-                        for p in &self.shared.settings.history {
-                            if ui
-                                .selectable_label(false, p.display().to_string())
-                                .clicked()
-                            {
-                                go = Some(p.clone());
-                            }
-                        }
-                    });
-                close_or(ui, go, Dialog::History)
-            }
-            Dialog::Drives { side } => {
-                ui.heading(tr("folder"));
-                let mut go = None;
-                let home = crate::core::fs::home_dir();
-                if ui.button(format!("🏠 {}", home.display())).clicked() {
-                    go = Some(home);
-                }
-                for d in self.drives().to_vec() {
-                    let text = format!(
-                        "💾 {}  {}  ({} {})",
-                        d.path.display(),
-                        d.label,
-                        crate::core::fs::human_size(d.free),
-                        tr("free")
-                    );
-                    if ui.button(text).clicked() {
-                        go = Some(d.path.clone());
+            Dialog::History => self.history_ui(ui),
+            Dialog::Drives { side } => self.drives_ui(ui, side),
+            Dialog::Keys => keys_ui(ui),
+            Dialog::About => about_ui(ui),
+        }
+    }
+
+    fn history_ui(&mut self, ui: &mut egui::Ui) -> Outcome {
+        ui.heading(tr("cmd.history"));
+        let mut go = None;
+        egui::ScrollArea::vertical()
+            .max_height(420.0)
+            .show(ui, |ui| {
+                for p in &self.shared.settings.history {
+                    if ui
+                        .selectable_label(false, p.display().to_string())
+                        .clicked()
+                    {
+                        go = Some(p.clone());
                     }
                 }
-                if go.is_some() {
-                    self.active = side;
-                }
-                close_or(ui, go, Dialog::Drives { side })
-            }
-            Dialog::Keys => {
-                ui.heading(tr("cmd.keys"));
-                egui::ScrollArea::vertical()
-                    .max_height(480.0)
-                    .show(ui, |ui| {
-                        egui::Grid::new("keys").striped(true).show(ui, |ui| {
-                            for (sc, cmd) in keys::bindings() {
-                                ui.monospace(ui.ctx().format_shortcut(&sc));
-                                ui.label(cmd.label());
-                                ui.end_row();
-                            }
-                            for (k, what) in nav_help() {
-                                ui.monospace(k);
-                                ui.label(what);
-                                ui.end_row();
-                            }
-                        });
-                    });
-                close_or(ui, None, Dialog::Keys)
-            }
-            Dialog::About => {
-                ui.heading(format!("d3skcommander {}", env!("CARGO_PKG_VERSION")));
-                ui.label(t(
-                    "A two-panel file manager for Linux, macOS and Windows.",
-                    "Un gestionnaire de fichiers à deux panneaux pour Linux, macOS et Windows.",
-                ));
-                ui.label(format!(
-                    "{}: {}",
-                    t("License", "Licence"),
-                    env!("CARGO_PKG_LICENSE")
-                ));
-                ui.label(crate::config::settings_path().display().to_string());
-                close_or(ui, None, Dialog::About)
+            });
+        close_or(ui, go, Dialog::History)
+    }
+
+    fn drives_ui(&mut self, ui: &mut egui::Ui, side: usize) -> Outcome {
+        ui.heading(tr("folder"));
+        let mut go = None;
+        let home = crate::core::fs::home_dir();
+        if ui.button(format!("🏠 {}", home.display())).clicked() {
+            go = Some(home);
+        }
+        for d in self.drives().to_vec() {
+            let text = format!(
+                "💾 {}  {}  ({} {})",
+                d.path.display(),
+                d.label,
+                crate::core::fs::human_size(d.free),
+                tr("free")
+            );
+            if ui.button(text).clicked() {
+                go = Some(d.path.clone());
             }
         }
+        if go.is_some() {
+            self.active = side;
+        }
+        close_or(ui, go, Dialog::Drives { side })
     }
 
     fn hotlist_ui(&mut self, ui: &mut egui::Ui) -> Outcome {
@@ -419,6 +330,123 @@ impl App {
         }
         close_or(ui, go, Dialog::Hotlist)
     }
+}
+
+fn message_ui(ui: &mut egui::Ui, title: String, text: String, enter: bool) -> Outcome {
+    ui.heading(&title);
+    egui::ScrollArea::vertical()
+        .max_height(400.0)
+        .show(ui, |ui| ui.add(egui::Label::new(&text).selectable(true)));
+    ui.separator();
+    if ui.button(tr("ok")).clicked() || enter {
+        Outcome::Close
+    } else {
+        Outcome::Keep(Dialog::Message { title, text })
+    }
+}
+
+fn input_ui(
+    ui: &mut egui::Ui,
+    [title, label, mut text]: [String; 3],
+    action: InputAction,
+    focused: bool,
+    enter: bool,
+) -> Outcome {
+    ui.heading(&title);
+    ui.label(&label);
+    let r = ui.add(egui::TextEdit::singleline(&mut text).desired_width(f32::INFINITY));
+    if !focused {
+        r.request_focus();
+    }
+    let (ok, cancel) = ok_cancel(ui, true);
+    let d = Dialog::Input {
+        title,
+        label,
+        text,
+        action,
+        focused: true,
+    };
+    decide(ok || enter, cancel, d)
+}
+
+fn confirm_ui(
+    ui: &mut egui::Ui,
+    title: String,
+    text: String,
+    action: ConfirmAction,
+    enter: bool,
+) -> Outcome {
+    ui.heading(&title);
+    ui.label(&text);
+    let (ok, cancel) = ok_cancel(ui, true);
+    let d = Dialog::Confirm {
+        title,
+        text,
+        action,
+    };
+    decide(ok || enter, cancel, d)
+}
+
+fn unpack_ui(ui: &mut egui::Ui, mut f: UnpackForm, enter: bool) -> Outcome {
+    ui.heading(tr("dlg.unpack"));
+    files_line(ui, &f.archives);
+    ui.label(tr("target"));
+    ui.add(egui::TextEdit::singleline(&mut f.dest).desired_width(f32::INFINITY));
+    let (ok, cancel) = ok_cancel(ui, !f.dest.trim().is_empty());
+    decide(ok || enter, cancel, Dialog::Unpack(f))
+}
+
+fn open_with_ui(ui: &mut egui::Ui, mut f: OpenWithForm, enter: bool) -> Outcome {
+    ui.heading(tr("cmd.open_with"));
+    files_line(ui, &f.files);
+    ui.label(tr("command"));
+    ui.add(egui::TextEdit::singleline(&mut f.command).desired_width(f32::INFINITY));
+    ui.weak(t(
+        "%s = the selected files; without %s they are appended.",
+        "%s = les fichiers sélectionnés ; sans %s ils sont ajoutés à la fin.",
+    ));
+    ui.horizontal(|ui| {
+        ui.radio_value(&mut f.once_per_file, true, tr("dlg.once_per_file"));
+        ui.radio_value(&mut f.once_per_file, false, tr("dlg.all_at_once"));
+    });
+    let (ok, cancel) = ok_cancel(ui, !f.command.trim().is_empty());
+    decide(ok || enter, cancel, Dialog::OpenWith(f))
+}
+
+fn keys_ui(ui: &mut egui::Ui) -> Outcome {
+    ui.heading(tr("cmd.keys"));
+    egui::ScrollArea::vertical()
+        .max_height(480.0)
+        .show(ui, |ui| {
+            egui::Grid::new("keys").striped(true).show(ui, |ui| {
+                for (sc, cmd) in keys::bindings() {
+                    ui.monospace(ui.ctx().format_shortcut(&sc));
+                    ui.label(cmd.label());
+                    ui.end_row();
+                }
+                for (k, what) in nav_help() {
+                    ui.monospace(k);
+                    ui.label(what);
+                    ui.end_row();
+                }
+            });
+        });
+    close_or(ui, None, Dialog::Keys)
+}
+
+fn about_ui(ui: &mut egui::Ui) -> Outcome {
+    ui.heading(format!("d3skcommander {}", env!("CARGO_PKG_VERSION")));
+    ui.label(t(
+        "A two-panel file manager for Linux, macOS and Windows.",
+        "Un gestionnaire de fichiers à deux panneaux pour Linux, macOS et Windows.",
+    ));
+    ui.label(format!(
+        "{}: {}",
+        t("License", "Licence"),
+        env!("CARGO_PKG_LICENSE")
+    ));
+    ui.label(crate::config::settings_path().display().to_string());
+    close_or(ui, None, Dialog::About)
 }
 
 fn decide(ok: bool, cancel: bool, d: Dialog) -> Outcome {
