@@ -201,7 +201,7 @@ impl App {
             return;
         };
         let enter = ctx.input(|i| i.key_pressed(Key::Enter));
-        let mut outcome = Outcome::Keep(Dialog::About);
+        let mut outcome = Outcome::Close;
         let mut slot = Some(dialog);
         let modal = egui::Modal::new(egui::Id::unique("d3sk-dialog")).show(ctx, |ui| {
             ui.set_min_width(420.0);

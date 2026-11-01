@@ -59,7 +59,7 @@ impl App {
                 }
             }
             Quit => ctx.send_viewport_cmd(egui::ViewportCommand::Close),
-            _ => {}
+            _ => misrouted(cmd),
         }
     }
 
@@ -79,7 +79,7 @@ impl App {
             Catalog => self.catalog_dialog(),
             Encrypt => self.crypt_dialog(true),
             Decrypt => self.crypt_dialog(false),
-            _ => {}
+            _ => misrouted(cmd),
         }
     }
 
@@ -114,7 +114,7 @@ impl App {
             }
             ComparePanels => self.compare_panels(),
             DirSizes => self.visible_dir_sizes(),
-            _ => {}
+            _ => misrouted(cmd),
         }
     }
 
@@ -148,7 +148,7 @@ impl App {
             ))),
             About => self.dialog = Some(Dialog::About),
             Keys => self.dialog = Some(Dialog::Keys),
-            _ => {}
+            _ => misrouted(cmd),
         }
     }
 
@@ -189,7 +189,7 @@ impl App {
             SortExt => self.active_panel().tab_mut().set_sort(SortKey::Ext),
             SortDate => self.active_panel().tab_mut().set_sort(SortKey::Modified),
             SortSize => self.active_panel().tab_mut().set_sort(SortKey::Size),
-            _ => {}
+            _ => misrouted(cmd),
         }
     }
 
@@ -220,7 +220,7 @@ impl App {
             SwitchPanel => self.active = 1 - self.active,
             DrivesLeft => self.dialog = Some(Dialog::Drives { side: 0 }),
             DrivesRight => self.dialog = Some(Dialog::Drives { side: 1 }),
-            _ => {}
+            _ => misrouted(cmd),
         }
     }
 
@@ -274,4 +274,9 @@ impl App {
         self.windows
             .push(Box::new(sync_view::SyncWindow::new(l, r)));
     }
+}
+
+/// A group dispatcher got a command `run` routes elsewhere: it would silently do nothing.
+fn misrouted(cmd: Command) {
+    debug_assert!(false, "{cmd:?} reached the wrong command group");
 }

@@ -432,6 +432,19 @@ mod tests {
     }
 
     #[test]
+    fn command_labels_read_differently_in_each_language() {
+        let cmds: Vec<_> = STRINGS
+            .iter()
+            .filter(|(k, _, _)| k.starts_with("cmd."))
+            .collect();
+        for (i, (k, en, fr)) in cmds.iter().enumerate() {
+            for (other, en2, fr2) in &cmds[i + 1..] {
+                assert!(en != en2 && fr != fr2, "{k} and {other} share a label");
+            }
+        }
+    }
+
+    #[test]
     fn switches_language() {
         set_lang(Lang::Fr);
         assert_eq!(tr("cancel"), "Annuler");
