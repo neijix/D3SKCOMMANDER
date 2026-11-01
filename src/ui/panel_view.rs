@@ -401,6 +401,30 @@ fn full_view(
     side: usize,
     acts: &mut Vec<Act>,
 ) {
+    let (mut table, headers) = full_table(ui, cols, side);
+    if std::mem::take(&mut tab.scroll_to_cursor) {
+        table = table.scroll_to_row(tab.cursor, None);
+    }
+    let tab = &*tab;
+    table
+        .header(ROW_HEIGHT, |mut h| {
+            for (key, sk) in &headers {
+                h.col(|ui| sort_header(ui, key, *sk, tab.sort, acts));
+            }
+        })
+        .body(|body| {
+            body.rows(ROW_HEIGHT, tab.visible.len(), |mut row| {
+                full_row(&mut row, tab, active, cols, acts);
+            });
+        });
+}
+
+/// The table with one column per shown field, and the (title key, sort key) of each.
+fn full_table<'a>(
+    ui: &'a mut egui::Ui,
+    cols: &crate::config::Columns,
+    side: usize,
+) -> (TableBuilder<'a>, Vec<(&'static str, SortKey)>) {
     let mut table = TableBuilder::new(ui)
         .id_salt(("panel", side))
         .striped(true)
@@ -409,7 +433,7 @@ fn full_view(
         .cell_layout(egui::Layout::left_to_right(Align::Center))
         .auto_shrink(false)
         .column(Column::remainder().at_least(120.0).clip(true));
-    let mut headers: Vec<(&str, SortKey)> = vec![("name", SortKey::Name)];
+    let mut headers = vec![("name", SortKey::Name)];
     for (on, key, sort, width) in [
         (cols.ext, "ext", SortKey::Ext, 50.0),
         (cols.size, "size", SortKey::Size, 80.0),
@@ -421,77 +445,80 @@ fn full_view(
             headers.push((key, sort));
         }
     }
-    if std::mem::take(&mut tab.scroll_to_cursor) {
-        table = table.scroll_to_row(tab.cursor, None);
+    (table, headers)
+}
+
+/// A clickable column title with the sort direction arrow when it is the sort key.
+fn sort_header(
+    ui: &mut egui::Ui,
+    key: &'static str,
+    sk: SortKey,
+    sort: cfs::SortOrder,
+    acts: &mut Vec<Act>,
+) {
+    let arrow = match (sort.key == sk, sort.descending) {
+        (true, false) => " ▲",
+        (true, true) => " ▼",
+        _ => "",
+    };
+    if ui
+        .button(RichText::new(format!("{}{arrow}", tr(key))).strong())
+        .clicked()
+    {
+        acts.push(Act::Sort(sk));
     }
-    let sort = tab.sort;
-    let n = tab.visible.len();
-    let cursor = tab.cursor;
-    table
-        .header(ROW_HEIGHT, |mut h| {
-            for (key, sk) in &headers {
-                h.col(|ui| {
-                    let arrow = match (sort.key == *sk, sort.descending) {
-                        (true, false) => " ▲",
-                        (true, true) => " ▼",
-                        _ => "",
-                    };
-                    if ui
-                        .button(RichText::new(format!("{}{arrow}", tr(key))).strong())
-                        .clicked()
-                    {
-                        acts.push(Act::Sort(*sk));
-                    }
-                });
-            }
-        })
-        .body(|body| {
-            body.rows(ROW_HEIGHT, n, |mut row| {
-                let index = row.index();
-                let e = &tab.entries[tab.visible[index]];
-                let marked = tab.selected.contains(&e.path);
-                row.set_selected(active && index == cursor);
-                row.col(|ui| {
-                    ui.label(name_text(ui, e, marked, !cols.ext));
-                });
-                if cols.ext {
-                    row.col(|ui| {
-                        ui.label(e.extension());
-                    });
-                }
-                if cols.size {
-                    row.col(|ui| {
-                        let size = if e.is_parent {
-                            String::new()
-                        } else if e.is_dir {
-                            tab.dir_sizes
-                                .get(&e.path)
-                                .map(|s| cfs::grouped(*s))
-                                .unwrap_or_else(|| format!("<{}>", tr("folder")))
-                        } else {
-                            cfs::grouped(e.size)
-                        };
-                        ui.with_layout(egui::Layout::right_to_left(Align::Center), |ui| {
-                            ui.label(size);
-                        });
-                    });
-                }
-                if cols.date {
-                    row.col(|ui| {
-                        if !e.is_parent {
-                            ui.label(cfs::format_time(e.modified));
-                        }
-                    });
-                }
-                if cols.attrs {
-                    row.col(|ui| {
-                        ui.monospace(&e.attrs);
-                    });
-                }
-                let r = row.response();
-                row_acts(&r, index, acts);
+}
+
+fn full_row(
+    row: &mut egui_extras::TableRow<'_, '_>,
+    tab: &super::panel::Tab,
+    active: bool,
+    cols: &crate::config::Columns,
+    acts: &mut Vec<Act>,
+) {
+    let index = row.index();
+    let e = &tab.entries[tab.visible[index]];
+    let marked = tab.selected.contains(&e.path);
+    row.set_selected(active && index == tab.cursor);
+    row.col(|ui| {
+        ui.label(name_text(ui, e, marked, !cols.ext));
+    });
+    if cols.ext {
+        row.col(|ui| {
+            ui.label(e.extension());
+        });
+    }
+    if cols.size {
+        row.col(|ui| {
+            let size = if e.is_parent {
+                String::new()
+            } else if e.is_dir {
+                tab.dir_sizes
+                    .get(&e.path)
+                    .map(|s| cfs::grouped(*s))
+                    .unwrap_or_else(|| format!("<{}>", tr("folder")))
+            } else {
+                cfs::grouped(e.size)
+            };
+            ui.with_layout(egui::Layout::right_to_left(Align::Center), |ui| {
+                ui.label(size);
             });
         });
+    }
+    if cols.date {
+        row.col(|ui| {
+            if !e.is_parent {
+                ui.label(cfs::format_time(e.modified));
+            }
+        });
+    }
+    if cols.attrs {
+        row.col(|ui| {
+            ui.monospace(&e.attrs);
+        });
+    }
+    let r = row.response();
+    row_acts(&r, index, acts);
 }
 
 fn grid_view(

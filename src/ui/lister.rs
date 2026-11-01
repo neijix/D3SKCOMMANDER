@@ -340,19 +340,15 @@ impl Lister {
         let Some(tv) = &self.text else {
             return;
         };
-        let font = TextStyle::Monospace.resolve(ui.style());
         let row_h = ui.text_style_height(&TextStyle::Monospace);
         let step = row_h + ui.spacing().item_spacing.y;
-        let char_w = ui.ctx().fonts_mut(|f| f.glyph_width(&font, '0')).max(1.0);
+        let char_w = digit_width(ui, &TextStyle::Monospace).max(1.0);
         let digits = tv.lines.len().to_string().len().max(3);
         let gutter = (digits as f32 + 1.0) * char_w;
         let wrap = self.wrap;
         if wrap {
             let cols = (((ui.available_width() - gutter - 28.0) / char_w) as usize).max(8);
-            if self.wrapped.as_ref().is_none_or(|(c, _)| *c != cols) {
-                let rows = text::wrap_rows(&tv.text, &tv.lines, cols);
-                self.wrapped = Some((cols, rows));
-            }
+            refresh_wrapped(&mut self.wrapped, tv, cols);
         }
         let rows = self.wrapped.as_ref().filter(|_| wrap).map(|(_, r)| r);
         let n = rows.map_or(tv.lines.len(), Vec::len);
@@ -366,32 +362,11 @@ impl Lister {
         if let Some(r) = self.scroll_to.take() {
             area = area.vertical_scroll_offset(r.saturating_sub(3) as f32 * step);
         }
-        let hl = highlight_color();
         let current = self.text_match;
         area.show_rows(ui, row_h, n, |ui, range| {
             row_style(ui, row_h, char_w);
             for i in range {
-                let (no, slice) = match rows {
-                    Some(rows) => {
-                        let r = &rows[i];
-                        (r.first.then_some(r.line), &tv.text[r.range.clone()])
-                    }
-                    None => (Some(i), &tv.text[tv.lines[i].clone()]),
-                };
-                let line_idx = rows.map_or(i, |r| r[i].line);
-                let shown = text::clip_line(slice);
-                ui.horizontal(|ui| {
-                    let num = no.map_or_else(String::new, |n| (n + 1).to_string());
-                    ui.add(
-                        Label::new(RichText::new(format!("{num:>digits$}")).monospace().weak())
-                            .selectable(false),
-                    );
-                    let mut rt = RichText::new(shown.as_ref()).monospace();
-                    if current == Some(line_idx) {
-                        rt = rt.background_color(hl);
-                    }
-                    ui.add(Label::new(rt).selectable(true).extend());
-                });
+                text_row(ui, tv, rows, i, digits, current);
             }
         });
     }
@@ -399,9 +374,7 @@ impl Lister {
     fn hex_ui(&mut self, ui: &mut egui::Ui) {
         let row_h = ui.text_style_height(&TextStyle::Monospace);
         let step = row_h + ui.spacing().item_spacing.y;
-        let char_w = ui
-            .ctx()
-            .fonts_mut(|f| f.glyph_width(&TextStyle::Monospace.resolve(ui.style()), '0'));
+        let char_w = digit_width(ui, &TextStyle::Monospace);
         let n = self.bytes.len().div_ceil(text::HEX_WIDTH);
         let mut area = ScrollArea::both()
             .id_salt(self.id.with("hex"))
@@ -450,9 +423,7 @@ impl Lister {
             return;
         };
         let row_h = ui.text_style_height(&TextStyle::Body) + 4.0;
-        let char_w = ui
-            .ctx()
-            .fonts_mut(|f| f.glyph_width(&TextStyle::Body.resolve(ui.style()), '0'));
+        let char_w = digit_width(ui, &TextStyle::Body);
         let filtered = &self.filtered;
         ScrollArea::horizontal()
             .id_salt(self.id.with("table-h"))
@@ -487,6 +458,51 @@ impl Lister {
                     });
             });
     }
+}
+
+/// Width of a digit in `style`'s font, the unit of the column and gutter math.
+fn digit_width(ui: &egui::Ui, style: &TextStyle) -> f32 {
+    let font = style.resolve(ui.style());
+    ui.ctx().fonts_mut(|f| f.glyph_width(&font, '0'))
+}
+
+/// Rebuilds the wrapped rows unless they were already built for `cols` columns.
+fn refresh_wrapped(wrapped: &mut Option<(usize, Vec<VisualRow>)>, tv: &TextView, cols: usize) {
+    if wrapped.as_ref().is_none_or(|(c, _)| *c != cols) {
+        *wrapped = Some((cols, text::wrap_rows(&tv.text, &tv.lines, cols)));
+    }
+}
+
+/// One text row: its line number (blank on wrap continuations) and the clipped line.
+fn text_row(
+    ui: &mut egui::Ui,
+    tv: &TextView,
+    rows: Option<&Vec<VisualRow>>,
+    i: usize,
+    digits: usize,
+    current: Option<usize>,
+) {
+    let (no, slice) = match rows {
+        Some(rows) => {
+            let r = &rows[i];
+            (r.first.then_some(r.line), &tv.text[r.range.clone()])
+        }
+        None => (Some(i), &tv.text[tv.lines[i].clone()]),
+    };
+    let line_idx = rows.map_or(i, |r| r[i].line);
+    let shown = text::clip_line(slice);
+    ui.horizontal(|ui| {
+        let num = no.map_or_else(String::new, |n| (n + 1).to_string());
+        ui.add(
+            Label::new(RichText::new(format!("{num:>digits$}")).monospace().weak())
+                .selectable(false),
+        );
+        let mut rt = RichText::new(shown.as_ref()).monospace();
+        if current == Some(line_idx) {
+            rt = rt.background_color(highlight_color());
+        }
+        ui.add(Label::new(rt).selectable(true).extend());
+    });
 }
 
 /// Keeps every row exactly `row_h` high (what `show_rows` assumes) and sets the gutter gap.

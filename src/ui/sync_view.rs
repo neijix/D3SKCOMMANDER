@@ -446,17 +446,7 @@ impl SyncWindow {
             .column(Column::remainder().at_least(40.0));
         table
             .header(20.0, |mut h| {
-                let heads = [
-                    tr("path"),
-                    t("Left size", "Taille g."),
-                    t("Left date", "Date g."),
-                    "",
-                    t("Right size", "Taille d."),
-                    t("Right date", "Date d."),
-                    t("Action", "Action"),
-                    "",
-                ];
-                for title in heads {
+                for title in header_titles() {
                     h.col(|ui| {
                         ui.strong(title);
                     });
@@ -465,41 +455,8 @@ impl SyncWindow {
             .body(|body| {
                 body.rows(22.0, visible.len(), |mut row| {
                     let idx = visible[row.index()];
-                    let item = &mut items[idx];
-                    let (ls, ld) = side_text(item.left, item.is_dir);
-                    let (rs, rd) = side_text(item.right, item.is_dir);
-                    row.col(|ui| {
-                        let suffix = if item.is_dir { "/" } else { "" };
-                        ui.label(format!("{}{suffix}", item.rel.display()));
-                    });
-                    row.col(|ui| {
-                        ui.label(ls);
-                    });
-                    row.col(|ui| {
-                        ui.label(ld);
-                    });
-                    row.col(|ui| {
-                        let text = RichText::new(status_symbol(item.status))
-                            .color(status_color(item.status))
-                            .strong();
-                        ui.label(text);
-                    });
-                    row.col(|ui| {
-                        ui.label(rs);
-                    });
-                    row.col(|ui| {
-                        ui.label(rd);
-                    });
-                    row.col(|ui| action_combo(ui, idx, item));
-                    row.col(|ui| {
-                        ui.label(action_arrow(item.action));
-                    });
-                    let comparable = item.left.is_some()
-                        && item.right.is_some()
-                        && item.status != SyncStatus::Equal
-                        && !item.is_dir;
-                    if comparable && row.response().double_clicked() {
-                        double_clicked = Some(item.rel.clone());
+                    if let Some(rel) = sync_row(&mut row, idx, &mut items[idx]) {
+                        double_clicked = Some(rel);
                     }
                 });
             });
@@ -581,6 +538,60 @@ impl SyncWindow {
             }
         });
     }
+}
+
+fn header_titles() -> [&'static str; 8] {
+    [
+        tr("path"),
+        t("Left size", "Taille g."),
+        t("Left date", "Date g."),
+        "",
+        t("Right size", "Taille d."),
+        t("Right date", "Date d."),
+        t("Action", "Action"),
+        "",
+    ]
+}
+
+/// Draws one difference; returns its relative path when a comparable pair was double-clicked.
+fn sync_row(
+    row: &mut egui_extras::TableRow<'_, '_>,
+    idx: usize,
+    item: &mut SyncItem,
+) -> Option<PathBuf> {
+    let (ls, ld) = side_text(item.left, item.is_dir);
+    let (rs, rd) = side_text(item.right, item.is_dir);
+    row.col(|ui| {
+        let suffix = if item.is_dir { "/" } else { "" };
+        ui.label(format!("{}{suffix}", item.rel.display()));
+    });
+    row.col(|ui| {
+        ui.label(ls);
+    });
+    row.col(|ui| {
+        ui.label(ld);
+    });
+    row.col(|ui| {
+        let text = RichText::new(status_symbol(item.status))
+            .color(status_color(item.status))
+            .strong();
+        ui.label(text);
+    });
+    row.col(|ui| {
+        ui.label(rs);
+    });
+    row.col(|ui| {
+        ui.label(rd);
+    });
+    row.col(|ui| action_combo(ui, idx, item));
+    row.col(|ui| {
+        ui.label(action_arrow(item.action));
+    });
+    let comparable = item.left.is_some()
+        && item.right.is_some()
+        && item.status != SyncStatus::Equal
+        && !item.is_dir;
+    (comparable && row.response().double_clicked()).then(|| item.rel.clone())
 }
 
 /// The per-row action combo, limited to the actions valid for the item's status.
