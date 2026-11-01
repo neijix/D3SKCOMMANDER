@@ -476,11 +476,9 @@ mod tests {
         fs::create_dir_all(r.path().join("both")).unwrap();
 
         let items = run(l.path(), r.path(), &SyncOptions::default());
-        let rels: Vec<_> = items
-            .iter()
-            .map(|i| i.rel.to_string_lossy().into_owned())
-            .collect();
-        assert_eq!(rels, ["full/f.txt", "hollow/inner", "rhollow"]);
+        let rels: Vec<_> = items.iter().map(|i| i.rel.as_path()).collect();
+        let want = ["full/f.txt", "hollow/inner", "rhollow"].map(std::path::Path::new);
+        assert_eq!(rels, want);
         let it = find(&items, "hollow/inner");
         assert!(it.is_dir);
         assert_eq!(
