@@ -606,6 +606,7 @@ mod tests {
     }
 
     #[test]
+    #[cfg(unix)] // GVFS folder names hold ':', which Windows refuses
     fn gvfs_shares_are_listed_by_address() {
         let dir = tempfile::tempdir().unwrap();
         let gvfs = dir.path().join("gvfs");
