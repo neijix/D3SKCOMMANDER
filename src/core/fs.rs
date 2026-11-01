@@ -338,6 +338,11 @@ pub fn drives() -> Vec<Drive> {
             free: disk.available_space(),
         });
     }
+    if cfg!(target_os = "linux")
+        && let Some(run) = std::env::var_os("XDG_RUNTIME_DIR")
+    {
+        out.extend(gvfs_drives(&Path::new(&run).join("gvfs")));
+    }
     if !cfg!(windows) && !out.iter().any(|d| d.path == Path::new("/")) {
         out.insert(
             1,
@@ -349,6 +354,29 @@ pub fn drives() -> Vec<Drive> {
             },
         );
     }
+    out
+}
+
+/// The network shares GVFS mounted (Linux desktop, `gio mount`): one entry per folder of
+/// `gvfs_dir`, labelled with the share's address.
+pub fn gvfs_drives(gvfs_dir: &Path) -> Vec<Drive> {
+    let Ok(entries) = std::fs::read_dir(gvfs_dir) else {
+        return Vec::new();
+    };
+    let mut out: Vec<Drive> = entries
+        .flatten()
+        .map(|e| e.path())
+        .filter_map(|path| {
+            let uri = crate::core::netdrive::gvfs_uri(&path)?;
+            Some(Drive {
+                label: uri.trim_end_matches('/').to_string(),
+                path,
+                total: 0,
+                free: 0,
+            })
+        })
+        .collect();
+    out.sort_by(|a, b| a.label.cmp(&b.label));
     out
 }
 
@@ -575,5 +603,21 @@ mod tests {
         assert_eq!(grouped(1234567), "1 234 567");
         assert_eq!(grouped(12), "12");
         assert_eq!(format_time(None), "");
+    }
+
+    #[test]
+    fn gvfs_shares_are_listed_by_address() {
+        let dir = tempfile::tempdir().unwrap();
+        let gvfs = dir.path().join("gvfs");
+        for name in [
+            "smb-share:server=nas,share=media",
+            "sftp:host=box,user=me",
+            "junk",
+        ] {
+            std::fs::create_dir_all(gvfs.join(name)).unwrap();
+        }
+        let labels: Vec<String> = gvfs_drives(&gvfs).into_iter().map(|d| d.label).collect();
+        assert_eq!(labels, ["sftp://me@box", "smb://nas/media"]);
+        assert!(gvfs_drives(&dir.path().join("missing")).is_empty());
     }
 }

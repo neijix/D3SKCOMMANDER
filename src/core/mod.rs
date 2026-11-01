@@ -11,6 +11,7 @@ pub mod fs;
 pub mod ftp;
 pub mod launcher;
 pub mod multirename;
+pub mod netdrive;
 pub mod search;
 pub mod splitter;
 pub mod sync;

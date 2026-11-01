@@ -33,6 +33,11 @@ age = "0.12"
 suppaftp = { version = "12", features = ["rustls-ring"] }
 rustls = { version = "0.23", default-features = false, features = ["ring", "std", "tls12", "logging"] }
 webpki-roots = "1"
+rfd = "0.17"
+pollster = "0.4"
+
+[target.'cfg(windows)'.dependencies]
+windows-sys = { version = "0.61", features = ["Win32_Foundation", "Win32_NetworkManagement_WNet"] }
 
 [dev-dependencies]
 egui_kittest = { version = "0.37", features = ["eframe"] }

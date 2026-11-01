@@ -1,0 +1,30 @@
+display name: downloads on nas.example.com
+edit name: /
+name: /
+type: directory
+size:  0
+uri: smb://nas.example.com/downloads/
+local path: /run/user/1000/gvfs/smb-share:server=nas.example.com,share=downloads
+unix mount: gvfsd-fuse /run/user/1000/gvfs fuse.gvfsd-fuse rw,nosuid,nodev,relatime,user_id=1000,group_id=1000
+attributes:
+  standard::type: 2
+  standard::name: /
+  standard::display-name: downloads on nas.example.com
+  standard::edit-name: /
+  standard::icon: folder-remote, folder-remote-symbolic
+  standard::content-type: inode/directory
+  standard::fast-content-type: inode/directory
+  standard::size: 0
+  standard::allocated-size: 0
+  standard::symbolic-icon: folder-remote-symbolic, folder-remote
+  etag::value: 1793264413
+  id::filesystem: smb-share:server=nas.example.com,share=downloads
+  access::can-trash: FALSE
+  time::modified: 1793264413
+  time::modified-usec: 969289
+  time::access: 1793542761
+  time::access-usec: 121074
+  time::changed: 1793264413
+  time::changed-usec: 969289
+  unix::device: 2451117418
+  unix::inode: 256

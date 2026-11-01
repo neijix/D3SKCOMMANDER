@@ -119,6 +119,8 @@ pub struct Settings {
     pub user_commands: Vec<UserCommand>,
     pub ftp_sites: Vec<FtpSite>,
     pub history: Vec<PathBuf>,
+    /// Network drive addresses connected before, most recent first (never a password).
+    pub net_shares: Vec<String>,
 }
 
 impl Default for Settings {
@@ -140,6 +142,7 @@ impl Default for Settings {
             user_commands: Vec::new(),
             ftp_sites: Vec::new(),
             history: Vec::new(),
+            net_shares: Vec::new(),
         }
     }
 }

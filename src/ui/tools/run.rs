@@ -41,6 +41,7 @@ impl App {
             Dialog::Time(f) => self.run_time(f),
             Dialog::Crypt(f) => self.run_crypt(f, ctx),
             Dialog::OpenWith(f) => self.run_open_with(f),
+            Dialog::NetConnect(f) => self.run_net_connect(f, ctx),
             Dialog::Message { .. }
             | Dialog::Hotlist
             | Dialog::History
