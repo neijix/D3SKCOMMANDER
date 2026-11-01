@@ -10,7 +10,7 @@ use std::time::SystemTime;
 use chrono::{Local, NaiveDateTime};
 
 use super::ArchiveEntry;
-use super::common::{Plan, normalize, resolve, with_implied_dirs};
+use super::common::{Plan, invalid, normalize, resolve, unsafe_reason, with_implied_dirs};
 
 const TOOLS: [&str; 4] = ["7z", "7za", "7zz", "unrar"];
 
@@ -196,6 +196,7 @@ pub(super) fn extract_with(
     progress: &mut dyn FnMut(&str) -> bool,
 ) -> io::Result<usize> {
     let entries = list_with(tool, archive)?;
+    check_members(&entries, plan)?;
     let count = entries
         .iter()
         .filter(|e| !e.is_dir && plan.wants(&e.path))
@@ -224,6 +225,20 @@ pub(super) fn extract_with(
         .and_then(|_| relocate(plan, selection, &scratch, dest));
     let _ = fs::remove_dir_all(&scratch);
     result.map(|()| count)
+}
+
+/// Refuses the whole extraction when a member it would write escapes the destination: the
+/// external tool extracts members itself, so `resolve` never sees the ones below a selection.
+pub(super) fn check_members(entries: &[ArchiveEntry], plan: &Plan) -> io::Result<()> {
+    for e in entries.iter().filter(|e| plan.wants(&e.path)) {
+        if let Some(reason) = unsafe_reason(&e.path) {
+            return Err(invalid(format!(
+                "unsafe path in archive ({reason}): {}",
+                e.path
+            )));
+        }
+    }
+    Ok(())
 }
 
 fn relocate(plan: &Plan, selection: &[String], scratch: &Path, dest: &Path) -> io::Result<()> {

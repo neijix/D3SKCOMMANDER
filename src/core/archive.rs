@@ -625,6 +625,24 @@ Path = win\\x.bin\r\nSize = 3\n";
     }
 
     #[test]
+    fn external_extraction_refuses_unsafe_member_names() {
+        let slt = |path: &str| format!("x\n----------\nPath = ok.txt\n\nPath = {path}\nSize = 1\n");
+        let whole = common::Plan::new(None);
+        let sub = common::Plan::new(Some(&["dir".to_string()]));
+        for bad in ["../evil", "dir/../../evil", "C:\\x", "dir\\C:x"] {
+            let entries = external::parse_slt(&slt(bad));
+            let err = external::check_members(&entries, &whole).unwrap_err();
+            assert_eq!(err.kind(), io::ErrorKind::InvalidData, "{bad}");
+        }
+        let below = external::parse_slt(&slt("dir/../../evil"));
+        assert!(external::check_members(&below, &sub).is_err());
+        let elsewhere = external::parse_slt(&slt("other/../../evil"));
+        assert!(external::check_members(&elsewhere, &sub).is_ok());
+        let fine = external::parse_slt(&slt("dir/a b.txt"));
+        assert!(external::check_members(&fine, &whole).is_ok());
+    }
+
+    #[test]
     fn external_tool_round_trip_when_installed() {
         let Some(tool) = external_tool() else {
             eprintln!("skipped: no 7z/unrar on PATH");

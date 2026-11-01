@@ -151,11 +151,19 @@ fn quit_conn<T: TlsStream>(ftp: &mut ImplFtpStream<T>) {
 }
 
 fn list_entries<T: TlsStream>(ftp: &mut ImplFtpStream<T>) -> Result<Vec<RemoteEntry>, String> {
-    if let Ok(lines) = ftp.mlsd(None) {
+    let mlsd = ftp.mlsd(None);
+    entries_from(mlsd, || ftp.list(None).map_err(err))
+}
+
+/// MLSD lines when the server answered MLSD, else the lines of a plain LIST.
+fn entries_from<E>(
+    mlsd: Result<Vec<String>, E>,
+    list: impl FnOnce() -> Result<Vec<String>, String>,
+) -> Result<Vec<RemoteEntry>, String> {
+    if let Ok(lines) = mlsd {
         return Ok(lines.iter().filter_map(|l| parse_mlsd_line(l)).collect());
     }
-    let lines = ftp.list(None).map_err(err)?;
-    Ok(lines.iter().filter_map(|l| parse_list_line(l)).collect())
+    Ok(list()?.iter().filter_map(|l| parse_list_line(l)).collect())
 }
 
 fn download_to<T: TlsStream>(
@@ -341,6 +349,27 @@ impl FtpSession {
 #[cfg(test)]
 mod tests {
     use super::*;
+
+    fn lines(v: &[&str]) -> Vec<String> {
+        v.iter().map(|l| (*l).to_string()).collect()
+    }
+
+    #[test]
+    fn listing_prefers_mlsd_and_falls_back_to_list() {
+        let mlsd = Ok::<_, ()>(lines(&["type=file;size=3;modify=20240101120000; m.txt"]));
+        let got = entries_from(mlsd, || panic!("LIST must not run")).unwrap();
+        assert_eq!(got.len(), 1);
+        assert_eq!((got[0].name.as_str(), got[0].size), ("m.txt", 3));
+
+        let unix = "-rw-r--r--   1 user group      42 Jan  2  2024 u.txt";
+        let dos = "01-02-24  03:04PM       <DIR>          sub";
+        let got = entries_from(Err(()), || Ok(lines(&[unix, dos]))).unwrap();
+        let names: Vec<_> = got.iter().map(|e| (e.name.as_str(), e.is_dir)).collect();
+        assert_eq!(names, [("u.txt", false), ("sub", true)]);
+
+        let failed = entries_from(Err(()), || Err("550 no".to_string()));
+        assert_eq!(failed.unwrap_err(), "550 no");
+    }
 
     #[test]
     fn site_serde_round_trip_and_default() {

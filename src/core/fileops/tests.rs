@@ -635,3 +635,41 @@ fn move_across_devices_copies_then_deletes() {
     );
     assert!(!tree.exists(), "the source goes once its copy succeeded");
 }
+
+/// Platforms whose trash can be listed and purged, so the test leaves the user's trash as it was.
+#[cfg(any(
+    windows,
+    all(
+        unix,
+        not(target_os = "macos"),
+        not(target_os = "ios"),
+        not(target_os = "android")
+    )
+))]
+#[test]
+fn delete_to_trash_removes_files_and_trees() {
+    let tmp = tempdir().unwrap();
+    let file = tmp.path().join("a.txt");
+    write(&file, "x");
+    let tree = tmp.path().join("tree");
+    write(&tree.join("b.txt"), "b");
+
+    let out = go(&request(
+        OpKind::Delete { to_trash: true },
+        &[&file, &tree],
+        None,
+    ));
+    let ours: Vec<_> = trash::os_limited::list()
+        .unwrap_or_default()
+        .into_iter()
+        .filter(|i| i.original_parent.starts_with(tmp.path()))
+        .collect();
+    let _ = trash::os_limited::purge_all(ours);
+
+    if out.finished().1 > 0 && file.exists() {
+        eprintln!("skipped: no usable trash here (headless or tmpfs)");
+        return;
+    }
+    assert_eq!(out.finished().1, 0);
+    assert!(!file.exists() && !tree.exists());
+}
