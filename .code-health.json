@@ -7,30 +7,9 @@
   },
   "exclude": [],
   "baseline": {
-    "file_lines": {
-      "src/ui/actions.rs": 831
-    },
-    "function_lines": {
-      "src/core/dbf.rs::format_value": 205,
-      "src/core/ftp/listing.rs::parse_unix": 152,
-      "src/core/multirename.rs::token": 157,
-      "src/ui/actions.rs::run": 227,
-      "src/ui/dialogs.rs::dialog_body": 162,
-      "src/ui/lister.rs::text_ui": 151,
-      "src/ui/panel_view.rs::full_view": 100,
-      "src/ui/sync_view.rs::table_ui": 86,
-      "src/ui/tools.rs::run_dialog": 110,
-      "src/ui/tools.rs::run_input": 117
-    },
-    "function_ccn": {
-      "src/core/sync.rs::compare_dirs": 24,
-      "src/ui/actions.rs::run": 91,
-      "src/ui/dialogs.rs::dialog_body": 30,
-      "src/ui/keys.rs::label": 73,
-      "src/ui/tools.rs::run_input": 23
-    },
-    "duplicate_lines": {
-      "src/ui/keys.rs": 148
-    }
+    "file_lines": {},
+    "function_lines": {},
+    "function_ccn": {},
+    "duplicate_lines": {}
   }
 }
