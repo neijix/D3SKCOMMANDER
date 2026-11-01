@@ -4,7 +4,7 @@ version = "0.1.0"
 edition = "2024"
 description = "A cross-platform two-panel (orthodox) file manager"
 license = "MIT"
-rust-version = "1.88"
+rust-version = "1.95"
 
 [dependencies]
 eframe = "0.37"
@@ -35,6 +35,7 @@ rustls = { version = "0.23", default-features = false, features = ["ring", "std"
 webpki-roots = "1"
 
 [dev-dependencies]
+egui_kittest = { version = "0.37", features = ["eframe"] }
 tempfile = "3"
 
 [profile.release]

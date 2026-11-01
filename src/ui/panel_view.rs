@@ -10,6 +10,7 @@ use super::App;
 use super::dialogs::Dialog;
 use super::keys::Command;
 use super::panel::{Location, ViewMode, is_browsable_archive};
+use crate::config::Columns;
 use crate::core::fs::{self as cfs, Entry, SortKey};
 use crate::i18n::{t, tr};
 
@@ -401,6 +402,7 @@ fn full_view(
     side: usize,
     acts: &mut Vec<Act>,
 ) {
+    let cols = &cols.fitting(ui.available_width(), ui.spacing().item_spacing.x);
     let (mut table, headers) = full_table(ui, cols, side);
     if std::mem::take(&mut tab.scroll_to_cursor) {
         table = table.scroll_to_row(tab.cursor, None);
@@ -432,13 +434,20 @@ fn full_table<'a>(
         .sense(Sense::click())
         .cell_layout(egui::Layout::left_to_right(Align::Center))
         .auto_shrink(false)
-        .column(Column::remainder().at_least(120.0).clip(true));
+        // Name fills what the other columns leave. Not resizable: a resizable remainder
+        // keeps its width when the window shrinks and pushes the table past its panel.
+        .column(
+            Column::remainder()
+                .at_least(Columns::NAME_MIN)
+                .clip(true)
+                .resizable(false),
+        );
     let mut headers = vec![("name", SortKey::Name)];
     for (on, key, sort, width) in [
-        (cols.ext, "ext", SortKey::Ext, 50.0),
-        (cols.size, "size", SortKey::Size, 80.0),
-        (cols.date, "date", SortKey::Modified, 130.0),
-        (cols.attrs, "attr", SortKey::Attrs, 70.0),
+        (cols.ext, "ext", SortKey::Ext, Columns::EXT),
+        (cols.size, "size", SortKey::Size, Columns::SIZE),
+        (cols.date, "date", SortKey::Modified, Columns::DATE),
+        (cols.attrs, "attr", SortKey::Attrs, Columns::ATTRS),
     ] {
         if on {
             table = table.column(Column::initial(width).at_least(30.0).clip(true));

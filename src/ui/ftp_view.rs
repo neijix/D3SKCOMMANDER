@@ -643,7 +643,12 @@ impl FtpWindow {
                     b.size(Size::exact(270.0))
                         .size(Size::remainder())
                         .horizontal(|mut s| {
-                            s.cell(|ui| self.sites_ui(ui, shared));
+                            // The site form is taller than a small window: let it scroll.
+                            s.cell(|ui| {
+                                egui::ScrollArea::vertical()
+                                    .id_salt("ftp-left")
+                                    .show(ui, |ui| self.sites_ui(ui, shared));
+                            });
                             s.cell(|ui| self.remote_ui(ui, shared));
                         });
                 });
@@ -673,10 +678,9 @@ impl ToolWindow for FtpWindow {
         self.drain_events(shared);
         self.prefill(shared);
         let mut open = true;
-        egui::Window::new(tr("cmd.ftp"))
+        super::tool_window(tr("cmd.ftp"), ctx, [940.0, 580.0])
             .id(self.id)
             .open(&mut open)
-            .default_size([940.0, 580.0])
             .show(ctx, |ui| self.ui(ui, shared));
         if !open {
             self.disconnect();

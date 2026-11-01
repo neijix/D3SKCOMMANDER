@@ -616,10 +616,9 @@ impl ToolWindow for SyncWindow {
     fn show(&mut self, ctx: &egui::Context, shared: &mut Shared) -> bool {
         self.poll(ctx, shared);
         let mut open = true;
-        egui::Window::new(tr("cmd.sync"))
+        super::tool_window(tr("cmd.sync"), ctx, [980.0, 600.0])
             .id(self.id)
             .open(&mut open)
-            .default_size([980.0, 600.0])
             .resizable(true)
             .show(ctx, |ui| {
                 self.paths_ui(ui);

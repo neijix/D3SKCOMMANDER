@@ -414,10 +414,9 @@ impl ToolWindow for CompareWindow {
         }
         self.poll();
         let mut open = true;
-        egui::Window::new(tr("cmd.compare_files"))
+        super::tool_window(tr("cmd.compare_files"), ctx, [1000.0, 650.0])
             .id(self.id)
             .open(&mut open)
-            .default_size([1000.0, 650.0])
             .show(ctx, |ui| {
                 self.toolbar(ui, shared);
                 ui.separator();

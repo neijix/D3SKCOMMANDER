@@ -387,10 +387,9 @@ fn counter_ui(ui: &mut egui::Ui, rule: &mut RenameRule) -> bool {
 impl ToolWindow for RenameWindow {
     fn show(&mut self, ctx: &egui::Context, shared: &mut Shared) -> bool {
         let mut open = true;
-        egui::Window::new(tr("cmd.multirename"))
+        super::tool_window(tr("cmd.multirename"), ctx, [760.0, 600.0])
             .id(self.id)
             .open(&mut open)
-            .default_size([760.0, 600.0])
             .resizable(true)
             .show(ctx, |ui| {
                 if self.form_ui(ui, ctx) {

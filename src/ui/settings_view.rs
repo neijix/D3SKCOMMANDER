@@ -247,11 +247,10 @@ impl ToolWindow for SettingsWindow {
     fn show(&mut self, ctx: &egui::Context, shared: &mut Shared) -> bool {
         let mut open = true;
         let mut choice = Choice::None;
-        egui::Window::new(tr("cmd.settings"))
+        super::tool_window(tr("cmd.settings"), ctx, [560.0, 420.0])
             .id(self.id)
             .open(&mut open)
             .collapsible(false)
-            .default_size([560.0, 420.0])
             .show(ctx, |ui| {
                 self.tabs_ui(ui);
                 ui.separator();

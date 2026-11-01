@@ -50,6 +50,47 @@ impl Default for Columns {
     }
 }
 
+impl Columns {
+    /// Default widths in points: Name (its minimum), Ext, Size, Date, Attr.
+    pub const NAME_MIN: f32 = 80.0;
+    pub const EXT: f32 = 50.0;
+    pub const SIZE: f32 = 80.0;
+    pub const DATE: f32 = 130.0;
+    pub const ATTRS: f32 = 90.0;
+
+    /// The shown columns that fit in `width` beside the Name column, `gap` apart. When the
+    /// panel is too narrow, the least useful go first: Attr, then Ext, then Date, then Size.
+    pub fn fitting(&self, width: f32, gap: f32) -> Columns {
+        let mut out = self.clone();
+        let used = |c: &Columns| {
+            let extra = [
+                (c.ext, Self::EXT),
+                (c.size, Self::SIZE),
+                (c.date, Self::DATE),
+                (c.attrs, Self::ATTRS),
+            ];
+            extra
+                .iter()
+                .filter(|(on, _)| *on)
+                .map(|(_, w)| w + gap)
+                .sum::<f32>()
+                + Self::NAME_MIN
+        };
+        for drop in [
+            |c: &mut Columns| c.attrs = false,
+            |c: &mut Columns| c.ext = false,
+            |c: &mut Columns| c.date = false,
+            |c: &mut Columns| c.size = false,
+        ] {
+            if used(&out) <= width {
+                break;
+            }
+            drop(&mut out);
+        }
+        out
+    }
+}
+
 #[derive(Clone, Debug, PartialEq, Serialize, Deserialize, Default)]
 pub struct PanelConfig {
     pub tabs: Vec<PathBuf>,
@@ -164,6 +205,35 @@ fn portable_dir() -> Option<PathBuf> {
 #[cfg(test)]
 mod tests {
     use super::*;
+
+    #[test]
+    fn columns_drop_attr_ext_date_size_in_that_order_when_narrow() {
+        let all = Columns::default();
+        assert_eq!(all.fitting(2000.0, 0.0), all);
+        let wide = 80.0 + 50.0 + 80.0 + 130.0 + 90.0;
+        assert_eq!(all.fitting(wide, 0.0), all);
+        let no_attr = all.fitting(wide - 1.0, 0.0);
+        assert!(!no_attr.attrs && no_attr.ext && no_attr.size && no_attr.date);
+        let size_date = all.fitting(80.0 + 80.0 + 130.0, 0.0);
+        assert!(!size_date.ext && size_date.size && size_date.date);
+        let size_only = all.fitting(200.0, 0.0);
+        assert!(size_only.size && !size_only.date);
+        assert_eq!(
+            all.fitting(10.0, 0.0),
+            Columns {
+                ext: false,
+                size: false,
+                date: false,
+                attrs: false
+            }
+        );
+        // Columns the user turned off stay off.
+        let some = Columns {
+            ext: false,
+            ..Columns::default()
+        };
+        assert!(!some.fitting(2000.0, 0.0).ext);
+    }
 
     #[test]
     fn round_trip_and_defaults_for_missing_fields() {

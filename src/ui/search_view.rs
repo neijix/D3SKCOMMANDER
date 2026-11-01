@@ -478,10 +478,9 @@ impl ToolWindow for SearchWindow {
     fn show(&mut self, ctx: &egui::Context, shared: &mut Shared) -> bool {
         self.poll(ctx);
         let mut open = true;
-        egui::Window::new(tr("cmd.search"))
+        super::tool_window(tr("cmd.search"), ctx, [820.0, 620.0])
             .id(self.id)
             .open(&mut open)
-            .default_size([820.0, 620.0])
             .resizable(true)
             .show(ctx, |ui| {
                 let submit = self.form_ui(ui);

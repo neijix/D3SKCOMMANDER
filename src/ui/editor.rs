@@ -336,10 +336,9 @@ impl EditorWindow {
 impl ToolWindow for EditorWindow {
     fn show(&mut self, ctx: &egui::Context, shared: &mut Shared) -> bool {
         let mut open = true;
-        egui::Window::new(self.title())
+        super::tool_window(self.title(), ctx, [820.0, 620.0])
             .id(self.id)
             .open(&mut open)
-            .default_size([820.0, 620.0])
             .show(ctx, |ui| match self.refused.clone() {
                 Some(msg) => self.refused_ui(ui, &msg),
                 None => {

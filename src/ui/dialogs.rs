@@ -203,12 +203,22 @@ impl App {
         let enter = ctx.input(|i| i.key_pressed(Key::Enter));
         let mut outcome = Outcome::Close;
         let mut slot = Some(dialog);
+        // At most 640 wide, and never larger than the window minus the modal's frame: a
+        // tall dialog (the key list) scrolls instead of running off screen.
+        let screen = ctx.content_rect().size();
+        let max_width = (screen.x - 48.0).clamp(200.0, 640.0);
+        let max_height = (screen.y - 64.0).max(120.0);
         let modal = egui::Modal::new(egui::Id::unique("d3sk-dialog")).show(ctx, |ui| {
-            ui.set_min_width(420.0);
-            ui.set_max_width(640.0);
-            if let Some(d) = slot.take() {
-                outcome = self.dialog_body(ui, d, enter);
-            }
+            ui.set_min_width(max_width.min(420.0));
+            ui.set_max_width(max_width);
+            egui::ScrollArea::vertical()
+                .id_salt("d3sk-dialog-scroll")
+                .max_height(max_height)
+                .show(ui, |ui| {
+                    if let Some(d) = slot.take() {
+                        outcome = self.dialog_body(ui, d, enter);
+                    }
+                });
         });
         if modal.should_close() && matches!(outcome, Outcome::Keep(_)) {
             outcome = Outcome::Close;

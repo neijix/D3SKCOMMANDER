@@ -97,6 +97,21 @@ pub fn window_id(kind: &str) -> egui::Id {
     egui::Id::unique((kind.to_string(), NEXT.fetch_add(1, Ordering::Relaxed)))
 }
 
+/// A tool window opened at `size`, or smaller when the app window is smaller, and never
+/// larger than the app window: on a small screen it opens whole and stays reachable.
+pub(crate) fn tool_window<'a>(
+    title: impl Into<egui::WidgetText>,
+    ctx: &egui::Context,
+    size: [f32; 2],
+) -> egui::Window<'a> {
+    // Room for the window's title bar, frame and shadow.
+    let room = (ctx.content_rect().size() - egui::vec2(24.0, 56.0)).max(egui::vec2(200.0, 120.0));
+    egui::Window::new(title)
+        .default_size([size[0].min(room.x), size[1].min(room.y)])
+        .max_size(room)
+        .constrain(true)
+}
+
 /// The quick view panel (Ctrl+Q): the other panel previews the active panel's file.
 pub(crate) struct QuickView {
     pub(crate) path: Option<PathBuf>,

@@ -540,10 +540,9 @@ impl ListerWindow {
 impl ToolWindow for ListerWindow {
     fn show(&mut self, ctx: &egui::Context, _shared: &mut Shared) -> bool {
         let mut open = true;
-        egui::Window::new(self.title.as_str())
+        super::tool_window(self.title.as_str(), ctx, [900.0, 650.0])
             .id(self.id)
             .open(&mut open)
-            .default_size([900.0, 650.0])
             .show(ctx, |ui| self.lister.ui(ui));
         open
     }

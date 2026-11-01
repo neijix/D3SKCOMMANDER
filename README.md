@@ -42,7 +42,7 @@ The tools other file managers ship as add-ons are built in.
 
 ## Build
 
-You need a Rust toolchain (1.88 or newer, from [rustup](https://rustup.rs)).
+You need a Rust toolchain (1.95 or newer, from [rustup](https://rustup.rs)).
 
 ```sh
 cargo build --release
