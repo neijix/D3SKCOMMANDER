@@ -213,6 +213,22 @@ const STRINGS: &[(&str, &str, &str)] = &[
     ("cmd.same_dir", "Target = source", "Cible = source"),
     ("cmd.new_tab", "New tab", "Nouvel onglet"),
     ("cmd.close_tab", "Close tab", "Fermer l'onglet"),
+    ("cmd.next_tab", "Next tab", "Onglet suivant"),
+    ("cmd.switch_panel", "Switch panel", "Changer de panneau"),
+    (
+        "cmd.drives_left",
+        "Drive / folder (left)",
+        "Lecteur / dossier (gauche)",
+    ),
+    (
+        "cmd.drives_right",
+        "Drive / folder (right)",
+        "Lecteur / dossier (droite)",
+    ),
+    ("cmd.sort_name", "Sort by name", "Trier par nom"),
+    ("cmd.sort_ext", "Sort by extension", "Trier par extension"),
+    ("cmd.sort_date", "Sort by date", "Trier par date"),
+    ("cmd.sort_size", "Sort by size", "Trier par taille"),
     ("cmd.hotlist", "Directory hotlist", "Dossiers favoris"),
     (
         "cmd.add_hotlist",

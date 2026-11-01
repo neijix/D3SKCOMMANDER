@@ -81,7 +81,7 @@ commands! {
     SameDir => "cmd.same_dir",
     NewTab => "cmd.new_tab",
     CloseTab => "cmd.close_tab",
-    NextTab => "cmd.new_tab",
+    NextTab => "cmd.next_tab",
     Hotlist => "cmd.hotlist",
     AddHotlist => "cmd.add_hotlist",
     History => "cmd.history",
@@ -95,13 +95,13 @@ commands! {
     Log => "cmd.log",
     About => "cmd.about",
     Keys => "cmd.keys",
-    SortName => "name",
-    SortExt => "ext",
-    SortDate => "date",
-    SortSize => "size",
-    SwitchPanel => "cmd.swap",
-    DrivesLeft => "folder",
-    DrivesRight => "folder",
+    SortName => "cmd.sort_name",
+    SortExt => "cmd.sort_ext",
+    SortDate => "cmd.sort_date",
+    SortSize => "cmd.sort_size",
+    SwitchPanel => "cmd.switch_panel",
+    DrivesLeft => "cmd.drives_left",
+    DrivesRight => "cmd.drives_right",
 }
 
 impl Command {
@@ -230,6 +230,18 @@ mod tests {
         assert_eq!(Command::from_name("Nope"), None);
         let mut seen = std::collections::HashSet::new();
         assert!(Command::all().iter().all(|c| seen.insert(format!("{c:?}"))));
+    }
+
+    #[test]
+    fn every_command_has_its_own_translated_label() {
+        let mut seen = std::collections::HashMap::new();
+        for c in Command::all() {
+            let key = c.i18n_key();
+            assert_ne!(tr(key), key, "{c:?}: no translation for {key}");
+            if let Some(other) = seen.insert(key, *c) {
+                panic!("{c:?} and {other:?} share the label {key}");
+            }
+        }
     }
 
     #[test]
