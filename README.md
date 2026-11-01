@@ -54,6 +54,8 @@ cargo build --release
 - **macOS**: Xcode command-line tools (`xcode-select --install`).
 - **Windows**: the MSVC build tools (rustup offers to install them).
 
+Or build and start it in one step: `./start.sh` (macOS, Linux) or `start.bat` (Windows).
+
 Run the gate (format, lint, tests) with `./check.sh`.
 
 ## Configuration
