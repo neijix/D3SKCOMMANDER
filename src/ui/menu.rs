@@ -68,6 +68,7 @@ const MENUS: &[Menu] = {
                 Some(Branch),
                 Some(QuickFilter),
                 None,
+                Some(BrowseFolder),
                 Some(Hotlist),
                 Some(AddHotlist),
                 Some(History),
@@ -83,7 +84,16 @@ const MENUS: &[Menu] = {
                 Some(Terminal),
             ],
         ),
-        ("menu.net", &[Some(Ftp), Some(Passwords)]),
+        (
+            "menu.net",
+            &[
+                Some(NetConnect),
+                Some(NetDisconnect),
+                None,
+                Some(Ftp),
+                Some(Passwords),
+            ],
+        ),
         (
             "menu.show",
             &[
@@ -281,6 +291,9 @@ mod tests {
             Command::Decrypt,
             Command::BackupZip,
             Command::Ftp,
+            Command::NetConnect,
+            Command::NetDisconnect,
+            Command::BrowseFolder,
             Command::Sync,
         ] {
             assert!(in_menu(c), "{c:?} is not in a menu");

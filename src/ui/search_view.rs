@@ -10,6 +10,7 @@ use std::time::{Duration, SystemTime};
 use eframe::egui;
 use egui_extras::{Column, TableBuilder};
 
+use super::picker::{FolderPick, folder_field};
 use super::{AppEvent, Shared, ToolWindow};
 use crate::core::fs::{format_time, grouped};
 use crate::core::search::{SearchEvent, SearchHit, SearchQuery, spawn};
@@ -169,6 +170,7 @@ pub struct SearchWindow {
     finished: Option<(u64, bool)>,
     errors: Vec<String>,
     close: bool,
+    root_pick: FolderPick,
 }
 
 impl SearchWindow {
@@ -184,6 +186,7 @@ impl SearchWindow {
             finished: None,
             errors: Vec::new(),
             close: false,
+            root_pick: FolderPick::default(),
         }
     }
 
@@ -250,13 +253,17 @@ impl SearchWindow {
 
     fn form_ui(&mut self, ui: &mut egui::Ui) -> bool {
         let mut submit = false;
+        let pick = &mut self.root_pick;
         let f = &mut self.form;
         egui::Grid::new("search_form")
             .num_columns(2)
             .spacing([8.0, 4.0])
             .show(ui, |ui| {
                 ui.label(t("Search in", "Rechercher dans"));
-                field(ui, &mut f.roots, 460.0, &mut submit);
+                let r = folder_field(ui, &mut f.roots, pick, 460.0);
+                if r.lost_focus() && ui.input(|i| i.key_pressed(egui::Key::Enter)) {
+                    submit = true;
+                }
                 ui.end_row();
 
                 ui.label(t("File name", "Nom du fichier"));

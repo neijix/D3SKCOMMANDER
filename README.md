@@ -28,6 +28,17 @@ The tools other file managers ship as add-ons are built in.
   empty folders. You review and change each action before it runs.
 - **Multi-rename** (Ctrl+M): name and extension masks (`[N]`, `[E]`, `[C]` counter, date
   fields), search and replace with regex, case changes, a live preview, and undo.
+- **Network drives** (Net menu, or the 💾 drive list): connect a shared folder —
+  `\\server\share`, `smb://server/share`, and on Linux and macOS also `sftp://`, `ftp://`,
+  `dav(s)://`, `afp://`, `nfs://` — with a user, domain and password, then browse it in the
+  panel. The operating system does the mount (a mapped drive letter on Windows, Finder's
+  "Connect to Server" on macOS, GVFS / `gio mount` on Linux), so the share works in other
+  programs too. The password is never saved nor put on a command line; recent addresses are
+  remembered. On Linux this needs GVFS (`gvfs-backends` on Debian/Ubuntu, usually installed
+  with the desktop); connected shares also show in the drive list.
+- **Folder picker**: the 📂 button of each path bar, the drive list and every folder field
+  (copy/move target, extract, split, encrypt, search, synchronize) open the system's folder
+  chooser (the XDG desktop portal on Linux).
 - **FTP / FTPS** (Ctrl+N): connection manager, transfers in both directions, and a password
   manager encrypted with a master password.
 - **Built-in tools**:
@@ -97,6 +108,13 @@ F1 in the app lists every binding.
   `Settings` or `Search`).
 - On some Linux Wayland compositors a window that is not on screen gets no frames. To take
   such a screenshot, run it through XWayland: `WAYLAND_DISPLAY= D3SK_SCREENSHOT=… d3skcommander`.
+
+- `tests/ui_layout.rs` runs the real app headless (no GPU, on every CI OS) and checks from
+  its accessibility tree that panels, bars, tool windows and dialogs stay on screen at
+  several window sizes and scales.
+- The network mount is tested against a real share only on demand:
+  `D3SK_TEST_SHARE=smb://server/share D3SK_TEST_USER=… D3SK_TEST_PASSWORD=… cargo test connects_to_a_real_share -- --ignored`
+  (also `D3SK_TEST_DOMAIN`).
 
 What is not done yet: [docs/ROADMAP.md](docs/ROADMAP.md).
 

@@ -19,6 +19,7 @@ use crate::core::fs as cfs;
 use crate::core::launcher::{self, LaunchMode};
 use crate::i18n::{t, tr};
 
+mod net;
 mod run;
 
 impl App {
@@ -101,7 +102,11 @@ impl App {
                 "Sélectionnez une ou plusieurs archives.",
             ));
         }
-        self.dialog = Some(Dialog::Unpack(UnpackForm { archives, dest }));
+        self.dialog = Some(Dialog::Unpack(UnpackForm {
+            archives,
+            dest,
+            pick: Default::default(),
+        }));
     }
 
     /// Backup to ZIP: the selection, zipped into the other panel with a time stamp.
@@ -167,6 +172,7 @@ impl App {
             file: files[0].clone(),
             dest,
             size: "100M".into(),
+            pick: Default::default(),
         }));
     }
 
@@ -311,6 +317,7 @@ impl App {
             password: String::new(),
             confirm: String::new(),
             dest,
+            pick: Default::default(),
         }));
     }
 

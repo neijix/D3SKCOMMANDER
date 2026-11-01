@@ -16,6 +16,7 @@ pub mod lister;
 mod menu;
 pub mod panel;
 mod panel_view;
+pub mod picker;
 pub mod rename_view;
 pub mod search_view;
 pub mod settings_view;
@@ -143,6 +144,8 @@ pub struct App {
     pub(crate) focus_filter: bool,
     pub(crate) focus_cmdline: bool,
     smoke: Option<smoke::Smoke>,
+    /// The "choose a folder" dialog of the panels (`Command::BrowseFolder`).
+    pub(crate) folder_pick: picker::FolderPick,
 }
 
 impl App {
@@ -197,6 +200,7 @@ impl App {
             focus_filter: false,
             focus_cmdline: false,
             smoke: smoke::Smoke::from_env(),
+            folder_pick: picker::FolderPick::default(),
         }
     }
 
@@ -490,6 +494,12 @@ impl eframe::App for App {
         self.auto_refresh();
         self.handle_dropped_files(&ctx);
         self.update_shared();
+        if let Some(dir) = self.folder_pick.poll() {
+            let hidden = self.show_hidden();
+            self.active_panel()
+                .tab_mut()
+                .go(Location::Local(dir), hidden);
+        }
         if let Some(cmd) = self.smoke.as_mut().and_then(smoke::Smoke::take_command)
             && let Some(c) = keys::Command::from_name(&cmd)
         {

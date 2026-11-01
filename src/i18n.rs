@@ -193,6 +193,21 @@ const STRINGS: &[(&str, &str, &str)] = &[
     ),
     ("cmd.ftp", "FTP connect…", "Connexion FTP…"),
     (
+        "cmd.net_connect",
+        "Connect network drive…",
+        "Connecter un lecteur réseau…",
+    ),
+    (
+        "cmd.net_disconnect",
+        "Disconnect network drive",
+        "Déconnecter le lecteur réseau",
+    ),
+    (
+        "cmd.browse_folder",
+        "Choose a folder…",
+        "Choisir un dossier…",
+    ),
+    (
         "cmd.passwords",
         "Password manager",
         "Gestionnaire de mots de passe",

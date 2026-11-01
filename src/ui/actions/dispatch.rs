@@ -20,7 +20,8 @@ impl App {
             View | Edit | EditNew | Copy | Move | RenameInPlace | MkDir | Delete
             | DeletePermanent | Properties | OpenWith | Quit => self.run_file(cmd, ctx),
             Pack | Unpack | BackupZip | Split | Combine | ChecksumCreate | ChecksumVerify
-            | AddTime | ReDate | Touch | Catalog | Encrypt | Decrypt => self.run_tool(cmd, ctx),
+            | AddTime | ReDate | Touch | Catalog | Encrypt | Decrypt | NetConnect
+            | NetDisconnect | BrowseFolder => self.run_tool(cmd, ctx),
             SelectGroup | UnselectGroup | SelectAll | UnselectAll | Invert | SelectSameExt
             | CopyNames | CopyPaths | ComparePanels | DirSizes => self.run_select(cmd, ctx),
             Search | MultiRename | CompareFiles | Sync | Ftp | Passwords | Terminal | Settings
@@ -79,6 +80,12 @@ impl App {
             Catalog => self.catalog_dialog(),
             Encrypt => self.crypt_dialog(true),
             Decrypt => self.crypt_dialog(false),
+            NetConnect => self.net_connect_dialog(),
+            NetDisconnect => self.net_disconnect(ctx),
+            BrowseFolder => {
+                let start = self.active_dir();
+                self.folder_pick.start(ctx, start.as_deref());
+            }
             _ => misrouted(cmd),
         }
     }

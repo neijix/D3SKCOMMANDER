@@ -7,8 +7,8 @@ use std::path::Path;
 
 use d3skcommander::config::Settings;
 use d3skcommander::i18n::{self, Lang};
-use d3skcommander::ui::App;
 use d3skcommander::ui::keys::Command;
+use d3skcommander::ui::{App, picker};
 use eframe::egui::{self, Rect, Vec2};
 use egui_kittest::{Harness, kittest::Queryable};
 
@@ -170,6 +170,7 @@ fn tool_windows_open_on_screen() {
         (Command::Hotlist, "Commands"),
         (Command::ComparePanels, "Mark"),
         (Command::Ftp, "Net"),
+        (Command::NetConnect, "Net"),
         (Command::Settings, "Configuration"),
         (Command::Log, "Configuration"),
         (Command::Keys, "Help"),
@@ -186,4 +187,30 @@ fn tool_windows_open_on_screen() {
             assert_areas_on_screen(&h, &what);
         }
     }
+}
+
+#[test]
+fn a_chosen_folder_opens_in_the_panel_whose_button_was_clicked() {
+    i18n::set_lang(Lang::En);
+    let dir = sample_dir();
+    let picked = dir.path().join("picked folder");
+    std::fs::create_dir(&picked).unwrap();
+    std::fs::write(picked.join("inside the picked folder.txt"), "x").unwrap();
+    // A headless test never opens the native dialog: it answers at once. (The Name
+    // column shows names without their extension.)
+    picker::answer_with(Some(picked));
+    let mut h = app_harness(dir.path(), Vec2::new(1280.0, 800.0), 1.0);
+    let buttons = h.query_all_by_label("📂").collect::<Vec<_>>();
+    assert_eq!(buttons.len(), 2, "one browse button per panel");
+    let right = buttons
+        .into_iter()
+        .max_by(|a, b| a.rect().center().x.total_cmp(&b.rect().center().x))
+        .unwrap();
+    right.click();
+    h.run_steps(6);
+    let file = h.get_by_label_contains("inside the picked folder");
+    assert!(
+        file.rect().center().x > screen(&h).center().x,
+        "the right panel shows the chosen folder"
+    );
 }

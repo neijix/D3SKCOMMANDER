@@ -11,6 +11,7 @@ use std::time::Duration;
 use eframe::egui::{self, Color32, RichText};
 use egui_extras::{Column, TableBuilder};
 
+use super::picker::{FolderPick, folder_field};
 use super::{AppEvent, Shared, ToolWindow};
 use crate::core::fs::{format_time, grouped};
 use crate::core::sync::{
@@ -202,6 +203,7 @@ pub struct SyncWindow {
     report: Option<SyncReport>,
     error: Option<String>,
     close: bool,
+    picks: [FolderPick; 2],
 }
 
 impl SyncWindow {
@@ -219,6 +221,7 @@ impl SyncWindow {
             report: None,
             error: None,
             close: false,
+            picks: Default::default(),
         }
     }
 
@@ -358,7 +361,7 @@ impl SyncWindow {
         ui.horizontal(|ui| {
             ui.add_sized([50.0, 20.0], egui::Label::new(t("Left", "Gauche")));
             let w = (ui.available_width() - 110.0).max(200.0);
-            ui.add(egui::TextEdit::singleline(&mut self.left).desired_width(w));
+            folder_field(ui, &mut self.left, &mut self.picks[0], w);
             let swap = ui.add_enabled(!busy, egui::Button::new(t("⇅ Swap", "⇅ Échanger")));
             if swap.clicked() {
                 std::mem::swap(&mut self.left, &mut self.right);
@@ -367,7 +370,7 @@ impl SyncWindow {
         ui.horizontal(|ui| {
             ui.add_sized([50.0, 20.0], egui::Label::new(t("Right", "Droite")));
             let w = (ui.available_width() - 110.0).max(200.0);
-            ui.add(egui::TextEdit::singleline(&mut self.right).desired_width(w));
+            folder_field(ui, &mut self.right, &mut self.picks[1], w);
         });
     }
 

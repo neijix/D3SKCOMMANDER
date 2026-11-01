@@ -8,10 +8,14 @@ use eframe::egui::{self, Key};
 use super::App;
 use super::keys;
 use super::panel::Location;
+use super::picker::{FolderPick, folder_field};
 use crate::core::archive::ArchiveKind;
 use crate::core::checksum::Algo;
 use crate::core::fileops::OpKind;
 use crate::i18n::{t, tr};
+
+mod net;
+pub use net::NetForm;
 
 /// What an input dialog's text is for.
 pub enum InputAction {
@@ -59,12 +63,14 @@ pub struct PackForm {
 pub struct UnpackForm {
     pub archives: Vec<PathBuf>,
     pub dest: String,
+    pub pick: FolderPick,
 }
 
 pub struct SplitForm {
     pub file: PathBuf,
     pub dest: String,
     pub size: String,
+    pub pick: FolderPick,
 }
 
 pub struct ChecksumForm {
@@ -100,6 +106,7 @@ pub struct CryptForm {
     pub password: String,
     pub confirm: String,
     pub dest: String,
+    pub pick: FolderPick,
 }
 
 pub struct OpenWithForm {
@@ -119,6 +126,8 @@ pub enum Dialog {
         text: String,
         action: InputAction,
         focused: bool,
+        /// Browse button state, for actions whose text is a folder.
+        pick: FolderPick,
     },
     Confirm {
         title: String,
@@ -132,6 +141,7 @@ pub enum Dialog {
     Time(TimeForm),
     Crypt(CryptForm),
     OpenWith(OpenWithForm),
+    NetConnect(NetForm),
     Hotlist,
     History,
     Drives {
@@ -161,6 +171,7 @@ impl Dialog {
             text: text.into(),
             action,
             focused: false,
+            pick: FolderPick::default(),
         }
     }
 }
@@ -245,7 +256,8 @@ impl App {
                 text,
                 action,
                 focused,
-            } => input_ui(ui, [title, label, text], action, focused, enter),
+                pick,
+            } => input_ui(ui, [title, label, text], action, (focused, pick), enter),
             Dialog::Confirm {
                 title,
                 text,
@@ -258,6 +270,7 @@ impl App {
             Dialog::Time(f) => time_ui(ui, f, enter),
             Dialog::Crypt(f) => crypt_ui(ui, f, enter),
             Dialog::OpenWith(f) => open_with_ui(ui, f, enter),
+            Dialog::NetConnect(f) => net::net_ui(ui, f, &self.shared.settings.net_shares, enter),
             Dialog::Hotlist => self.hotlist_ui(ui),
             Dialog::History => self.history_ui(ui),
             Dialog::Drives { side } => self.drives_ui(ui, side),
@@ -302,6 +315,21 @@ impl App {
             if ui.button(text).clicked() {
                 go = Some(d.path.clone());
             }
+        }
+        ui.separator();
+        if ui
+            .button(format!("📂 {}", tr("cmd.browse_folder")))
+            .clicked()
+        {
+            self.active = side;
+            let start = self.active_dir();
+            self.folder_pick.start(ui.ctx(), start.as_deref());
+            return Outcome::Close;
+        }
+        if ui.button(format!("🌐 {}", tr("cmd.net_connect"))).clicked() {
+            self.active = side;
+            let form = NetForm::with_recent(&self.shared.settings.net_shares);
+            return Outcome::Keep(Dialog::NetConnect(form));
         }
         if go.is_some() {
             self.active = side;
@@ -359,12 +387,20 @@ fn input_ui(
     ui: &mut egui::Ui,
     [title, label, mut text]: [String; 3],
     action: InputAction,
-    focused: bool,
+    (focused, mut pick): (bool, FolderPick),
     enter: bool,
 ) -> Outcome {
     ui.heading(&title);
     ui.label(&label);
-    let r = ui.add(egui::TextEdit::singleline(&mut text).desired_width(f32::INFINITY));
+    let to_folder = matches!(
+        action,
+        InputAction::CopyMove { .. } | InputAction::Extract { .. }
+    );
+    let r = if to_folder {
+        folder_field(ui, &mut text, &mut pick, f32::INFINITY)
+    } else {
+        ui.add(egui::TextEdit::singleline(&mut text).desired_width(f32::INFINITY))
+    };
     if !focused {
         r.request_focus();
     }
@@ -375,6 +411,7 @@ fn input_ui(
         text,
         action,
         focused: true,
+        pick,
     };
     decide(ok || enter, cancel, d)
 }
@@ -401,7 +438,7 @@ fn unpack_ui(ui: &mut egui::Ui, mut f: UnpackForm, enter: bool) -> Outcome {
     ui.heading(tr("dlg.unpack"));
     files_line(ui, &f.archives);
     ui.label(tr("target"));
-    ui.add(egui::TextEdit::singleline(&mut f.dest).desired_width(f32::INFINITY));
+    folder_field(ui, &mut f.dest, &mut f.pick, f32::INFINITY);
     let (ok, cancel) = ok_cancel(ui, !f.dest.trim().is_empty());
     decide(ok || enter, cancel, Dialog::Unpack(f))
 }
@@ -553,7 +590,7 @@ fn split_ui(ui: &mut egui::Ui, mut f: SplitForm, enter: bool) -> Outcome {
     ui.heading(tr("cmd.split"));
     ui.label(f.file.display().to_string());
     ui.label(tr("target"));
-    ui.add(egui::TextEdit::singleline(&mut f.dest).desired_width(f32::INFINITY));
+    folder_field(ui, &mut f.dest, &mut f.pick, f32::INFINITY);
     ui.horizontal(|ui| {
         ui.label(tr("dlg.part_size"));
         ui.text_edit_singleline(&mut f.size);
@@ -646,7 +683,7 @@ fn crypt_ui(ui: &mut egui::Ui, mut f: CryptForm, enter: bool) -> Outcome {
         ));
     }
     ui.label(tr("target"));
-    ui.add(egui::TextEdit::singleline(&mut f.dest).desired_width(f32::INFINITY));
+    folder_field(ui, &mut f.dest, &mut f.pick, f32::INFINITY);
     let (ok, cancel) = ok_cancel(ui, valid);
     decide((ok || enter) && valid, cancel, Dialog::Crypt(f))
 }

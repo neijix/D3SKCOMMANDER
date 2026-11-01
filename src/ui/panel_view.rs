@@ -257,6 +257,13 @@ fn path_bar(ui: &mut egui::Ui, tab: &mut super::panel::Tab, side: usize, acts: &
         if ui.button("🕘").on_hover_text(tr("cmd.history")).clicked() {
             acts.push(Act::Menu(Command::History));
         }
+        if ui
+            .button("📂")
+            .on_hover_text(tr("cmd.browse_folder"))
+            .clicked()
+        {
+            acts.push(Act::Menu(Command::BrowseFolder));
+        }
         match &mut tab.path_edit {
             Some(text) => {
                 let r = ui.add(egui::TextEdit::singleline(text).desired_width(f32::INFINITY));
