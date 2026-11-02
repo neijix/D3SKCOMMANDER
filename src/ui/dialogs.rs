@@ -6,6 +6,7 @@ use std::path::PathBuf;
 use eframe::egui::{self, Key};
 
 use super::App;
+use super::icons;
 use super::keys;
 use super::panel::Location;
 use super::picker::{FolderPick, folder_field};
@@ -301,12 +302,16 @@ impl App {
         ui.heading(tr("folder"));
         let mut go = None;
         let home = crate::core::fs::home_dir();
-        if ui.button(format!("🏠 {}", home.display())).clicked() {
+        if ui
+            .button(format!("{}  {}", icons::HOME, home.display()))
+            .clicked()
+        {
             go = Some(home);
         }
         for d in self.drives().to_vec() {
             let text = format!(
-                "💾 {}  {}  ({} {})",
+                "{}  {}  {}  ({} {})",
+                icons::DRIVE,
                 d.path.display(),
                 d.label,
                 crate::core::fs::human_size(d.free),
@@ -318,7 +323,7 @@ impl App {
         }
         ui.separator();
         if ui
-            .button(format!("📂 {}", tr("cmd.browse_folder")))
+            .button(format!("{}  {}", icons::BROWSE, tr("cmd.browse_folder")))
             .clicked()
         {
             self.active = side;
@@ -326,7 +331,10 @@ impl App {
             self.folder_pick.start(ui.ctx(), start.as_deref());
             return Outcome::Close;
         }
-        if ui.button(format!("🌐 {}", tr("cmd.net_connect"))).clicked() {
+        if ui
+            .button(format!("{}  {}", icons::NETWORK, tr("cmd.net_connect")))
+            .clicked()
+        {
             self.active = side;
             let form = NetForm::with_recent(&self.shared.settings.net_shares);
             return Outcome::Keep(Dialog::NetConnect(form));
@@ -347,13 +355,13 @@ impl App {
                 for (i, item) in self.shared.settings.hotlist.iter().enumerate() {
                     ui.horizontal(|ui| {
                         if ui
-                            .selectable_label(false, format!("⭐ {}", item.name))
+                            .selectable_label(false, format!("{}  {}", icons::HOTLIST, item.name))
                             .on_hover_text(item.path.display().to_string())
                             .clicked()
                         {
                             go = Some(item.path.clone());
                         }
-                        if ui.small_button("🗑").clicked() {
+                        if icons::button(ui, icons::DELETE, t("Remove", "Retirer")).clicked() {
                             remove = Some(i);
                         }
                     });
@@ -491,6 +499,10 @@ fn about_ui(ui: &mut egui::Ui) -> Outcome {
         "{}: {}",
         t("License", "Licence"),
         env!("CARGO_PKG_LICENSE")
+    ));
+    ui.label(t(
+        "Icons: Material Symbols (Apache-2.0)",
+        "Icônes : Material Symbols (Apache-2.0)",
     ));
     ui.label(crate::config::settings_path().display().to_string());
     close_or(ui, None, Dialog::About)

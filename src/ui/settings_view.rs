@@ -4,6 +4,7 @@ mod passwords;
 
 use eframe::egui;
 
+use super::icons;
 use super::{AppEvent, Shared, ToolWindow};
 use crate::config::{self, HotlistItem, Settings, UserCommand};
 use crate::i18n::{Lang, t, tr};
@@ -114,6 +115,7 @@ impl SettingsWindow {
         ui.checkbox(&mut d.use_trash, tr("use_trash"));
         ui.checkbox(&mut d.confirm_delete, tr("confirm_delete"));
         ui.checkbox(&mut d.log_operations, tr("log_ops"));
+        ui.checkbox(&mut d.check_updates, tr("check_updates"));
         if ui.button(tr("cmd.log")).clicked() {
             shared.send(AppEvent::View(config::log_path()));
         }
@@ -167,10 +169,16 @@ impl SettingsWindow {
                     ui.horizontal(|ui| {
                         ui.add(egui::TextEdit::singleline(&mut row.name).desired_width(110.0));
                         ui.add(egui::TextEdit::singleline(&mut row.path).desired_width(250.0));
-                        if ui.add_enabled(i > 0, egui::Button::new("↑")).clicked() {
+                        if ui
+                            .add_enabled(i > 0, egui::Button::new(icons::MOVE_UP))
+                            .clicked()
+                        {
                             swap = Some((i - 1, i));
                         }
-                        if ui.add_enabled(i < last, egui::Button::new("↓")).clicked() {
+                        if ui
+                            .add_enabled(i < last, egui::Button::new(icons::MOVE_DOWN))
+                            .clicked()
+                        {
                             swap = Some((i, i + 1));
                         }
                         if ui.button(t("Remove", "Retirer")).clicked() {
@@ -286,6 +294,7 @@ fn apply_edits(from: &Settings, to: &mut Settings) {
     to.use_trash = from.use_trash;
     to.confirm_delete = from.confirm_delete;
     to.log_operations = from.log_operations;
+    to.check_updates = from.check_updates;
     to.editor = from.editor.clone();
     to.terminal = from.terminal.clone();
     to.columns = from.columns.clone();

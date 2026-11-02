@@ -97,6 +97,7 @@ commands! {
     Settings => "cmd.settings",
     Log => "cmd.log",
     About => "cmd.about",
+    CheckUpdate => "cmd.check_update",
     Keys => "cmd.keys",
     SortName => "cmd.sort_name",
     SortExt => "cmd.sort_ext",

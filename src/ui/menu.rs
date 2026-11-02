@@ -5,6 +5,7 @@ use std::path::PathBuf;
 use eframe::egui;
 
 use super::App;
+use super::icons;
 use super::keys::{self, Command};
 use super::panel::Location;
 use crate::core::fs as cfs;
@@ -133,7 +134,10 @@ const MENUS: &[Menu] = {
             ],
         ),
         ("menu.config", &[Some(Settings), Some(Log)]),
-        ("menu.help", &[Some(Keys), Some(About)]),
+        (
+            "menu.help",
+            &[Some(Keys), Some(CheckUpdate), None, Some(About)],
+        ),
     ]
 };
 
@@ -163,11 +167,27 @@ impl App {
                     if *title == "menu.tools" && !self.shared.settings.user_commands.is_empty() {
                         ui.separator();
                         for (i, uc) in self.shared.settings.user_commands.iter().enumerate() {
-                            if ui.button(format!("▶ {}", uc.name)).clicked() {
+                            if ui.button(format!("{}  {}", icons::RUN, uc.name)).clicked() {
                                 user_cmd = Some(i);
                                 ui.close();
                             }
                         }
+                    }
+                });
+            }
+            if let Some(r) = &self.update_check.found {
+                ui.with_layout(egui::Layout::right_to_left(egui::Align::Center), |ui| {
+                    let text = format!(
+                        "{}  {} {}",
+                        icons::UPDATE,
+                        t("Update to", "Mettre à jour vers"),
+                        r.version
+                    );
+                    let button = egui::Button::new(
+                        egui::RichText::new(text).color(ui.visuals().warn_fg_color),
+                    );
+                    if ui.add(button).clicked() {
+                        chosen = Some(Command::CheckUpdate);
                     }
                 });
             }

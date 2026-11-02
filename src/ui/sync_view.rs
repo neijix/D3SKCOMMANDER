@@ -11,6 +11,7 @@ use std::time::Duration;
 use eframe::egui::{self, Color32, RichText};
 use egui_extras::{Column, TableBuilder};
 
+use super::icons;
 use super::picker::{FolderPick, folder_field};
 use super::{AppEvent, Shared, ToolWindow};
 use crate::core::fs::{format_time, grouped};
@@ -362,7 +363,10 @@ impl SyncWindow {
             ui.add_sized([50.0, 20.0], egui::Label::new(t("Left", "Gauche")));
             let w = (ui.available_width() - 110.0).max(200.0);
             folder_field(ui, &mut self.left, &mut self.picks[0], w);
-            let swap = ui.add_enabled(!busy, egui::Button::new(t("⇅ Swap", "⇅ Échanger")));
+            let swap = ui.add_enabled(
+                !busy,
+                egui::Button::new(format!("{}  {}", icons::SWAP_VERT, t("Swap", "Échanger"))),
+            );
             if swap.clicked() {
                 std::mem::swap(&mut self.left, &mut self.right);
             }

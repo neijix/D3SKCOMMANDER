@@ -9,6 +9,7 @@ use std::sync::mpsc::{Receiver, TryRecvError, channel};
 use eframe::egui::{self, ScrollArea, TextEdit};
 
 use super::editor::{Eol, decode_file, encode_file, write_atomic};
+use super::icons;
 use super::{AppEvent, Shared, ToolWindow};
 use crate::core::compare::{
     DiffOptions, DiffRow, FileDiff, diff_files, diff_text, next_difference, prev_difference,
@@ -253,7 +254,7 @@ impl CompareWindow {
             let w = (ui.available_width() - 180.0).max(200.0) / 2.0;
             ui.add(TextEdit::singleline(&mut self.left).desired_width(w));
             if ui
-                .button("⇄")
+                .button(icons::SWAP_HORIZ)
                 .on_hover_text(t("Swap", "Échanger"))
                 .clicked()
             {

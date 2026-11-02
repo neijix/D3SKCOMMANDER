@@ -10,6 +10,7 @@ pub mod compare_view;
 mod dialogs;
 pub mod editor;
 pub mod ftp_view;
+pub mod icons;
 pub mod jobs;
 pub mod keys;
 pub mod lister;
@@ -23,6 +24,7 @@ pub mod settings_view;
 mod smoke;
 pub mod sync_view;
 mod tools;
+pub mod update_view;
 
 use std::collections::HashMap;
 use std::path::{Path, PathBuf};
@@ -64,6 +66,8 @@ pub enum AppEvent {
     Error(String),
     /// `Shared::settings` changed: re-apply language, look and panels.
     SettingsChanged,
+    /// An update is installed: save, start the new version, close this one.
+    Restart(crate::core::update::apply::Relaunch),
 }
 
 /// What tool windows may read or change.
@@ -146,14 +150,24 @@ pub struct App {
     smoke: Option<smoke::Smoke>,
     /// The "choose a folder" dialog of the panels (`Command::BrowseFolder`).
     pub(crate) folder_pick: picker::FolderPick,
+    /// The start-up look for a newer release (lights the menu-bar button).
+    pub(crate) update_check: update_view::StartupCheck,
 }
 
 impl App {
     pub fn new(cc: &eframe::CreationContext<'_>) -> App {
         egui_extras::install_image_loaders(&cc.egui_ctx);
+        icons::install(&cc.egui_ctx);
         let settings_path = config::settings_path();
         let settings = Settings::load(&settings_path);
-        Self::with_settings(settings, settings_path)
+        if let Ok(exe) = std::env::current_exe() {
+            crate::core::update::apply::remove_leftovers(&exe);
+        }
+        let mut app = Self::with_settings(settings, settings_path);
+        if app.shared.settings.check_updates && app.smoke.is_none() {
+            app.update_check = update_view::StartupCheck::start(&cc.egui_ctx);
+        }
+        app
     }
 
     /// Builds the app from explicit settings (also used by tests).
@@ -201,6 +215,7 @@ impl App {
             focus_cmdline: false,
             smoke: smoke::Smoke::from_env(),
             folder_pick: picker::FolderPick::default(),
+            update_check: update_view::StartupCheck::default(),
         }
     }
 
@@ -250,6 +265,22 @@ impl App {
         store(&self.panels[1], &mut self.shared.settings.right);
         if let Err(e) = self.shared.settings.save(&self.settings_path) {
             self.status = format!("{}: {e}", tr("error"));
+        }
+    }
+
+    /// Starts the updated app and closes this one.
+    fn restart(&mut self, relaunch: crate::core::update::apply::Relaunch) {
+        self.save_settings();
+        match relaunch.spawn() {
+            Ok(()) => {
+                if let Some(ctx) = &self.ctx {
+                    ctx.send_viewport_cmd(egui::ViewportCommand::Close);
+                }
+            }
+            Err(e) => {
+                let text = format!("{}: {e}", relaunch.program.display());
+                self.dialog = Some(Dialog::message(tr("error"), text));
+            }
         }
     }
 
@@ -320,6 +351,7 @@ impl App {
                 }
             }
             AppEvent::Error(e) => self.dialog = Some(Dialog::message(tr("error"), e)),
+            AppEvent::Restart(relaunch) => self.restart(relaunch),
             AppEvent::SettingsChanged => {
                 i18n::set_lang(self.shared.settings.lang);
                 apply_log_setting(&self.shared.settings);
@@ -518,6 +550,7 @@ impl eframe::App for App {
         self.dialog_ui(&ctx);
         self.windows_ui(&ctx);
         self.finish_jobs(&ctx);
+        self.update_check.poll();
         self.track_history();
         if let Some(s) = &mut self.smoke {
             s.frame(&ctx);
@@ -539,7 +572,13 @@ pub fn run() -> eframe::Result {
             .with_title("d3skcommander")
             .with_inner_size([1280.0, 800.0])
             .with_min_inner_size([640.0, 400.0])
-            .with_drag_and_drop(true),
+            .with_drag_and_drop(true)
+            .with_icon(
+                eframe::icon_data::from_png_bytes(include_bytes!(
+                    "../../packaging/icons/256x256.png"
+                ))
+                .unwrap_or_default(),
+            ),
         ..Default::default()
     };
     eframe::run_native(

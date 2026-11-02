@@ -50,6 +50,31 @@ The tools other file managers ship as add-ons are built in.
   - encrypt and decrypt files with a passphrase ([age](https://age-encryption.org));
   - open with…, user commands in the Tools menu, a terminal here, and a command line.
 - **Operations log**, an English or French interface, and a **portable mode**.
+- **Updates itself** (Help → Check for updates…, and a quiet check at start-up that can be
+  turned off in Configuration): it downloads the new version for the way it was installed,
+  checks its SHA-256, installs it and restarts.
+
+## Install
+
+Download the file for your system from the
+[releases page](https://github.com/neijix/d3skcommander/releases):
+
+| System | File | Install |
+|---|---|---|
+| Linux (Debian, Ubuntu…) | `…-linux-x86_64.deb` | `sudo apt install ./d3skcommander-*.deb` |
+| Linux (any) | `…-linux-x86_64.AppImage` | `chmod +x` it and run it |
+| macOS (Apple silicon) | `…-macos-aarch64.dmg` | open it, drag the app to Applications |
+| Windows | `…-windows-x86_64-setup.exe` | run it (no administrator rights needed) |
+| Any, no installer | `…-linux-x86_64.tar.gz`, `…-windows-x86_64.zip` | unpack and run the program |
+
+The macOS app and the Windows setup are not signed yet: macOS says the app "cannot be
+opened" — right-click it, then Open (or `xattr -dr com.apple.quarantine
+/Applications/d3skcommander.app`); Windows SmartScreen asks once — More info, then Run anyway.
+
+How each install updates itself: the `.deb` reinstalls the new package with administrator
+rights (`pkexec`), the AppImage, the macOS app and a plain program replace themselves, and the
+Windows setup runs the new setup silently. A build from source does not update itself
+(`git pull`, then build again).
 
 ## Build
 
@@ -68,6 +93,23 @@ cargo build --release
 Or build and start it in one step: `./start.sh` (macOS, Linux) or `start.bat` (Windows).
 
 Run the gate (format, lint, tests) with `./check.sh`.
+
+### Packages
+
+The installers are built by [cargo-packager](https://github.com/crabnebula-dev/cargo-packager)
+(`cargo install cargo-packager --locked`), configured in `Cargo.toml`
+(`[package.metadata.packager]`):
+
+```sh
+cargo packager --release --formats deb,appimage   # Linux
+cargo packager --release --formats app,dmg        # macOS
+cargo packager --release --formats nsis           # Windows
+```
+
+Files land in `target/packages/`. Pushing a tag `v<version>` (the version in `Cargo.toml`) runs
+`.github/workflows/release.yml`, which builds all of them, names them
+`d3skcommander-<version>-<os>-<arch>…` (the names the updater looks for) and publishes the
+release. The app icon is drawn by `packaging/make_icon.py` (Python with Pillow).
 
 ## Configuration
 
@@ -120,4 +162,5 @@ What is not done yet: [docs/ROADMAP.md](docs/ROADMAP.md).
 
 ## License
 
-MIT, see [LICENSE](LICENSE).
+MIT, see [LICENSE](LICENSE). Icons: [Material Symbols](https://fonts.google.com/icons)
+(Apache-2.0), through the `egui_material_icons` crate.

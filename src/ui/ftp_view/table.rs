@@ -8,6 +8,7 @@ use egui_extras::{Column, TableBuilder};
 use super::FtpWindow;
 use crate::core::fs::human_size;
 use crate::i18n::tr;
+use crate::ui::icons;
 
 /// What happened in the table this frame. Row 0 is the ".." row; entry `i` is row `i + 1`.
 #[derive(Default)]
@@ -48,13 +49,17 @@ impl FtpWindow {
                     let idx = row.index();
                     let cells = match idx.checked_sub(1).and_then(|i| self.entries.get(i)) {
                         None => [
-                            "📁 ..".to_string(),
+                            format!("{} ..", icons::UP),
                             String::new(),
                             String::new(),
                             String::new(),
                         ],
                         Some(e) => [
-                            format!("{} {}", if e.is_dir { "📁" } else { "📄" }, e.name),
+                            format!(
+                                "{} {}",
+                                if e.is_dir { icons::FOLDER } else { icons::FILE },
+                                e.name
+                            ),
                             if e.is_dir {
                                 String::new()
                             } else {

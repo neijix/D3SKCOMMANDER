@@ -8,7 +8,7 @@ use std::path::Path;
 use d3skcommander::config::Settings;
 use d3skcommander::i18n::{self, Lang};
 use d3skcommander::ui::keys::Command;
-use d3skcommander::ui::{App, picker};
+use d3skcommander::ui::{App, icons, picker};
 use eframe::egui::{self, Rect, Vec2};
 use egui_kittest::{Harness, kittest::Queryable};
 
@@ -200,7 +200,7 @@ fn a_chosen_folder_opens_in_the_panel_whose_button_was_clicked() {
     // column shows names without their extension.)
     picker::answer_with(Some(picked));
     let mut h = app_harness(dir.path(), Vec2::new(1280.0, 800.0), 1.0);
-    let buttons = h.query_all_by_label("📂").collect::<Vec<_>>();
+    let buttons = h.query_all_by_label(icons::BROWSE).collect::<Vec<_>>();
     assert_eq!(buttons.len(), 2, "one browse button per panel");
     let right = buttons
         .into_iter()

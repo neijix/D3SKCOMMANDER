@@ -121,6 +121,8 @@ pub struct Settings {
     pub history: Vec<PathBuf>,
     /// Network drive addresses connected before, most recent first (never a password).
     pub net_shares: Vec<String>,
+    /// Look for a newer release at start-up (one request to GitHub).
+    pub check_updates: bool,
 }
 
 impl Default for Settings {
@@ -133,6 +135,7 @@ impl Default for Settings {
             use_trash: true,
             confirm_delete: true,
             log_operations: false,
+            check_updates: true,
             editor: String::new(),
             terminal: String::new(),
             columns: Columns::default(),

@@ -260,6 +260,16 @@ const STRINGS: &[(&str, &str, &str)] = &[
     ("cmd.settings", "Settings…", "Options…"),
     ("cmd.log", "Operation log", "Journal des opérations"),
     ("cmd.about", "About", "À propos"),
+    (
+        "cmd.check_update",
+        "Check for updates…",
+        "Rechercher des mises à jour…",
+    ),
+    (
+        "check_updates",
+        "Look for a new version at start-up",
+        "Chercher une nouvelle version au démarrage",
+    ),
     ("cmd.keys", "Keyboard shortcuts", "Raccourcis clavier"),
     // Common words
     ("ok", "OK", "OK"),

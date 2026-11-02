@@ -8,9 +8,11 @@ use egui_extras::{Column, TableBuilder};
 
 use super::App;
 use super::dialogs::Dialog;
+use super::icons;
 use super::keys::Command;
 use super::panel::{Location, ViewMode, is_browsable_archive};
 use crate::config::Columns;
+use crate::core::filekind::FileKind;
 use crate::core::fs::{self as cfs, Entry, SortKey};
 use crate::i18n::{t, tr};
 
@@ -133,7 +135,7 @@ impl App {
                 if let Some(filter) = &mut tab.filter {
                     let mut changed = false;
                     ui.horizontal(|ui| {
-                        ui.label(format!("🔍 {}", tr("filter")));
+                        ui.label(format!("{} {}", icons::FILTER, tr("filter")));
                         let r =
                             ui.add(egui::TextEdit::singleline(filter).desired_width(f32::INFINITY));
                         if focus_filter {
@@ -241,28 +243,22 @@ fn tabs_bar(ui: &mut egui::Ui, panel: &mut super::panel::PanelState, acts: &mut 
 
 fn path_bar(ui: &mut egui::Ui, tab: &mut super::panel::Tab, side: usize, acts: &mut Vec<Act>) {
     ui.horizontal(|ui| {
-        if ui
-            .button("💾")
-            .on_hover_text(if side == 0 { "Alt+F1" } else { "Alt+F2" })
-            .clicked()
-        {
-            acts.push(Act::Drives);
-        }
-        if ui.button("⬆").on_hover_text(tr("cmd.parent")).clicked() {
-            acts.push(Act::Menu(Command::Parent));
-        }
-        if ui.button("⭐").on_hover_text(tr("cmd.hotlist")).clicked() {
-            acts.push(Act::Menu(Command::Hotlist));
-        }
-        if ui.button("🕘").on_hover_text(tr("cmd.history")).clicked() {
-            acts.push(Act::Menu(Command::History));
-        }
-        if ui
-            .button("📂")
-            .on_hover_text(tr("cmd.browse_folder"))
-            .clicked()
-        {
-            acts.push(Act::Menu(Command::BrowseFolder));
+        let drives_key = if side == 0 { "Alt+F1" } else { "Alt+F2" };
+        let buttons = [
+            (icons::DRIVE, drives_key, None),
+            (icons::UP, tr("cmd.parent"), Some(Command::Parent)),
+            (icons::HOTLIST, tr("cmd.hotlist"), Some(Command::Hotlist)),
+            (icons::HISTORY, tr("cmd.history"), Some(Command::History)),
+            (
+                icons::BROWSE,
+                tr("cmd.browse_folder"),
+                Some(Command::BrowseFolder),
+            ),
+        ];
+        for (icon, hover, cmd) in buttons {
+            if icons::button(ui, icon, hover).clicked() {
+                acts.push(cmd.map_or(Act::Drives, Act::Menu));
+            }
         }
         match &mut tab.path_edit {
             Some(text) => {
@@ -311,40 +307,27 @@ fn typed_location(text: &str) -> Option<Location> {
     }
 }
 
-fn icon(e: &Entry) -> &'static str {
-    if e.is_parent {
-        "⬆"
-    } else if e.is_dir {
-        "📁"
-    } else if e.is_link {
-        "🔗"
-    } else if is_browsable_archive(&e.path) {
-        "📦"
-    } else if IMAGE_EXTS.contains(&e.extension().to_lowercase().as_str()) {
-        "🖼"
-    } else {
-        "📄"
-    }
-}
-
-fn name_text(ui: &egui::Ui, e: &Entry, selected: bool, show_ext: bool) -> RichText {
-    let name = if show_ext || e.is_dir {
+fn name_text(ui: &egui::Ui, e: &Entry, selected: bool, show_ext: bool) -> egui::text::LayoutJob {
+    let name = if e.is_parent {
+        ".."
+    } else if show_ext || e.is_dir {
         e.name.as_str()
     } else {
         e.stem()
     };
-    let label = if e.is_parent {
-        "..".to_string()
-    } else {
-        format!("{} {name}", icon(e))
-    };
-    let mut text = RichText::new(label);
-    if selected {
-        text = text.color(marked_color(ui)).strong();
+    let kind = FileKind::of(e);
+    let dark = ui.visuals().dark_mode;
+    let mut tint = icons::color(kind, dark);
+    let text_color = if selected {
+        tint = marked_color(ui);
+        Some(marked_color(ui))
     } else if e.hidden {
-        text = text.weak();
-    }
-    text
+        tint = tint.gamma_multiply(0.5);
+        Some(ui.visuals().weak_text_color())
+    } else {
+        None
+    };
+    icons::labelled(ui, icons::of_kind(kind), tint, name, text_color, selected)
 }
 
 fn marked_color(ui: &egui::Ui) -> Color32 {
@@ -569,7 +552,11 @@ fn grid_view(
                                             .maintain_aspect_ratio(true),
                                     );
                                 } else {
-                                    ui.label(RichText::new(icon(e)).size(56.0));
+                                    let kind = FileKind::of(e);
+                                    let tint = icons::color(kind, ui.visuals().dark_mode);
+                                    ui.label(
+                                        RichText::new(icons::of_kind(kind)).size(64.0).color(tint),
+                                    );
                                 }
                                 let label =
                                     egui::Label::new(name_text(ui, e, marked, true)).truncate();

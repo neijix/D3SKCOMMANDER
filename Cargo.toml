@@ -4,6 +4,8 @@ version = "0.1.0"
 edition = "2024"
 description = "A cross-platform two-panel (orthodox) file manager"
 license = "MIT"
+repository = "https://github.com/neijix/d3skcommander"
+authors = ["neijix"]
 rust-version = "1.95"
 
 [dependencies]
@@ -35,6 +37,8 @@ rustls = { version = "0.23", default-features = false, features = ["ring", "std"
 webpki-roots = "1"
 rfd = "0.17"
 pollster = "0.4"
+egui_material_icons = "0.9"
+ureq = { version = "3", default-features = false, features = ["rustls"] }
 
 [target.'cfg(windows)'.dependencies]
 windows-sys = { version = "0.61", features = ["Win32_Foundation", "Win32_NetworkManagement_WNet"] }
@@ -46,3 +50,29 @@ tempfile = "3"
 [profile.release]
 lto = "thin"
 strip = true
+
+# Installers (cargo install cargo-packager --locked; see README "Packages"):
+# .deb + AppImage on Linux, .app + .dmg on macOS, NSIS setup.exe on Windows.
+[package.metadata.packager]
+productName = "d3skcommander"
+identifier = "io.github.neijix.d3skcommander"
+publisher = "neijix"
+category = "Utility"
+licenseFile = "LICENSE"
+outDir = "target/packages"
+beforePackagingCommand = "cargo build --release"
+icons = [
+  "packaging/icons/32x32.png",
+  "packaging/icons/128x128.png",
+  "packaging/icons/256x256.png",
+  "packaging/icons/512x512.png",
+  "packaging/icons/icon.icns",
+  "packaging/icons/icon.ico",
+]
+
+[package.metadata.packager.nsis]
+installMode = "currentUser"
+installerIcon = "packaging/icons/icon.ico"
+
+[package.metadata.packager.macos]
+minimumSystemVersion = "11.0"

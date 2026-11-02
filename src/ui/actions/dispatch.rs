@@ -26,6 +26,9 @@ impl App {
             | CopyNames | CopyPaths | ComparePanels | DirSizes => self.run_select(cmd, ctx),
             Search | MultiRename | CompareFiles | Sync | Ftp | Passwords | Terminal | Settings
             | Log | About | Keys => self.run_window(cmd),
+            CheckUpdate => self
+                .windows
+                .push(Box::new(crate::ui::update_view::UpdateWindow::new(ctx))),
             QuickView | ViewFull | ViewBrief | ViewThumbs | ToggleHidden | Branch | QuickFilter
             | Refresh | SortName | SortExt | SortDate | SortSize => self.run_view(cmd),
             Swap | SameDir | NewTab | CloseTab | NextTab | Hotlist | AddHotlist | History
