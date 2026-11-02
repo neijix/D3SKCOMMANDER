@@ -265,6 +265,46 @@ impl Tab {
         }
     }
 
+    /// A press on the row at `index`, which takes the cursor: Shift adds the range from the
+    /// cursor, Ctrl toggles that entry, a plain press drops the selection.
+    pub fn click(&mut self, index: usize, ctrl: bool, shift: bool) {
+        let Some(&at) = self.visible.get(index) else {
+            return;
+        };
+        if shift {
+            let from = self.cursor.min(self.visible.len() - 1);
+            let (a, b) = (from.min(index), from.max(index));
+            let paths: Vec<PathBuf> = self.visible[a..=b]
+                .iter()
+                .map(|&i| &self.entries[i])
+                .filter(|e| !e.is_parent)
+                .map(|e| e.path.clone())
+                .collect();
+            self.selected.extend(paths);
+        } else if ctrl {
+            let e = &self.entries[at];
+            if !e.is_parent {
+                let p = e.path.clone();
+                self.toggle_selection(&p);
+            }
+        } else {
+            self.selected.clear();
+        }
+        self.cursor = index;
+    }
+
+    /// A right press on the row at `index`: the selection stays when that entry is part of
+    /// it, else it is dropped so the context menu acts on that entry alone.
+    pub fn point(&mut self, index: usize) {
+        let Some(&at) = self.visible.get(index) else {
+            return;
+        };
+        if !self.selected.contains(&self.entries[at].path) {
+            self.selected.clear();
+        }
+        self.cursor = index;
+    }
+
     pub fn move_cursor(&mut self, delta: isize) {
         let len = self.visible.len() as isize;
         if len == 0 {
@@ -615,6 +655,41 @@ mod tests {
         t.type_ahead("c");
         assert_eq!(t.current().unwrap().name, "c.rs");
         assert_eq!(t.targets()[0].name, "c.rs");
+    }
+
+    #[test]
+    fn mouse_selects_and_unselects() {
+        let dir = tempfile::tempdir().unwrap();
+        fs::create_dir(dir.path().join("d")).unwrap();
+        for n in ["a.txt", "b.txt"] {
+            fs::write(dir.path().join(n), "x").unwrap();
+        }
+        let mut t = tab_in(dir.path());
+        let at = |t: &Tab, name: &str| t.visible_entries().position(|e| e.name == name).unwrap();
+        let names = |t: &Tab| {
+            let mut v: Vec<String> = t.targets().into_iter().map(|e| e.name).collect();
+            v.sort();
+            v
+        };
+        let (d, a, b) = (at(&t, "d"), at(&t, "a.txt"), at(&t, "b.txt"));
+        // Ctrl selects a folder and a file, Ctrl again unselects.
+        t.click(d, true, false);
+        t.click(a, true, false);
+        assert_eq!(names(&t), ["a.txt", "d"]);
+        t.click(d, true, false);
+        assert_eq!(names(&t), ["a.txt"]);
+        // A right press inside the selection keeps it; outside it drops it.
+        t.click(b, true, false);
+        t.point(a);
+        assert_eq!(names(&t), ["a.txt", "b.txt"]);
+        t.point(d);
+        assert!(t.selected.is_empty());
+        // Shift adds the range from the cursor; a plain press unselects everything.
+        t.click(b, false, true);
+        assert_eq!(t.selected.len(), b - d + 1);
+        t.click(a, false, false);
+        assert!(t.selected.is_empty());
+        assert_eq!(t.cursor, a);
     }
 
     #[test]

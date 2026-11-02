@@ -19,11 +19,14 @@ use crate::i18n::{t, tr};
 /// What the user did in a panel this frame; applied once drawing is over.
 enum Act {
     Activate,
+    /// A left press on a row (see `Tab::click`).
     Click {
         index: usize,
         ctrl: bool,
         shift: bool,
     },
+    /// A right press on a row (see `Tab::point`).
+    Point(usize),
     Open(usize),
     Menu(Command),
     Sort(SortKey),
@@ -65,29 +68,12 @@ impl App {
         match act {
             Act::Activate => {}
             Act::Click { index, ctrl, shift } => {
-                if ctrl {
-                    if let Some(e) = tab.visible.get(index).map(|&i| tab.entries[i].clone())
-                        && !e.is_parent
-                    {
-                        tab.toggle_selection(&e.path);
-                    }
-                } else if shift {
-                    let (a, b) = (tab.cursor.min(index), tab.cursor.max(index));
-                    for v in a..=b {
-                        let e = &tab.entries[tab.visible[v]];
-                        if !e.is_parent {
-                            let p = e.path.clone();
-                            tab.selected.insert(p);
-                        }
-                    }
-                }
-                tab.cursor = index;
-                // A click in the list takes the keyboard back from any text field.
-                ctx.memory_mut(|m| {
-                    if let Some(f) = m.focused() {
-                        m.surrender_focus(f);
-                    }
-                });
+                tab.click(index, ctrl, shift);
+                take_keyboard(ctx);
+            }
+            Act::Point(index) => {
+                tab.point(index);
+                take_keyboard(ctx);
             }
             Act::Open(index) => {
                 tab.cursor = index;
@@ -342,6 +328,15 @@ fn marked_color(ui: &egui::Ui) -> Color32 {
 }
 
 /// Reads the click modifiers and turns a row's response into actions.
+/// A click in the list takes the keyboard back from any text field.
+fn take_keyboard(ctx: &egui::Context) {
+    ctx.memory_mut(|m| {
+        if let Some(f) = m.focused() {
+            m.surrender_focus(f);
+        }
+    });
+}
+
 fn row_acts(r: &egui::Response, index: usize, acts: &mut Vec<Act>) {
     let (mods, pressed) = r.ctx.input(|i| (i.modifiers, i.pointer.primary_pressed()));
     if r.double_clicked() {
@@ -355,11 +350,7 @@ fn row_acts(r: &egui::Response, index: usize, acts: &mut Vec<Act>) {
             shift: mods.shift,
         });
     } else if r.secondary_clicked() {
-        acts.push(Act::Click {
-            index,
-            ctrl: false,
-            shift: false,
-        });
+        acts.push(Act::Point(index));
     }
     r.context_menu(|ui| {
         use Command::*;
@@ -377,11 +368,7 @@ fn row_acts(r: &egui::Response, index: usize, acts: &mut Vec<Act>) {
             Properties,
         ] {
             if ui.button(cmd.label()).clicked() {
-                acts.push(Act::Click {
-                    index,
-                    ctrl: false,
-                    shift: false,
-                });
+                acts.push(Act::Point(index));
                 acts.push(Act::Menu(cmd));
                 ui.close();
             }

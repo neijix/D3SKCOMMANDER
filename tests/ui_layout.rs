@@ -215,16 +215,21 @@ fn a_chosen_folder_opens_in_the_panel_whose_button_was_clicked() {
     );
 }
 
-/// Ctrl-presses a file name at `pos`, moves by `shift` while holding for `frames`, releases.
-fn ctrl_press_on(h: &mut Harness<'_, App>, pos: egui::Pos2, shift: f32, frames: usize) {
-    let ctrl = egui::Modifiers::COMMAND;
+/// Presses a file name at `pos` holding `mods`, moves by `shift` for `frames`, releases.
+fn press_on(
+    h: &mut Harness<'_, App>,
+    pos: egui::Pos2,
+    mods: egui::Modifiers,
+    shift: f32,
+    frames: usize,
+) {
     h.hover_at(pos);
-    h.event(egui::Event::ModifiersChanged(ctrl));
+    h.event(egui::Event::ModifiersChanged(mods));
     let button = |pos, pressed| egui::Event::PointerButton {
         pos,
         button: egui::PointerButton::Primary,
         pressed,
-        modifiers: ctrl,
+        modifiers: mods,
     };
     h.event(button(pos, true));
     let to = pos + Vec2::new(shift, shift / 2.0);
@@ -246,7 +251,7 @@ fn a_press_on_a_file_name_selects_it_even_if_the_mouse_moves_or_lingers() {
         let mut h = app_harness(dir.path(), Vec2::new(1280.0, 800.0), 1.0);
         let name = h.query_all_by_label_contains("file number 5 with").next();
         let name = name.expect("the file is listed").rect().center();
-        ctrl_press_on(&mut h, name, shift, frames);
+        press_on(&mut h, name, egui::Modifiers::COMMAND, shift, frames);
         assert!(
             h.query_all_by_label_contains("1 / 41 selected")
                 .next()
@@ -254,4 +259,29 @@ fn a_press_on_a_file_name_selects_it_even_if_the_mouse_moves_or_lingers() {
             "move {shift}, {frames} frames: the file is selected"
         );
     }
+}
+
+#[test]
+fn a_ctrl_press_unselects_and_a_plain_press_clears_the_selection() {
+    i18n::set_lang(Lang::En);
+    let dir = sample_dir();
+    let mut h = app_harness(dir.path(), Vec2::new(1280.0, 800.0), 1.0);
+    let at = |h: &Harness<'_, App>, label: &str| {
+        let node = h.query_all_by_label_contains(label).next();
+        node.expect("the file is listed").rect().center()
+    };
+    let selected = |h: &Harness<'_, App>, n: usize| {
+        let status = format!("{n} / 41 selected");
+        h.query_all_by_label_contains(&status).next().is_some()
+    };
+    let (five, six) = (at(&h, "file number 5 with"), at(&h, "file number 6 with"));
+    let ctrl = egui::Modifiers::COMMAND;
+    press_on(&mut h, five, ctrl, 0.0, 1);
+    press_on(&mut h, six, ctrl, 0.0, 1);
+    assert!(selected(&h, 2), "Ctrl selects two files");
+    press_on(&mut h, five, ctrl, 0.0, 1);
+    assert!(selected(&h, 1), "Ctrl on a selected file unselects it");
+    press_on(&mut h, five, egui::Modifiers::NONE, 0.0, 1);
+    // (The other panel lists the same folder and always reads "0 / 41".)
+    assert!(!selected(&h, 1), "a plain press unselects everything");
 }
