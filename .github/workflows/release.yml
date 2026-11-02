@@ -1,0 +1,84 @@
+# Builds the installers on a `v*` tag and publishes them as a GitHub release.
+# File names follow the contract read by the in-app updater (src/core/update.rs,
+# `asset_suffix`): d3skcommander-<version>-<os>-<arch><suffix>.
+name: release
+on:
+  push:
+    tags: ['v*']
+  workflow_dispatch:
+
+jobs:
+  build:
+    strategy:
+      fail-fast: false
+      matrix:
+        include:
+          # The oldest supported runner: an AppImage runs on systems with a newer glibc only.
+          - os: ubuntu-22.04
+            formats: deb,appimage
+          - os: macos-latest
+            formats: app,dmg
+          - os: windows-latest
+            formats: nsis
+    runs-on: ${{ matrix.os }}
+    defaults:
+      run:
+        shell: bash
+    env:
+      # linuxdeploy is itself an AppImage: run it without FUSE.
+      APPIMAGE_EXTRACT_AND_RUN: 1
+    steps:
+      - uses: actions/checkout@v7
+      - uses: dtolnay/rust-toolchain@stable
+      - name: Linux GUI packages
+        if: runner.os == 'Linux'
+        run: sudo apt-get update && sudo apt-get install -y libxkbcommon-dev libwayland-dev libgl1-mesa-dev libx11-dev libxcursor-dev libxrandr-dev libxi-dev libfuse2
+      - name: Version
+        run: |
+          v=$(cargo metadata --no-deps --format-version 1 | python3 -c 'import json,sys; print(json.load(sys.stdin)["packages"][0]["version"])')
+          if [[ "$GITHUB_REF" == refs/tags/v* && "${GITHUB_REF#refs/tags/v}" != "$v" ]]; then
+            echo "tag $GITHUB_REF does not match Cargo.toml version $v" >&2; exit 1
+          fi
+          echo "VERSION=$v" >> "$GITHUB_ENV"
+      - run: cargo install cargo-packager --locked
+      - run: cargo packager --release --formats ${{ matrix.formats }}
+      - name: Name the files for the updater
+        run: |
+          base="d3skcommander-$VERSION"
+          mkdir dist
+          case "$RUNNER_OS" in
+            Linux)
+              mv target/packages/*.deb "dist/$base-linux-x86_64.deb"
+              mv target/packages/*.AppImage "dist/$base-linux-x86_64.AppImage"
+              tar -C target/release -czf "dist/$base-linux-x86_64.tar.gz" d3skcommander ;;
+            macOS)
+              arch=$(uname -m); [[ $arch == arm64 ]] && arch=aarch64
+              mv target/packages/*.dmg "dist/$base-macos-$arch.dmg"
+              tar -C target/packages -czf "dist/$base-macos-$arch.app.tar.gz" d3skcommander.app ;;
+            Windows)
+              mv target/packages/*-setup.exe "dist/$base-windows-x86_64-setup.exe"
+              7z a "dist/$base-windows-x86_64.zip" ./target/release/d3skcommander.exe ;;
+          esac
+          ls -l dist
+      - uses: actions/upload-artifact@v7
+        with:
+          name: packages-${{ matrix.os }}
+          path: dist/*
+
+  publish:
+    needs: build
+    if: startsWith(github.ref, 'refs/tags/v')
+    runs-on: ubuntu-latest
+    permissions:
+      contents: write
+    steps:
+      - uses: actions/download-artifact@v8
+        with:
+          path: dist
+          merge-multiple: true
+      - name: Checksums
+        run: cd dist && sha256sum * > SHA256SUMS
+      - name: Publish the release
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: gh release create "$GITHUB_REF_NAME" dist/* --repo "$GITHUB_REPOSITORY" --title "d3skcommander ${GITHUB_REF_NAME#v}" --generate-notes
