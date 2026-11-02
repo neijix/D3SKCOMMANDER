@@ -1,5 +1,5 @@
 # The commit gate (./check.sh: fmt, clippy -D warnings, tests) on the owner's self-hosted Linux
-# runner — this machine, no GitHub-hosted minutes. macOS and Windows: check-desktop.yml, by hand.
+# runner — this machine, no GitHub-hosted minutes. macOS and Windows: check-desktop.yml, on demand.
 # A fork without that runner: set runs-on to ubuntu-latest and add release.yml's
 # "Linux GUI packages" step.
 name: check

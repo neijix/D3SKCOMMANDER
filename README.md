@@ -94,7 +94,7 @@ Or build and start it in one step: `./start.sh` (macOS, Linux) or `start.bat` (W
 
 Run the gate (format, lint, tests) with `./check.sh`. On GitHub, every push to `master` runs it
 on the owner's self-hosted Linux runner (`.github/workflows/check.yml`); macOS and Windows run
-by hand (`check-desktop.yml`). A fork without that runner sets `runs-on: ubuntu-latest`.
+on demand (`gh workflow run check-desktop.yml`). A fork without that runner sets `runs-on: ubuntu-latest`.
 
 ### Packages
 
