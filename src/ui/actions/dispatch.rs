@@ -26,6 +26,7 @@ impl App {
             | CopyNames | CopyPaths | ComparePanels | DirSizes => self.run_select(cmd, ctx),
             Search | MultiRename | CompareFiles | Sync | Ftp | Passwords | Terminal | Settings
             | Log | About | Keys => self.run_window(cmd),
+            SettingsFolder => self.ask_settings_dir(false),
             CheckUpdate => self
                 .windows
                 .push(Box::new(crate::ui::update_view::UpdateWindow::new(ctx))),

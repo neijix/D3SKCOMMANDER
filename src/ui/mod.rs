@@ -20,6 +20,7 @@ mod panel_view;
 pub mod picker;
 pub mod rename_view;
 pub mod search_view;
+mod settings_dir;
 pub mod settings_view;
 mod smoke;
 pub mod sync_view;
@@ -68,6 +69,8 @@ pub enum AppEvent {
     SettingsChanged,
     /// An update is installed: save, start the new version, close this one.
     Restart(crate::core::update::apply::Relaunch),
+    /// Ask where the settings folder should be (`Command::SettingsFolder`).
+    ChooseSettingsDir,
 }
 
 /// What tool windows may read or change.
@@ -166,6 +169,9 @@ impl App {
         let mut app = Self::with_settings(settings, settings_path);
         if app.shared.settings.check_updates && app.smoke.is_none() {
             app.update_check = update_view::StartupCheck::start(&cc.egui_ctx);
+        }
+        if config::location().needs_choice() && app.smoke.is_none() {
+            app.ask_settings_dir(true);
         }
         app
     }
@@ -352,6 +358,7 @@ impl App {
             }
             AppEvent::Error(e) => self.dialog = Some(Dialog::message(tr("error"), e)),
             AppEvent::Restart(relaunch) => self.restart(relaunch),
+            AppEvent::ChooseSettingsDir => self.ask_settings_dir(false),
             AppEvent::SettingsChanged => {
                 i18n::set_lang(self.shared.settings.lang);
                 apply_log_setting(&self.shared.settings);

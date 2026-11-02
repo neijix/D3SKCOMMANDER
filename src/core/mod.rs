@@ -14,6 +14,7 @@ pub mod launcher;
 pub mod multirename;
 pub mod netdrive;
 pub mod search;
+pub mod settings_dir;
 pub mod splitter;
 pub mod sync;
 pub mod timestamps;

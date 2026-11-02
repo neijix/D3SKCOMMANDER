@@ -160,6 +160,9 @@ impl App {
             }
             InputAction::Combine { part } => self.run_combine(part, value, ctx),
             InputAction::Catalog { root } => self.run_catalog(root, value, ctx),
+            InputAction::SettingsDir { first_launch } => {
+                self.run_settings_dir(&value, first_launch)
+            }
         }
     }
 

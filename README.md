@@ -92,13 +92,16 @@ cargo build --release
 
 Or build and start it in one step: `./start.sh` (macOS, Linux) or `start.bat` (Windows).
 
-Run the gate (format, lint, tests) with `./check.sh`.
+Run the gate (format, lint, tests) with `./check.sh`. On GitHub, every push to `master` runs it
+on the owner's self-hosted Linux runner (`.github/workflows/check.yml`); macOS and Windows run
+by hand (`check-desktop.yml`). A fork without that runner sets `runs-on: ubuntu-latest`.
 
 ### Packages
 
 The installers are built by [cargo-packager](https://github.com/crabnebula-dev/cargo-packager)
-(`cargo install cargo-packager --locked`), configured in `Cargo.toml`
-(`[package.metadata.packager]`):
+(`cargo install cargo-packager --version 0.11.8 --locked`), configured in `Cargo.toml`
+(`[package.metadata.packager]`). The Windows setup uses `packaging/nsis/installer.nsi`, that
+version's template plus the settings-folder page:
 
 ```sh
 cargo packager --release --formats deb,appimage   # Linux
@@ -113,13 +116,26 @@ release. The app icon is drawn by `packaging/make_icon.py` (Python with Pillow).
 
 ## Configuration
 
-Settings live in `d3skcommander.json`:
+Preferences (`d3skcommander.json`), the password store and the operation log live together in
+one **settings folder**, which you choose:
 
-- **Portable mode**: if a `d3skcommander.json` file sits next to the executable, everything
-  (settings, passwords, log) is kept in that folder. Create an empty `{}` file there to turn
-  it on.
-- Otherwise the file is in the user config folder: `~/.config/d3skcommander` on Linux,
-  `~/Library/Application Support/d3skcommander` on macOS, `%APPDATA%\d3skcommander` on Windows.
+- **Windows setup**: a page after the install folder asks for it; the default is the `config`
+  subfolder of the install folder.
+- **Other installs** (AppImage, portable archive, `.deb`, macOS app): the first launch asks,
+  proposing `<install folder>/config` for an AppImage or a portable program. A `.deb` (system
+  folders) or a macOS app (replaced on update) proposes the user config folder instead:
+  `~/.config/d3skcommander`, `~/Library/Application Support/d3skcommander`.
+- **Later**: Configuration > Settings folder… (or the Change… button in Settings) moves the
+  files to another folder; settings already in that folder are kept and loaded.
+
+The choice is a one-line `config-location.txt` (the folder, relative to its own folder when
+inside it) in the install folder, or in the user config folder when the install folder is not
+writable. Also:
+
+- **Portable mode**: a `d3skcommander.json` next to the executable keeps everything in that
+  folder. Create an empty `{}` file there to turn it on.
+- Settings from before this choice existed, in the user config folder, keep being used.
+- `D3SK_CONFIG_DIR=<folder>` overrides everything for one run.
 
 ## Keyboard
 
@@ -151,7 +167,7 @@ F1 in the app lists every binding.
 - On some Linux Wayland compositors a window that is not on screen gets no frames. To take
   such a screenshot, run it through XWayland: `WAYLAND_DISPLAY= D3SK_SCREENSHOT=… d3skcommander`.
 
-- `tests/ui_layout.rs` runs the real app headless (no GPU, on every CI OS) and checks from
+- `tests/ui_layout.rs` runs the real app headless (no GPU, on every OS) and checks from
   its accessibility tree that panels, bars, tool windows and dialogs stay on screen at
   several window sizes and scales.
 - The network mount is tested against a real share only on demand:

@@ -120,15 +120,16 @@ impl SettingsWindow {
             shared.send(AppEvent::View(config::log_path()));
         }
         ui.separator();
-        ui.label(format!(
-            "{}: {}",
-            t("Settings file", "Fichier de réglages"),
-            config::settings_path().display()
-        ));
-        ui.weak(t(
-            "Put d3skcommander.json next to the executable to turn on portable mode.",
-            "Placez d3skcommander.json à côté de l'exécutable pour activer le mode portable.",
-        ));
+        ui.horizontal(|ui| {
+            ui.label(format!(
+                "{}: {}",
+                t("Settings folder", "Dossier des réglages"),
+                config::config_dir().display()
+            ));
+            if ui.button(t("Change…", "Changer…")).clicked() {
+                shared.send(AppEvent::ChooseSettingsDir);
+            }
+        });
     }
 
     fn columns_ui(&mut self, ui: &mut egui::Ui) {

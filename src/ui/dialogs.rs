@@ -48,6 +48,10 @@ pub enum InputAction {
     Catalog {
         root: PathBuf,
     },
+    /// Make the typed folder the settings folder.
+    SettingsDir {
+        first_launch: bool,
+    },
 }
 
 pub enum ConfirmAction {
@@ -402,7 +406,9 @@ fn input_ui(
     ui.label(&label);
     let to_folder = matches!(
         action,
-        InputAction::CopyMove { .. } | InputAction::Extract { .. }
+        InputAction::CopyMove { .. }
+            | InputAction::Extract { .. }
+            | InputAction::SettingsDir { .. }
     );
     let r = if to_folder {
         folder_field(ui, &mut text, &mut pick, f32::INFINITY)

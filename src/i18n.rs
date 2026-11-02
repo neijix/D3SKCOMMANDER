@@ -258,6 +258,11 @@ const STRINGS: &[(&str, &str, &str)] = &[
     ("cmd.home", "Home", "Dossier personnel"),
     ("cmd.terminal", "Open terminal here", "Terminal ici"),
     ("cmd.settings", "Settings…", "Options…"),
+    (
+        "cmd.settings_folder",
+        "Settings folder…",
+        "Dossier des réglages…",
+    ),
     ("cmd.log", "Operation log", "Journal des opérations"),
     ("cmd.about", "About", "À propos"),
     (

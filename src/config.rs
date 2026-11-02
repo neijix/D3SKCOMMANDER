@@ -1,20 +1,20 @@
 //! Persistent settings (JSON).
 //!
-//! Location: `d3skcommander.json` next to the executable when that file exists (portable
-//! mode, e.g. on a USB stick), else the platform config folder
-//! (`~/.config/d3skcommander`, `%APPDATA%\d3skcommander`, `~/Library/Application Support/…`).
+//! The settings folder is resolved by [`crate::core::settings_dir`]: by default the `config`
+//! subfolder of the installation folder, or the folder the user chose (Windows setup, first
+//! launch or Settings); portable mode and the platform folder still work.
 
 use std::fs;
 use std::io;
 use std::path::{Path, PathBuf};
+use std::sync::Mutex;
 
 use serde::{Deserialize, Serialize};
 
 use crate::core::fs::SortOrder;
 use crate::core::ftp::FtpSite;
+use crate::core::settings_dir::{self, Location, Places, SETTINGS_FILE};
 use crate::i18n::Lang;
-
-const FILE_NAME: &str = "d3skcommander.json";
 
 #[derive(Clone, Debug, PartialEq, Serialize, Deserialize)]
 pub struct HotlistItem {
@@ -178,18 +178,53 @@ impl Settings {
     }
 }
 
+/// The resolved settings folder, cached: [`use_dir`] replaces it.
+static LOCATION: Mutex<Option<Location>> = Mutex::new(None);
+
+/// Where the settings live and why (resolved once per process).
+pub fn location() -> Location {
+    let mut cached = LOCATION.lock().unwrap_or_else(|e| e.into_inner());
+    cached
+        .get_or_insert_with(|| settings_dir::resolve(&Places::current()))
+        .clone()
+}
+
 /// The folder holding the settings, the operation log and the password store.
 pub fn config_dir() -> PathBuf {
-    if let Some(dir) = portable_dir() {
-        return dir;
+    location().dir
+}
+
+/// Makes `dir` the settings folder from now on: moves the settings files there (files it
+/// already has win) and records the choice in a pointer file.
+pub fn use_dir(dir: &Path) -> io::Result<()> {
+    let places = Places::current();
+    if places.env.is_some() {
+        return Err(io::Error::other("D3SK_CONFIG_DIR is set"));
     }
-    directories::ProjectDirs::from("", "", "d3skcommander")
-        .map(|d| d.config_dir().to_path_buf())
-        .unwrap_or_else(|| PathBuf::from("."))
+    let dir = std::path::absolute(dir)?;
+    let old = location();
+    settings_dir::move_files(&old.dir, &dir)?;
+    // Leaving portable mode: the settings file next to the program is the marker. It
+    // stayed only when the target already had settings; set it aside so it stops winning.
+    let marker = old.dir.join(SETTINGS_FILE);
+    if old.source == settings_dir::Source::Portable && marker.is_file() && old.dir != dir {
+        fs::rename(&marker, old.dir.join(format!("{SETTINGS_FILE}.old")))?;
+    }
+    settings_dir::write_pointer(places.pointer_home(), &dir)?;
+    let now = settings_dir::resolve(&places);
+    let moved = now.dir == dir;
+    *LOCATION.lock().unwrap_or_else(|e| e.into_inner()) = Some(now);
+    if moved {
+        Ok(())
+    } else {
+        Err(io::Error::other(
+            "another settings location takes precedence",
+        ))
+    }
 }
 
 pub fn settings_path() -> PathBuf {
-    config_dir().join(FILE_NAME)
+    config_dir().join(SETTINGS_FILE)
 }
 
 /// The encrypted password store (FTP and archive passwords).
@@ -200,12 +235,6 @@ pub fn passwords_path() -> PathBuf {
 /// The operation log written when `log_operations` is on.
 pub fn log_path() -> PathBuf {
     config_dir().join("operations.log")
-}
-
-fn portable_dir() -> Option<PathBuf> {
-    let exe = std::env::current_exe().ok()?;
-    let dir = exe.parent()?;
-    dir.join(FILE_NAME).is_file().then(|| dir.to_path_buf())
 }
 
 #[cfg(test)]

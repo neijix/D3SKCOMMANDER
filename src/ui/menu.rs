@@ -133,7 +133,10 @@ const MENUS: &[Menu] = {
                 Some(Decrypt),
             ],
         ),
-        ("menu.config", &[Some(Settings), Some(Log)]),
+        (
+            "menu.config",
+            &[Some(Settings), Some(SettingsFolder), Some(Log)],
+        ),
         (
             "menu.help",
             &[Some(Keys), Some(CheckUpdate), None, Some(About)],

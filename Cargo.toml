@@ -73,6 +73,8 @@ icons = [
 [package.metadata.packager.nsis]
 installMode = "currentUser"
 installerIcon = "packaging/icons/icon.ico"
+# cargo-packager's template plus the settings-folder page (pinned to 0.11.8: release.yml).
+template = "packaging/nsis/installer.nsi"
 
 [package.metadata.packager.macos]
 minimumSystemVersion = "11.0"

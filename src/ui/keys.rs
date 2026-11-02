@@ -95,6 +95,7 @@ commands! {
     Home => "cmd.home",
     Terminal => "cmd.terminal",
     Settings => "cmd.settings",
+    SettingsFolder => "cmd.settings_folder",
     Log => "cmd.log",
     About => "cmd.about",
     CheckUpdate => "cmd.check_update",
