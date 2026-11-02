@@ -112,7 +112,8 @@ cargo packager --release --formats nsis           # Windows
 Files land in `target/packages/`. Pushing a tag `v<version>` (the version in `Cargo.toml`) runs
 `.github/workflows/release.yml`, which builds all of them, names them
 `d3skcommander-<version>-<os>-<arch>…` (the names the updater looks for) and publishes the
-release. The app icon is drawn by `packaging/make_icon.py` (Python with Pillow).
+release. The logo and app icon come from the brand kit in `d3skcommander_logo/`;
+`packaging/make_icon.py` (Python with Pillow) turns its PNGs into `packaging/icons/`.
 
 ## Configuration
 
