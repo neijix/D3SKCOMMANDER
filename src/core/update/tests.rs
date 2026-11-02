@@ -164,3 +164,24 @@ fn each_install_kind_picks_its_own_release_file() {
     assert_eq!(name(InstallKind::Deb(p()), "linux", "aarch64"), None);
     assert_eq!(name(InstallKind::Source, "linux", "x86_64"), None);
 }
+
+#[test]
+fn every_install_kind_finds_its_file_in_our_own_release() {
+    const OURS: &str = include_str!(
+        "../../../tests/fixtures/github-releases/2022-11-28/d3skcommander-latest.json"
+    );
+    let r = parse_release(OURS).unwrap();
+    let p = PathBuf::new;
+    let cases = [
+        (InstallKind::Deb(p()), "linux", "x86_64"),
+        (InstallKind::AppImage(p()), "linux", "x86_64"),
+        (InstallKind::Portable(p()), "linux", "x86_64"),
+        (InstallKind::MacApp(p()), "macos", "aarch64"),
+        (InstallKind::WindowsSetup(p()), "windows", "x86_64"),
+        (InstallKind::Portable(p()), "windows", "x86_64"),
+    ];
+    for (kind, os, arch) in cases {
+        let a = pick_asset(&r, &kind, os, arch).unwrap_or_else(|| panic!("{kind:?} {os}"));
+        assert_eq!(a.sha256.as_ref().map(String::len), Some(64), "{}", a.name);
+    }
+}
