@@ -156,6 +156,9 @@ impl App {
                 let list_height = (ui.available_height() - 24.0).max(60.0);
                 let list = ui.allocate_ui(egui::vec2(ui.available_width(), list_height), |ui| {
                     ui.set_min_height(list_height);
+                    // Names are not selectable text: a selectable label sits on top of its
+                    // row and takes the click (and turns a small move into a text drag).
+                    ui.style_mut().interaction.selectable_labels = false;
                     match tab.view {
                         ViewMode::Full => full_view(ui, tab, active, &columns, side, &mut acts),
                         ViewMode::Brief => grid_view(ui, tab, active, false, &mut acts),
@@ -340,10 +343,12 @@ fn marked_color(ui: &egui::Ui) -> Color32 {
 
 /// Reads the click modifiers and turns a row's response into actions.
 fn row_acts(r: &egui::Response, index: usize, acts: &mut Vec<Act>) {
-    let mods = r.ctx.input(|i| i.modifiers);
+    let (mods, pressed) = r.ctx.input(|i| (i.modifiers, i.pointer.primary_pressed()));
     if r.double_clicked() {
         acts.push(Act::Open(index));
-    } else if r.clicked() {
+    } else if pressed && r.is_pointer_button_down_on() {
+        // Select on press, like a native file manager: a release after a small move or a
+        // long press is not a click for egui, and the row would ignore it.
         acts.push(Act::Click {
             index,
             ctrl: mods.command,

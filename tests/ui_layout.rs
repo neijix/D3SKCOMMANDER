@@ -214,3 +214,44 @@ fn a_chosen_folder_opens_in_the_panel_whose_button_was_clicked() {
         "the right panel shows the chosen folder"
     );
 }
+
+/// Ctrl-presses a file name at `pos`, moves by `shift` while holding for `frames`, releases.
+fn ctrl_press_on(h: &mut Harness<'_, App>, pos: egui::Pos2, shift: f32, frames: usize) {
+    let ctrl = egui::Modifiers::COMMAND;
+    h.hover_at(pos);
+    h.event(egui::Event::ModifiersChanged(ctrl));
+    let button = |pos, pressed| egui::Event::PointerButton {
+        pos,
+        button: egui::PointerButton::Primary,
+        pressed,
+        modifiers: ctrl,
+    };
+    h.event(button(pos, true));
+    let to = pos + Vec2::new(shift, shift / 2.0);
+    for _ in 0..frames {
+        h.hover_at(to);
+    }
+    h.event(button(to, false));
+    h.event(egui::Event::ModifiersChanged(egui::Modifiers::NONE));
+    h.run_steps(3);
+}
+
+#[test]
+fn a_press_on_a_file_name_selects_it_even_if_the_mouse_moves_or_lingers() {
+    i18n::set_lang(Lang::En);
+    let dir = sample_dir();
+    // A plain press on the text, a shaky one (past egui's click distance) and a slow one
+    // (past its click duration): each marks the file. Text labels used to take the press.
+    for (shift, frames) in [(0.0, 1), (12.0, 1), (0.0, 70)] {
+        let mut h = app_harness(dir.path(), Vec2::new(1280.0, 800.0), 1.0);
+        let name = h.query_all_by_label_contains("file number 5 with").next();
+        let name = name.expect("the file is listed").rect().center();
+        ctrl_press_on(&mut h, name, shift, frames);
+        assert!(
+            h.query_all_by_label_contains("1 / 41 selected")
+                .next()
+                .is_some(),
+            "move {shift}, {frames} frames: the file is selected"
+        );
+    }
+}
