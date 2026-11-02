@@ -1,0 +1,25 @@
+# The same gate on GitHub-hosted macOS and Windows: by hand only (Actions > check-desktop >
+# Run workflow), e.g. before a release. Every push runs check.yml on the self-hosted runner.
+name: check-desktop
+
+on:
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+jobs:
+  check:
+    strategy:
+      fail-fast: false
+      matrix:
+        os: [macos-latest, windows-latest]
+    runs-on: ${{ matrix.os }}
+    steps:
+      - uses: actions/checkout@v7
+      - uses: dtolnay/rust-toolchain@stable
+        with:
+          components: rustfmt, clippy
+      - run: cargo fmt --all -- --check
+      - run: cargo clippy --all-targets -- -D warnings
+      - run: cargo test --quiet

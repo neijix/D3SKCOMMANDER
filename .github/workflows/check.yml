@@ -1,20 +1,40 @@
+# The commit gate (./check.sh: fmt, clippy -D warnings, tests) on the owner's self-hosted Linux
+# runner — this machine, no GitHub-hosted minutes. macOS and Windows: check-desktop.yml, by hand.
+# A fork without that runner: set runs-on to ubuntu-latest and add release.yml's
+# "Linux GUI packages" step.
 name: check
-on: [push, pull_request]
+
+on:
+  push:
+    branches: [master]
+    paths-ignore: ['**.md', 'docs/**']
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+concurrency:
+  group: check-${{ github.ref }}
+  cancel-in-progress: true
+
 jobs:
   check:
-    strategy:
-      fail-fast: false
-      matrix:
-        os: [ubuntu-latest, macos-latest, windows-latest]
-    runs-on: ${{ matrix.os }}
+    # Persistent, not ephemeral: nothing may write to $HOME. The Rust toolchain and the build
+    # cache live in the runner's tool cache, so a run only rebuilds what changed.
+    runs-on: [self-hosted, kyber]
+    timeout-minutes: 30
     steps:
       - uses: actions/checkout@v7
+      - name: Toolchain and build cache in the runner's tool cache
+        run: |
+          {
+            echo "RUSTUP_HOME=$RUNNER_TOOL_CACHE/rust/rustup"
+            echo "CARGO_HOME=$RUNNER_TOOL_CACHE/rust/cargo"
+            echo "CARGO_TARGET_DIR=$RUNNER_TOOL_CACHE/d3skcommander-target"
+          } >> "$GITHUB_ENV"
+          echo "$RUNNER_TOOL_CACHE/rust/cargo/bin" >> "$GITHUB_PATH"
       - uses: dtolnay/rust-toolchain@stable
         with:
           components: rustfmt, clippy
-      - name: Linux GUI packages
-        if: runner.os == 'Linux'
-        run: sudo apt-get update && sudo apt-get install -y libxkbcommon-dev libwayland-dev libgl1-mesa-dev libx11-dev libxcursor-dev libxrandr-dev libxi-dev
-      - run: cargo fmt --all -- --check
-      - run: cargo clippy --all-targets -- -D warnings
-      - run: cargo test --quiet
+      - name: Gate
+        run: ./check.sh

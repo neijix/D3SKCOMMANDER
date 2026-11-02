@@ -40,7 +40,8 @@ jobs:
             echo "tag $GITHUB_REF does not match Cargo.toml version $v" >&2; exit 1
           fi
           echo "VERSION=$v" >> "$GITHUB_ENV"
-      - run: cargo install cargo-packager --locked
+      # Pinned: packaging/nsis/installer.nsi is a copy of this version's template.
+      - run: cargo install cargo-packager --version 0.11.8 --locked
       - run: cargo packager --release --formats ${{ matrix.formats }}
       - name: Name the files for the updater
         run: |
