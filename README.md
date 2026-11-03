@@ -96,6 +96,13 @@ Run the gate (format, lint, tests) with `./check.sh`. It runs locally before eve
 no per-push CI. The same gate on macOS and Windows runs on GitHub on demand
 (`gh workflow run check-desktop.yml`).
 
+Both GitHub workflows have a daily cap (`.github/ci-quota.sh`, UTC day): at most 2 macOS jobs a
+day across workflows and 4 runs a day per workflow. Over the macOS cap, `check-desktop` runs on
+Windows only and a release stops before building (never a release without its macOS files).
+Change the caps with repository variables (`gh variable set CI_MAX_MACOS_PER_DAY --body 3`,
+`CI_MAX_RUNS_PER_DAY`); skip them once with `-f force=true`, e.g.
+`gh workflow run release.yml --ref v0.2.0 -f force=true`.
+
 ### Packages
 
 The installers are built by [cargo-packager](https://github.com/crabnebula-dev/cargo-packager)

@@ -1,14 +1,60 @@
 # Builds the installers on a `v*` tag and publishes them as a GitHub release.
 # File names follow the contract read by the in-app updater (src/core/update.rs,
 # `asset_suffix`): d3skcommander-<version>-<os>-<arch><suffix>.
+# Daily cap: .github/ci-quota.sh — over the macOS cap the whole release stops (no partial release).
 name: release
 on:
   push:
     tags: ['v*']
   workflow_dispatch:
+    inputs:
+      force:
+        description: Ignore the daily CI quota
+        type: boolean
+        default: false
+
+concurrency:
+  group: release
+  cancel-in-progress: false
 
 jobs:
+  # Daily quota (.github/ci-quota.sh): macOS jobs are capped per day across workflows.
+  quota:
+    runs-on: ubuntu-latest
+    permissions:
+      actions: read
+      contents: read
+    outputs:
+      macos: ${{ steps.q.outputs.macos }}
+    steps:
+      - uses: actions/checkout@v7
+        with:
+          sparse-checkout: .github/ci-quota.sh
+          sparse-checkout-cone-mode: false
+      - id: q
+        run: ./.github/ci-quota.sh
+        env:
+          GH_TOKEN: ${{ github.token }}
+          WORKFLOW: release.yml
+          CURRENT_RUN_ID: ${{ github.run_id }}
+          MAX_RUNS: ${{ vars.CI_MAX_RUNS_PER_DAY }}
+          MAX_MACOS: ${{ vars.CI_MAX_MACOS_PER_DAY }}
+          FORCE: ${{ inputs.force }}
+
+  # No partial release: over the macOS cap, stop here. Retry: gh workflow run release.yml
+  # --ref <tag> -f force=true (or the next day).
+  macos-quota:
+    needs: quota
+    if: needs.quota.outputs.macos != 'true'
+    runs-on: ubuntu-latest
+    steps:
+      - run: |
+          echo "::error::macOS daily cap reached: no release today. Retry tomorrow or: gh workflow run release.yml --ref $GITHUB_REF_NAME -f force=true"
+          exit 1
+
   build:
+    needs: quota
+    if: needs.quota.outputs.macos == 'true'
     strategy:
       fail-fast: false
       matrix:

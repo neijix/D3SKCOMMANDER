@@ -1,20 +1,55 @@
 # The same gate on GitHub-hosted macOS and Windows, on demand only: `gh workflow run
 # check-desktop.yml` (then `gh run watch`), run by the agent after platform-specific changes and
-# before a release. The Linux gate is ./check.sh, run locally before every commit (no per-push CI).
+# before a release. Daily cap: .github/ci-quota.sh (over the macOS cap, only Windows runs).
+# The Linux gate is ./check.sh, run locally before every commit (no per-push CI).
 name: check-desktop
 
 on:
   workflow_dispatch:
+    inputs:
+      force:
+        description: Ignore the daily CI quota
+        type: boolean
+        default: false
 
 permissions:
   contents: read
 
+concurrency:
+  group: check-desktop
+  cancel-in-progress: true
+
 jobs:
+  # Daily quota (.github/ci-quota.sh): macOS jobs are capped per day across workflows.
+  quota:
+    runs-on: ubuntu-latest
+    permissions:
+      actions: read
+      contents: read
+    outputs:
+      macos: ${{ steps.q.outputs.macos }}
+    steps:
+      - uses: actions/checkout@v7
+        with:
+          sparse-checkout: .github/ci-quota.sh
+          sparse-checkout-cone-mode: false
+      - id: q
+        run: ./.github/ci-quota.sh
+        env:
+          GH_TOKEN: ${{ github.token }}
+          WORKFLOW: check-desktop.yml
+          CURRENT_RUN_ID: ${{ github.run_id }}
+          MAX_RUNS: ${{ vars.CI_MAX_RUNS_PER_DAY }}
+          MAX_MACOS: ${{ vars.CI_MAX_MACOS_PER_DAY }}
+          FORCE: ${{ inputs.force }}
+
   check:
+    needs: quota
     strategy:
       fail-fast: false
       matrix:
-        os: [macos-latest, windows-latest]
+        # macOS only while under the daily cap.
+        os: ${{ fromJSON(needs.quota.outputs.macos == 'true' && '["macos-latest","windows-latest"]' || '["windows-latest"]') }}
     runs-on: ${{ matrix.os }}
     steps:
       - uses: actions/checkout@v7
