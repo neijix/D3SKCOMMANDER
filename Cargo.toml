@@ -59,16 +59,27 @@ identifier = "io.github.neijix.d3skcommander"
 publisher = "neijix"
 category = "Utility"
 licenseFile = "LICENSE"
+homepage = "https://github.com/neijix/D3SKCOMMANDER"
+# Shown under the summary in Ubuntu App Center. Unset, cargo-packager writes "(none)".
+longDescription = """
+Two panels with tabs, plus a viewer, an editor, archives, search, compare, directory sync, multi-rename, FTP and network drives.
+The package installs into the system. The first time you start d3skcommander, it asks where to keep your settings.
+"""
 outDir = "target/packages"
 beforePackagingCommand = "cargo build --release"
 icons = [
   "packaging/icons/32x32.png",
+  "packaging/icons/64x64.png",
   "packaging/icons/128x128.png",
   "packaging/icons/256x256.png",
   "packaging/icons/512x512.png",
   "packaging/icons/icon.icns",
   "packaging/icons/icon.ico",
 ]
+
+[package.metadata.packager.deb]
+depends = ["hicolor-icon-theme"]
+files = { "packaging/linux/io.github.neijix.d3skcommander.metainfo.xml" = "/usr/share/metainfo/io.github.neijix.d3skcommander.metainfo.xml" }
 
 [package.metadata.packager.nsis]
 installMode = "currentUser"

@@ -61,7 +61,7 @@ Download the file for your system from the
 
 | System | File | Install |
 |---|---|---|
-| Linux (Debian, Ubuntu…) | `…-linux-x86_64.deb` | `sudo apt install ./d3skcommander-*.deb` |
+| Linux (Debian, Ubuntu…) | `…-linux-x86_64.deb` | `sudo apt install ./d3skcommander-*.deb` (installs into `/usr`) |
 | Linux (any) | `…-linux-x86_64.AppImage` | `chmod +x` it and run it |
 | macOS (Apple silicon) | `…-macos-aarch64.dmg` | open it, drag the app to Applications |
 | Windows | `…-windows-x86_64-setup.exe` | run it (no administrator rights needed) |

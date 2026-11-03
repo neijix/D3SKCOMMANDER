@@ -1,0 +1,55 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<component type="desktop-application">
+  <id>io.github.neijix.d3skcommander</id>
+  <metadata_license>MIT</metadata_license>
+  <project_license>MIT</project_license>
+  <name>d3skcommander</name>
+  <summary>Two-panel file manager</summary>
+  <summary xml:lang="fr">Gestionnaire de fichiers à deux panneaux</summary>
+  <description>
+    <p>
+      Two panels with tabs, plus a viewer, an editor, archives, search,
+      compare, directory sync, multi-rename, FTP and network drives.
+    </p>
+    <p xml:lang="fr">
+      Deux panneaux avec des onglets, plus une visionneuse, un éditeur,
+      les archives, la recherche, la comparaison, la synchronisation,
+      le renommage multiple, le FTP et les lecteurs réseau.
+    </p>
+    <p>
+      The package installs into the system. The first time you start
+      d3skcommander, it asks where to keep your settings.
+    </p>
+    <p xml:lang="fr">
+      Le paquet s'installe dans le système. Au premier lancement,
+      d3skcommander demande où garder les réglages.
+    </p>
+  </description>
+  <launchable type="desktop-id">d3skcommander.desktop</launchable>
+  <developer id="io.github.neijix">
+    <name>neijix</name>
+  </developer>
+  <url type="homepage">https://github.com/neijix/D3SKCOMMANDER</url>
+  <url type="bugtracker">https://github.com/neijix/D3SKCOMMANDER/issues</url>
+  <url type="vcs-browser">https://github.com/neijix/D3SKCOMMANDER</url>
+  <icon type="stock">d3skcommander</icon>
+  <categories>
+    <category>Utility</category>
+  </categories>
+  <keywords>
+    <keyword>file-manager</keyword>
+    <keyword>files</keyword>
+    <keyword xml:lang="fr">fichiers</keyword>
+  </keywords>
+  <provides>
+    <binary>d3skcommander</binary>
+  </provides>
+  <releases>
+    <release version="0.1.1" date="2026-11-02"/>
+  </releases>
+  <content_rating type="oars-1.1"/>
+  <languages>
+    <lang percentage="100">en</lang>
+    <lang percentage="100">fr</lang>
+  </languages>
+</component>
