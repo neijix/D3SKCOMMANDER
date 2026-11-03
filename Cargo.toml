@@ -4,7 +4,7 @@ version = "0.1.1"
 edition = "2024"
 description = "A cross-platform two-panel (orthodox) file manager"
 license = "MIT"
-repository = "https://github.com/neijix/d3skcommander"
+repository = "https://github.com/neijix/D3SKCOMMANDER"
 authors = ["neijix"]
 rust-version = "1.95"
 

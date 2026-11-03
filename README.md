@@ -57,7 +57,7 @@ The tools other file managers ship as add-ons are built in.
 ## Install
 
 Download the file for your system from the
-[releases page](https://github.com/neijix/d3skcommander/releases):
+[releases page](https://github.com/neijix/D3SKCOMMANDER/releases):
 
 | System | File | Install |
 |---|---|---|
