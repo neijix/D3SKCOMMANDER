@@ -1,7 +1,6 @@
-# The commit gate (./check.sh: fmt, clippy -D warnings, tests) on the owner's self-hosted Linux
-# runner — this machine, no GitHub-hosted minutes. macOS and Windows: check-desktop.yml, on demand.
-# A fork without that runner: set runs-on to ubuntu-latest and add release.yml's
-# "Linux GUI packages" step.
+# The commit gate (./check.sh: fmt, clippy -D warnings, tests) on a GitHub-hosted Linux runner on
+# every push to master. macOS and Windows: check-desktop.yml, on demand. No pull_request trigger
+# and no self-hosted runner: the repository is public, so fork code never runs on the owner's machines.
 name: check
 
 on:
@@ -19,22 +18,15 @@ concurrency:
 
 jobs:
   check:
-    # Persistent, not ephemeral: nothing may write to $HOME. The Rust toolchain and the build
-    # cache live in the runner's tool cache, so a run only rebuilds what changed.
-    runs-on: [self-hosted, kyber]
+    runs-on: ubuntu-latest
     timeout-minutes: 30
     steps:
       - uses: actions/checkout@v7
-      - name: Toolchain and build cache in the runner's tool cache
-        run: |
-          {
-            echo "RUSTUP_HOME=$RUNNER_TOOL_CACHE/rust/rustup"
-            echo "CARGO_HOME=$RUNNER_TOOL_CACHE/rust/cargo"
-            echo "CARGO_TARGET_DIR=$RUNNER_TOOL_CACHE/d3skcommander-target"
-          } >> "$GITHUB_ENV"
-          echo "$RUNNER_TOOL_CACHE/rust/cargo/bin" >> "$GITHUB_PATH"
       - uses: dtolnay/rust-toolchain@stable
         with:
           components: rustfmt, clippy
+      - uses: Swatinem/rust-cache@v2
+      - name: Linux GUI packages
+        run: sudo apt-get update && sudo apt-get install -y libxkbcommon-dev libwayland-dev libgl1-mesa-dev libx11-dev libxcursor-dev libxrandr-dev libxi-dev
       - name: Gate
         run: ./check.sh

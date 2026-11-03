@@ -93,8 +93,8 @@ cargo build --release
 Or build and start it in one step: `./start.sh` (macOS, Linux) or `start.bat` (Windows).
 
 Run the gate (format, lint, tests) with `./check.sh`. On GitHub, every push to `master` runs it
-on the owner's self-hosted Linux runner (`.github/workflows/check.yml`); macOS and Windows run
-on demand (`gh workflow run check-desktop.yml`). A fork without that runner sets `runs-on: ubuntu-latest`.
+on a GitHub-hosted Linux runner (`.github/workflows/check.yml`); macOS and Windows run on demand
+(`gh workflow run check-desktop.yml`).
 
 ### Packages
 
