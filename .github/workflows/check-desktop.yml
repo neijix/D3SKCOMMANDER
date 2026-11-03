@@ -1,6 +1,6 @@
 # The same gate on GitHub-hosted macOS and Windows, on demand only: `gh workflow run
 # check-desktop.yml` (then `gh run watch`), run by the agent after platform-specific changes and
-# before a release. Every push runs check.yml on a GitHub-hosted Linux runner.
+# before a release. The Linux gate is ./check.sh, run locally before every commit (no per-push CI).
 name: check-desktop
 
 on:
