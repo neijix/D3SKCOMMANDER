@@ -406,7 +406,8 @@ mod tests {
         store.set("ftp:one", "p1");
         store.set("ftp:two", "pä2");
         store.remove("ftp:one");
-        store.set("ftp:three", "p3");
+        // A secret no random temp path can contain: Debug prints the path.
+        store.set("ftp:three", "secret-three-value");
         store.save().unwrap();
         // The file holds no plaintext.
         let raw = fs::read(&path).unwrap();
@@ -416,7 +417,7 @@ mod tests {
         assert_eq!(reopened.keys(), vec!["ftp:three", "ftp:two"]);
         assert_eq!(reopened.get("ftp:two"), Some("pä2"));
         assert_eq!(reopened.get("ftp:one"), None);
-        assert!(!format!("{reopened:?}").contains("p3"));
+        assert!(!format!("{reopened:?}").contains("secret-three-value"));
     }
 
     #[test]
