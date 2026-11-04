@@ -1,0 +1,18 @@
+{
+  "shell.window_title": {
+    "en": "D3SK Commander",
+    "fr": "D3SK Commander"
+  },
+  "shell.panel.left": {
+    "en": "Left panel",
+    "fr": "Panneau gauche"
+  },
+  "shell.panel.right": {
+    "en": "Right panel",
+    "fr": "Panneau droit"
+  },
+  "shell.status": {
+    "en": "Status",
+    "fr": "État"
+  }
+}

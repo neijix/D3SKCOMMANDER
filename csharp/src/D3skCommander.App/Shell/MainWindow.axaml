@@ -1,6 +1,19 @@
 <Window xmlns="https://github.com/avaloniaui"
         xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
         x:Class="D3skCommander.App.Shell.MainWindow"
-        Title="D3SK Commander"
         Width="1100" Height="700">
+  <DockPanel>
+    <Grid DockPanel.Dock="Top">
+      <Menu x:Name="MainMenu"/>
+      <StackPanel x:Name="MenuBarTrailing" Orientation="Horizontal" HorizontalAlignment="Right" VerticalAlignment="Center"/>
+    </Grid>
+    <Border x:Name="FunctionKeyBar" DockPanel.Dock="Bottom" Padding="4,2"/>
+    <StackPanel x:Name="UnderPanels" DockPanel.Dock="Bottom"/>
+    <TextBlock x:Name="StatusLine" DockPanel.Dock="Bottom" Margin="8,2"/>
+    <StackPanel x:Name="BesidePanels" DockPanel.Dock="Right"/>
+    <Grid ColumnDefinitions="*,*">
+      <ContentControl x:Name="LeftPanel" Grid.Column="0" Margin="4"/>
+      <ContentControl x:Name="RightPanel" Grid.Column="1" Margin="4"/>
+    </Grid>
+  </DockPanel>
 </Window>

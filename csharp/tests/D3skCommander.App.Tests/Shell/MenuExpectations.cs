@@ -1,0 +1,93 @@
+using D3skCommander.Core.Commands;
+
+namespace D3skCommander.App.Tests.Shell;
+
+/// <summary>v0.1 menu order, encoded so the lists are not a second copy of <c>MenuLayout</c>.</summary>
+internal static class MenuExpectations
+{
+    public static IReadOnlyList<string> Titles { get; } =
+    [
+        "menu.files",
+        "menu.mark",
+        "menu.commands",
+        "menu.net",
+        "menu.show",
+        "menu.tools",
+        "menu.config",
+        "menu.help",
+    ];
+
+    public static CommandId?[] Items(string titleKey) => Parse(Spec(titleKey));
+
+    public static CommandId[] AddOns() =>
+        Names("Split Combine ChecksumCreate ChecksumVerify AddTime ReDate Touch Catalog Encrypt Decrypt BackupZip Ftp NetConnect NetDisconnect BrowseFolder Sync");
+
+    private static string Spec(string titleKey)
+    {
+        if (titleKey == "menu.files")
+        {
+            return "View Edit EditNew Copy Move RenameInPlace MkDir Delete DeletePermanent | Pack Unpack BackupZip | Properties OpenWith | Quit";
+        }
+
+        if (titleKey == "menu.mark")
+        {
+            return "SelectGroup UnselectGroup SelectAll UnselectAll Invert SelectSameExt | CopyNames CopyPaths | ComparePanels";
+        }
+
+        if (titleKey == "menu.commands")
+        {
+            return "Search MultiRename CompareFiles Sync | DirSizes Branch QuickFilter | BrowseFolder Hotlist AddHotlist History | Back Forward Parent Root Home | SameDir Swap Terminal";
+        }
+
+        if (titleKey == "menu.net")
+        {
+            return "NetConnect NetDisconnect | Ftp Passwords";
+        }
+
+        if (titleKey == "menu.show")
+        {
+            return "ViewFull ViewBrief ViewThumbs QuickView ToggleHidden | SortName SortExt SortDate SortSize | NewTab CloseTab NextTab | Refresh";
+        }
+
+        if (titleKey == "menu.tools")
+        {
+            return "Split Combine ChecksumCreate ChecksumVerify | AddTime ReDate Touch | Catalog Encrypt Decrypt";
+        }
+
+        if (titleKey == "menu.config")
+        {
+            return "Settings SettingsFolder Log";
+        }
+
+        if (titleKey == "menu.help")
+        {
+            return "Keys CheckUpdate | About";
+        }
+
+        throw new ArgumentException($"Unknown menu '{titleKey}'.", nameof(titleKey));
+    }
+
+    private static CommandId?[] Parse(string spec)
+    {
+        var parts = spec.Split(' ', StringSplitOptions.RemoveEmptyEntries);
+        var items = new CommandId?[parts.Length];
+        for (var i = 0; i < parts.Length; i++)
+        {
+            items[i] = parts[i] == "|" ? null : Enum.Parse<CommandId>(parts[i]);
+        }
+
+        return items;
+    }
+
+    private static CommandId[] Names(string spec)
+    {
+        var parts = spec.Split(' ', StringSplitOptions.RemoveEmptyEntries);
+        var items = new CommandId[parts.Length];
+        for (var i = 0; i < parts.Length; i++)
+        {
+            items[i] = Enum.Parse<CommandId>(parts[i]);
+        }
+
+        return items;
+    }
+}
