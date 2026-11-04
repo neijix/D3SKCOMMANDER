@@ -1,9 +1,10 @@
 # Roadmap
 
-What v0.1 does not do yet, roughly in priority order.
+First, the C# app (0.2.0) reaches what the Rust v0.1 did (README, Status). Then, what v0.1
+did not do, roughly in priority order.
 
 - **Native RAR / ARJ / LZH / CAB / ACE / UC2.** Today these are read through an external `7z`
-  or `unrar` on `PATH`. ACE and UC2 have no maintained Rust reader.
+  or `unrar` on `PATH`. ACE and UC2 have no maintained .NET reader.
 - **FTP through an HTTP proxy** (CONNECT), and SFTP.
 - **Plugin API** for packers, viewers and file systems (probably WASM or a dynamic library
   with a C ABI).
