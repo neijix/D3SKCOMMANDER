@@ -1,3 +1,6 @@
+using System.ComponentModel;
+using System.Runtime.InteropServices;
+using System.Runtime.Versioning;
 using D3skCommander.Core.Common;
 using D3skCommander.Core.FileSystem;
 
@@ -73,8 +76,15 @@ public sealed partial class LocalFileSystemProvider
     }
 
     // A link is removed itself. Directory.Delete would follow a directory link into the target.
+    // On Windows, File.Delete calls DeleteFile, which refuses a directory reparse point.
     private static OperationError? DeletePath(string path)
     {
+        if (OperatingSystem.IsWindows() && IsDirectoryReparsePoint(path))
+        {
+            RemoveDirectoryLink(path);
+            return null;
+        }
+
         if (IsLink(path))
         {
             File.Delete(path);
@@ -107,4 +117,37 @@ public sealed partial class LocalFileSystemProvider
             return false;
         }
     }
+
+    private static bool IsDirectoryReparsePoint(string path)
+    {
+        try
+        {
+            var attributes = File.GetAttributes(path);
+            return (attributes & FileAttributes.ReparsePoint) != 0
+                && (attributes & FileAttributes.Directory) != 0;
+        }
+        catch (Exception ex) when (IsFileSystem(ex))
+        {
+            return false;
+        }
+    }
+
+    // RemoveDirectory drops the reparse point. DeleteFile (File.Delete) returns access denied.
+    [SupportedOSPlatform("windows")]
+    private static void RemoveDirectoryLink(string path)
+    {
+        if (RemoveDirectoryW(path))
+        {
+            return;
+        }
+
+        var error = Marshal.GetLastWin32Error();
+        throw new IOException(new Win32Exception(error).Message);
+    }
+
+    // DllImport: LibraryImport needs AllowUnsafeBlocks, which this library does not set.
+    [SupportedOSPlatform("windows")]
+    [DllImport("kernel32.dll", CharSet = CharSet.Unicode, EntryPoint = "RemoveDirectoryW", SetLastError = true)]
+    [return: MarshalAs(UnmanagedType.Bool)]
+    private static extern bool RemoveDirectoryW(string lpPathName);
 }

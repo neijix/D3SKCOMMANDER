@@ -18,10 +18,53 @@ public static class FileOpNames
             return new TransferTarget(Path.TrimEndingDirectorySeparator(target), null);
         }
 
-        var directory = Path.GetDirectoryName(target);
+        var directory = Parent(target);
         var name = Path.GetFileName(target);
         return new TransferTarget(directory ?? "", name.Length == 0 ? null : name);
     }
+
+    /// <summary>
+    /// Parent directory, with the separators the caller typed.
+    /// <see cref="Path.GetDirectoryName"/> rewrites <c>/tmp/out</c> to <c>\tmp\out</c> on Windows.
+    /// </summary>
+    private static string? Parent(string path)
+    {
+        var directory = Path.GetDirectoryName(path);
+        if (string.IsNullOrEmpty(directory) || !OperatingSystem.IsWindows() || directory.Length > path.Length)
+        {
+            return directory;
+        }
+
+        var typed = path[..directory.Length];
+        return SamePathText(typed, directory) ? typed : directory;
+    }
+
+    private static bool SamePathText(string typed, string normalized)
+    {
+        if (typed.Length != normalized.Length)
+        {
+            return false;
+        }
+
+        for (var i = 0; i < typed.Length; i++)
+        {
+            if (typed[i] == normalized[i])
+            {
+                continue;
+            }
+
+            if (IsSeparator(typed[i]) && IsSeparator(normalized[i]))
+            {
+                continue;
+            }
+
+            return false;
+        }
+
+        return true;
+    }
+
+    private static bool IsSeparator(char c) => c is '/' or '\\';
 
     /// <summary>
     /// <c>a.txt</c> stays free, otherwise <c>a (2).txt</c>, <c>a (3).txt</c>…
