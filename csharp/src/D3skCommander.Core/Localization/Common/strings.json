@@ -1,0 +1,434 @@
+{
+  "menu.files": {
+    "en": "Files",
+    "fr": "Fichiers"
+  },
+  "menu.mark": {
+    "en": "Mark",
+    "fr": "Sélection"
+  },
+  "menu.commands": {
+    "en": "Commands",
+    "fr": "Commandes"
+  },
+  "menu.net": {
+    "en": "Net",
+    "fr": "Réseau"
+  },
+  "menu.show": {
+    "en": "Show",
+    "fr": "Affichage"
+  },
+  "menu.tools": {
+    "en": "Tools",
+    "fr": "Outils"
+  },
+  "menu.config": {
+    "en": "Configuration",
+    "fr": "Configuration"
+  },
+  "menu.help": {
+    "en": "Help",
+    "fr": "Aide"
+  },
+  "fk.view": {
+    "en": "View",
+    "fr": "Voir"
+  },
+  "fk.edit": {
+    "en": "Edit",
+    "fr": "Éditer"
+  },
+  "fk.copy": {
+    "en": "Copy",
+    "fr": "Copier"
+  },
+  "fk.move": {
+    "en": "Move",
+    "fr": "Déplacer"
+  },
+  "fk.mkdir": {
+    "en": "NewFolder",
+    "fr": "NouvDossier"
+  },
+  "fk.delete": {
+    "en": "Delete",
+    "fr": "Supprimer"
+  },
+  "fk.quit": {
+    "en": "Exit",
+    "fr": "Quitter"
+  },
+  "fk.rename": {
+    "en": "Rename",
+    "fr": "Renommer"
+  },
+  "fk.search": {
+    "en": "Search",
+    "fr": "Chercher"
+  },
+  "check_updates": {
+    "en": "Look for a new version at start-up",
+    "fr": "Chercher une nouvelle version au démarrage"
+  },
+  "ok": {
+    "en": "OK",
+    "fr": "OK"
+  },
+  "cancel": {
+    "en": "Cancel",
+    "fr": "Annuler"
+  },
+  "close": {
+    "en": "Close",
+    "fr": "Fermer"
+  },
+  "apply": {
+    "en": "Apply",
+    "fr": "Appliquer"
+  },
+  "start": {
+    "en": "Start",
+    "fr": "Démarrer"
+  },
+  "stop": {
+    "en": "Stop",
+    "fr": "Arrêter"
+  },
+  "save": {
+    "en": "Save",
+    "fr": "Enregistrer"
+  },
+  "yes": {
+    "en": "Yes",
+    "fr": "Oui"
+  },
+  "no": {
+    "en": "No",
+    "fr": "Non"
+  },
+  "name": {
+    "en": "Name",
+    "fr": "Nom"
+  },
+  "ext": {
+    "en": "Ext",
+    "fr": "Ext"
+  },
+  "size": {
+    "en": "Size",
+    "fr": "Taille"
+  },
+  "date": {
+    "en": "Date",
+    "fr": "Date"
+  },
+  "attr": {
+    "en": "Attr",
+    "fr": "Attr"
+  },
+  "path": {
+    "en": "Path",
+    "fr": "Chemin"
+  },
+  "folder": {
+    "en": "Folder",
+    "fr": "Dossier"
+  },
+  "files": {
+    "en": "files",
+    "fr": "fichiers"
+  },
+  "folders": {
+    "en": "folders",
+    "fr": "dossiers"
+  },
+  "selected": {
+    "en": "selected",
+    "fr": "sélectionnés"
+  },
+  "free": {
+    "en": "free",
+    "fr": "libres"
+  },
+  "of": {
+    "en": "of",
+    "fr": "sur"
+  },
+  "error": {
+    "en": "Error",
+    "fr": "Erreur"
+  },
+  "done": {
+    "en": "Done",
+    "fr": "Terminé"
+  },
+  "password": {
+    "en": "Password",
+    "fr": "Mot de passe"
+  },
+  "confirm_password": {
+    "en": "Confirm password",
+    "fr": "Confirmer le mot de passe"
+  },
+  "master_password": {
+    "en": "Master password",
+    "fr": "Mot de passe maître"
+  },
+  "mask": {
+    "en": "Mask",
+    "fr": "Masque"
+  },
+  "target": {
+    "en": "Target",
+    "fr": "Destination"
+  },
+  "command": {
+    "en": "Command",
+    "fr": "Commande"
+  },
+  "language": {
+    "en": "Language",
+    "fr": "Langue"
+  },
+  "dark_mode": {
+    "en": "Dark mode",
+    "fr": "Mode sombre"
+  },
+  "font_size": {
+    "en": "Font size",
+    "fr": "Taille du texte"
+  },
+  "use_trash": {
+    "en": "Delete to trash",
+    "fr": "Supprimer vers la corbeille"
+  },
+  "confirm_delete": {
+    "en": "Confirm deletion",
+    "fr": "Confirmer la suppression"
+  },
+  "log_ops": {
+    "en": "Log file operations",
+    "fr": "Journaliser les opérations"
+  },
+  "editor": {
+    "en": "External editor (empty = built-in)",
+    "fr": "Éditeur externe (vide = intégré)"
+  },
+  "terminal": {
+    "en": "Terminal command",
+    "fr": "Commande du terminal"
+  },
+  "columns": {
+    "en": "Columns",
+    "fr": "Colonnes"
+  },
+  "filter": {
+    "en": "Filter",
+    "fr": "Filtre"
+  },
+  "results": {
+    "en": "Results",
+    "fr": "Résultats"
+  },
+  "progress": {
+    "en": "Progress",
+    "fr": "Progression"
+  },
+  "copying": {
+    "en": "Copying",
+    "fr": "Copie"
+  },
+  "moving": {
+    "en": "Moving",
+    "fr": "Déplacement"
+  },
+  "deleting": {
+    "en": "Deleting",
+    "fr": "Suppression"
+  },
+  "working": {
+    "en": "Working…",
+    "fr": "En cours…"
+  },
+  "dlg.copy_to": {
+    "en": "Copy {n} item(s) to:",
+    "fr": "Copier {n} élément(s) vers :"
+  },
+  "dlg.move_to": {
+    "en": "Move / rename {n} item(s) to:",
+    "fr": "Déplacer / renommer {n} élément(s) vers :"
+  },
+  "dlg.delete": {
+    "en": "Delete {n} item(s)?",
+    "fr": "Supprimer {n} élément(s) ?"
+  },
+  "dlg.delete_perm": {
+    "en": "Permanently delete {n} item(s)? This cannot be undone.",
+    "fr": "Supprimer définitivement {n} élément(s) ? Irréversible."
+  },
+  "dlg.mkdir": {
+    "en": "New folder name:",
+    "fr": "Nom du nouveau dossier :"
+  },
+  "dlg.newfile": {
+    "en": "New file name:",
+    "fr": "Nom du nouveau fichier :"
+  },
+  "dlg.rename": {
+    "en": "New name:",
+    "fr": "Nouveau nom :"
+  },
+  "dlg.select": {
+    "en": "Select files matching:",
+    "fr": "Sélectionner les fichiers :"
+  },
+  "dlg.unselect": {
+    "en": "Unselect files matching:",
+    "fr": "Désélectionner les fichiers :"
+  },
+  "dlg.overwrite": {
+    "en": "The target file already exists",
+    "fr": "Le fichier cible existe déjà"
+  },
+  "dlg.source": {
+    "en": "Source",
+    "fr": "Source"
+  },
+  "dlg.existing": {
+    "en": "Existing",
+    "fr": "Existant"
+  },
+  "dlg.overwrite_btn": {
+    "en": "Overwrite",
+    "fr": "Écraser"
+  },
+  "dlg.overwrite_all": {
+    "en": "Overwrite all",
+    "fr": "Tout écraser"
+  },
+  "dlg.overwrite_older": {
+    "en": "Overwrite all older",
+    "fr": "Écraser les plus anciens"
+  },
+  "dlg.skip": {
+    "en": "Skip",
+    "fr": "Ignorer"
+  },
+  "dlg.skip_all": {
+    "en": "Skip all",
+    "fr": "Tout ignorer"
+  },
+  "dlg.rename_new": {
+    "en": "Rename new",
+    "fr": "Renommer la copie"
+  },
+  "dlg.pack": {
+    "en": "Pack {n} item(s) into:",
+    "fr": "Compresser {n} élément(s) dans :"
+  },
+  "dlg.unpack": {
+    "en": "Unpack to:",
+    "fr": "Décompresser vers :"
+  },
+  "dlg.format": {
+    "en": "Format",
+    "fr": "Format"
+  },
+  "dlg.level": {
+    "en": "Compression level",
+    "fr": "Niveau de compression"
+  },
+  "dlg.part_size": {
+    "en": "Part size (e.g. 700M, 1.44M, 4G)",
+    "fr": "Taille des parties (ex. 700M, 1.44M, 4G)"
+  },
+  "dlg.offset": {
+    "en": "Offset (e.g. +1h30m, -2d, -0:05)",
+    "fr": "Décalage (ex. +1h30m, -2d, -0:05)"
+  },
+  "dlg.start_date": {
+    "en": "First date (YYYY-MM-DD HH:MM:SS)",
+    "fr": "Première date (AAAA-MM-JJ HH:MM:SS)"
+  },
+  "dlg.step": {
+    "en": "Step (e.g. 1m, 1h, 1d)",
+    "fr": "Pas (ex. 1m, 1h, 1d)"
+  },
+  "dlg.modified": {
+    "en": "Modification time",
+    "fr": "Date de modification"
+  },
+  "dlg.accessed": {
+    "en": "Access time",
+    "fr": "Date d'accès"
+  },
+  "dlg.algo": {
+    "en": "Algorithm",
+    "fr": "Algorithme"
+  },
+  "dlg.once_per_file": {
+    "en": "Once per file",
+    "fr": "Une fois par fichier"
+  },
+  "dlg.all_at_once": {
+    "en": "All files at once",
+    "fr": "Tous les fichiers d'un coup"
+  },
+  "dlg.out_file": {
+    "en": "Output file",
+    "fr": "Fichier de sortie"
+  },
+  "dlg.no_selection": {
+    "en": "Nothing selected.",
+    "fr": "Rien n'est sélectionné."
+  },
+  "dlg.need_two_files": {
+    "en": "Select two files (or one in each panel).",
+    "fr": "Sélectionnez deux fichiers (ou un dans chaque panneau)."
+  },
+  "st.ready": {
+    "en": "Ready",
+    "fr": "Prêt"
+  },
+  "st.archive": {
+    "en": "Archive",
+    "fr": "Archive"
+  },
+  "st.filtered": {
+    "en": "filter",
+    "fr": "filtre"
+  },
+  "error.not_found": {
+    "en": "Not found",
+    "fr": "Introuvable"
+  },
+  "error.access_denied": {
+    "en": "Access denied",
+    "fr": "Accès refusé"
+  },
+  "error.already_exists": {
+    "en": "Already exists",
+    "fr": "Existe déjà"
+  },
+  "error.cancelled": {
+    "en": "Cancelled",
+    "fr": "Annulé"
+  },
+  "error.invalid_data": {
+    "en": "Invalid data",
+    "fr": "Données invalides"
+  },
+  "error.unsupported": {
+    "en": "Unsupported",
+    "fr": "Non pris en charge"
+  },
+  "error.network": {
+    "en": "Network error",
+    "fr": "Erreur réseau"
+  },
+  "error.other": {
+    "en": "Error",
+    "fr": "Erreur"
+  }
+}

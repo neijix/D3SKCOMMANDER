@@ -1,0 +1,322 @@
+{
+  "cmd.view": {
+    "en": "View file",
+    "fr": "Voir le fichier"
+  },
+  "cmd.edit": {
+    "en": "Edit file",
+    "fr": "Éditer le fichier"
+  },
+  "cmd.edit_new": {
+    "en": "Edit new file",
+    "fr": "Nouveau fichier"
+  },
+  "cmd.copy": {
+    "en": "Copy",
+    "fr": "Copier"
+  },
+  "cmd.move": {
+    "en": "Rename / Move",
+    "fr": "Renommer / Déplacer"
+  },
+  "cmd.rename": {
+    "en": "Rename in place",
+    "fr": "Renommer sur place"
+  },
+  "cmd.mkdir": {
+    "en": "New folder",
+    "fr": "Nouveau dossier"
+  },
+  "cmd.delete": {
+    "en": "Delete",
+    "fr": "Supprimer"
+  },
+  "cmd.delete_perm": {
+    "en": "Delete permanently",
+    "fr": "Supprimer définitivement"
+  },
+  "cmd.pack": {
+    "en": "Pack files…",
+    "fr": "Compresser…"
+  },
+  "cmd.unpack": {
+    "en": "Unpack files…",
+    "fr": "Décompresser…"
+  },
+  "cmd.backup": {
+    "en": "Backup to ZIP",
+    "fr": "Sauvegarde ZIP"
+  },
+  "cmd.properties": {
+    "en": "Properties",
+    "fr": "Propriétés"
+  },
+  "cmd.open": {
+    "en": "Open",
+    "fr": "Ouvrir"
+  },
+  "cmd.open_with": {
+    "en": "Open selected with…",
+    "fr": "Ouvrir la sélection avec…"
+  },
+  "cmd.quit": {
+    "en": "Quit",
+    "fr": "Quitter"
+  },
+  "cmd.select_group": {
+    "en": "Select group…",
+    "fr": "Sélectionner un groupe…"
+  },
+  "cmd.unselect_group": {
+    "en": "Unselect group…",
+    "fr": "Désélectionner un groupe…"
+  },
+  "cmd.select_all": {
+    "en": "Select all",
+    "fr": "Tout sélectionner"
+  },
+  "cmd.unselect_all": {
+    "en": "Unselect all",
+    "fr": "Tout désélectionner"
+  },
+  "cmd.invert": {
+    "en": "Invert selection",
+    "fr": "Inverser la sélection"
+  },
+  "cmd.select_same_ext": {
+    "en": "Select same extension",
+    "fr": "Même extension"
+  },
+  "cmd.copy_names": {
+    "en": "Copy names to clipboard",
+    "fr": "Copier les noms"
+  },
+  "cmd.copy_paths": {
+    "en": "Copy full paths to clipboard",
+    "fr": "Copier les chemins"
+  },
+  "cmd.compare_dirs": {
+    "en": "Compare panels (mark differences)",
+    "fr": "Comparer les panneaux"
+  },
+  "cmd.search": {
+    "en": "Search files",
+    "fr": "Rechercher"
+  },
+  "cmd.multirename": {
+    "en": "Multi-rename tool",
+    "fr": "Renommage multiple"
+  },
+  "cmd.compare_files": {
+    "en": "Compare files (editor)",
+    "fr": "Comparer les fichiers"
+  },
+  "cmd.sync": {
+    "en": "Synchronize directories",
+    "fr": "Synchroniser les dossiers"
+  },
+  "cmd.split": {
+    "en": "Split file…",
+    "fr": "Découper un fichier…"
+  },
+  "cmd.combine": {
+    "en": "Combine files (CRC check)",
+    "fr": "Recombiner (contrôle CRC)"
+  },
+  "cmd.checksum_create": {
+    "en": "Create checksum file…",
+    "fr": "Créer des sommes de contrôle…"
+  },
+  "cmd.checksum_verify": {
+    "en": "Verify checksums",
+    "fr": "Vérifier les sommes"
+  },
+  "cmd.addtime": {
+    "en": "Shift file dates (AddTime)…",
+    "fr": "Décaler les dates (AddTime)…"
+  },
+  "cmd.redate": {
+    "en": "Re-date incrementally (ReDate)…",
+    "fr": "Redater par incréments (ReDate)…"
+  },
+  "cmd.touch": {
+    "en": "Change date/time…",
+    "fr": "Changer date/heure…"
+  },
+  "cmd.catalog": {
+    "en": "Disk catalog…",
+    "fr": "Catalogue de disque…"
+  },
+  "cmd.encrypt": {
+    "en": "Encrypt files…",
+    "fr": "Chiffrer…"
+  },
+  "cmd.decrypt": {
+    "en": "Decrypt files…",
+    "fr": "Déchiffrer…"
+  },
+  "cmd.dir_size": {
+    "en": "Calculate folder sizes",
+    "fr": "Taille des dossiers"
+  },
+  "cmd.ftp": {
+    "en": "FTP connect…",
+    "fr": "Connexion FTP…"
+  },
+  "cmd.net_connect": {
+    "en": "Connect network drive…",
+    "fr": "Connecter un lecteur réseau…"
+  },
+  "cmd.net_disconnect": {
+    "en": "Disconnect network drive",
+    "fr": "Déconnecter le lecteur réseau"
+  },
+  "cmd.browse_folder": {
+    "en": "Choose a folder…",
+    "fr": "Choisir un dossier…"
+  },
+  "cmd.passwords": {
+    "en": "Password manager",
+    "fr": "Gestionnaire de mots de passe"
+  },
+  "cmd.quick_view": {
+    "en": "Quick view panel",
+    "fr": "Panneau d'aperçu"
+  },
+  "cmd.thumbnails": {
+    "en": "Thumbnails",
+    "fr": "Vignettes"
+  },
+  "cmd.full": {
+    "en": "Full (details)",
+    "fr": "Détaillé"
+  },
+  "cmd.brief": {
+    "en": "Brief",
+    "fr": "Bref"
+  },
+  "cmd.hidden": {
+    "en": "Show hidden files",
+    "fr": "Fichiers cachés"
+  },
+  "cmd.branch": {
+    "en": "Branch view (all files)",
+    "fr": "Vue arborescente à plat"
+  },
+  "cmd.quick_filter": {
+    "en": "Quick filter",
+    "fr": "Filtre rapide"
+  },
+  "cmd.refresh": {
+    "en": "Refresh",
+    "fr": "Actualiser"
+  },
+  "cmd.swap": {
+    "en": "Swap panels",
+    "fr": "Échanger les panneaux"
+  },
+  "cmd.same_dir": {
+    "en": "Target = source",
+    "fr": "Cible = source"
+  },
+  "cmd.new_tab": {
+    "en": "New tab",
+    "fr": "Nouvel onglet"
+  },
+  "cmd.close_tab": {
+    "en": "Close tab",
+    "fr": "Fermer l'onglet"
+  },
+  "cmd.next_tab": {
+    "en": "Next tab",
+    "fr": "Onglet suivant"
+  },
+  "cmd.switch_panel": {
+    "en": "Switch panel",
+    "fr": "Changer de panneau"
+  },
+  "cmd.drives_left": {
+    "en": "Drive / folder (left)",
+    "fr": "Lecteur / dossier (gauche)"
+  },
+  "cmd.drives_right": {
+    "en": "Drive / folder (right)",
+    "fr": "Lecteur / dossier (droite)"
+  },
+  "cmd.sort_name": {
+    "en": "Sort by name",
+    "fr": "Trier par nom"
+  },
+  "cmd.sort_ext": {
+    "en": "Sort by extension",
+    "fr": "Trier par extension"
+  },
+  "cmd.sort_date": {
+    "en": "Sort by date",
+    "fr": "Trier par date"
+  },
+  "cmd.sort_size": {
+    "en": "Sort by size",
+    "fr": "Trier par taille"
+  },
+  "cmd.hotlist": {
+    "en": "Directory hotlist",
+    "fr": "Dossiers favoris"
+  },
+  "cmd.add_hotlist": {
+    "en": "Add current folder",
+    "fr": "Ajouter le dossier courant"
+  },
+  "cmd.history": {
+    "en": "Folder history",
+    "fr": "Historique"
+  },
+  "cmd.back": {
+    "en": "Back",
+    "fr": "Précédent"
+  },
+  "cmd.forward": {
+    "en": "Forward",
+    "fr": "Suivant"
+  },
+  "cmd.parent": {
+    "en": "Parent folder",
+    "fr": "Dossier parent"
+  },
+  "cmd.root": {
+    "en": "Root",
+    "fr": "Racine"
+  },
+  "cmd.home": {
+    "en": "Home",
+    "fr": "Dossier personnel"
+  },
+  "cmd.terminal": {
+    "en": "Open terminal here",
+    "fr": "Terminal ici"
+  },
+  "cmd.settings": {
+    "en": "Settings…",
+    "fr": "Options…"
+  },
+  "cmd.settings_folder": {
+    "en": "Settings folder…",
+    "fr": "Dossier des réglages…"
+  },
+  "cmd.log": {
+    "en": "Operation log",
+    "fr": "Journal des opérations"
+  },
+  "cmd.about": {
+    "en": "About",
+    "fr": "À propos"
+  },
+  "cmd.check_update": {
+    "en": "Check for updates…",
+    "fr": "Rechercher des mises à jour…"
+  },
+  "cmd.keys": {
+    "en": "Keyboard shortcuts",
+    "fr": "Raccourcis clavier"
+  }
+}
