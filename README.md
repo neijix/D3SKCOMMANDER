@@ -18,8 +18,8 @@ What works today:
 - dialogs and tool windows, the system folder chooser;
 - in the core library, with tests: local file listing and sorting, wildcard masks, the panel and
   tab model (history, selection, columns), background jobs with progress, cancel and retry,
-  and file operations (copy, move, delete, new folder; an overwrite still writes over the old
-  file in place, a safer copy through a temporary file is planned).
+  and file operations (copy, move, delete, new folder; an overwrite writes through a temporary
+  file beside the target and swaps it in, so a failed or cancelled copy keeps the old file).
 
 Not wired into the window yet: the file lists in the two panels, and every add-on (lister,
 editor, archives, search, compare, synchronize, multi-rename, FTP, network drives, tools).

@@ -36,12 +36,21 @@ public class PanelTests
     {
         using var dir = new TempFolder();
         File.WriteAllText(Path.Combine(dir.Path, "a.txt"), "x");
+        File.WriteAllText(Path.Combine(dir.Path, "b.txt"), "x");
         var tab = await Open(dir.Path);
+        tab.SelectMask("*.txt", select: true, includeDirectories: false);
+        tab.Filter = "*.txt";
+        tab.ApplyFilter();
+        tab.MoveCursor(1);
+        var beforeCursor = tab.Cursor;
         var missing = Path.Combine(dir.Path, "nope");
         Assert.False(await tab.GoAsync(new Location(missing), showHidden: false, TestContext.Current.CancellationToken));
         Assert.Equal(dir.Path, tab.Location.Path);
         Assert.NotNull(tab.Error);
         Assert.Equal(ErrorKind.NotFound, tab.Error.Kind);
+        Assert.Equal("*.txt", tab.Filter);
+        Assert.Equal(2, tab.SelectedCount);
+        Assert.Equal(beforeCursor, tab.Cursor);
         Assert.Contains("a.txt", tab.VisibleEntries.Select(entry => entry.Name));
     }
 

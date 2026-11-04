@@ -1,3 +1,4 @@
+using D3skCommander.Core.Common;
 using D3skCommander.Core.FileSystem;
 
 namespace D3skCommander.Core.Panels;
@@ -11,20 +12,23 @@ public sealed partial class Tab
     public async Task<bool> GoAsync(Location location, bool showHidden, CancellationToken cancellationToken = default)
     {
         ArgumentNullException.ThrowIfNull(location);
+        var listed = await ReadListingAsync(location.Path, showHidden, cancellationToken).ConfigureAwait(false);
+        if (!listed.IsSuccess)
+        {
+            Error = listed.Error ?? OperationError.NotFound(location.Path);
+            return false;
+        }
+
         var previous = Location;
         Location = location;
+        Error = null;
         Filter = null;
         _selected.Clear();
         Cursor = 0;
-        await ReloadAsync(showHidden, cancellationToken).ConfigureAwait(false);
-        if (Error is null)
-        {
-            Remember(previous);
-            return true;
-        }
-
-        await RestoreAsync(previous, showHidden).ConfigureAwait(false);
-        return false;
+        ReplaceEntries(listed.Value);
+        ApplyFilter();
+        Remember(previous);
+        return true;
     }
 
     public Task BackAsync(bool showHidden, CancellationToken cancellationToken = default) =>
@@ -59,16 +63,6 @@ public sealed partial class Tab
         SelectCameFrom(previous.Path);
     }
 
-    // Not cancelable: the navigation that failed may have failed because its token was cancelled,
-    // and the folder the user stays in must be listed again either way.
-    private async Task RestoreAsync(Location previous, bool showHidden)
-    {
-        var error = Error;
-        Location = previous;
-        await ReloadAsync(showHidden, CancellationToken.None).ConfigureAwait(false);
-        Error = error;
-    }
-
     private async Task MoveHistoryAsync(
         List<Location> from,
         List<Location> to,
@@ -81,19 +75,23 @@ public sealed partial class Tab
         }
 
         var next = from[^1];
-        var previous = Location;
-        Location = next;
-        Cursor = 0;
-        await ReloadAsync(showHidden, cancellationToken).ConfigureAwait(false);
-        if (Error is not null)
+        var listed = await ReadListingAsync(next.Path, showHidden, cancellationToken).ConfigureAwait(false);
+        if (!listed.IsSuccess)
         {
-            // As GoAsync: a folder that cannot be listed is not opened, and the history is kept.
-            await RestoreAsync(previous, showHidden).ConfigureAwait(false);
+            Error = listed.Error ?? OperationError.NotFound(next.Path);
             return;
         }
 
+        var previous = Location;
         from.RemoveAt(from.Count - 1);
         to.Add(previous);
+        Location = next;
+        Error = null;
+        Filter = null;
+        _selected.Clear();
+        Cursor = 0;
+        ReplaceEntries(listed.Value);
+        ApplyFilter();
     }
 
     // Going up puts the cursor on the folder just left, not on "..".

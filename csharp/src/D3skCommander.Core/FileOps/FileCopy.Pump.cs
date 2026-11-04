@@ -1,5 +1,6 @@
 using D3skCommander.Core.Common;
 using D3skCommander.Core.Jobs;
+using D3skCommander.Core.Providers;
 
 namespace D3skCommander.Core.FileOps;
 
@@ -12,31 +13,28 @@ internal static partial class FileCopy
         IJobProgress progress,
         CancellationToken cancellationToken)
     {
-        await RemoveReparsePointAsync(work, destination).ConfigureAwait(false);
-        var opened = await work.Destination.OpenWriteAsync(destination, CancellationToken.None).ConfigureAwait(false);
+        var temp = TempPathBeside(destination);
+        var opened = await work.Destination.OpenWriteAsync(temp, CancellationToken.None).ConfigureAwait(false);
         if (!opened.IsSuccess)
         {
             return opened.Error ?? OperationError.Other("the file could not be created", destination);
         }
 
-        return await PumpToAsync(work, source, destination, opened.Value, progress, cancellationToken)
+        return await PumpToAsync(work, source, temp, destination, opened.Value, progress, cancellationToken)
             .ConfigureAwait(false);
     }
 
-    private static async Task RemoveReparsePointAsync(TransferWork work, string path)
+    private static string TempPathBeside(string destination)
     {
-        var entry = await work.Destination.GetEntryAsync(path, CancellationToken.None).ConfigureAwait(false);
-        if (!entry.IsSuccess || !entry.Value.IsLink)
-        {
-            return;
-        }
-
-        await work.Destination.DeleteAsync(path, CancellationToken.None).ConfigureAwait(false);
+        var directory = Path.GetDirectoryName(destination);
+        var name = "." + Path.GetFileName(destination) + ".d3sk-" + Guid.NewGuid().ToString("N") + ".tmp";
+        return string.IsNullOrEmpty(directory) ? name : Path.Combine(directory, name);
     }
 
     private static async Task<OperationError?> PumpToAsync(
         TransferWork work,
         string source,
+        string temp,
         string destination,
         Stream output,
         IJobProgress progress,
@@ -52,14 +50,77 @@ internal static partial class FileCopy
             await output.DisposeAsync().ConfigureAwait(false);
         }
 
-        if (error is null)
+        if (error is not null)
         {
-            LocalMetadata.Apply(work.Source, source, work.Destination, destination);
-            return null;
+            await work.RemovePartialAsync(temp).ConfigureAwait(false);
+            return error;
+        }
+
+        LocalMetadata.Apply(work.Source, source, work.Destination, temp);
+        var swap = await SwapInAsync(work, temp, destination).ConfigureAwait(false);
+        if (swap is not null)
+        {
+            await work.RemovePartialAsync(temp).ConfigureAwait(false);
+            return swap;
+        }
+
+        LocalMetadata.Apply(work.Source, source, work.Destination, destination);
+        return null;
+    }
+
+    private static async Task<OperationError?> SwapInAsync(TransferWork work, string temp, string destination)
+    {
+        if (work.Destination is LocalFileSystemProvider)
+        {
+            return SwapLocal(temp, destination);
         }
 
         await work.RemovePartialAsync(destination).ConfigureAwait(false);
-        return error;
+        var leaf = Path.GetFileName(destination);
+        var renamed = await work.Destination.RenameAsync(temp, leaf, CancellationToken.None).ConfigureAwait(false);
+        if (renamed.IsSuccess)
+        {
+            return null;
+        }
+
+        return renamed.Error ?? OperationError.Other("the file could not be replaced", destination);
+    }
+
+    private static OperationError? SwapLocal(string temp, string destination)
+    {
+        try
+        {
+            PrepareWindowsReplace(destination);
+            File.Move(temp, destination, overwrite: true);
+            return null;
+        }
+        catch (Exception ex) when (LocalMetadata.IsFileSystem(ex))
+        {
+            return OperationError.FromException(ex, destination);
+        }
+    }
+
+    private static void PrepareWindowsReplace(string destination)
+    {
+        if (!OperatingSystem.IsWindows())
+        {
+            return;
+        }
+
+        if (LocalMetadata.IsLink(destination))
+        {
+            File.Delete(destination);
+            return;
+        }
+
+        if (File.Exists(destination))
+        {
+            var attributes = File.GetAttributes(destination);
+            if ((attributes & FileAttributes.ReadOnly) != 0)
+            {
+                File.SetAttributes(destination, attributes & ~FileAttributes.ReadOnly);
+            }
+        }
     }
 
     private static async Task<OperationError?> PumpAsync(

@@ -86,9 +86,15 @@ public sealed partial class Tab
     public async Task ReloadAsync(bool showHidden, CancellationToken cancellationToken = default)
     {
         var keep = Current?.Path;
+        var listed = await ReadListingAsync(Location.Path, showHidden, cancellationToken).ConfigureAwait(false);
+        if (!listed.IsSuccess)
+        {
+            Error = listed.Error ?? OperationError.NotFound(Location.Path);
+            return;
+        }
+
         Error = null;
-        var listed = await ReadListingAsync(showHidden, cancellationToken).ConfigureAwait(false);
-        ReplaceEntries(listed);
+        ReplaceEntries(listed.Value);
         _selected.Retain(_entries.Select(entry => entry.Path));
         ApplyFilter();
         if (keep is not null)
@@ -180,14 +186,17 @@ public sealed partial class Tab
         ScrollToCursor = true;
     }
 
-    private async Task<FileResult<List<Entry>>> ReadListingAsync(bool showHidden, CancellationToken cancellationToken)
+    private async Task<FileResult<List<Entry>>> ReadListingAsync(
+        string path,
+        bool showHidden,
+        CancellationToken cancellationToken)
     {
         var entries = new List<Entry>();
-        await foreach (var item in _provider.ListAsync(Location.Path, showHidden, cancellationToken).ConfigureAwait(false))
+        await foreach (var item in _provider.ListAsync(path, showHidden, cancellationToken).ConfigureAwait(false))
         {
             if (!item.IsSuccess)
             {
-                return FileResult<List<Entry>>.Fail(item.Error ?? OperationError.NotFound(Location.Path));
+                return FileResult<List<Entry>>.Fail(item.Error ?? OperationError.NotFound(path));
             }
 
             entries.Add(item.Value);
@@ -196,16 +205,10 @@ public sealed partial class Tab
         return FileResult<List<Entry>>.Ok(entries);
     }
 
-    private void ReplaceEntries(FileResult<List<Entry>> listed)
+    private void ReplaceEntries(List<Entry> listed)
     {
         _entries.Clear();
-        if (!listed.IsSuccess)
-        {
-            Error = listed.Error ?? OperationError.NotFound(Location.Path);
-            return;
-        }
-
-        _entries.AddRange(listed.Value);
+        _entries.AddRange(listed);
         LocalFileSystem.Sort(_entries, Sort);
     }
 

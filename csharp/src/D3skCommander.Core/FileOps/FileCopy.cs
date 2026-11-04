@@ -4,7 +4,7 @@ using D3skCommander.Core.Jobs;
 
 namespace D3skCommander.Core.FileOps;
 
-/// <summary>Copies a tree. An overwrite truncates the target in place; a failed write removes that partial.</summary>
+/// <summary>Copies a tree. An overwrite writes to a temp file beside the target and swaps it in.</summary>
 internal static partial class FileCopy
 {
     public const int BufferSize = 1024 * 1024;

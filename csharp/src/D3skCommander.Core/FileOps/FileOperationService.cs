@@ -7,7 +7,7 @@ namespace D3skCommander.Core.FileOps;
 
 /// <summary>
 /// Copy, move, delete, and new folder between providers. Work runs on the job service.
-/// An overwrite truncates the target in place. Cancelling that write removes the partial target.
+/// An overwrite writes to a temporary file beside the target and swaps it in.
 /// </summary>
 public sealed class FileOperationService
 {

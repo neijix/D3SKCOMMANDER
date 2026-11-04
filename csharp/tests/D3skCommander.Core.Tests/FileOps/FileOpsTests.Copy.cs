@@ -1,4 +1,7 @@
+using D3skCommander.Core.Common;
 using D3skCommander.Core.FileOps;
+using D3skCommander.Core.FileSystem;
+using D3skCommander.Core.Providers;
 using Xunit;
 
 namespace D3skCommander.Core.Tests.FileOps;
@@ -177,5 +180,162 @@ public partial class FileOpsTests
         Assert.Equal((0, 1, false), outcome.Finished);
         Assert.Contains("same", outcome.Operation.ErrorMessages()[0], StringComparison.Ordinal);
         Assert.Equal("keep me", File.ReadAllText(src));
+    }
+
+    [Fact]
+    public async Task FailedOrCancelledOverwriteKeepsTheOldFileAndLeavesNoTempFile()
+    {
+        using var bench = new Bench();
+        var src = bench.PathOf("src", "a.bin");
+        Directory.CreateDirectory(Path.GetDirectoryName(src)!);
+        var sourceBytes = new byte[3 * 1024 * 1024];
+        Array.Fill(sourceBytes, (byte)'N');
+        File.WriteAllBytes(src, sourceBytes);
+        var dest = bench.PathOf("out");
+        var target = Path.Combine(dest, "a.bin");
+        WriteText(target, "keep original bytes");
+
+        var halfFailing = new HalfFailingProvider(bench.Provider, sourceBytes.Length / 2);
+        var failedOp = bench.Ops.Start(
+            new FileOpRequest(FileOpKind.Copy, halfFailing, [src], bench.Provider, dest),
+            Answer(ConflictChoice.Overwrite),
+            null,
+            TestContext.Current.CancellationToken);
+        var failedResult = await failedOp.Job.Completion.WaitAsync(Bound, TestContext.Current.CancellationToken);
+        var failedOutcome = new Outcome(failedOp, failedResult);
+
+        Assert.Equal((0, 1, false), failedOutcome.Finished);
+        Assert.Equal("keep original bytes", File.ReadAllText(target));
+        Assert.Equal([target], Directory.GetFiles(dest));
+
+        using var cancel = new CancellationTokenSource();
+        var cancelledOutcome = await Go(
+            bench,
+            FileOpKind.Copy,
+            [src],
+            dest,
+            choice: ConflictChoice.Overwrite,
+            cancel: cancel,
+            onProgress: progress =>
+            {
+                if (progress.CurrentPath == src)
+                {
+                    cancel.Cancel();
+                }
+            });
+
+        Assert.Equal((0, 0, true), cancelledOutcome.Finished);
+        Assert.Equal("keep original bytes", File.ReadAllText(target));
+        Assert.Equal([target], Directory.GetFiles(dest));
+    }
+
+    private sealed class HalfFailingProvider : IFileSystemProvider
+    {
+        private readonly IFileSystemProvider _inner;
+        private readonly long _failAfterBytes;
+
+        public HalfFailingProvider(IFileSystemProvider inner, long failAfterBytes)
+        {
+            _inner = inner;
+            _failAfterBytes = failAfterBytes;
+        }
+
+        public bool IsReadOnly => _inner.IsReadOnly;
+
+        public IAsyncEnumerable<FileResult<Entry>> ListAsync(
+            string directory,
+            bool showHidden,
+            CancellationToken cancellationToken) =>
+            _inner.ListAsync(directory, showHidden, cancellationToken);
+
+        public Task<FileResult<Entry>> GetEntryAsync(string path, CancellationToken cancellationToken) =>
+            _inner.GetEntryAsync(path, cancellationToken);
+
+        public async Task<FileResult<Stream>> OpenReadAsync(string path, CancellationToken cancellationToken)
+        {
+            var opened = await _inner.OpenReadAsync(path, cancellationToken).ConfigureAwait(false);
+            if (!opened.IsSuccess)
+            {
+                return opened;
+            }
+
+            return FileResult<Stream>.Ok(new HalfFailingStream(opened.Value, _failAfterBytes));
+        }
+
+        public Task<FileResult<Stream>> OpenWriteAsync(string path, CancellationToken cancellationToken) =>
+            _inner.OpenWriteAsync(path, cancellationToken);
+
+        public Task<FileStatus> CreateFolderAsync(string path, CancellationToken cancellationToken) =>
+            _inner.CreateFolderAsync(path, cancellationToken);
+
+        public Task<FileResult<string>> RenameAsync(string path, string newName, CancellationToken cancellationToken) =>
+            _inner.RenameAsync(path, newName, cancellationToken);
+
+        public Task<FileStatus> DeleteAsync(string path, CancellationToken cancellationToken) =>
+            _inner.DeleteAsync(path, cancellationToken);
+    }
+
+    private sealed class HalfFailingStream : Stream
+    {
+        private readonly Stream _inner;
+        private readonly long _failAfterBytes;
+        private long _readSoFar;
+
+        public HalfFailingStream(Stream inner, long failAfterBytes)
+        {
+            _inner = inner;
+            _failAfterBytes = failAfterBytes;
+        }
+
+        public override bool CanRead => true;
+
+        public override bool CanSeek => false;
+
+        public override bool CanWrite => false;
+
+        public override long Length => throw new NotSupportedException();
+
+        public override long Position
+        {
+            get => throw new NotSupportedException();
+            set => throw new NotSupportedException();
+        }
+
+        public override void Flush() => _inner.Flush();
+
+        public override int Read(byte[] buffer, int offset, int count) =>
+            throw new NotSupportedException();
+
+        public override async ValueTask<int> ReadAsync(
+            Memory<byte> buffer,
+            CancellationToken cancellationToken = default)
+        {
+            if (_readSoFar >= _failAfterBytes)
+            {
+                throw new IOException("simulated read failure at 50%");
+            }
+
+            var count = await _inner.ReadAsync(buffer, cancellationToken).ConfigureAwait(false);
+            _readSoFar += count;
+            return count;
+        }
+
+        public override long Seek(long offset, SeekOrigin origin) => throw new NotSupportedException();
+
+        public override void SetLength(long value) => throw new NotSupportedException();
+
+        public override void Write(byte[] buffer, int offset, int count) => throw new NotSupportedException();
+
+        protected override void Dispose(bool disposing)
+        {
+            if (disposing)
+            {
+                _inner.Dispose();
+            }
+
+            base.Dispose(disposing);
+        }
+
+        public override ValueTask DisposeAsync() => _inner.DisposeAsync();
     }
 }

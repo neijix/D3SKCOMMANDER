@@ -98,12 +98,20 @@ internal sealed partial class TransferWork
             return ItemResult.Failed(_planError);
         }
 
-        if (_kind == FileOpKind.Delete)
+        try
         {
-            return await FileDelete.RunAsync(this, item.Name, progress, linked.Token).ConfigureAwait(false);
-        }
+            if (_kind == FileOpKind.Delete)
+            {
+                return await FileDelete.RunAsync(this, item.Name, progress, linked.Token).ConfigureAwait(false);
+            }
 
-        return await TransferSourceAsync(item.Name, progress, linked.Token).ConfigureAwait(false);
+            return await TransferSourceAsync(item.Name, progress, linked.Token).ConfigureAwait(false);
+        }
+        catch (OperationCanceledException) when (linked.IsCancellationRequested)
+        {
+            Abort();
+            throw;
+        }
     }
 
     [DoesNotReturn]
