@@ -1,0 +1,10 @@
+{
+  "filelist.parent": {
+    "en": "..",
+    "fr": ".."
+  },
+  "filelist.directory": {
+    "en": "<Folder>",
+    "fr": "<Dossier>"
+  }
+}

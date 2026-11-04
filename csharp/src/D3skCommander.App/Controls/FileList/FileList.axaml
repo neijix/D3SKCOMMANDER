@@ -1,0 +1,60 @@
+<UserControl xmlns="https://github.com/avaloniaui"
+             xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+             xmlns:lists="using:D3skCommander.App.Controls.FileList"
+             x:Class="D3skCommander.App.Controls.FileList.FileList"
+             Focusable="True">
+  <UserControl.Resources>
+    <ControlTemplate x:Key="FileListFallbackTemplate" TargetType="lists:FileListBox">
+      <ScrollViewer Name="PART_ScrollViewer"
+                    HorizontalScrollBarVisibility="Disabled"
+                    VerticalScrollBarVisibility="Auto">
+        <ScrollViewer.Template>
+          <ControlTemplate TargetType="ScrollViewer">
+            <ScrollContentPresenter Name="PART_ContentPresenter"/>
+          </ControlTemplate>
+        </ScrollViewer.Template>
+        <ItemsPresenter Name="PART_ItemsPresenter"
+                        ItemsPanel="{TemplateBinding ItemsPanel}"/>
+      </ScrollViewer>
+    </ControlTemplate>
+    <ControlTemplate x:Key="FileListEditorTemplate" TargetType="TextBox">
+      <Border Background="White"
+              BorderBrush="Gray"
+              BorderThickness="1"
+              Padding="{TemplateBinding Padding}">
+        <TextPresenter Name="PART_TextPresenter"
+                       Text="{TemplateBinding Text, Mode=TwoWay}"
+                       CaretIndex="{TemplateBinding CaretIndex}"
+                       SelectionStart="{TemplateBinding SelectionStart}"
+                       SelectionEnd="{TemplateBinding SelectionEnd}"
+                       SelectionBrush="{TemplateBinding SelectionBrush}"
+                       CaretBrush="{TemplateBinding CaretBrush}"
+                       VerticalAlignment="Center"/>
+      </Border>
+    </ControlTemplate>
+  </UserControl.Resources>
+  <UserControl.Styles>
+    <Style Selector="ListBoxItem">
+      <Setter Property="Padding" Value="0"/>
+      <Setter Property="MinHeight" Value="22"/>
+      <Setter Property="HorizontalContentAlignment" Value="Stretch"/>
+      <Setter Property="Background" Value="Transparent"/>
+    </Style>
+    <Style Selector="ListBoxItem:pointerover">
+      <Setter Property="Background" Value="Transparent"/>
+    </Style>
+    <Style Selector="ListBoxItem:selected">
+      <Setter Property="Background" Value="Transparent"/>
+    </Style>
+  </UserControl.Styles>
+  <DockPanel>
+    <Grid x:Name="Header" DockPanel.Dock="Top" Height="24"/>
+    <lists:FileListBox x:Name="Rows">
+      <lists:FileListBox.ItemsPanel>
+        <ItemsPanelTemplate>
+          <VirtualizingStackPanel/>
+        </ItemsPanelTemplate>
+      </lists:FileListBox.ItemsPanel>
+    </lists:FileListBox>
+  </DockPanel>
+</UserControl>
