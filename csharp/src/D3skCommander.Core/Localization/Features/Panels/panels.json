@@ -1,0 +1,14 @@
+{
+  "panels.selected": {
+    "en": "{0} / {1} selected",
+    "fr": "{0} / {1} sélectionné(s)"
+  },
+  "panels.browse": {
+    "en": "Browse",
+    "fr": "Parcourir"
+  },
+  "panels.folder": {
+    "en": "Folder",
+    "fr": "Dossier"
+  }
+}

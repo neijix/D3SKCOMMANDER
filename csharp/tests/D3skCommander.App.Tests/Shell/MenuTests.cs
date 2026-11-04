@@ -23,7 +23,7 @@ public class MenuTests
     }
 
     [Fact]
-    public void CommandsWithoutAHandlerAreVisibleButDisabled()
+    public void CommandsAreEnabledOnlyWhenAHandlerIsRegistered()
     {
         using var host = ShellHost.Open(Language.En);
         var menus = host.Window.Menus;
@@ -110,7 +110,7 @@ public class MenuTests
         Assert.False(actual.IsSeparator);
         Assert.Equal(localizer.Get(CommandCatalog.LabelKey(expected.Value)), actual.Header);
         Assert.True(actual.IsVisible);
-        Assert.Equal(expected == CommandId.Quit, actual.IsEnabled);
+        Assert.Equal(HandledCommands.Handles(expected.Value), actual.IsEnabled);
         Assert.Equal(CommandCatalog.PrimaryGesture(expected.Value), actual.Gesture);
     }
 }

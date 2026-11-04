@@ -12,8 +12,11 @@ stays in the git history.
 
 What works today:
 
-- the main window: the menu bar with every command, the function-key bar (F3 View, F4 Edit,
-  F5 Copy, F6 Move, F7 New folder, F8 Delete, Alt+F7 Search, Alt+F4 Exit) and the status line;
+- the main window: the menu bar, the function-key bar and the status line;
+- both panels list a local folder, with a path bar, a folder chooser, and keyboard navigation
+  (Enter opens a folder, Backspace or Ctrl+PgUp goes up, Tab switches panel);
+- copy, move, new folder and delete (F5–F8) run as background jobs, with a progress line,
+  a conflict dialog and a failure report;
 - an English or French interface (from the system language);
 - dialogs and tool windows, the system folder chooser;
 - in the core library, with tests: local file listing and sorting, wildcard masks, the panel and
@@ -21,8 +24,8 @@ What works today:
   and file operations (copy, move, delete, new folder; an overwrite writes through a temporary
   file beside the target and swaps it in, so a failed or cancelled copy keeps the old file).
 
-Not wired into the window yet: the file lists in the two panels, and every add-on (lister,
-editor, archives, search, compare, synchronize, multi-rename, FTP, network drives, tools).
+Not wired into the window yet: view, edit, search, and the other add-ons (lister, editor,
+archives, compare, synchronize, multi-rename, FTP, network drives, tools).
 What is planned beyond that: [docs/ROADMAP.md](docs/ROADMAP.md).
 
 ## Install

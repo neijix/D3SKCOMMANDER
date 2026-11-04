@@ -115,6 +115,46 @@ public sealed partial class Tab
         }
     }
 
+    public bool IsSelected(string path)
+    {
+        ArgumentNullException.ThrowIfNull(path);
+        return _selected.Contains(path);
+    }
+
+    /// <summary>Moves the cursor without changing which rows are marked.</summary>
+    public void PlaceCursor(int index)
+    {
+        if (_visible.Count == 0)
+        {
+            Cursor = 0;
+            return;
+        }
+
+        if (index < 0)
+        {
+            index = 0;
+        }
+        else if (index >= _visible.Count)
+        {
+            index = _visible.Count - 1;
+        }
+
+        Cursor = index;
+    }
+
+    public void ReplaceSelection(IReadOnlyList<string> paths)
+    {
+        ArgumentNullException.ThrowIfNull(paths);
+        _selected.Clear();
+        foreach (var path in paths)
+        {
+            if (!string.IsNullOrEmpty(path))
+            {
+                _selected.Add(path);
+            }
+        }
+    }
+
     private void AddRange(int index)
     {
         var from = Cursor;

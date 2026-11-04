@@ -1,8 +1,34 @@
+using D3skCommander.App.Shell;
+using D3skCommander.Core.Jobs;
+using D3skCommander.Core.Localization;
 using Microsoft.Extensions.DependencyInjection;
 
 namespace D3skCommander.App.Features.Jobs;
 
-public sealed class JobsModule
+public sealed class JobsModule : IShellModule
 {
-    public static void Register(IServiceCollection services) => services.AddSingleton<JobsModule>();
+    private readonly IJobService _jobs;
+    private readonly ILocalizer _text;
+
+    public JobsModule(IJobService jobs, ILocalizer text)
+    {
+        ArgumentNullException.ThrowIfNull(jobs);
+        ArgumentNullException.ThrowIfNull(text);
+        _jobs = jobs;
+        _text = text;
+    }
+
+    public static void Register(IServiceCollection services)
+    {
+        ArgumentNullException.ThrowIfNull(services);
+        services.AddSingleton<IJobService, JobService>();
+        services.AddSingleton<JobsModule>();
+        services.AddSingleton<IShellModule>(provider => provider.GetRequiredService<JobsModule>());
+    }
+
+    public void Contribute(IShellContributions shell)
+    {
+        ArgumentNullException.ThrowIfNull(shell);
+        shell.AddRegion(ShellRegion.UnderPanels, () => new OperationsBar(_jobs, _text));
+    }
 }

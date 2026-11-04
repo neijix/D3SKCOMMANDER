@@ -81,7 +81,7 @@ public class ShellCompositionTests
         button.Click();
         Assert.Equal(3, probe.Copies);
         Assert.True(probe.Started);
-        var under = Assert.Single(host.Window.UnderPanels);
+        var under = Assert.Single(host.Window.UnderPanels, item => item.Name == "ProbeRegion");
         Assert.Equal("ProbeRegion", under.Name);
         Assert.IsType<LabelWidget>(under);
         var trailing = Assert.Single(host.Window.MenuBarTrailing);

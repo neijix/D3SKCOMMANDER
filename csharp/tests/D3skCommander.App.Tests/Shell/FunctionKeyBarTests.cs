@@ -41,7 +41,7 @@ public class FunctionKeyBarTests
             buttons.Select(button => button.Command).ToArray());
         foreach (var button in buttons)
         {
-            Assert.Equal(button.Command == CommandId.Quit, button.IsEnabled);
+            Assert.Equal(HandledCommands.Handles(button.Command), button.IsEnabled);
         }
     }
 

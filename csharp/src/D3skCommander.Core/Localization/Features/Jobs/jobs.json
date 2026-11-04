@@ -1,0 +1,10 @@
+{
+  "jobs.failed": {
+    "en": "Some items failed",
+    "fr": "Certains éléments ont échoué"
+  },
+  "jobs.retry": {
+    "en": "Retry",
+    "fr": "Réessayer"
+  }
+}

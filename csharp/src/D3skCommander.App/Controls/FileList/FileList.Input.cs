@@ -281,4 +281,37 @@ public sealed partial class FileList
             row.IsMarked = true;
         }
     }
+
+    public void CopyMarks(List<string> target)
+    {
+        ArgumentNullException.ThrowIfNull(target);
+        target.Clear();
+        foreach (var key in _marks)
+        {
+            target.Add(key);
+        }
+    }
+
+    public void SetMarks(IReadOnlyList<string> keys)
+    {
+        ArgumentNullException.ThrowIfNull(keys);
+        ClearMarks();
+        foreach (var key in keys)
+        {
+            var index = IndexOfKey(key);
+            if (index < 0)
+            {
+                continue;
+            }
+
+            var row = _rowList[index];
+            if (!row.CanMark)
+            {
+                continue;
+            }
+
+            _marks.Add(row.Key);
+            row.IsMarked = true;
+        }
+    }
 }
