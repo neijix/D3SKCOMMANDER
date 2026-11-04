@@ -1,0 +1,18 @@
+{
+  "smoke.screenshot.saved": {
+    "en": "screenshot saved: {0}",
+    "fr": "capture enregistrée : {0}"
+  },
+  "smoke.screenshot.failed": {
+    "en": "screenshot failed: {0}",
+    "fr": "échec de la capture : {0}"
+  },
+  "smoke.command.unknown": {
+    "en": "unknown command: {0}",
+    "fr": "commande inconnue : {0}"
+  },
+  "smoke.window.missing": {
+    "en": "no window",
+    "fr": "aucune fenêtre"
+  }
+}
