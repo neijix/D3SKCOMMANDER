@@ -1,6 +1,4 @@
-using Avalonia.Controls;
-using Avalonia.Interactivity;
-using Avalonia.Threading;
+using D3skCommander.App.Host;
 using D3skCommander.App.Shell;
 using D3skCommander.Core.Commands;
 using D3skCommander.Core.Localization;
@@ -12,16 +10,14 @@ internal sealed class SmokeSession : IDisposable
 {
     private static readonly object Gate = new();
     private static readonly List<WeakReference<SmokeSession>> Live = [];
-    private static bool _listening;
 
     private readonly ILocalizer _text;
     private readonly IShellContributions _shell;
     private readonly TimeProvider _time;
     private readonly TextWriter _error;
-    private readonly Dispatcher _dispatcher;
     private readonly string? _path;
     private readonly string? _command;
-    private Window? _window;
+    private MainWindow? _window;
     private ITimer? _commandTimer;
     private ITimer? _shotTimer;
     private int _started;
@@ -38,7 +34,6 @@ internal sealed class SmokeSession : IDisposable
         _shell = shell;
         _time = time;
         _error = error;
-        _dispatcher = Dispatcher.UIThread;
         _path = Environment.GetEnvironmentVariable(SmokeModule.ScreenshotVariable);
         var command = Environment.GetEnvironmentVariable(SmokeModule.CommandVariable);
         if (!string.IsNullOrEmpty(command))
@@ -54,6 +49,21 @@ internal sealed class SmokeSession : IDisposable
     }
 
     public bool IsActive { get; }
+
+    public static void NotifyOpened(MainWindow window)
+    {
+        ArgumentNullException.ThrowIfNull(window);
+        List<SmokeSession> sessions;
+        lock (Gate)
+        {
+            sessions = LiveSessions();
+        }
+
+        foreach (var session in sessions)
+        {
+            session.Note(window);
+        }
+    }
 
     public void Start()
     {
@@ -79,9 +89,9 @@ internal sealed class SmokeSession : IDisposable
         _shotTimer = null;
     }
 
-    internal void Note(Window window)
+    private void Note(MainWindow window)
     {
-        if (!ReferenceEquals(_dispatcher, Dispatcher.UIThread))
+        if (!UiThread.CheckAccess())
         {
             return;
         }
@@ -90,7 +100,7 @@ internal sealed class SmokeSession : IDisposable
     }
 
     private ITimer Arm(TimeSpan due, Action action) =>
-        _time.CreateTimer(_ => OnUi(action), null, due, Timeout.InfiniteTimeSpan);
+        _time.CreateTimer(_ => UiThread.Invoke(action), null, due, Timeout.InfiniteTimeSpan);
 
     private void RunCommand()
     {
@@ -152,23 +162,10 @@ internal sealed class SmokeSession : IDisposable
         ex is IOException or UnauthorizedAccessException or ArgumentException or InvalidOperationException
             or NotSupportedException or OutOfMemoryException or PlatformNotSupportedException;
 
-    private static void OnUi(Action action)
-    {
-        var dispatcher = Dispatcher.UIThread;
-        if (dispatcher.CheckAccess())
-        {
-            action();
-            return;
-        }
-
-        dispatcher.Invoke(action);
-    }
-
     private static void Track(SmokeSession session)
     {
         lock (Gate)
         {
-            EnsureListening();
             Live.Add(new WeakReference<SmokeSession>(session));
         }
     }
@@ -184,39 +181,6 @@ internal sealed class SmokeSession : IDisposable
                     Live.RemoveAt(i);
                 }
             }
-        }
-    }
-
-    private static void EnsureListening()
-    {
-        if (_listening)
-        {
-            return;
-        }
-
-        _listening = true;
-        Window.WindowOpenedEvent.AddClassHandler<Window>(
-            OnWindowOpened,
-            RoutingStrategies.Direct | RoutingStrategies.Bubble,
-            true);
-    }
-
-    private static void OnWindowOpened(Window window, RoutedEventArgs args)
-    {
-        if (window is not MainWindow)
-        {
-            return;
-        }
-
-        List<SmokeSession> sessions;
-        lock (Gate)
-        {
-            sessions = LiveSessions();
-        }
-
-        foreach (var session in sessions)
-        {
-            session.Note(window);
         }
     }
 

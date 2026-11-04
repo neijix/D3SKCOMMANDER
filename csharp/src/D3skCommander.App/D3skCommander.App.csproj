@@ -4,7 +4,7 @@
     <AssemblyName>D3skCommander</AssemblyName>
     <RootNamespace>D3skCommander.App</RootNamespace>
     <ApplicationManifest>app.manifest</ApplicationManifest>
-    <AvaloniaUseCompiledBindingsByDefault>true</AvaloniaUseCompiledBindingsByDefault>
+    <AllowUnsafeBlocks>true</AllowUnsafeBlocks>
     <ApplicationIcon>$(RepoRoot)packaging/icons/icon.ico</ApplicationIcon>
     <!-- Publish: dotnet publish -r linux-x64|osx-arm64|win-x64 -->
     <RuntimeIdentifiers>linux-x64;osx-arm64;win-x64</RuntimeIdentifiers>
@@ -23,18 +23,16 @@
     <NSHighResolutionCapable>true</NSHighResolutionCapable>
   </PropertyGroup>
   <ItemGroup>
-    <PackageReference Include="Avalonia" />
-    <PackageReference Include="Avalonia.Desktop" />
-    <PackageReference Include="Avalonia.Themes.Fluent" />
+    <PackageReference Include="Hexa.NET.ImGui" />
+    <PackageReference Include="Hexa.NET.ImGui.Backends" />
+    <PackageReference Include="Hexa.NET.ImGui.Backends.GLFW" />
+    <PackageReference Include="Hexa.NET.GLFW" />
+    <PackageReference Include="Hexa.NET.OpenGL3" />
+    <PackageReference Include="Hexa.NET.ImPlot" />
     <PackageReference Include="CommunityToolkit.Mvvm" />
     <PackageReference Include="Microsoft.Extensions.DependencyInjection" />
   </ItemGroup>
   <ItemGroup>
     <ProjectReference Include="../D3skCommander.Core/D3skCommander.Core.csproj" />
-  </ItemGroup>
-  <ItemGroup>
-    <AvaloniaResource Include="Icons/**" />
-    <AvaloniaResource Include="Themes/**" />
-    <AvaloniaResource Include="$(RepoRoot)packaging/icons/256x256.png" Link="Icons/app.png" />
   </ItemGroup>
 </Project>

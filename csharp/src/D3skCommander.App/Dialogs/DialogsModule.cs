@@ -9,7 +9,7 @@ public sealed class DialogsModule
         services.AddSingleton<DialogsModule>();
         services.AddSingleton<IDialogOwner, ShellDialogOwner>();
         services.AddSingleton<IFolderPicker, OsFolderPicker>();
-        services.AddSingleton<IDialogSurface, WindowDialogSurface>();
+        services.AddSingleton<IDialogSurface, ImGuiDialogSurface>();
         services.AddSingleton<IDialogService, DialogService>();
     }
 }

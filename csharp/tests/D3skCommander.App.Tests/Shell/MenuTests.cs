@@ -1,6 +1,3 @@
-using Avalonia.Controls;
-using Avalonia.Headless.XUnit;
-using Avalonia.Input;
 using D3skCommander.App.Shell;
 using D3skCommander.Core.Commands;
 using D3skCommander.Core.Localization;
@@ -25,16 +22,28 @@ public class MenuTests
         AssertEveryCommandIsReachable();
     }
 
-    [AvaloniaFact]
+    [Fact]
     public void CommandsWithoutAHandlerAreVisibleButDisabled()
     {
         using var host = ShellHost.Open(Language.En);
-        var menu = host.Window.FindControl<Menu>("MainMenu");
-        Assert.NotNull(menu);
-        Assert.Equal(CommandCatalog.Menus.Count, menu.Items.Count);
+        var menus = host.Window.Menus;
+        Assert.Equal(CommandCatalog.Menus.Count, menus.Count);
         for (var i = 0; i < CommandCatalog.Menus.Count; i++)
         {
-            AssertTopMenu((MenuItem)menu.Items[i]!, CommandCatalog.Menus[i], host.Localizer);
+            AssertTopMenu(menus[i], CommandCatalog.Menus[i], host.Localizer);
+        }
+    }
+
+    [Fact]
+    public void FunctionKeyChordsRoundTripThroughImGui()
+    {
+        foreach (var key in CommandCatalog.FunctionKeys)
+        {
+            var gesture = CommandCatalog.PrimaryGesture(key.Command);
+            Assert.NotNull(gesture);
+            var imgui = GestureMap.ToImGui(gesture.Value.Key);
+            var back = GestureMap.From(imgui, gesture.Value.Modifiers);
+            Assert.Equal(gesture, back);
         }
     }
 
@@ -80,9 +89,9 @@ public class MenuTests
         return false;
     }
 
-    private static void AssertTopMenu(MenuItem top, MenuDefinition definition, ILocalizer localizer)
+    private static void AssertTopMenu(ShellMenu top, MenuDefinition definition, ILocalizer localizer)
     {
-        Assert.Equal(localizer.Get(definition.TitleKey), top.Header as string);
+        Assert.Equal(localizer.Get(definition.TitleKey), top.Header);
         Assert.Equal(definition.Items.Count, top.Items.Count);
         for (var i = 0; i < definition.Items.Count; i++)
         {
@@ -90,33 +99,18 @@ public class MenuTests
         }
     }
 
-    private static void AssertEntry(object? actual, CommandId? expected, ILocalizer localizer)
+    private static void AssertEntry(ShellMenuEntry actual, CommandId? expected, ILocalizer localizer)
     {
         if (expected is null)
         {
-            Assert.IsType<Separator>(actual);
+            Assert.True(actual.IsSeparator);
             return;
         }
 
-        var item = Assert.IsType<MenuItem>(actual);
-        Assert.Equal(localizer.Get(CommandCatalog.LabelKey(expected.Value)), item.Header as string);
-        Assert.True(item.IsVisible);
-        Assert.Equal(expected == CommandId.Quit, item.IsEnabled);
-        AssertGesture(expected.Value, item.InputGesture);
-    }
-
-    private static void AssertGesture(CommandId command, object? gesture)
-    {
-        var primary = CommandCatalog.PrimaryGesture(command);
-        if (primary is null)
-        {
-            Assert.Null(gesture);
-            return;
-        }
-
-        var keyGesture = Assert.IsType<KeyGesture>(gesture);
-        var expected = GestureMap.ToKeyGesture(primary.Value);
-        Assert.Equal(expected.Key, keyGesture.Key);
-        Assert.Equal(expected.KeyModifiers, keyGesture.KeyModifiers);
+        Assert.False(actual.IsSeparator);
+        Assert.Equal(localizer.Get(CommandCatalog.LabelKey(expected.Value)), actual.Header);
+        Assert.True(actual.IsVisible);
+        Assert.Equal(expected == CommandId.Quit, actual.IsEnabled);
+        Assert.Equal(CommandCatalog.PrimaryGesture(expected.Value), actual.Gesture);
     }
 }

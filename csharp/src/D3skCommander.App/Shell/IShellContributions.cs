@@ -1,4 +1,3 @@
-using Avalonia.Controls;
 using D3skCommander.Core.Commands;
 
 namespace D3skCommander.App.Shell;
@@ -16,11 +15,11 @@ public interface IShellContributions
 
     void AppendMenuSeparator(string menuKey);
 
-    void AddMenuBarTrailing(Func<Control> build);
+    void AddMenuBarTrailing(Func<IShellWidget> build);
 
     void OnStartup(Action action);
 
-    void SetPanel(PanelSide side, Func<Control> build);
+    void SetPanel(PanelSide side, Func<IShellWidget> build);
 
-    void AddRegion(ShellRegion region, Func<Control> build);
+    void AddRegion(ShellRegion region, Func<IShellWidget> build);
 }

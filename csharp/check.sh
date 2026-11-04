@@ -1,5 +1,5 @@
 #!/usr/bin/env bash
-# The C# gate: format check, build (warnings are errors), .axaml size, tests not marked slow.
+# The C# gate: format check, build (warnings are errors), view size, tests not marked slow.
 # --full adds the slow tier (tests carrying the [Slow] trait Tier=Slow).
 set -euo pipefail
 cd "$(dirname "$0")"
@@ -30,11 +30,11 @@ SLN=D3skCommander.sln
 dotnet format "$SLN" --verify-no-changes
 dotnet build "$SLN" -warnaserror --nologo -v q
 
-# No .axaml view over 600 lines.
-too_long=$(find src -name '*.axaml' -not -path '*/obj/*' -not -path '*/bin/*' -print0 \
+# No ImGui view over 600 lines.
+too_long=$(find src \( -name '*View.cs' -o -name '*.Draw.cs' \) -not -path '*/obj/*' -not -path '*/bin/*' -print0 \
   | xargs -0 -r wc -l | awk '$2 != "total" && $1 > 600 {print $2 " (" $1 " lines)"}')
 if [ -n "$too_long" ]; then
-  echo "ERROR: .axaml files over 600 lines:" >&2
+  echo "ERROR: view files over 600 lines:" >&2
   echo "$too_long" >&2
   exit 1
 fi

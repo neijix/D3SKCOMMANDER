@@ -1,10 +1,8 @@
-using Avalonia.Input;
-using Avalonia.Threading;
 using D3skCommander.Core.FileSystem;
 
 namespace D3skCommander.App.Controls.FileList;
 
-public partial class FileList
+public sealed partial class FileList
 {
     public bool BeginRename()
     {
@@ -23,8 +21,7 @@ public partial class FileList
         Editing = row;
         row.EditBuffer = row.EditName;
         row.IsEditing = true;
-        Rows.ScrollIntoView(row);
-        FocusEditor();
+        ScrollTo(_cursorIndex);
         return true;
     }
 
@@ -48,20 +45,21 @@ public partial class FileList
         RaiseRename(row, name);
     }
 
-    private void OnRenameKey(KeyEventArgs e)
+    private bool OnRenameKey(FileListKey key)
     {
-        if (e.Key == Key.Enter)
+        if (key == FileListKey.Enter)
         {
             CommitRename();
-            e.Handled = true;
-            return;
+            return true;
         }
 
-        if (e.Key == Key.Escape)
+        if (key == FileListKey.Escape)
         {
             CancelRename();
-            e.Handled = true;
+            return true;
         }
+
+        return true;
     }
 
     private void CloseEditor()
@@ -73,22 +71,5 @@ public partial class FileList
 
         Editing.IsEditing = false;
         Editing = null;
-        if (VisualRoot is not null)
-        {
-            Focus();
-        }
-    }
-
-    private void FocusEditor()
-    {
-        var view = RowViewAt(_cursorIndex);
-        if (view is not null)
-        {
-            view.FocusEditor();
-            return;
-        }
-
-        var index = _cursorIndex;
-        Dispatcher.UIThread.Post(() => RowViewAt(index)?.FocusEditor(), DispatcherPriority.Loaded);
     }
 }

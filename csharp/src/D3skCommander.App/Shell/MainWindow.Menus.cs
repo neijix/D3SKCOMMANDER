@@ -1,59 +1,77 @@
-using Avalonia.Controls;
 using D3skCommander.Core.Commands;
 
 namespace D3skCommander.App.Shell;
 
-public partial class MainWindow
+public sealed partial class MainWindow
 {
-    private void BuildMenu()
+    private IReadOnlyList<ShellMenu> BuildMenus()
     {
+        var menus = new List<ShellMenu>();
         foreach (var definition in CommandCatalog.Menus)
         {
-            MainMenu.Items.Add(CreateTopMenu(definition));
+            menus.Add(CreateTopMenu(definition));
         }
 
-        foreach (var build in _shell.MenuBarTrailing)
-        {
-            MenuBarTrailing.Children.Add(RequireControl(build));
-        }
+        return menus;
     }
 
-    private MenuItem CreateTopMenu(MenuDefinition definition)
+    private ShellMenu CreateTopMenu(MenuDefinition definition)
     {
-        var top = new MenuItem { Header = _localizer.Get(definition.TitleKey) };
+        var items = new List<ShellMenuEntry>();
         foreach (var item in definition.Items)
         {
-            AddMenuEntry(top, item);
+            items.Add(CreateEntry(item));
         }
 
         foreach (var extra in _shell.Extras(definition.TitleKey))
         {
-            AddMenuEntry(top, extra);
+            items.Add(CreateEntry(extra));
         }
 
-        return top;
+        return new ShellMenu(_localizer.Get(definition.TitleKey), items);
     }
 
-    private void AddMenuEntry(MenuItem top, CommandId? command)
+    private ShellMenuEntry CreateEntry(CommandId? command)
     {
         if (command is null)
         {
-            top.Items.Add(new Separator());
-            return;
+            return new ShellMenuEntry { IsSeparator = true };
         }
 
-        top.Items.Add(CreateCommandItem(command.Value));
+        return new ShellMenuEntry
+        {
+            Header = _localizer.Get(CommandCatalog.LabelKey(command.Value)),
+            IsEnabled = _shell.CanExecute(command.Value),
+            IsVisible = true,
+            Gesture = CommandCatalog.PrimaryGesture(command.Value),
+            Command = command.Value,
+        };
     }
 
-    private MenuItem CreateCommandItem(CommandId command)
+    private IReadOnlyList<FunctionButton> BuildFunctionKeys()
     {
-        var item = new MenuItem
+        var buttons = new List<FunctionButton>();
+        foreach (var key in CommandCatalog.FunctionKeys)
         {
-            Header = _localizer.Get(CommandCatalog.LabelKey(command)),
-            IsEnabled = _shell.CanExecute(command),
-            InputGesture = GestureMap.ToKeyGesture(CommandCatalog.PrimaryGesture(command)),
-        };
-        item.Click += (_, _) => _shell.Dispatch(command);
-        return item;
+            var command = key.Command;
+            buttons.Add(new FunctionButton(
+                Chord(command) + " " + _localizer.Get(key.LabelKey),
+                command,
+                _shell.CanExecute(command),
+                () => _shell.Dispatch(command)));
+        }
+
+        return buttons;
+    }
+
+    private static string Chord(CommandId command)
+    {
+        var gesture = CommandCatalog.PrimaryGesture(command);
+        if (gesture is null)
+        {
+            throw new InvalidOperationException($"Function key {command} has no gesture.");
+        }
+
+        return gesture.Value.Format();
     }
 }

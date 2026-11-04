@@ -1,4 +1,4 @@
-using Avalonia.Controls;
+using D3skCommander.App.Shell;
 
 namespace D3skCommander.App.ToolWindows;
 
@@ -12,10 +12,13 @@ public interface IToolWindowHost
     /// View factory for <paramref name="kind"/>. Used the next time that kind is created.
     /// A window that is already open keeps the view it was created with.
     /// </summary>
-    void Register(ToolKind kind, Func<Control> content);
+    void Register(ToolKind kind, Func<IShellWidget> content);
 
     /// <summary>Opens <paramref name="kind"/>, or activates the window already open for it.</summary>
-    Window Open(ToolKind kind);
+    ToolWindow Open(ToolKind kind);
 
     bool IsOpen(ToolKind kind);
+
+    /// <summary>Draws each open tool as its own ImGui platform window.</summary>
+    void Draw();
 }

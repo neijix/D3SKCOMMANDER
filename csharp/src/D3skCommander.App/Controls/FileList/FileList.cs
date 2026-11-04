@@ -1,37 +1,22 @@
 using System.Collections.Specialized;
-using Avalonia;
-using Avalonia.Controls;
-using Avalonia.Controls.Templates;
-using Avalonia.Input;
-using Avalonia.Interactivity;
-using Avalonia.Media;
-using Avalonia.VisualTree;
+using D3skCommander.App.Shell;
 using D3skCommander.Core.FileSystem;
 using D3skCommander.Core.Localization;
 
 namespace D3skCommander.App.Controls.FileList;
 
 /// <summary>One virtualized file list for the full and brief views, and for the other tables.</summary>
-public partial class FileList : UserControl
+public sealed partial class FileList : IShellWidget
 {
-    public static readonly StyledProperty<IEnumerable<Entry>?> EntriesProperty =
-        AvaloniaProperty.Register<FileList, IEnumerable<Entry>?>(nameof(Entries));
-
-    public static readonly StyledProperty<FileListView> ViewProperty =
-        AvaloniaProperty.Register<FileList, FileListView>(nameof(View), FileListView.Full);
-
-    public static readonly StyledProperty<FileListColumnFlags> ShownColumnsProperty =
-        AvaloniaProperty.Register<FileList, FileListColumnFlags>(nameof(ShownColumns), FileListColumnFlags.All);
-
-    public static readonly DirectProperty<FileList, int> CursorIndexProperty =
-        AvaloniaProperty.RegisterDirect<FileList, int>(nameof(CursorIndex), o => o.CursorIndex, (o, v) => o.CursorIndex = v);
-
     private readonly HashSet<string> _marks = new(StringComparer.Ordinal);
+    private readonly object _rows = new();
     private List<FileListRow> _rowList = [];
     private List<FileListColumn> _columns = [];
+    private IEnumerable<Entry>? _entries;
     private IEnumerable<Entry>? _watched;
     private ILocalizer _localizer;
     private int _cursorIndex = -1;
+    private int _scroll;
     private bool _custom;
 
     public FileList()
@@ -43,32 +28,42 @@ public partial class FileList : UserControl
     {
         ArgumentNullException.ThrowIfNull(localizer);
         _localizer = localizer;
-        InitializeComponent();
-        Rows.ItemTemplate = new FuncDataTemplate<FileListRow>((_, _) => new FileListRowView(), true);
-        Rows.SelectionMode = SelectionMode.Single;
-        AddHandler(KeyDownEvent, OnListKeyDown, RoutingStrategies.Tunnel);
-        Rows.AddHandler(PointerPressedEvent, OnPointerPressed, RoutingStrategies.Tunnel);
         _columns = FileListEntryRows.Columns(View, ShownColumns).ToList();
-        BuildHeader();
     }
+
+    public string? Name => "Rows";
+
+    /// <summary>Stable identity of the one list. Full and brief views share it.</summary>
+    public object Rows => _rows;
 
     public IEnumerable<Entry>? Entries
     {
-        get => GetValue(EntriesProperty);
-        set => SetValue(EntriesProperty, value);
+        get => _entries;
+        set
+        {
+            _custom = false;
+            _entries = value;
+            Watch(value);
+            RebuildFromEntries();
+        }
     }
+
+    private FileListView _view = FileListView.Full;
+    private FileListColumnFlags _shown = FileListColumnFlags.All;
 
     public FileListView View
     {
-        get => GetValue(ViewProperty);
-        set => SetValue(ViewProperty, value);
+        get => _view;
+        set => ChangeView(value);
     }
 
     public FileListColumnFlags ShownColumns
     {
-        get => GetValue(ShownColumnsProperty);
-        set => SetValue(ShownColumnsProperty, value);
+        get => _shown;
+        set => ChangeColumns(value);
     }
+
+    public double ViewportHeight { get; set; } = 360;
 
     public int CursorIndex
     {
@@ -79,6 +74,20 @@ public partial class FileList : UserControl
     public int MarkedCount => _marks.Count;
 
     public bool IsRenaming => Editing is not null;
+
+    public int EditorRow => IsRenaming ? _cursorIndex : -1;
+
+    public string RenameText
+    {
+        get => Editing?.EditBuffer ?? "";
+        set
+        {
+            if (Editing is not null)
+            {
+                Editing.EditBuffer = value;
+            }
+        }
+    }
 
     internal IReadOnlyList<FileListColumn> CurrentColumns => _columns;
 
@@ -97,11 +106,11 @@ public partial class FileList : UserControl
 
     public string? HeaderText(string key)
     {
-        foreach (var block in Header.Children.OfType<TextBlock>())
+        foreach (var column in _columns)
         {
-            if (block.Tag is string header && header == key)
+            if (column.HeaderKey == key)
             {
-                return block.Text;
+                return _localizer.Get(key);
             }
         }
 
@@ -139,17 +148,60 @@ public partial class FileList : UserControl
 
     public bool RowHasClass(int index, string name)
     {
-        var view = RowViewAt(index);
-        return view is not null && view.Classes.Contains(name);
+        if (!IsRealized(index))
+        {
+            return false;
+        }
+
+        var row = _rowList[index];
+        return name switch
+        {
+            "marked" => row.IsMarked,
+            "cursor" => row.IsCursor,
+            "parent" => row.IsParent,
+            "directory" => row.IsDirectory,
+            "link" => row.IsLink,
+            "hidden" => row.IsHidden,
+            "readonly" => row.IsReadOnly,
+            _ => false,
+        };
     }
 
-    public double RowOpacity(int index) => RowViewAt(index)?.Opacity ?? 1;
+    public double RowOpacity(int index)
+    {
+        if (!IsRealized(index))
+        {
+            return 1;
+        }
+
+        return _rowList[index].IsHidden ? 0.5 : 1;
+    }
 
     public IReadOnlyList<string> RenderedCells(int index)
     {
-        var view = RowViewAt(index);
-        return view is null ? [] : view.RenderedCells();
+        if (!IsRealized(index))
+        {
+            return [];
+        }
+
+        return _rowList[index].Cells;
     }
+
+    public int RealizedCount
+    {
+        get
+        {
+            if (_rowList.Count == 0)
+            {
+                return 0;
+            }
+
+            return Math.Min(_rowList.Count - _scroll, VisibleRows());
+        }
+    }
+
+    public bool IsRealized(int index) =>
+        index >= _scroll && index < _scroll + VisibleRows() && index < _rowList.Count && index >= 0;
 
     public void Use(ILocalizer localizer)
     {
@@ -157,7 +209,6 @@ public partial class FileList : UserControl
         _localizer = localizer;
         if (_custom)
         {
-            BuildHeader();
             return;
         }
 
@@ -189,28 +240,50 @@ public partial class FileList : UserControl
         Publish(0);
     }
 
+    public void TypeRename(string text)
+    {
+        ArgumentNullException.ThrowIfNull(text);
+        if (Editing is not null)
+        {
+            Editing.EditBuffer += text;
+        }
+    }
+
     internal void RaiseRename(FileListRow row, string name) =>
         RenameCommitted?.Invoke(this, new FileListRenameEventArgs(row, name));
 
     internal void RaiseDirectoryMarked(FileListRow row) => DirectoryMarked?.Invoke(this, row);
 
-    protected override void OnPropertyChanged(AvaloniaPropertyChangedEventArgs change)
+    internal int VisibleRows()
     {
-        base.OnPropertyChanged(change);
-        if (change.Property == EntriesProperty)
+        var body = Math.Max(0, ViewportHeight - FileListLayout.HeaderHeight);
+        var rows = (int)Math.Floor(body / FileListLayout.RowHeight);
+        return Math.Max(1, rows);
+    }
+
+    private void ChangeView(FileListView view)
+    {
+        if (_view == view)
         {
-            _custom = false;
-            Watch(change.NewValue as IEnumerable<Entry>);
+            return;
+        }
+
+        _view = view;
+        if (!_custom)
+        {
             RebuildFromEntries();
-            return;
         }
+    }
 
-        if (_custom)
+    private void ChangeColumns(FileListColumnFlags shown)
+    {
+        if (_shown == shown)
         {
             return;
         }
 
-        if (change.Property == ViewProperty || change.Property == ShownColumnsProperty)
+        _shown = shown;
+        if (!_custom)
         {
             RebuildFromEntries();
         }
@@ -250,9 +323,9 @@ public partial class FileList : UserControl
         CloseEditor();
         _columns = FileListEntryRows.Columns(View, ShownColumns).ToList();
         var built = new List<FileListRow>();
-        if (Entries is not null)
+        if (_entries is not null)
         {
-            foreach (var entry in Entries)
+            foreach (var entry in _entries)
             {
                 built.Add(FileListEntryRows.Create(entry, View, ShownColumns, _localizer));
             }
@@ -286,23 +359,13 @@ public partial class FileList : UserControl
 
     private void Publish(int preferred)
     {
-        Rows.ItemsSource = _rowList;
-        BuildHeader();
         var next = NextCursor(preferred);
-        if (_cursorIndex != next)
+        _cursorIndex = next;
+        if (next >= 0)
         {
-            SetAndRaise(CursorIndexProperty, ref _cursorIndex, next);
+            _rowList[next].IsCursor = true;
+            ScrollTo(next);
         }
-
-        if (next < 0)
-        {
-            Rows.SelectedIndex = -1;
-            return;
-        }
-
-        _rowList[next].IsCursor = true;
-        Rows.SelectedIndex = next;
-        Rows.ScrollIntoView(_rowList[next]);
     }
 
     private int NextCursor(int preferred)
@@ -318,27 +381,6 @@ public partial class FileList : UserControl
         }
 
         return Math.Min(preferred, _rowList.Count - 1);
-    }
-
-    private void BuildHeader()
-    {
-        Header.Children.Clear();
-        Header.ColumnDefinitions.Clear();
-        for (var i = 0; i < _columns.Count; i++)
-        {
-            var column = _columns[i];
-            Header.ColumnDefinitions.Add(FileListLayout.Definition(column));
-            var label = new TextBlock
-            {
-                Text = _localizer.Get(column.HeaderKey),
-                Tag = column.HeaderKey,
-                FontWeight = FontWeight.SemiBold,
-                VerticalAlignment = Avalonia.Layout.VerticalAlignment.Center,
-                Margin = new Thickness(4, 0),
-            };
-            Grid.SetColumn(label, i);
-            Header.Children.Add(label);
-        }
     }
 
     private string? CurrentKey()
@@ -369,18 +411,27 @@ public partial class FileList : UserControl
         return -1;
     }
 
-    private FileListRowView? RowViewAt(int index)
+    private void ScrollTo(int index)
     {
-        if (Rows.ContainerFromIndex(index) is not Control container)
+        var visible = VisibleRows();
+        if (index < _scroll)
         {
-            return null;
+            _scroll = index;
+        }
+        else if (index >= _scroll + visible)
+        {
+            _scroll = index - visible + 1;
         }
 
-        if (container is FileListRowView view)
+        var max = Math.Max(0, _rowList.Count - visible);
+        if (_scroll > max)
         {
-            return view;
+            _scroll = max;
         }
 
-        return container.GetVisualDescendants().OfType<FileListRowView>().FirstOrDefault();
+        if (_scroll < 0)
+        {
+            _scroll = 0;
+        }
     }
 }

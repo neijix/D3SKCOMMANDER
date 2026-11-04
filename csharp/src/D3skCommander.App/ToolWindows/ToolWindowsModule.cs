@@ -1,3 +1,4 @@
+using D3skCommander.App.Shell;
 using Microsoft.Extensions.DependencyInjection;
 
 namespace D3skCommander.App.ToolWindows;

@@ -1,8 +1,3 @@
-using Avalonia.Controls;
-using Avalonia.Headless;
-using Avalonia.Headless.XUnit;
-using Avalonia.Input;
-using Avalonia.Interactivity;
 using D3skCommander.App;
 using D3skCommander.App.Dialogs;
 using D3skCommander.App.Features.Archives;
@@ -74,40 +69,31 @@ public class ShellCompositionTests
         Assert.IsType<StartupModule>(provider.GetRequiredService<StartupModule>());
     }
 
-    [AvaloniaFact]
+    [Fact]
     public void ARegisteredFeaturesCommandDispatches()
     {
         var probe = new DispatchProbe();
         using var host = ShellHost.Open(Language.En, services => services.AddSingleton<IShellModule>(probe));
         host.Window.Dispatch(CommandId.Copy);
-        host.Window.KeyPress(Key.F5, RawInputModifiers.None, PhysicalKey.F5, null);
-        var button = FunctionButton(host.Window, CommandId.Copy);
+        host.Window.KeyPress(GestureKey.F5, GestureModifiers.None);
+        var button = Assert.Single(host.Window.FunctionKeys, item => item.Command == CommandId.Copy);
         Assert.True(button.IsEnabled);
-        button.RaiseEvent(new RoutedEventArgs(Button.ClickEvent));
+        button.Click();
         Assert.Equal(3, probe.Copies);
         Assert.True(probe.Started);
-        var under = host.Window.FindControl<StackPanel>("UnderPanels");
-        Assert.NotNull(under);
-        Assert.IsType<TextBlock>(Assert.Single(under.Children));
-        var trailing = host.Window.FindControl<StackPanel>("MenuBarTrailing");
-        Assert.NotNull(trailing);
-        Assert.Equal("probe", Assert.IsType<MenuItem>(Assert.Single(trailing.Children)).Header);
+        var under = Assert.Single(host.Window.UnderPanels);
+        Assert.Equal("ProbeRegion", under.Name);
+        Assert.IsType<LabelWidget>(under);
+        var trailing = Assert.Single(host.Window.MenuBarTrailing);
+        Assert.Equal("probe", Assert.IsType<MenuExtraWidget>(trailing).Header);
     }
 
-    [AvaloniaFact]
+    [Fact]
     public void QuitClosesTheWindow()
     {
         using var host = ShellHost.Open(Language.En);
-        host.Window.KeyPress(Key.F4, RawInputModifiers.Alt, PhysicalKey.F4, null);
+        host.Window.KeyPress(GestureKey.F4, GestureModifiers.Alt);
         Assert.False(host.Window.IsVisible);
-    }
-
-    private static Button FunctionButton(MainWindow window, CommandId command)
-    {
-        var bar = window.FindControl<Border>("FunctionKeyBar");
-        Assert.NotNull(bar);
-        var grid = Assert.IsType<Grid>(bar.Child);
-        return Assert.Single(grid.Children.OfType<Button>(), button => (CommandId)button.Tag! == command);
     }
 
     private sealed class DispatchProbe : IShellModule
@@ -120,9 +106,9 @@ public class ShellCompositionTests
         {
             shell.Handle(CommandId.Copy, () => Copies++);
             shell.OnStartup(() => Started = true);
-            shell.AddRegion(ShellRegion.UnderPanels, () => new TextBlock { Name = "ProbeRegion", Text = " " });
+            shell.AddRegion(ShellRegion.UnderPanels, () => new LabelWidget("ProbeRegion", " "));
             shell.AppendMenuItem("menu.tools", CommandId.Copy);
-            shell.AddMenuBarTrailing(() => new MenuItem { Name = "ProbeExtra", Header = "probe" });
+            shell.AddMenuBarTrailing(() => new MenuExtraWidget("ProbeExtra", "probe"));
         }
     }
 }

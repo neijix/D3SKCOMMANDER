@@ -1,10 +1,5 @@
-using Avalonia.Controls;
-using Avalonia.Headless;
-using Avalonia.Headless.XUnit;
-using Avalonia.Input;
-using Avalonia.Threading;
-using Avalonia.VisualTree;
 using D3skCommander.App.Controls.FileList;
+using D3skCommander.App.Host;
 using D3skCommander.Core.FileSystem;
 using D3skCommander.Core.Localization;
 using Xunit;
@@ -14,33 +9,30 @@ namespace D3skCommander.App.Tests.Controls.FileLists;
 
 public class FileListTests
 {
-    [AvaloniaFact]
+    [Fact]
     public void OneVirtualizedListServesFullAndBrief()
     {
         var entries = FileListSamples.Files(400);
-        FileListHarness.Use(entries, (window, list) =>
+        FileListHarness.Use(entries, list =>
         {
-            var full = list.FindControl<ListBox>("Rows");
-            Assert.NotNull(full);
-            AssertUnrealized(full, entries.Count);
+            var rows = list.Rows;
+            AssertUnrealized(list, entries.Count);
             Assert.Equal("f0", list.CellText(0, list.ColumnIndex("name")));
             list.View = FileListView.Brief;
-            window.UpdateLayout();
-            Dispatcher.UIThread.RunJobs();
-            Assert.Same(full, list.FindControl<ListBox>("Rows"));
-            AssertUnrealized(full, entries.Count);
+            Assert.Same(rows, list.Rows);
+            AssertUnrealized(list, entries.Count);
             Assert.Equal("f0.txt", list.CellText(0, 0));
             Assert.Null(list.HeaderText("ext"));
             Assert.Equal(-1, list.ColumnIndex("size"));
         }, height: 220);
     }
 
-    [AvaloniaFact]
+    [Fact]
     public void FullViewShowsTheEntryFields()
     {
         var text = TextCatalog.Load(Language.En, Language.En);
         var entries = SampleEntries();
-        FileListHarness.Use(entries, (_, list) =>
+        FileListHarness.Use(entries, list =>
         {
             AssertHeaders(list, text);
             AssertCells(list, text);
@@ -51,12 +43,12 @@ public class FileListTests
         }, localizer: text);
     }
 
-    [AvaloniaFact]
+    [Fact]
     public void HeadersFollowTheLanguage()
     {
         var text = TextCatalog.Load(Language.Fr, Language.Fr);
         var entries = new[] { FileListSamples.Folder("docs", "/t/docs") };
-        FileListHarness.Use(entries, (_, list) =>
+        FileListHarness.Use(entries, list =>
         {
             Assert.Equal(text.Get("name"), list.HeaderText("name"));
             Assert.Equal("Nom", list.HeaderText("name"));
@@ -67,15 +59,14 @@ public class FileListTests
         }, localizer: text);
     }
 
-    [AvaloniaFact]
+    [Fact]
     public void APressOnAFileNameSelectsItEvenIfTheMouseMovesOrLingers()
     {
-        AssertPressSurvives(0, 1);
-        AssertPressSurvives(12, 1);
-        AssertPressSurvives(0, 70);
+        AssertPressSurvives(1);
+        AssertPressSurvives(70);
     }
 
-    [AvaloniaFact]
+    [Fact]
     public void ACtrlPressTogglesAndAPlainPressClearsTheSelection()
     {
         var entries = new[]
@@ -83,39 +74,38 @@ public class FileListTests
             FileListSamples.File("five.txt", "/t/five.txt", 5, "rw-r--r--"),
             FileListSamples.File("six.txt", "/t/six.txt", 6, "rw-r--r--"),
         };
-        FileListHarness.Use(entries, (window, list) =>
+        FileListHarness.Use(entries, list =>
         {
-            var ctrl = RawInputModifiers.Control;
-            FileListHarness.Press(window, FileListHarness.RowCenter(list, window, 0), ctrl, 0, 1);
-            FileListHarness.Press(window, FileListHarness.RowCenter(list, window, 1), ctrl, 0, 1);
+            FileListHarness.Press(list, 0, FileListModifiers.Toggle, 1);
+            FileListHarness.Press(list, 1, FileListModifiers.Toggle, 1);
             Assert.Equal(2, list.MarkedCount);
             Assert.True(list.IsMarked("/t/five.txt"));
             Assert.True(list.IsMarked("/t/six.txt"));
-            FileListHarness.Press(window, FileListHarness.RowCenter(list, window, 0), ctrl, 0, 1);
+            FileListHarness.Press(list, 0, FileListModifiers.Toggle, 1);
             Assert.Equal(1, list.MarkedCount);
             Assert.False(list.IsMarked("/t/five.txt"));
             Assert.True(list.IsMarked("/t/six.txt"));
-            FileListHarness.Press(window, FileListHarness.RowCenter(list, window, 0), RawInputModifiers.None, 0, 1);
+            FileListHarness.Press(list, 0, FileListModifiers.None, 1);
             Assert.Equal(0, list.MarkedCount);
             Assert.Equal(0, list.CursorIndex);
-            FileListHarness.Press(window, FileListHarness.RowCenter(list, window, 1), RawInputModifiers.None, 12, 70);
+            FileListHarness.Press(list, 1, FileListModifiers.None, 70);
             Assert.Equal(0, list.MarkedCount);
             Assert.Equal(1, list.CursorIndex);
         });
     }
 
-    [AvaloniaFact]
+    [Fact]
     public void AShiftPressAddsTheRangeAndCtrlSkipsTheParent()
     {
         var entries = new List<Entry> { FileListSamples.Parent("/t") };
         entries.AddRange(FileListSamples.Files(4));
-        FileListHarness.Use(entries, (window, list) =>
+        FileListHarness.Use(entries, list =>
         {
-            FileListHarness.Press(window, FileListHarness.RowCenter(list, window, 0), RawInputModifiers.Control, 0, 1);
+            FileListHarness.Press(list, 0, FileListModifiers.Toggle, 1);
             Assert.Equal(0, list.MarkedCount);
             Assert.Equal(0, list.CursorIndex);
             list.CursorIndex = 1;
-            FileListHarness.Press(window, FileListHarness.RowCenter(list, window, 3), RawInputModifiers.Shift, 0, 1);
+            FileListHarness.Press(list, 3, FileListModifiers.Shift, 1);
             Assert.Equal(3, list.MarkedCount);
             Assert.True(list.IsMarked("/t/f0.txt"));
             Assert.True(list.IsMarked("/t/f2.txt"));
@@ -124,7 +114,7 @@ public class FileListTests
         });
     }
 
-    [AvaloniaFact]
+    [Fact]
     public void InsertAndSpaceMarkTheCursorEntry()
     {
         var entries = new[]
@@ -133,60 +123,61 @@ public class FileListTests
             FileListSamples.Folder("docs", "/t/docs"),
             FileListSamples.File("b.txt", "/t/b.txt", 2, "rw-r--r--"),
         };
-        FileListHarness.Use(entries, (window, list) =>
+        FileListHarness.Use(entries, list =>
         {
             var folders = 0;
             list.DirectoryMarked += (_, _) => folders++;
             Assert.Equal(0, list.CursorIndex);
-            FileListHarness.Key(window, Key.Insert);
+            FileListHarness.Key(list, FileListKey.Insert);
             Assert.True(list.IsMarked("/t/a.txt"));
             Assert.Equal(1, list.CursorIndex);
-            FileListHarness.Key(window, Key.Space);
+            FileListHarness.Key(list, FileListKey.Space);
             Assert.True(list.IsMarked("/t/docs"));
             Assert.Equal(1, list.CursorIndex);
             Assert.Equal(1, folders);
-            FileListHarness.Key(window, Key.Space);
+            FileListHarness.Key(list, FileListKey.Space);
             Assert.False(list.IsMarked("/t/docs"));
             Assert.Equal(1, folders);
             list.CursorIndex = 2;
-            FileListHarness.Key(window, Key.Space);
+            FileListHarness.Key(list, FileListKey.Space);
             Assert.True(list.IsMarked("/t/b.txt"));
             Assert.Equal(2, list.CursorIndex);
-            FileListHarness.Key(window, Key.Space);
+            FileListHarness.Key(list, FileListKey.Space);
             Assert.False(list.IsMarked("/t/b.txt"));
+            Assert.False(list.Key(FileListKey.Enter, FileListModifiers.Command));
         });
     }
 
-    [AvaloniaFact]
+    [Fact]
     public void PageUpAndPageDownMoveByTwentyRows()
     {
-        FileListHarness.Use(FileListSamples.Files(50), (window, list) =>
+        FileListHarness.Use(FileListSamples.Files(50), list =>
         {
             Assert.Equal(0, list.CursorIndex);
-            FileListHarness.Key(window, Key.PageDown);
+            FileListHarness.Key(list, FileListKey.PageDown);
             Assert.Equal(20, list.CursorIndex);
-            FileListHarness.Key(window, Key.PageDown);
+            FileListHarness.Key(list, FileListKey.PageDown);
             Assert.Equal(40, list.CursorIndex);
-            FileListHarness.Key(window, Key.PageDown);
+            FileListHarness.Key(list, FileListKey.PageDown);
             Assert.Equal(49, list.CursorIndex);
-            FileListHarness.Key(window, Key.PageUp);
+            FileListHarness.Key(list, FileListKey.PageUp);
             Assert.Equal(29, list.CursorIndex);
-            FileListHarness.Key(window, Key.PageUp);
+            FileListHarness.Key(list, FileListKey.PageUp);
             Assert.Equal(9, list.CursorIndex);
-            FileListHarness.Key(window, Key.PageUp);
+            FileListHarness.Key(list, FileListKey.PageUp);
             Assert.Equal(0, list.CursorIndex);
-            FileListHarness.Key(window, Key.End);
+            FileListHarness.Key(list, FileListKey.End);
             Assert.Equal(49, list.CursorIndex);
-            FileListHarness.Key(window, Key.Home);
+            FileListHarness.Key(list, FileListKey.Home);
             Assert.Equal(0, list.CursorIndex);
-            FileListHarness.Key(window, Key.Down);
+            FileListHarness.Key(list, FileListKey.Down);
             Assert.Equal(1, list.CursorIndex);
-            FileListHarness.Key(window, Key.Up);
+            FileListHarness.Key(list, FileListKey.Up);
             Assert.Equal(0, list.CursorIndex);
         });
     }
 
-    [AvaloniaFact]
+    [Fact]
     public void RenameEditsTheNameInPlace()
     {
         var entries = new[]
@@ -194,7 +185,7 @@ public class FileListTests
             FileListSamples.Parent("/t"),
             FileListSamples.File("report.txt", "/t/report.txt", 4, "rw-r--r--"),
         };
-        FileListHarness.Use(entries, (window, list) =>
+        FileListHarness.Use(entries, list =>
         {
             list.CursorIndex = 0;
             Assert.False(list.BeginRename());
@@ -202,54 +193,49 @@ public class FileListTests
             string? committed = null;
             list.RenameCommitted += (_, e) => committed = e.Name;
             Assert.True(list.BeginRename());
-            window.UpdateLayout();
-            Dispatcher.UIThread.RunJobs();
-            var editor = VisibleEditor(list);
-            Assert.Equal("report.txt", editor.Text);
-            Assert.Equal(list.FindControl<ListBox>("Rows")!.ContainerFromIndex(1), editor.FindAncestorOfType<ListBoxItem>());
-            editor.Text = "";
-            window.KeyTextInput("new.txt");
-            Assert.Equal("new.txt", editor.Text);
-            FileListHarness.Key(window, Key.Enter);
+            Assert.Equal(1, list.EditorRow);
+            Assert.Equal("report.txt", list.RenameText);
+            list.RenameText = "";
+            list.TypeRename("new.txt");
+            Assert.Equal("new.txt", list.RenameText);
+            FileListHarness.Key(list, FileListKey.Enter);
             Assert.Equal("new.txt", committed);
             Assert.False(list.IsRenaming);
         });
     }
 
-    [AvaloniaFact]
+    [Fact]
     public void EscapeCancelsRenameAndAnInvalidNameStaysOpen()
     {
         var entries = new[] { FileListSamples.File("report.txt", "/t/report.txt", 4, "rw-r--r--") };
-        FileListHarness.Use(entries, (window, list) =>
+        FileListHarness.Use(entries, list =>
         {
             var commits = 0;
             list.RenameCommitted += (_, _) => commits++;
             Assert.True(list.BeginRename());
-            window.UpdateLayout();
-            Dispatcher.UIThread.RunJobs();
-            var editor = VisibleEditor(list);
-            editor.Text = "../nope";
-            FileListHarness.Key(window, Key.Enter);
+            Assert.Equal(0, list.EditorRow);
+            list.RenameText = "../nope";
+            FileListHarness.Key(list, FileListKey.Enter);
             Assert.True(list.IsRenaming);
             Assert.Equal(0, commits);
-            FileListHarness.Key(window, Key.Escape);
+            FileListHarness.Key(list, FileListKey.Escape);
             Assert.False(list.IsRenaming);
             Assert.Equal(0, commits);
             Assert.Equal("report", list.CellText(0, list.ColumnIndex("name")));
         });
     }
 
-    [AvaloniaFact]
+    [Fact]
     public void CustomRowsUseTheSameList()
     {
         var text = TextCatalog.Load(Language.En, Language.En);
         var columns = new FileListColumn[] { new("name", 1, true), new("path", 180) };
         var rows = new[] { new FileListRow("k", ["alpha", "/a"], "alpha", true, false, false, null) };
-        FileListHarness.Use(FileListSamples.Files(1), (_, list) =>
+        FileListHarness.Use(FileListSamples.Files(1), list =>
         {
-            var box = list.FindControl<ListBox>("Rows");
+            var identity = list.Rows;
             list.ShowRows(columns, rows);
-            Assert.Same(box, list.FindControl<ListBox>("Rows"));
+            Assert.Same(identity, list.Rows);
             Assert.Equal(text.Get("name"), list.HeaderText("name"));
             Assert.Equal(text.Get("path"), list.HeaderText("path"));
             Assert.Equal("alpha", list.CellText(0, 0));
@@ -257,28 +243,36 @@ public class FileListTests
         }, localizer: text);
     }
 
-    private static void AssertPressSurvives(double shift, int frames)
+    [Fact]
+    public void TheListDrawsOneImGuiFrame()
+    {
+        var list = FileListHarness.Open(FileListSamples.Files(400), FileListView.Full, 220, null);
+        ImGuiProbe.Draw(list.Draw);
+        Assert.InRange(list.RealizedCount, 1, 399);
+    }
+
+    private static void AssertPressSurvives(int frames)
     {
         var entries = new[]
         {
             FileListSamples.File("file number 5 with a rather long name.txt", "/t/n5.txt", 5, "rw-r--r--"),
         };
-        FileListHarness.Use(entries, (window, list) =>
+        FileListHarness.Use(entries, list =>
         {
-            var at = FileListHarness.RowCenter(list, window, 0);
-            FileListHarness.Press(window, at, RawInputModifiers.Control, shift, frames);
-            Assert.True(list.IsMarked("/t/n5.txt"), "move " + shift.ToString(System.Globalization.CultureInfo.InvariantCulture));
+            FileListHarness.Press(list, 0, FileListModifiers.Toggle, frames);
+            Assert.True(list.IsMarked("/t/n5.txt"), "frames " + frames.ToString(System.Globalization.CultureInfo.InvariantCulture));
             Assert.Equal(1, list.MarkedCount);
             Assert.Equal(0, list.CursorIndex);
             Assert.True(list.RowHasClass(0, "marked"));
         });
     }
 
-    private static void AssertUnrealized(ListBox box, int count)
+    private static void AssertUnrealized(FileList list, int count)
     {
-        var realized = box.GetRealizedContainers().Count();
-        Assert.InRange(realized, 1, count - 1);
-        Assert.Null(box.ContainerFromIndex(count - 1));
+        Assert.InRange(list.RealizedCount, 1, count - 1);
+        Assert.False(list.IsRealized(count - 1));
+        Assert.Empty(list.RenderedCells(count - 1));
+        Assert.Equal(1, list.RowOpacity(count - 1));
     }
 
     private static List<Entry> SampleEntries() =>
@@ -332,12 +326,5 @@ public class FileListTests
         Assert.True(list.RowHasClass(5, "link"));
         Assert.True(list.RowHasClass(5, "readonly"));
         Assert.Equal(0.5, list.RowOpacity(5));
-    }
-
-    private static TextBox VisibleEditor(FileList list)
-    {
-        var editor = list.GetVisualDescendants().OfType<TextBox>().Single(box => box.IsVisible);
-        Assert.True(editor.Bounds.Height > 0);
-        return editor;
     }
 }

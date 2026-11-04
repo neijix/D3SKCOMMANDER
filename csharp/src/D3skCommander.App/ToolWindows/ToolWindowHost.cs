@@ -1,5 +1,4 @@
-using Avalonia;
-using Avalonia.Controls;
+using D3skCommander.App.Shell;
 using D3skCommander.Core.Localization;
 
 namespace D3skCommander.App.ToolWindows;
@@ -9,8 +8,8 @@ public sealed class ToolWindowHost : IToolWindowHost
 {
     private readonly ILocalizer _localizer;
     private readonly IToolWindowGeometry _geometry;
-    private readonly Dictionary<string, Func<Control>> _views = new(StringComparer.Ordinal);
-    private readonly Dictionary<string, HostedToolWindow> _open = new(StringComparer.Ordinal);
+    private readonly Dictionary<string, Func<IShellWidget>> _views = new(StringComparer.Ordinal);
+    private readonly Dictionary<string, ToolWindow> _open = new(StringComparer.Ordinal);
 
     public ToolWindowHost(ILocalizer localizer, IToolWindowGeometry geometry)
     {
@@ -20,7 +19,7 @@ public sealed class ToolWindowHost : IToolWindowHost
         _geometry = geometry;
     }
 
-    public void Register(ToolKind kind, Func<Control> content)
+    public void Register(ToolKind kind, Func<IShellWidget> content)
     {
         ArgumentNullException.ThrowIfNull(kind);
         ArgumentNullException.ThrowIfNull(content);
@@ -33,41 +32,37 @@ public sealed class ToolWindowHost : IToolWindowHost
         return _open.TryGetValue(kind.Id, out var window) && window.IsVisible;
     }
 
-    public Window Open(ToolKind kind)
+    public ToolWindow Open(ToolKind kind)
     {
         ArgumentNullException.ThrowIfNull(kind);
-        ToolWindowOwners.Listen();
-        if (_open.TryGetValue(kind.Id, out var existing))
+        if (_open.TryGetValue(kind.Id, out var existing) && existing.IsVisible)
         {
-            if (existing.IsVisible)
-            {
-                existing.Activate();
-                return existing;
-            }
-
-            _open.Remove(kind.Id);
+            return existing;
         }
 
+        _open.Remove(kind.Id);
         return ShowNew(kind, ToolWindowOwners.Require());
     }
 
-    private Window ShowNew(ToolKind kind, Window owner)
+    public void Draw()
+    {
+        foreach (var window in _open.Values)
+        {
+            window.Draw();
+        }
+    }
+
+    private ToolWindow ShowNew(ToolKind kind, MainWindow owner)
     {
         var screen = ScreenOf(owner);
         var frame = FrameFor(kind, screen);
-        var window = new HostedToolWindow(TitleOf(kind), ContentFor(kind), remembered => _geometry.Remember(kind, remembered));
-        window.Closed += (_, _) => Forget(kind, window);
+        var window = new ToolWindow(kind.Id, TitleOf(kind), ContentFor(kind), owner, remembered => _geometry.Remember(kind, remembered));
+        window.Closed += () => Forget(kind, window);
+        window.Apply(frame);
+        window.Show();
         _open[kind.Id] = window;
-        window.RunQuiet(() => Place(window, owner, frame));
         _geometry.Remember(kind, frame);
         return window;
-    }
-
-    private static void Place(HostedToolWindow window, Window owner, ToolWindowFrame frame)
-    {
-        window.Apply(frame);
-        window.Show(owner);
-        window.Apply(frame);
     }
 
     private ToolWindowFrame FrameFor(ToolKind kind, PlacedScreen screen)
@@ -94,11 +89,11 @@ public sealed class ToolWindowHost : IToolWindowHost
 
     private string TitleOf(ToolKind kind) => _localizer.Get(kind.TitleKey);
 
-    private Control ContentFor(ToolKind kind)
+    private IShellWidget ContentFor(ToolKind kind)
     {
         if (!_views.TryGetValue(kind.Id, out var build))
         {
-            return new Border { Name = "ToolSurface" };
+            return new NamedWidget("ToolSurface");
         }
 
         var content = build();
@@ -110,7 +105,7 @@ public sealed class ToolWindowHost : IToolWindowHost
         return content;
     }
 
-    private void Forget(ToolKind kind, HostedToolWindow window)
+    private void Forget(ToolKind kind, ToolWindow window)
     {
         if (_open.TryGetValue(kind.Id, out var current) && ReferenceEquals(current, window))
         {
@@ -118,24 +113,18 @@ public sealed class ToolWindowHost : IToolWindowHost
         }
     }
 
-    private static PlacedScreen ScreenOf(Window owner)
+    private static PlacedScreen ScreenOf(MainWindow owner)
     {
-        var screens = owner.Screens;
-        var screen = screens?.ScreenFromWindow(owner) ?? screens?.Primary;
-        if (screen is null)
-        {
-            throw new InvalidOperationException("The main window has no screen to place a tool on.");
-        }
-
+        var screen = owner.Screen;
         var area = screen.WorkingArea;
         if (area.Width < 1 || area.Height < 1)
         {
-            area = screen.Bounds;
+            area = new ScreenRect(0, 0, 1920, 1080);
         }
 
         var scale = screen.Scaling > 0 ? screen.Scaling : 1;
         return new PlacedScreen(area, scale);
     }
 
-    private readonly record struct PlacedScreen(PixelRect Area, double Scale);
+    private readonly record struct PlacedScreen(ScreenRect Area, double Scale);
 }

@@ -1,5 +1,3 @@
-using Avalonia.Controls;
-using Avalonia.Headless.XUnit;
 using D3skCommander.Core.Commands;
 using D3skCommander.Core.Localization;
 using Xunit;
@@ -8,11 +6,11 @@ namespace D3skCommander.App.Tests.Shell;
 
 public class FunctionKeyBarTests
 {
-    [AvaloniaFact]
+    [Fact]
     public void ShowsTheEightFunctionKeys()
     {
         using var host = ShellHost.Open(Language.En);
-        var buttons = Buttons(host.Window);
+        var buttons = host.Window.FunctionKeys;
         var expected = new[]
         {
             "F3 View",
@@ -28,6 +26,7 @@ public class FunctionKeyBarTests
         {
             Assert.Equal(expected[i], buttons[i].Content);
         }
+
         Assert.Equal(
             [
                 CommandId.View,
@@ -39,28 +38,20 @@ public class FunctionKeyBarTests
                 CommandId.Search,
                 CommandId.Quit,
             ],
-            buttons.Select(button => (CommandId)button.Tag!).ToArray());
+            buttons.Select(button => button.Command).ToArray());
         foreach (var button in buttons)
         {
-            Assert.Equal((CommandId)button.Tag! == CommandId.Quit, button.IsEnabled);
+            Assert.Equal(button.Command == CommandId.Quit, button.IsEnabled);
         }
     }
 
-    [AvaloniaFact]
+    [Fact]
     public void FrenchLabelsFollowTheLanguage()
     {
         using var host = ShellHost.Open(Language.Fr);
-        var buttons = Buttons(host.Window);
+        var buttons = host.Window.FunctionKeys;
         Assert.Equal("F3 Voir", buttons[0].Content);
         Assert.Equal("Alt+F4 Quitter", buttons[7].Content);
-        Assert.Equal("Prêt", host.Window.FindControl<TextBlock>("StatusLine")!.Text);
-    }
-
-    private static List<Button> Buttons(D3skCommander.App.Shell.MainWindow window)
-    {
-        var bar = window.FindControl<Border>("FunctionKeyBar");
-        Assert.NotNull(bar);
-        var grid = Assert.IsType<Grid>(bar.Child);
-        return grid.Children.OfType<Button>().ToList();
+        Assert.Equal("Prêt", host.Window.StatusText);
     }
 }

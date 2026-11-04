@@ -1,11 +1,11 @@
-using Avalonia;
+using D3skCommander.App.Shell;
 
 namespace D3skCommander.App.ToolWindows;
 
 /// <summary>Position and size in screen pixels. Width and height are at least 1 after <see cref="Clamp"/>.</summary>
 public readonly record struct ToolWindowFrame(int X, int Y, int Width, int Height)
 {
-    public static ToolWindowFrame Clamp(ToolWindowFrame frame, PixelRect screen)
+    public static ToolWindowFrame Clamp(ToolWindowFrame frame, ScreenRect screen)
     {
         var width = Fit(frame.Width, screen.Width);
         var height = Fit(frame.Height, screen.Height);

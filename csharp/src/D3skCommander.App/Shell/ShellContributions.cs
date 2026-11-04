@@ -1,4 +1,3 @@
-using Avalonia.Controls;
 using D3skCommander.Core.Commands;
 
 namespace D3skCommander.App.Shell;
@@ -8,24 +7,24 @@ public sealed class ShellContributions : IShellContributions
 {
     private readonly Dictionary<CommandId, Action> _handlers = [];
     private readonly Dictionary<string, List<CommandId?>> _extras = [];
-    private readonly List<Func<Control>> _trailing = [];
+    private readonly List<Func<IShellWidget>> _trailing = [];
     private readonly List<Action> _startup = [];
-    private readonly List<Func<Control>> _under = [];
-    private readonly List<Func<Control>> _beside = [];
-    private Func<Control>? _left;
-    private Func<Control>? _right;
+    private readonly List<Func<IShellWidget>> _under = [];
+    private readonly List<Func<IShellWidget>> _beside = [];
+    private Func<IShellWidget>? _left;
+    private Func<IShellWidget>? _right;
     private bool _modulesApplied;
     private bool _startupRan;
 
-    public IReadOnlyList<Func<Control>> MenuBarTrailing => _trailing;
+    public IReadOnlyList<Func<IShellWidget>> MenuBarTrailing => _trailing;
 
-    public Func<Control>? LeftPanel => _left;
+    public Func<IShellWidget>? LeftPanel => _left;
 
-    public Func<Control>? RightPanel => _right;
+    public Func<IShellWidget>? RightPanel => _right;
 
-    public IReadOnlyList<Func<Control>> UnderPanels => _under;
+    public IReadOnlyList<Func<IShellWidget>> UnderPanels => _under;
 
-    public IReadOnlyList<Func<Control>> BesidePanels => _beside;
+    public IReadOnlyList<Func<IShellWidget>> BesidePanels => _beside;
 
     public void ApplyModules(IEnumerable<IShellModule> modules)
     {
@@ -90,7 +89,7 @@ public sealed class ShellContributions : IShellContributions
 
     public void AppendMenuSeparator(string menuKey) => ExtrasFor(menuKey).Add(null);
 
-    public void AddMenuBarTrailing(Func<Control> build)
+    public void AddMenuBarTrailing(Func<IShellWidget> build)
     {
         ArgumentNullException.ThrowIfNull(build);
         _trailing.Add(build);
@@ -102,7 +101,7 @@ public sealed class ShellContributions : IShellContributions
         _startup.Add(action);
     }
 
-    public void SetPanel(PanelSide side, Func<Control> build)
+    public void SetPanel(PanelSide side, Func<IShellWidget> build)
     {
         ArgumentNullException.ThrowIfNull(build);
         if (side == PanelSide.Left)
@@ -119,7 +118,7 @@ public sealed class ShellContributions : IShellContributions
         }
     }
 
-    public void AddRegion(ShellRegion region, Func<Control> build)
+    public void AddRegion(ShellRegion region, Func<IShellWidget> build)
     {
         ArgumentNullException.ThrowIfNull(build);
         if (region == ShellRegion.UnderPanels)

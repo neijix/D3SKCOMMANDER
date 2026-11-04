@@ -8,11 +8,15 @@
     <CentralPackageTransitivePinningEnabled>true</CentralPackageTransitivePinningEnabled>
   </PropertyGroup>
 
-  <!-- UI -->
+  <!-- UI: Hexa.NET.ImGui with the GLFW and OpenGL3 backends, plus ImPlot.
+       Stable line that matches Dear ImGui 1.92.2b (not the 3.x experimental packages). -->
   <ItemGroup>
-    <PackageVersion Include="Avalonia" Version="12.1.5" />
-    <PackageVersion Include="Avalonia.Desktop" Version="12.1.5" />
-    <PackageVersion Include="Avalonia.Themes.Fluent" Version="12.1.5" />
+    <PackageVersion Include="Hexa.NET.ImGui" Version="2.2.9" />
+    <PackageVersion Include="Hexa.NET.ImGui.Backends" Version="1.0.18" />
+    <PackageVersion Include="Hexa.NET.ImGui.Backends.GLFW" Version="1.0.18" />
+    <PackageVersion Include="Hexa.NET.GLFW" Version="1.0.5" />
+    <PackageVersion Include="Hexa.NET.OpenGL3" Version="1.1.0" />
+    <PackageVersion Include="Hexa.NET.ImPlot" Version="2.2.9" />
     <PackageVersion Include="CommunityToolkit.Mvvm" Version="8.4.2" />
     <PackageVersion Include="Microsoft.Extensions.DependencyInjection" Version="10.0.14" />
   </ItemGroup>
@@ -28,17 +32,15 @@
     <PackageVersion Include="FluentFTP" Version="55.1.0" />
     <PackageVersion Include="SSH.NET" Version="2026.0.0" />
     <PackageVersion Include="DiffPlex" Version="1.9.0" />
-    <!-- TIFF only; every other image format is decoded by Avalonia's Skia. -->
+    <!-- TIFF. Other images are decoded when a viewer needs them. -->
     <PackageVersion Include="BitMiracle.LibTiff.NET" Version="2.4.660" />
   </ItemGroup>
 
   <!-- Tests -->
   <ItemGroup>
     <PackageVersion Include="Microsoft.NET.Test.Sdk" Version="18.11.0" />
-    <!-- xunit.v3 3.x: Avalonia.Headless.XUnit 12.1.5 is built on xunit.v3.extensibility.core 3.2.2. -->
     <PackageVersion Include="xunit.v3" Version="3.2.2" />
     <PackageVersion Include="xunit.runner.visualstudio" Version="3.1.5" />
-    <PackageVersion Include="Avalonia.Headless.XUnit" Version="12.1.5" />
     <PackageVersion Include="Microsoft.Extensions.TimeProvider.Testing" Version="10.11.0" />
     <!-- In-process FTP/FTPS test server. -->
     <PackageVersion Include="FubarDev.FtpServer" Version="3.1.2" />

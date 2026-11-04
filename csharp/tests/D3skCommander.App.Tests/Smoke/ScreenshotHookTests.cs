@@ -1,4 +1,3 @@
-using Avalonia.Headless.XUnit;
 using D3skCommander.App;
 using D3skCommander.App.Shell;
 using D3skCommander.App.Smoke;
@@ -13,7 +12,7 @@ public class ScreenshotHookTests
 {
     private static readonly TimeSpan OneMillisecond = TimeSpan.FromMilliseconds(1);
 
-    [AvaloniaFact]
+    [Fact]
     public void HookIsActiveOnlyWhenTheScreenshotVariableIsSet()
     {
         using (var idle = Hook.Resolve((SmokeModule.ScreenshotVariable, null), (SmokeModule.CommandVariable, "Keys")))
@@ -28,7 +27,7 @@ public class ScreenshotHookTests
         }
     }
 
-    [AvaloniaFact]
+    [Fact]
     public void ScreenshotSavesAPngAfterTwoSecondsAndQuits()
     {
         Assert.Equal(TimeSpan.FromMilliseconds(2000), SmokeModule.ShotDelay);
@@ -50,7 +49,7 @@ public class ScreenshotHookTests
         Assert.Contains("screenshot saved: " + path, error.ToString(), StringComparison.Ordinal);
     }
 
-    [AvaloniaFact]
+    [Fact]
     public void NamedCommandRunsAfterEightHundredMilliseconds()
     {
         Assert.Equal(TimeSpan.FromMilliseconds(800), SmokeModule.CommandDelay);
@@ -82,7 +81,7 @@ public class ScreenshotHookTests
         AssertPng(path, width, height);
     }
 
-    [AvaloniaFact]
+    [Fact]
     public void UnknownCommandNameIsReportedOnStderr()
     {
         var path = NewPngPath();

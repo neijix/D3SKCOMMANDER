@@ -6,14 +6,21 @@ namespace D3skCommander.Core.Tests.Architecture;
 public class CoreArchitectureTests
 {
     [Fact]
-    public void CoreReferencesNoAvaloniaAssembly()
+    public void CoreReferencesNoGuiAssembly()
     {
         var core = Assembly.Load("D3skCommander.Core");
-        var avalonia = core.GetReferencedAssemblies()
-            .Where(a => a.Name!.StartsWith("Avalonia", StringComparison.Ordinal))
+        var gui = core.GetReferencedAssemblies()
+            .Where(a => IsGuiAssembly(a.Name))
             .ToList();
-        Assert.Empty(avalonia);
+        Assert.Empty(gui);
     }
+
+    private static bool IsGuiAssembly(string? name) =>
+        name is not null
+        && (name.StartsWith("Avalonia", StringComparison.Ordinal)
+            || name.StartsWith("Hexa.NET", StringComparison.Ordinal)
+            || name.Contains("ImGui", StringComparison.Ordinal)
+            || name.Contains("GLFW", StringComparison.Ordinal));
 
     [Fact]
     public void CoreCarriesVersionAndRepositoryAsMetadata()

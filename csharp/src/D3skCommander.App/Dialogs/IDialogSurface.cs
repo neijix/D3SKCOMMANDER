@@ -4,4 +4,7 @@ namespace D3skCommander.App.Dialogs;
 public interface IDialogSurface
 {
     Task<DialogResult> ShowAsync(DialogRequest request, CancellationToken cancellationToken);
+
+    /// <summary>Draws the open modal. The fake surface used in tests draws nothing.</summary>
+    void Draw();
 }

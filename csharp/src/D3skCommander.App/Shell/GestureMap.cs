@@ -1,13 +1,13 @@
-using Avalonia.Input;
 using D3skCommander.Core.Commands;
+using Hexa.NET.ImGui;
 
 namespace D3skCommander.App.Shell;
 
-/// <summary>Maps Avalonia keys onto Core gestures. The primary modifier is Command on macOS and Ctrl elsewhere.</summary>
+/// <summary>Maps ImGui keys onto Core gestures. The primary modifier is Command on macOS and Ctrl elsewhere.</summary>
 public static class GestureMap
 {
-    private static readonly Dictionary<Key, GestureKey> FromKey = [];
-    private static readonly Dictionary<GestureKey, Key> ToKey = [];
+    private static readonly Dictionary<ImGuiKey, GestureKey> FromKey = [];
+    private static readonly Dictionary<GestureKey, ImGuiKey> ToKey = [];
 
     static GestureMap()
     {
@@ -17,7 +17,7 @@ public static class GestureMap
         AddSymbols();
     }
 
-    public static Gesture? From(Key key, KeyModifiers modifiers)
+    public static Gesture? From(ImGuiKey key, GestureModifiers modifiers)
     {
         var gestureKey = ToGestureKey(key, modifiers);
         if (gestureKey is null)
@@ -25,34 +25,55 @@ public static class GestureMap
             return null;
         }
 
-        return new Gesture(ToGestureModifiers(modifiers), gestureKey.Value);
+        return new Gesture(modifiers, gestureKey.Value);
     }
 
-    public static KeyGesture? ToKeyGesture(Gesture? gesture)
+    public static ImGuiKey ToImGui(GestureKey key)
     {
-        if (gesture is null)
+        if (!ToKey.TryGetValue(key, out var imgui))
         {
-            return null;
+            throw new ArgumentOutOfRangeException(nameof(key), key, "No ImGui key for this gesture.");
         }
 
-        return ToKeyGesture(gesture.Value);
+        return imgui;
     }
 
-    public static KeyGesture ToKeyGesture(Gesture gesture)
+    public static bool IsPrimary(bool ctrl, bool super)
     {
-        if (!ToKey.TryGetValue(gesture.Key, out var key))
+        if (OperatingSystem.IsMacOS())
         {
-            throw new ArgumentOutOfRangeException(nameof(gesture), gesture, "No key for this gesture.");
+            return super;
         }
 
-        return new KeyGesture(key, ToKeyModifiers(gesture.Modifiers));
+        return ctrl;
     }
 
-    private static GestureKey? ToGestureKey(Key key, KeyModifiers modifiers)
+    public static GestureModifiers Modifiers(bool primary, bool shift, bool alt)
     {
-        if (key == Key.OemPlus)
+        var gesture = GestureModifiers.None;
+        if (primary)
         {
-            return modifiers.HasFlag(KeyModifiers.Shift) ? GestureKey.Plus : GestureKey.Equals;
+            gesture |= GestureModifiers.Ctrl;
+        }
+
+        if (shift)
+        {
+            gesture |= GestureModifiers.Shift;
+        }
+
+        if (alt)
+        {
+            gesture |= GestureModifiers.Alt;
+        }
+
+        return gesture;
+    }
+
+    private static GestureKey? ToGestureKey(ImGuiKey key, GestureModifiers modifiers)
+    {
+        if (key == ImGuiKey.Equal)
+        {
+            return modifiers.HasFlag(GestureModifiers.Shift) ? GestureKey.Plus : GestureKey.Equals;
         }
 
         if (FromKey.TryGetValue(key, out var gestureKey))
@@ -63,114 +84,61 @@ public static class GestureMap
         return null;
     }
 
-    private static GestureModifiers ToGestureModifiers(KeyModifiers modifiers)
-    {
-        var gesture = GestureModifiers.None;
-        if (IsPrimary(modifiers))
-        {
-            gesture |= GestureModifiers.Ctrl;
-        }
-
-        if (modifiers.HasFlag(KeyModifiers.Shift))
-        {
-            gesture |= GestureModifiers.Shift;
-        }
-
-        if (modifiers.HasFlag(KeyModifiers.Alt))
-        {
-            gesture |= GestureModifiers.Alt;
-        }
-
-        return gesture;
-    }
-
-    private static KeyModifiers ToKeyModifiers(GestureModifiers modifiers)
-    {
-        var keys = KeyModifiers.None;
-        if ((modifiers & GestureModifiers.Ctrl) != 0)
-        {
-            keys |= OperatingSystem.IsMacOS() ? KeyModifiers.Meta : KeyModifiers.Control;
-        }
-
-        if ((modifiers & GestureModifiers.Shift) != 0)
-        {
-            keys |= KeyModifiers.Shift;
-        }
-
-        if ((modifiers & GestureModifiers.Alt) != 0)
-        {
-            keys |= KeyModifiers.Alt;
-        }
-
-        return keys;
-    }
-
-    private static bool IsPrimary(KeyModifiers modifiers)
-    {
-        if (OperatingSystem.IsMacOS())
-        {
-            return modifiers.HasFlag(KeyModifiers.Meta);
-        }
-
-        return modifiers.HasFlag(KeyModifiers.Control);
-    }
-
     private static void AddFunctions()
     {
-        AddPair(Key.F1, GestureKey.F1);
-        AddPair(Key.F2, GestureKey.F2);
-        AddPair(Key.F3, GestureKey.F3);
-        AddPair(Key.F4, GestureKey.F4);
-        AddPair(Key.F5, GestureKey.F5);
-        AddPair(Key.F6, GestureKey.F6);
-        AddPair(Key.F7, GestureKey.F7);
-        AddPair(Key.F8, GestureKey.F8);
-        AddPair(Key.F9, GestureKey.F9);
+        AddPair(ImGuiKey.F1, GestureKey.F1);
+        AddPair(ImGuiKey.F2, GestureKey.F2);
+        AddPair(ImGuiKey.F3, GestureKey.F3);
+        AddPair(ImGuiKey.F4, GestureKey.F4);
+        AddPair(ImGuiKey.F5, GestureKey.F5);
+        AddPair(ImGuiKey.F6, GestureKey.F6);
+        AddPair(ImGuiKey.F7, GestureKey.F7);
+        AddPair(ImGuiKey.F8, GestureKey.F8);
+        AddPair(ImGuiKey.F9, GestureKey.F9);
     }
 
     private static void AddLetters()
     {
-        AddPair(Key.A, GestureKey.A);
-        AddPair(Key.B, GestureKey.B);
-        AddPair(Key.D, GestureKey.D);
-        AddPair(Key.H, GestureKey.H);
-        AddPair(Key.L, GestureKey.L);
-        AddPair(Key.M, GestureKey.M);
-        AddPair(Key.N, GestureKey.N);
-        AddPair(Key.Q, GestureKey.Q);
-        AddPair(Key.R, GestureKey.R);
-        AddPair(Key.S, GestureKey.S);
-        AddPair(Key.T, GestureKey.T);
-        AddPair(Key.U, GestureKey.U);
-        AddPair(Key.W, GestureKey.W);
+        AddPair(ImGuiKey.A, GestureKey.A);
+        AddPair(ImGuiKey.B, GestureKey.B);
+        AddPair(ImGuiKey.D, GestureKey.D);
+        AddPair(ImGuiKey.H, GestureKey.H);
+        AddPair(ImGuiKey.L, GestureKey.L);
+        AddPair(ImGuiKey.M, GestureKey.M);
+        AddPair(ImGuiKey.N, GestureKey.N);
+        AddPair(ImGuiKey.Q, GestureKey.Q);
+        AddPair(ImGuiKey.R, GestureKey.R);
+        AddPair(ImGuiKey.S, GestureKey.S);
+        AddPair(ImGuiKey.T, GestureKey.T);
+        AddPair(ImGuiKey.U, GestureKey.U);
+        AddPair(ImGuiKey.W, GestureKey.W);
     }
 
     private static void AddNavigation()
     {
-        AddPair(Key.Delete, GestureKey.Delete);
-        AddPair(Key.Enter, GestureKey.Enter);
-        FromKey.TryAdd(Key.Return, GestureKey.Enter);
-        AddPair(Key.Left, GestureKey.Left);
-        AddPair(Key.Right, GestureKey.Right);
-        AddPair(Key.Down, GestureKey.Down);
-        AddPair(Key.Tab, GestureKey.Tab);
-        AddPair(Key.PageUp, GestureKey.PageUp);
-        AddPair(Key.Back, GestureKey.Backspace);
+        AddPair(ImGuiKey.Delete, GestureKey.Delete);
+        AddPair(ImGuiKey.Enter, GestureKey.Enter);
+        FromKey.TryAdd(ImGuiKey.KeypadEnter, GestureKey.Enter);
+        AddPair(ImGuiKey.LeftArrow, GestureKey.Left);
+        AddPair(ImGuiKey.RightArrow, GestureKey.Right);
+        AddPair(ImGuiKey.DownArrow, GestureKey.Down);
+        AddPair(ImGuiKey.Tab, GestureKey.Tab);
+        AddPair(ImGuiKey.PageUp, GestureKey.PageUp);
+        AddPair(ImGuiKey.Backspace, GestureKey.Backspace);
     }
 
     private static void AddSymbols()
     {
-        ToKey.Add(GestureKey.Plus, Key.OemPlus);
-        ToKey.Add(GestureKey.Equals, Key.OemPlus);
-        ToKey.Add(GestureKey.Minus, Key.OemMinus);
-        FromKey.TryAdd(Key.Add, GestureKey.Plus);
-        FromKey.TryAdd(Key.Subtract, GestureKey.Minus);
-        FromKey.TryAdd(Key.OemMinus, GestureKey.Minus);
-        AddPair(Key.OemBackslash, GestureKey.Backslash);
-        FromKey.TryAdd(Key.OemPipe, GestureKey.Backslash);
+        ToKey.Add(GestureKey.Plus, ImGuiKey.Equal);
+        ToKey.Add(GestureKey.Equals, ImGuiKey.Equal);
+        ToKey.Add(GestureKey.Minus, ImGuiKey.Minus);
+        FromKey.TryAdd(ImGuiKey.KeypadAdd, GestureKey.Plus);
+        FromKey.TryAdd(ImGuiKey.KeypadSubtract, GestureKey.Minus);
+        FromKey.TryAdd(ImGuiKey.Minus, GestureKey.Minus);
+        AddPair(ImGuiKey.Backslash, GestureKey.Backslash);
     }
 
-    private static void AddPair(Key key, GestureKey gesture)
+    private static void AddPair(ImGuiKey key, GestureKey gesture)
     {
         FromKey.TryAdd(key, gesture);
         ToKey.TryAdd(gesture, key);

@@ -1,10 +1,8 @@
-using Avalonia.Platform.Storage;
-using Avalonia.Threading;
 using D3skCommander.Core.Localization;
 
 namespace D3skCommander.App.Dialogs;
 
-/// <summary>The platform folder chooser (<see cref="IStorageProvider.OpenFolderPickerAsync"/>).</summary>
+/// <summary>The platform folder chooser (zenity, kdialog, osascript, or the Windows shell dialog).</summary>
 public sealed class OsFolderPicker : IFolderPicker
 {
     private readonly IDialogOwner _owner;
@@ -20,45 +18,13 @@ public sealed class OsFolderPicker : IFolderPicker
 
     public Task<string?> PickAsync(string? startFolder, CancellationToken cancellationToken = default)
     {
-        if (Dispatcher.UIThread.CheckAccess())
-        {
-            return PickOnUiAsync(startFolder, cancellationToken);
-        }
-
-        return Dispatcher.UIThread.InvokeAsync(() => PickOnUiAsync(startFolder, cancellationToken));
-    }
-
-    private async Task<string?> PickOnUiAsync(string? startFolder, CancellationToken cancellationToken)
-    {
         cancellationToken.ThrowIfCancellationRequested();
-        var owner = _owner.Current ?? throw new InvalidOperationException("A folder picker needs the main window.");
-        var options = new FolderPickerOpenOptions
+        if (_owner.Current is null)
         {
-            Title = _localizer.Get("dialog.choose_folder"),
-            AllowMultiple = false,
-        };
-        await ApplyStartAsync(owner.StorageProvider, options, startFolder);
-        var folders = await owner.StorageProvider.OpenFolderPickerAsync(options);
-        cancellationToken.ThrowIfCancellationRequested();
-        if (folders.Count == 0)
-        {
-            return null;
+            throw new InvalidOperationException("A folder picker needs the main window.");
         }
 
-        return folders[0].TryGetLocalPath();
-    }
-
-    private static async Task ApplyStartAsync(IStorageProvider storage, FolderPickerOpenOptions options, string? startFolder)
-    {
-        if (string.IsNullOrWhiteSpace(startFolder))
-        {
-            return;
-        }
-
-        var folder = await storage.TryGetFolderFromPathAsync(startFolder);
-        if (folder is not null)
-        {
-            options.SuggestedStartLocation = folder;
-        }
+        var title = _localizer.Get("dialog.choose_folder");
+        return Task.Run(() => NativeFolderDialog.Pick(title, startFolder, cancellationToken), cancellationToken);
     }
 }

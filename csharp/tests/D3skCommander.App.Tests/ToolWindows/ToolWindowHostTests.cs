@@ -1,26 +1,18 @@
-using System.Runtime.InteropServices;
-using Avalonia;
-using Avalonia.Controls;
-using Avalonia.Headless;
-using Avalonia.Headless.XUnit;
-using Avalonia.Input;
+using D3skCommander.App.Shell;
 using D3skCommander.App.ToolWindows;
+using D3skCommander.Core.Commands;
 using Xunit;
 
 namespace D3skCommander.App.Tests.ToolWindows;
 
 public class ToolWindowHostTests
 {
-    [AvaloniaFact]
+    [Fact]
     public void AToolOpensAsItsOwnTopLevelWindow()
     {
         using var app = ToolWindowApp.Open();
         var tool = app.Tools.Open(ToolKind.Search);
-        var listed = HeadlessWindowList(app.Window);
 
-        Assert.Equal(2, listed.Count);
-        Assert.Contains(app.Window, listed);
-        Assert.Contains(tool, listed);
         Assert.NotSame(app.Window, tool);
         Assert.Same(app.Window, tool.Owner);
         Assert.Contains(tool, app.Window.OwnedWindows);
@@ -31,29 +23,29 @@ public class ToolWindowHostTests
         Assert.DoesNotContain(app.Window.OwnedWindows, window => ReferenceEquals(window, app.Window));
     }
 
-    [AvaloniaFact]
+    [Fact]
     public void ARegisteredStubOpensAsItsOwnWindow()
     {
         using var app = ToolWindowApp.Open();
         var kind = ToolKind.Define("stub", "tool.log.title", 480, 320);
-        var marker = new Border { Name = "StubTool" };
+        var marker = new NamedWidget("StubTool");
         app.Tools.Register(kind, () => marker);
 
         var tool = app.Tools.Open(kind);
-        var listed = HeadlessWindowList(app.Window);
 
-        Assert.Contains(tool, listed);
+        Assert.Contains(tool, app.Window.OwnedWindows);
         Assert.Same(app.Window, tool.Owner);
         Assert.Same(marker, tool.Content);
         Assert.Equal(app.Localizer.Get("tool.log.title"), tool.Title);
+        Assert.Null(tool.Parent);
     }
 
-    [AvaloniaFact]
+    [Fact]
     public void PositionAndSizeComeBackOnTheNextOpen()
     {
         using var app = ToolWindowApp.Open();
         var tool = app.Tools.Open(ToolKind.Search);
-        tool.Position = new PixelPoint(120, 80);
+        tool.Position = new ScreenPoint(120, 80);
         tool.Width = 640;
         tool.Height = 400;
         tool.Close();
@@ -61,28 +53,28 @@ public class ToolWindowHostTests
         Assert.False(app.Tools.IsOpen(ToolKind.Search));
         var again = app.Tools.Open(ToolKind.Search);
 
-        Assert.Equal(new PixelPoint(120, 80), again.Position);
+        Assert.Equal(new ScreenPoint(120, 80), again.Position);
         Assert.Equal(640, (int)Math.Round(again.Width));
         Assert.Equal(400, (int)Math.Round(again.Height));
-        Assert.Contains(again, HeadlessWindowList(app.Window));
+        Assert.Contains(again, app.Window.OwnedWindows);
 
         var other = app.Tools.Open(ToolKind.Editor);
-        Assert.NotEqual(new PixelPoint(120, 80), other.Position);
+        Assert.NotEqual(new ScreenPoint(120, 80), other.Position);
         Assert.Equal(ToolKind.Editor.DefaultWidth, (int)Math.Round(other.Width));
         Assert.Equal(ToolKind.Editor.DefaultHeight, (int)Math.Round(other.Height));
     }
 
-    [AvaloniaFact]
+    [Fact]
     public void AnOffScreenFrameIsClampedOnTheNextOpen()
     {
         using var app = ToolWindowApp.Open();
-        var screen = app.Window.Screens!.Primary!.WorkingArea;
+        var screen = app.Window.Screen.WorkingArea;
         var tool = app.Tools.Open(ToolKind.Lister);
         var requestedWidth = screen.Width + 500;
         var requestedHeight = 220;
         tool.Width = requestedWidth;
         tool.Height = requestedHeight;
-        tool.Position = new PixelPoint(screen.X - 80, screen.Y + screen.Height - 15);
+        tool.Position = new ScreenPoint(screen.X - 80, screen.Y + screen.Height - 15);
         tool.Close();
 
         var clamped = app.Tools.Open(ToolKind.Lister);
@@ -95,24 +87,24 @@ public class ToolWindowHostTests
         Assert.Equal(screen.Y + screen.Height - requestedHeight, clamped.Position.Y);
         Assert.InRange(clamped.Position.X, screen.X, screen.X + screen.Width - width);
         Assert.InRange(clamped.Position.Y, screen.Y, screen.Y + screen.Height - height);
-        Assert.Contains(clamped, HeadlessWindowList(app.Window));
+        Assert.Contains(clamped, app.Window.OwnedWindows);
     }
 
-    [AvaloniaFact]
+    [Fact]
     public void EscapeClosesTheToolWindow()
     {
         using var app = ToolWindowApp.Open();
         var tool = app.Tools.Open(ToolKind.Log);
-        Assert.Contains(tool, HeadlessWindowList(app.Window));
+        Assert.Contains(tool, app.Window.OwnedWindows);
 
-        tool.KeyPress(Key.Escape, RawInputModifiers.None, PhysicalKey.Escape, null);
+        tool.KeyPress(GestureKey.Escape);
 
         Assert.False(tool.IsVisible);
         Assert.False(app.Tools.IsOpen(ToolKind.Log));
         Assert.DoesNotContain(tool, app.Window.OwnedWindows);
     }
 
-    [AvaloniaFact]
+    [Fact]
     public void OneWindowOpensPerKind()
     {
         using var app = ToolWindowApp.Open();
@@ -123,14 +115,5 @@ public class ToolWindowHostTests
         Assert.Same(first, second);
         Assert.NotSame(first, other);
         Assert.Equal(2, app.Window.OwnedWindows.Count);
-        Assert.Equal(3, HeadlessWindowList(app.Window).Count);
-    }
-
-    private static List<Window> HeadlessWindowList(Window main)
-    {
-        var list = new List<Window> { main };
-        list.AddRange(main.OwnedWindows);
-        Window.SortWindowsByZOrder(CollectionsMarshal.AsSpan(list));
-        return list;
     }
 }

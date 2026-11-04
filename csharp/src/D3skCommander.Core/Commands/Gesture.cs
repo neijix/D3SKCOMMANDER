@@ -47,6 +47,7 @@ public enum GestureKey
     Equals,
     Minus,
     Backspace,
+    Escape,
 }
 
 /// <summary>One chord. Extra Shift or Alt still matches a less specific pattern, as egui's logical match does.</summary>

@@ -1,37 +1,8 @@
-using Avalonia;
-using Avalonia.Controls;
-using Avalonia.Input;
-using Avalonia.VisualTree;
-
 namespace D3skCommander.App.Controls.FileList;
 
-public partial class FileList
+public sealed partial class FileList
 {
-    private void OnPointerPressed(object? sender, PointerPressedEventArgs e)
-    {
-        if (e.Handled || !IsLeftPress(e) || IsEditor(e.Source))
-        {
-            return;
-        }
-
-        var container = Rows.ContainerFromSource(e.Source);
-        if (container is null)
-        {
-            return;
-        }
-
-        var index = Rows.IndexFromContainer(container);
-        if (index < 0)
-        {
-            return;
-        }
-
-        // Select on press. A release after a move or a long hold is still this row (v0.1).
-        Press(index, e.KeyModifiers);
-        e.Handled = true;
-    }
-
-    private void Press(int index, KeyModifiers modifiers)
+    public void PointerDown(int index, FileListModifiers modifiers)
     {
         if (IsRenaming)
         {
@@ -43,11 +14,11 @@ public partial class FileList
             return;
         }
 
-        if (modifiers.HasFlag(KeyModifiers.Shift))
+        if (modifiers.HasFlag(FileListModifiers.Shift))
         {
             AddRange(_cursorIndex, index);
         }
-        else if (FileListNavigation.IsToggle(modifiers))
+        else if (modifiers.HasFlag(FileListModifiers.Toggle))
         {
             ToggleKey(_rowList[index]);
         }
@@ -59,64 +30,65 @@ public partial class FileList
         PlaceCursor(index, true);
     }
 
-    private void OnListKeyDown(object? sender, KeyEventArgs e)
+    /// <summary>A move or a long hold after the press does not change the row (v0.1).</summary>
+    public void PointerMove(int index, FileListModifiers modifiers)
     {
-        if (e.Handled)
-        {
-            return;
-        }
-
-        if (IsRenaming)
-        {
-            OnRenameKey(e);
-            return;
-        }
-
-        if (FileListNavigation.IsCommandChord(e.KeyModifiers))
-        {
-            return;
-        }
-
-        var shift = e.KeyModifiers.HasFlag(KeyModifiers.Shift);
-        if (!ApplyKey(e.Key, shift))
-        {
-            return;
-        }
-
-        e.Handled = true;
+        _ = index;
+        _ = modifiers;
     }
 
-    private bool ApplyKey(Key key, bool shift)
+    public void PointerUp(int index, FileListModifiers modifiers)
     {
-        if (key == Key.PageDown)
+        _ = index;
+        _ = modifiers;
+    }
+
+    public bool Key(FileListKey key, FileListModifiers modifiers = FileListModifiers.None)
+    {
+        if (IsRenaming)
+        {
+            return OnRenameKey(key);
+        }
+
+        if (modifiers.HasFlag(FileListModifiers.Command))
+        {
+            return false;
+        }
+
+        return ApplyKey(key, modifiers.HasFlag(FileListModifiers.Shift));
+    }
+
+    private bool ApplyKey(FileListKey key, bool shift)
+    {
+        if (key == FileListKey.PageDown)
         {
             Move(FileListNavigation.PageStep, shift);
         }
-        else if (key == Key.PageUp)
+        else if (key == FileListKey.PageUp)
         {
             Move(-FileListNavigation.PageStep, shift);
         }
-        else if (key == Key.Down)
+        else if (key == FileListKey.Down)
         {
             Move(1, shift);
         }
-        else if (key == Key.Up)
+        else if (key == FileListKey.Up)
         {
             Move(-1, shift);
         }
-        else if (key == Key.End)
+        else if (key == FileListKey.End)
         {
             Move(_rowList.Count, shift);
         }
-        else if (key == Key.Home)
+        else if (key == FileListKey.Home)
         {
             Move(-_rowList.Count, shift);
         }
-        else if (key == Key.Insert)
+        else if (key == FileListKey.Insert)
         {
             MarkInsert();
         }
-        else if (key == Key.Space)
+        else if (key == FileListKey.Space)
         {
             MarkSpace();
         }
@@ -169,11 +141,6 @@ public partial class FileList
                 break;
             }
         }
-
-        if (_cursorIndex >= 0)
-        {
-            Rows.ScrollIntoView(_rowList[_cursorIndex]);
-        }
     }
 
     private void MarkInsert()
@@ -217,26 +184,20 @@ public partial class FileList
         if (_cursorIndex != clamped)
         {
             ClearCursorFlag(_cursorIndex);
-            SetAndRaise(CursorIndexProperty, ref _cursorIndex, clamped);
+            _cursorIndex = clamped;
         }
 
         _rowList[clamped].IsCursor = true;
-        Rows.SelectedIndex = clamped;
         if (scroll)
         {
-            Rows.ScrollIntoView(_rowList[clamped]);
+            ScrollTo(clamped);
         }
     }
 
     private void ClearCursor()
     {
         ClearCursorFlag(_cursorIndex);
-        if (_cursorIndex != -1)
-        {
-            SetAndRaise(CursorIndexProperty, ref _cursorIndex, -1);
-        }
-
-        Rows.SelectedIndex = -1;
+        _cursorIndex = -1;
     }
 
     private void ClearCursorFlag(int index)
@@ -319,29 +280,5 @@ public partial class FileList
 
             row.IsMarked = true;
         }
-    }
-
-    private static bool IsLeftPress(PointerPressedEventArgs e)
-    {
-        var props = e.GetCurrentPoint(null).Properties;
-        return props.IsLeftButtonPressed || props.PointerUpdateKind == PointerUpdateKind.LeftButtonPressed;
-    }
-
-    private static bool IsEditor(object? source)
-    {
-        for (var current = source as Visual; current is not null; current = current.GetVisualParent())
-        {
-            if (current is TextBox)
-            {
-                return true;
-            }
-
-            if (current is ListBoxItem)
-            {
-                return false;
-            }
-        }
-
-        return false;
     }
 }

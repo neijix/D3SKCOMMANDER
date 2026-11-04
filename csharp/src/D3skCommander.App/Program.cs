@@ -1,4 +1,4 @@
-using Avalonia;
+using D3skCommander.App.Host;
 using D3skCommander.App.Shell;
 using D3skCommander.Core.Localization;
 using Microsoft.Extensions.DependencyInjection;
@@ -10,16 +10,10 @@ public static class Program
     [STAThread]
     public static void Main(string[] args)
     {
-        var services = BuildProvider();
-        BuildAvaloniaApp(services).StartWithClassicDesktopLifetime(args);
-    }
-
-    public static AppBuilder BuildAvaloniaApp() => BuildAvaloniaApp(BuildProvider());
-
-    public static AppBuilder BuildAvaloniaApp(IServiceProvider services)
-    {
-        ArgumentNullException.ThrowIfNull(services);
-        return AppBuilder.Configure(() => new App(services)).UsePlatformDetect().LogToTrace();
+        _ = args;
+        using var services = BuildProvider();
+        using var host = new GlfwOpenGlHost(services);
+        host.Run();
     }
 
     /// <summary>The one composition root. Features are added in <see cref="AppComposition"/>, not here.</summary>
