@@ -6,5 +6,5 @@ __pycache__/
 .venv/
 .claude/settings.local.json
 CLAUDE.local.md
-/target
 imgui.ini
+/dist/

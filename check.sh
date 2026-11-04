@@ -1,13 +1,8 @@
 #!/usr/bin/env bash
-# The commit gate: format, lint (warnings are errors) and the unit tests.
-# --full adds the slow tiers (forwarded to csharp/check.sh).
+# The commit gate: the C# gate (format, build with warnings as errors, fast tests) and the
+# code-health ratchet. --full adds the slow tiers (forwarded to csharp/check.sh).
 set -euo pipefail
 cd "$(dirname "$0")"
-export PATH="$HOME/.cargo/bin:$PATH"
-
-cargo fmt --all -- --check
-cargo clippy --all-targets -- -D warnings
-cargo test --quiet
 
 csharp/check.sh "$@"
 
