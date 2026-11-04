@@ -1,7 +1,6 @@
 using System.ComponentModel;
 using System.Runtime.CompilerServices;
 using System.Windows.Input;
-using CommunityToolkit.Mvvm.Input;
 using D3skCommander.Core.Localization;
 
 namespace D3skCommander.App.Dialogs;
@@ -9,7 +8,7 @@ namespace D3skCommander.App.Dialogs;
 /// <summary>What the shared dialog window binds to. Built from one <see cref="DialogRequest"/>.</summary>
 public sealed class DialogWindowModel : INotifyPropertyChanged
 {
-    private readonly RelayCommand _accept;
+    private readonly DialogCommand _accept;
     private Action<DialogResult>? _finish;
     private bool _closed;
     private string _input;
@@ -28,8 +27,8 @@ public sealed class DialogWindowModel : INotifyPropertyChanged
         ShowChoices = request.Kind == DialogKind.Choice;
         ShowAccept = request.Kind != DialogKind.Choice;
         ShowCancel = request.Kind != DialogKind.Message;
-        _accept = new RelayCommand(Accept, CanAccept);
-        CancelCommand = new RelayCommand(Cancel);
+        _accept = new DialogCommand(Accept, CanAccept);
+        CancelCommand = new DialogCommand(Cancel);
         Choices = BuildChoices(request);
         if (Form is not null)
         {
@@ -126,7 +125,7 @@ public sealed class DialogWindowModel : INotifyPropertyChanged
         for (var i = 0; i < request.Choices.Count; i++)
         {
             var index = i;
-            buttons.Add(new DialogChoiceButton(request.Choices[i], new RelayCommand(() => Finish(DialogResult.Picked(index)))));
+            buttons.Add(new DialogChoiceButton(request.Choices[i], new DialogCommand(() => Finish(DialogResult.Picked(index)))));
         }
 
         return buttons;

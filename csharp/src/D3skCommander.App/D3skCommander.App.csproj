@@ -29,7 +29,6 @@
     <PackageReference Include="Hexa.NET.GLFW" />
     <PackageReference Include="Hexa.NET.OpenGL3" />
     <PackageReference Include="Hexa.NET.ImPlot" />
-    <PackageReference Include="CommunityToolkit.Mvvm" />
     <PackageReference Include="Microsoft.Extensions.DependencyInjection" />
   </ItemGroup>
   <ItemGroup>
