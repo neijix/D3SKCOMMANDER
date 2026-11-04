@@ -1,0 +1,10 @@
+{
+  "dialog.choose_folder": {
+    "en": "Choose a folder",
+    "fr": "Choisir un dossier"
+  },
+  "dialog.browse": {
+    "en": "Choose a folder…",
+    "fr": "Choisir un dossier…"
+  }
+}

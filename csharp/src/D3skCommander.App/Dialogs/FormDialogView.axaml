@@ -1,0 +1,46 @@
+<UserControl xmlns="https://github.com/avaloniaui"
+             xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+             xmlns:d="using:D3skCommander.App.Dialogs"
+             x:Class="D3skCommander.App.Dialogs.FormDialogView"
+             x:DataType="d:DialogForm">
+  <UserControl.Styles>
+    <Style Selector="ItemsControl">
+      <Setter Property="Template">
+        <ControlTemplate>
+          <ItemsPresenter Name="PART_ItemsPresenter" ItemsPanel="{TemplateBinding ItemsPanel}"/>
+        </ControlTemplate>
+      </Setter>
+    </Style>
+  </UserControl.Styles>
+  <ItemsControl ItemsSource="{Binding Fields}">
+    <ItemsControl.DataTemplates>
+      <DataTemplate DataType="d:NoteDialogField" x:DataType="d:NoteDialogField">
+        <TextBlock Text="{Binding Label}" TextWrapping="Wrap"/>
+      </DataTemplate>
+      <DataTemplate DataType="d:TextDialogField" x:DataType="d:TextDialogField">
+        <StackPanel Spacing="4">
+          <TextBlock Text="{Binding Label}"/>
+          <TextBox Text="{Binding Text, Mode=TwoWay}" PasswordChar="{Binding PasswordChar}"/>
+        </StackPanel>
+      </DataTemplate>
+      <DataTemplate DataType="d:FolderDialogField" x:DataType="d:FolderDialogField">
+        <StackPanel Spacing="4">
+          <TextBlock Text="{Binding Label}"/>
+          <DockPanel>
+            <Button DockPanel.Dock="Right" MinWidth="88" Margin="8,0,0,0" Content="{Binding BrowseText}" Command="{Binding BrowseCommand}"/>
+            <TextBox Text="{Binding Path, Mode=TwoWay}"/>
+          </DockPanel>
+        </StackPanel>
+      </DataTemplate>
+      <DataTemplate DataType="d:CheckDialogField" x:DataType="d:CheckDialogField">
+        <CheckBox Content="{Binding Label}" IsChecked="{Binding IsChecked, Mode=TwoWay}"/>
+      </DataTemplate>
+      <DataTemplate DataType="d:ChoiceDialogField" x:DataType="d:ChoiceDialogField">
+        <StackPanel Spacing="4">
+          <TextBlock Text="{Binding Label}"/>
+          <ComboBox ItemsSource="{Binding Options}" SelectedIndex="{Binding SelectedIndex, Mode=TwoWay}"/>
+        </StackPanel>
+      </DataTemplate>
+    </ItemsControl.DataTemplates>
+  </ItemsControl>
+</UserControl>
