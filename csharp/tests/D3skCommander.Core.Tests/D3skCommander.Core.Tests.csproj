@@ -1,0 +1,20 @@
+<Project Sdk="Microsoft.NET.Sdk">
+  <PropertyGroup>
+    <OutputType>Exe</OutputType>
+    <IsPackable>false</IsPackable>
+  </PropertyGroup>
+  <ItemGroup>
+    <PackageReference Include="Microsoft.NET.Test.Sdk" />
+    <PackageReference Include="xunit.v3" />
+    <PackageReference Include="xunit.runner.visualstudio" />
+    <PackageReference Include="Microsoft.Extensions.TimeProvider.Testing" />
+    <PackageReference Include="FubarDev.FtpServer" />
+    <PackageReference Include="FubarDev.FtpServer.FileSystem.DotNet" />
+  </ItemGroup>
+  <ItemGroup>
+    <ProjectReference Include="../../src/D3skCommander.Core/D3skCommander.Core.csproj" />
+  </ItemGroup>
+  <ItemGroup>
+    <None Include="$(RepoRoot)tests/fixtures/**" Link="fixtures/%(RecursiveDir)%(Filename)%(Extension)" CopyToOutputDirectory="PreserveNewest" />
+  </ItemGroup>
+</Project>

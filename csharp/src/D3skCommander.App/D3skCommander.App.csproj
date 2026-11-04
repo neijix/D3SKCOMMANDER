@@ -1,0 +1,40 @@
+<Project Sdk="Microsoft.NET.Sdk">
+  <PropertyGroup>
+    <OutputType>WinExe</OutputType>
+    <AssemblyName>D3skCommander</AssemblyName>
+    <RootNamespace>D3skCommander.App</RootNamespace>
+    <ApplicationManifest>app.manifest</ApplicationManifest>
+    <AvaloniaUseCompiledBindingsByDefault>true</AvaloniaUseCompiledBindingsByDefault>
+    <ApplicationIcon>$(RepoRoot)packaging/icons/icon.ico</ApplicationIcon>
+    <!-- Publish: dotnet publish -r linux-x64|osx-arm64|win-x64 -->
+    <RuntimeIdentifiers>linux-x64;osx-arm64;win-x64</RuntimeIdentifiers>
+    <SelfContained Condition="'$(_IsPublishing)' == 'true'">true</SelfContained>
+    <PublishSingleFile>false</PublishSingleFile>
+    <!-- macOS bundle data -->
+    <CFBundleName>D3SK Commander</CFBundleName>
+    <CFBundleDisplayName>D3SK Commander</CFBundleDisplayName>
+    <CFBundleIdentifier>io.github.neijix.d3skcommander</CFBundleIdentifier>
+    <CFBundleVersion>$(Version)</CFBundleVersion>
+    <CFBundleShortVersionString>$(Version)</CFBundleShortVersionString>
+    <CFBundlePackageType>APPL</CFBundlePackageType>
+    <CFBundleExecutable>D3skCommander</CFBundleExecutable>
+    <CFBundleIconFile>icon.icns</CFBundleIconFile>
+    <NSPrincipalClass>NSApplication</NSPrincipalClass>
+    <NSHighResolutionCapable>true</NSHighResolutionCapable>
+  </PropertyGroup>
+  <ItemGroup>
+    <PackageReference Include="Avalonia" />
+    <PackageReference Include="Avalonia.Desktop" />
+    <PackageReference Include="Avalonia.Themes.Fluent" />
+    <PackageReference Include="CommunityToolkit.Mvvm" />
+    <PackageReference Include="Microsoft.Extensions.DependencyInjection" />
+  </ItemGroup>
+  <ItemGroup>
+    <ProjectReference Include="../D3skCommander.Core/D3skCommander.Core.csproj" />
+  </ItemGroup>
+  <ItemGroup>
+    <AvaloniaResource Include="Icons/**" />
+    <AvaloniaResource Include="Themes/**" />
+    <AvaloniaResource Include="$(RepoRoot)packaging/icons/256x256.png" Link="Icons/app.png" />
+  </ItemGroup>
+</Project>
