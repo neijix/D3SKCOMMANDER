@@ -1,0 +1,128 @@
+using D3skCommander.Core.FileSystem;
+using D3skCommander.Core.Providers;
+
+namespace D3skCommander.Core.Panels;
+
+/// <summary>One file panel: its tabs and which tab is active. No view.</summary>
+public sealed class Panel
+{
+    private readonly List<Tab> _tabs;
+    private readonly IFileSystemProvider _provider;
+
+    private Panel(List<Tab> tabs, int activeTab, IFileSystemProvider provider)
+    {
+        _tabs = tabs;
+        _provider = provider;
+        ActiveTab = activeTab;
+    }
+
+    public int ActiveTab { get; private set; }
+
+    public Tab Active => _tabs[ActiveTab];
+
+    public IReadOnlyList<Tab> Tabs => _tabs;
+
+    public static async Task<Panel> OpenAsync(
+        IReadOnlyList<string> paths,
+        int active,
+        SortOrder sort,
+        bool showHidden,
+        IFileSystemProvider provider,
+        CancellationToken cancellationToken = default)
+    {
+        ArgumentNullException.ThrowIfNull(paths);
+        ArgumentNullException.ThrowIfNull(provider);
+        var tabs = await OpenTabsAsync(paths, sort, showHidden, provider, cancellationToken).ConfigureAwait(false);
+        if (tabs.Count == 0)
+        {
+            tabs.Add(await OpenTabAsync(LocalFileSystem.HomeDirectory(), sort, showHidden, provider, cancellationToken)
+                .ConfigureAwait(false));
+        }
+
+        return new Panel(tabs, Clamp(active, tabs.Count), provider);
+    }
+
+    public async Task NewTabAsync(bool showHidden, CancellationToken cancellationToken = default)
+    {
+        var tab = new Tab(Active.Location, Active.Sort, _provider);
+        await tab.ReloadAsync(showHidden, cancellationToken).ConfigureAwait(false);
+        _tabs.Insert(ActiveTab + 1, tab);
+        ActiveTab++;
+    }
+
+    public void CloseTab()
+    {
+        if (_tabs.Count <= 1)
+        {
+            return;
+        }
+
+        _tabs.RemoveAt(ActiveTab);
+        if (ActiveTab >= _tabs.Count)
+        {
+            ActiveTab = _tabs.Count - 1;
+        }
+    }
+
+    public void NextTab() => ActiveTab = (ActiveTab + 1) % _tabs.Count;
+
+    /// <summary>Folder of every tab, for a later session save.</summary>
+    public IReadOnlyList<string> TabDirectories()
+    {
+        var paths = new List<string>(_tabs.Count);
+        foreach (var tab in _tabs)
+        {
+            paths.Add(tab.Location.Path);
+        }
+
+        return paths;
+    }
+
+    private static async Task<List<Tab>> OpenTabsAsync(
+        IReadOnlyList<string> paths,
+        SortOrder sort,
+        bool showHidden,
+        IFileSystemProvider provider,
+        CancellationToken cancellationToken)
+    {
+        var tabs = new List<Tab>();
+        foreach (var path in paths)
+        {
+            if (!Directory.Exists(path))
+            {
+                continue;
+            }
+
+            tabs.Add(await OpenTabAsync(path, sort, showHidden, provider, cancellationToken).ConfigureAwait(false));
+        }
+
+        return tabs;
+    }
+
+    private static async Task<Tab> OpenTabAsync(
+        string path,
+        SortOrder sort,
+        bool showHidden,
+        IFileSystemProvider provider,
+        CancellationToken cancellationToken)
+    {
+        var tab = new Tab(new Location(path), sort, provider);
+        await tab.ReloadAsync(showHidden, cancellationToken).ConfigureAwait(false);
+        return tab;
+    }
+
+    private static int Clamp(int active, int count)
+    {
+        if (active < 0)
+        {
+            return 0;
+        }
+
+        if (active >= count)
+        {
+            return count - 1;
+        }
+
+        return active;
+    }
+}
