@@ -9,9 +9,13 @@ public static class ImGuiProbe
 {
     private static readonly object Gate = new();
 
-    public static void Draw(Action draw)
+    public static void Draw(Action draw) => Frames(1, null, draw);
+
+    /// <summary><paramref name="beforeFrame"/> runs before <c>NewFrame</c>, so mouse events land in that frame.</summary>
+    public static void Frames(int count, Action<int>? beforeFrame, Action draw)
     {
         ArgumentNullException.ThrowIfNull(draw);
+        ArgumentOutOfRangeException.ThrowIfNegativeOrZero(count);
         lock (Gate)
         {
             var gui = ImGui.CreateContext();
@@ -25,9 +29,13 @@ public static class ImGuiProbe
                 io.DisplaySize = new Vector2(1100, 700);
                 // No GLFW renderer here. 1.92 asserts unless a backend owns the font texture.
                 io.BackendFlags |= ImGuiBackendFlags.RendererHasTextures;
-                ImGui.NewFrame();
-                draw();
-                ImGui.Render();
+                for (var frame = 0; frame < count; frame++)
+                {
+                    beforeFrame?.Invoke(frame);
+                    ImGui.NewFrame();
+                    draw();
+                    ImGui.Render();
+                }
             }
             finally
             {

@@ -17,6 +17,10 @@ public sealed partial class FileList : IShellWidget
     private ILocalizer _localizer;
     private int _cursorIndex = -1;
     private int _scroll;
+    private int _scrollRequest = -1;
+    private int _activated = -1;
+    private readonly Dictionary<int, float> _rowTops = new();
+    private float _rowHitX;
     private bool _custom;
 
     public FileList()
@@ -72,6 +76,9 @@ public sealed partial class FileList : IShellWidget
     }
 
     public int MarkedCount => _marks.Count;
+
+    /// <summary>Screen X on the open part of a row, past a short name. Valid after <see cref="Draw"/>.</summary>
+    public float RowHitX => _rowHitX;
 
     public bool IsRenaming => Editing is not null;
 
@@ -202,6 +209,17 @@ public sealed partial class FileList : IShellWidget
 
     public bool IsRealized(int index) =>
         index >= _scroll && index < _scroll + VisibleRows() && index < _rowList.Count && index >= 0;
+
+    /// <summary>The second press of a double-click landed on a row this frame.</summary>
+    public bool TakeActivation()
+    {
+        var open = _activated >= 0;
+        _activated = -1;
+        return open;
+    }
+
+    /// <summary>Screen Y of a row drawn this frame. A row the clipper skipped is absent.</summary>
+    public bool TryRowTop(int index, out float top) => _rowTops.TryGetValue(index, out top);
 
     public void Use(ILocalizer localizer)
     {
@@ -413,6 +431,7 @@ public sealed partial class FileList : IShellWidget
 
     private void ScrollTo(int index)
     {
+        var before = _scroll;
         var visible = VisibleRows();
         if (index < _scroll)
         {
@@ -432,6 +451,11 @@ public sealed partial class FileList : IShellWidget
         if (_scroll < 0)
         {
             _scroll = 0;
+        }
+
+        if (_scroll != before)
+        {
+            _scrollRequest = _scroll;
         }
     }
 }

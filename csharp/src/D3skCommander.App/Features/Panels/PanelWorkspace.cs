@@ -125,7 +125,8 @@ public sealed partial class PanelWorkspace : IPanelWorkspace, IDisposable
 
             tab.PlaceCursor(cursor);
             tab.ReplaceSelection(marked);
-            Publish(side, announce: false);
+            // A click must not recapture the listing: that copies every entry and the next frame rebuilds every row.
+            PatchSelection(side, tab.Cursor, marked);
         }
         finally
         {
@@ -243,27 +244,82 @@ public sealed partial class PanelWorkspace : IPanelWorkspace, IDisposable
     private async Task RefreshSide(PanelSide side, CancellationToken cancellationToken)
     {
         using var linked = CancellationTokenSource.CreateLinkedTokenSource(_lifetime.Token, cancellationToken);
-        await _nav.WaitAsync(linked.Token).ConfigureAwait(false);
+        var watched = await ReadWatch(side, linked.Token).ConfigureAwait(false);
+        if (watched is null)
+        {
+            return;
+        }
+
+        if (!PanelWatch.TryRead(watched.Value.Path, out var stamp) || stamp == watched.Value.Known)
+        {
+            return;
+        }
+
+        await ReloadIfUnchanged(side, watched.Value.Path, watched.Value.Known, linked.Token).ConfigureAwait(false);
+    }
+
+    private async Task<(string Path, long Known)?> ReadWatch(PanelSide side, CancellationToken cancellationToken)
+    {
+        await _nav.WaitAsync(cancellationToken).ConfigureAwait(false);
         try
         {
             var tab = TabOf(side);
             if (tab is null)
             {
-                return;
+                return null;
             }
 
-            var path = tab.Location.Path;
-            var known = _stamps[Index(side)];
-            if (PanelWatch.TryRead(path, out var stamp) && stamp == known)
-            {
-                return;
-            }
-
-            await Reload(side, linked.Token).ConfigureAwait(false);
+            return (tab.Location.Path, _stamps[Index(side)]);
         }
         finally
         {
             _nav.Release();
+        }
+    }
+
+    private async Task ReloadIfUnchanged(PanelSide side, string path, long known, CancellationToken cancellationToken)
+    {
+        await _nav.WaitAsync(cancellationToken).ConfigureAwait(false);
+        try
+        {
+            var tab = TabOf(side);
+            if (tab is null || tab.Location.Path != path || _stamps[Index(side)] != known)
+            {
+                return;
+            }
+
+            await Reload(side, cancellationToken).ConfigureAwait(false);
+        }
+        finally
+        {
+            _nav.Release();
+        }
+    }
+
+    private void PatchSelection(PanelSide side, int cursor, IReadOnlyList<string> marked)
+    {
+        var copy = new List<string>(marked.Count);
+        foreach (var path in marked)
+        {
+            if (!string.IsNullOrEmpty(path))
+            {
+                copy.Add(path);
+            }
+        }
+
+        var next = Read(side) with
+        {
+            Cursor = cursor,
+            Selected = copy.Count,
+            Marked = copy,
+        };
+        if (side == PanelSide.Left)
+        {
+            Volatile.Write(ref _leftSnap, next);
+        }
+        else
+        {
+            Volatile.Write(ref _rightSnap, next);
         }
     }
 

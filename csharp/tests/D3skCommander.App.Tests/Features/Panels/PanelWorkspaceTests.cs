@@ -58,6 +58,27 @@ public class PanelWorkspaceTests
     }
 
     [Fact]
+    public async Task AClickKeepsTheListing()
+    {
+        using var root = new TempDir();
+        var left = Path.Combine(root.Path, "left");
+        Directory.CreateDirectory(left);
+        File.WriteAllText(Path.Combine(left, "a.txt"), "x");
+        Directory.CreateDirectory(Path.Combine(left, "sub"));
+        using var workspace = await Open(left, left);
+
+        var before = workspace.Read(PanelSide.Left);
+        var file = At(before, "a.txt");
+        Assert.NotEqual(file, before.Cursor);
+        workspace.ApplySelection(PanelSide.Left, file, []);
+
+        var after = workspace.Read(PanelSide.Left);
+        Assert.Same(before.Entries, after.Entries);
+        Assert.Equal(before.Generation, after.Generation);
+        Assert.Equal(file, after.Cursor);
+    }
+
+    [Fact]
     public async Task AChangedFolderIsRereadAfterTheInterval()
     {
         using var root = new TempDir();

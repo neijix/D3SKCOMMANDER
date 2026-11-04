@@ -25,7 +25,6 @@ public sealed class PanelPane : IShellWidget
     private bool _kicked;
     private int _generation = -1;
     private int _seenFailure = -1;
-    private float _listTop;
 
     public PanelPane(PanelSide side, PanelWorkspace panels, ILocalizer text, IDialogService dialogs)
     {
@@ -75,7 +74,7 @@ public sealed class PanelPane : IShellWidget
             _ = _panels.EnterAsync();
         }
 
-        DrawStatus(snap);
+        DrawStatus(_panels.Read(_side));
         ShowFailure(snap);
         _panels.NoteFrame();
     }
@@ -135,7 +134,6 @@ public sealed class PanelPane : IShellWidget
     {
         var rest = ImGui.GetContentRegionAvail().Y;
         _list.ViewportHeight = Math.Max(FileListLayout.HeaderHeight + FileListLayout.RowHeight, rest - 22);
-        _listTop = ImGui.GetCursorScreenPos().Y;
         _list.Draw();
     }
 
@@ -158,6 +156,7 @@ public sealed class PanelPane : IShellWidget
 
     private bool WantsOpen()
     {
+        var clicked = _list.TakeActivation();
         if (_pathCommitted || _panels.ActiveSide != _side || _list.IsRenaming)
         {
             return false;
@@ -168,9 +167,7 @@ public sealed class PanelPane : IShellWidget
             return true;
         }
 
-        return ImGui.IsWindowHovered()
-            && ImGui.IsMouseDoubleClicked(ImGuiMouseButton.Left)
-            && ImGui.GetIO().MousePos.Y >= _listTop;
+        return clicked;
     }
 
     private void HandleMovement()

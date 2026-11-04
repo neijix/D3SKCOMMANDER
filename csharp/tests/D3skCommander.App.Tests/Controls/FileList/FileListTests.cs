@@ -2,6 +2,7 @@ using D3skCommander.App.Controls.FileList;
 using D3skCommander.App.Host;
 using D3skCommander.Core.FileSystem;
 using D3skCommander.Core.Localization;
+using Hexa.NET.ImGui;
 using Xunit;
 using TextCatalog = D3skCommander.Core.Localization.Localizer;
 
@@ -249,6 +250,150 @@ public class FileListTests
         var list = FileListHarness.Open(FileListSamples.Files(400), FileListView.Full, 220, null);
         ImGuiProbe.Draw(list.Draw);
         Assert.InRange(list.RealizedCount, 1, 399);
+    }
+
+    [Fact]
+    public void AClickPastTheNameSelectsTheRow()
+    {
+        var entries = new[]
+        {
+            FileListSamples.File("a.txt", "/t/a.txt", 1, "rw-r--r--"),
+            FileListSamples.File("b.txt", "/t/b.txt", 2, "rw-r--r--"),
+        };
+        var list = FileListHarness.Open(entries, FileListView.Full, 220, null);
+        var top = -1f;
+        var x = 0f;
+        ImGuiProbe.Frames(3, frame =>
+        {
+            if (top < 0)
+            {
+                return;
+            }
+
+            var io = ImGui.GetIO();
+            io.AddMousePosEvent(x, top + 4);
+            if (frame == 2)
+            {
+                io.AddMouseButtonEvent(0, true);
+            }
+        }, () =>
+        {
+            list.Draw();
+            x = list.RowHitX;
+            if (list.TryRowTop(1, out var y))
+            {
+                top = y;
+            }
+        });
+
+        Assert.Equal(1, list.CursorIndex);
+        Assert.Equal(0, list.MarkedCount);
+    }
+
+    [Fact]
+    public void ADoubleClickOnTheRowActivatesIt()
+    {
+        var entries = new[]
+        {
+            FileListSamples.File("a.txt", "/t/a.txt", 1, "rw-r--r--"),
+            FileListSamples.Folder("docs", "/t/docs"),
+        };
+        var list = FileListHarness.Open(entries, FileListView.Full, 220, null);
+        var top = -1f;
+        var x = 0f;
+        var opened = false;
+        ImGuiProbe.Frames(4, frame =>
+        {
+            if (top < 0)
+            {
+                return;
+            }
+
+            var io = ImGui.GetIO();
+            io.AddMousePosEvent(x, top + 4);
+            if (frame == 1)
+            {
+                io.AddMouseButtonEvent(0, true);
+            }
+            else if (frame == 2)
+            {
+                io.AddMouseButtonEvent(0, false);
+            }
+            else if (frame == 3)
+            {
+                io.AddMouseButtonEvent(0, true);
+            }
+        }, () =>
+        {
+            list.Draw();
+            x = list.RowHitX;
+            if (list.TryRowTop(1, out var y))
+            {
+                top = y;
+            }
+
+            if (list.TakeActivation())
+            {
+                opened = true;
+            }
+        });
+
+        Assert.True(opened);
+        Assert.Equal(1, list.CursorIndex);
+    }
+
+    [Fact]
+    public void TheCursorStaysOnScreenAfterALongJump()
+    {
+        var list = FileListHarness.Open(FileListSamples.Files(400), FileListView.Full, 220, null);
+        FileListHarness.Key(list, FileListKey.End);
+        ImGuiProbe.Frames(2, null, list.Draw);
+        Assert.Equal(399, list.CursorIndex);
+        Assert.True(list.TryRowTop(399, out _));
+    }
+
+    [Fact]
+    public void TheWheelMovesALongFolder()
+    {
+        var list = FileListHarness.Open(FileListSamples.Files(400), FileListView.Full, 220, null);
+        var top = -1f;
+        var x = 0f;
+        ImGuiProbe.Frames(8, frame =>
+        {
+            if (top < 0)
+            {
+                return;
+            }
+
+            var io = ImGui.GetIO();
+            io.DeltaTime = 0.5f;
+            io.AddMousePosEvent(x, top + 4);
+            if (frame == 2)
+            {
+                io.AddMouseWheelEvent(0, -8);
+            }
+        }, () =>
+        {
+            list.Draw();
+            x = list.RowHitX;
+            if (top < 0 && list.TryRowTop(0, out var first))
+            {
+                top = first;
+            }
+        });
+
+        Assert.False(list.TryRowTop(0, out _));
+        var later = false;
+        for (var i = 15; i < 400; i++)
+        {
+            if (list.TryRowTop(i, out _))
+            {
+                later = true;
+                break;
+            }
+        }
+
+        Assert.True(later);
     }
 
     private static void AssertPressSurvives(int frames)
