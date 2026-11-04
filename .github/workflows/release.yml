@@ -1,7 +1,9 @@
-# Builds the installers on a `v*` tag and publishes them as a GitHub release.
-# File names follow the contract read by the in-app updater (src/core/update.rs,
-# `asset_suffix`): d3skcommander-<version>-<os>-<arch><suffix>.
-# Daily cap: .github/ci-quota.sh — over the macOS cap the whole release stops (no partial release).
+# Builds the release archives on a `v*` tag and publishes them as a GitHub release.
+# File names: d3skcommander-<version>-<os>-<arch>.<zip|tar.gz> (csharp/packaging/publish.sh).
+# Every runtime is cross-published from one Linux job, so no macOS runner is used. The
+# installers (.deb, AppImage, .dmg, Windows setup) are not built yet (plan row 91).
+# A branch run (`gh workflow run release.yml --ref master`) builds and uploads the artifacts
+# without publishing. Daily cap: .github/ci-quota.sh.
 name: release
 on:
   push:
@@ -18,14 +20,11 @@ concurrency:
   cancel-in-progress: false
 
 jobs:
-  # Daily quota (.github/ci-quota.sh): macOS jobs are capped per day across workflows.
   quota:
     runs-on: ubuntu-latest
     permissions:
       actions: read
       contents: read
-    outputs:
-      macos: ${{ steps.q.outputs.macos }}
     steps:
       - uses: actions/checkout@v7
         with:
@@ -41,76 +40,32 @@ jobs:
           MAX_MACOS: ${{ vars.CI_MAX_MACOS_PER_DAY }}
           FORCE: ${{ inputs.force }}
 
-  # No partial release: over the macOS cap, stop here. Retry: gh workflow run release.yml
-  # --ref <tag> -f force=true (or the next day).
-  macos-quota:
-    needs: quota
-    if: needs.quota.outputs.macos != 'true'
-    runs-on: ubuntu-latest
-    steps:
-      - run: |
-          echo "::error::macOS daily cap reached: no release today. Retry tomorrow or: gh workflow run release.yml --ref $GITHUB_REF_NAME -f force=true"
-          exit 1
-
   build:
     needs: quota
-    if: needs.quota.outputs.macos == 'true'
-    strategy:
-      fail-fast: false
-      matrix:
-        include:
-          # The oldest supported runner: an AppImage runs on systems with a newer glibc only.
-          - os: ubuntu-22.04
-            formats: deb,appimage
-          - os: macos-latest
-            formats: app,dmg
-          - os: windows-latest
-            formats: nsis
-    runs-on: ${{ matrix.os }}
-    defaults:
-      run:
-        shell: bash
-    env:
-      # linuxdeploy is itself an AppImage: run it without FUSE.
-      APPIMAGE_EXTRACT_AND_RUN: 1
+    runs-on: ubuntu-latest
+    permissions:
+      contents: read
     steps:
       - uses: actions/checkout@v7
-      - uses: dtolnay/rust-toolchain@stable
-      - name: Linux GUI packages
-        if: runner.os == 'Linux'
-        run: sudo apt-get update && sudo apt-get install -y libxkbcommon-dev libwayland-dev libgl1-mesa-dev libx11-dev libxcursor-dev libxrandr-dev libxi-dev libfuse2
+      - uses: actions/setup-dotnet@v6
+        with:
+          dotnet-version: 10.0.x
       - name: Version
         run: |
-          v=$(cargo metadata --no-deps --format-version 1 | python3 -c 'import json,sys; print(json.load(sys.stdin)["packages"][0]["version"])')
+          v=$(sed -n 's:.*<Version>\(.*\)</Version>.*:\1:p' csharp/Directory.Build.props)
           if [[ "$GITHUB_REF" == refs/tags/v* && "${GITHUB_REF#refs/tags/v}" != "$v" ]]; then
-            echo "tag $GITHUB_REF does not match Cargo.toml version $v" >&2; exit 1
+            echo "tag $GITHUB_REF does not match csharp/Directory.Build.props version $v" >&2; exit 1
           fi
-          echo "VERSION=$v" >> "$GITHUB_ENV"
-      # Pinned: packaging/nsis/installer.nsi is a copy of this version's template.
-      - run: cargo install cargo-packager --version 0.11.8 --locked
-      - run: cargo packager --release --formats ${{ matrix.formats }}
-      - name: Name the files for the updater
-        run: |
-          base="d3skcommander-$VERSION"
-          mkdir dist
-          case "$RUNNER_OS" in
-            Linux)
-              mv target/packages/*.deb "dist/$base-linux-x86_64.deb"
-              mv target/packages/*.AppImage "dist/$base-linux-x86_64.AppImage"
-              tar -C target/release -czf "dist/$base-linux-x86_64.tar.gz" d3skcommander ;;
-            macOS)
-              arch=$(uname -m); [[ $arch == arm64 ]] && arch=aarch64
-              mv target/packages/*.dmg "dist/$base-macos-$arch.dmg"
-              tar -C target/packages -czf "dist/$base-macos-$arch.app.tar.gz" d3skcommander.app ;;
-            Windows)
-              mv target/packages/*-setup.exe "dist/$base-windows-x86_64-setup.exe"
-              7z a "dist/$base-windows-x86_64.zip" ./target/release/d3skcommander.exe ;;
-          esac
+      - run: csharp/check.sh
+      - run: |
+          for rid in linux-x64 win-x64 osx-arm64; do csharp/packaging/publish.sh "$rid"; done
           ls -l dist
       - uses: actions/upload-artifact@v7
         with:
-          name: packages-${{ matrix.os }}
-          path: dist/*
+          name: packages
+          path: |
+            dist/*.zip
+            dist/*.tar.gz
 
   publish:
     needs: build
