@@ -33,7 +33,13 @@ public sealed class GlfwOpenGlHost : IDisposable
         _error = new NativeCallback<GLFWerrorfun>(static (code, description) =>
         {
             _ = code;
-            Console.Error.WriteLine(Utils.DecodeStringUTF8(description));
+            var message = Utils.DecodeStringUTF8(description);
+            if (message.Contains("does not provide the window position", StringComparison.Ordinal))
+            {
+                return;
+            }
+
+            Console.Error.WriteLine(message);
         });
     }
 
@@ -59,7 +65,7 @@ public sealed class GlfwOpenGlHost : IDisposable
         var plot = ImPlot.CreateContext();
         ImGui.SetCurrentContext(gui);
         ImPlot.SetCurrentContext(plot);
-        ImGuiContextFactory.Configure(scale, viewports: true);
+        ImGuiContextFactory.Configure(scale, viewports: ViewportsFitThisPlatform());
         var io = ImGui.GetIO();
         if (!StartBackends(window, gui))
         {
@@ -78,6 +84,20 @@ public sealed class GlfwOpenGlHost : IDisposable
     }
 
     public void Dispose() => _disposed = true;
+
+    /// <summary>Wayland does not report window positions, so ImGui viewports cannot place tool windows.</summary>
+    private static bool ViewportsFitThisPlatform()
+    {
+        var platform = Environment.GetEnvironmentVariable("GLFW_PLATFORM");
+        if (string.Equals(platform, "x11", StringComparison.OrdinalIgnoreCase)
+            || string.Equals(platform, "win32", StringComparison.OrdinalIgnoreCase)
+            || string.Equals(platform, "cocoa", StringComparison.OrdinalIgnoreCase))
+        {
+            return true;
+        }
+
+        return string.IsNullOrEmpty(Environment.GetEnvironmentVariable("WAYLAND_DISPLAY"));
+    }
 
     private static unsafe GLFWwindowPtr CreateWindow(out float scale)
     {
