@@ -1,0 +1,2 @@
+# LF everywhere: .editorconfig says end_of_line = lf and the gate runs dotnet format on Windows too.
+* text=auto eol=lf

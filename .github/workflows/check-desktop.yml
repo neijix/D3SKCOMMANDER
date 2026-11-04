@@ -59,3 +59,9 @@ jobs:
       - run: cargo fmt --all -- --check
       - run: cargo clippy --all-targets -- -D warnings
       - run: cargo test --quiet
+      # The C# port (csharp/): its gate, default tier (not --full). Rust steps stay until the port's last row.
+      - uses: actions/setup-dotnet@v6
+        with:
+          dotnet-version: 10.0.x
+      - run: csharp/check.sh
+        shell: bash
