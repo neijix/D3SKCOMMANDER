@@ -1,7 +1,8 @@
 # Builds the release archives on a `v*` tag and publishes them as a GitHub release.
-# File names: d3skcommander-<version>-<os>-<arch>.<zip|tar.gz> (csharp/packaging/publish.sh).
+# File names: d3skcommander-<version>-<os>-<arch>.<zip|tar.gz> (csharp/packaging/publish.sh)
+# and d3skcommander-<version>-windows-x86_64-setup.exe (csharp/packaging/setup-windows.sh).
 # Every runtime is cross-published from one Linux job, so no macOS runner is used. The
-# installers (.deb, AppImage, .dmg, Windows setup) are not built yet (plan row 91).
+# .deb, AppImage and .dmg installers are not built yet (plan row 91).
 # A branch run (`gh workflow run release.yml --ref master`) builds and uploads the artifacts
 # without publishing. Daily cap: .github/ci-quota.sh.
 name: release
@@ -59,6 +60,9 @@ jobs:
       - run: csharp/check.sh
       - run: |
           for rid in linux-x64 win-x64 osx-arm64; do csharp/packaging/publish.sh "$rid"; done
+          sudo apt-get update
+          sudo apt-get install -y nsis
+          csharp/packaging/setup-windows.sh
           ls -l dist
       - uses: actions/upload-artifact@v7
         with:
@@ -66,6 +70,7 @@ jobs:
           path: |
             dist/*.zip
             dist/*.tar.gz
+            dist/*-setup.exe
 
   publish:
     needs: build

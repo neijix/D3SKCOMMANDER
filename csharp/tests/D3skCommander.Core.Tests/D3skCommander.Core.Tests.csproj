@@ -16,5 +16,6 @@
   </ItemGroup>
   <ItemGroup>
     <None Include="$(RepoRoot)tests/fixtures/**" Link="fixtures/%(RecursiveDir)%(Filename)%(Extension)" CopyToOutputDirectory="PreserveNewest" />
+    <None Include="$(RepoRoot)csharp/packaging/nsis/setup.nsi" Link="packaging/setup.nsi" CopyToOutputDirectory="PreserveNewest" />
   </ItemGroup>
 </Project>

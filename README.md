@@ -34,12 +34,16 @@ needed: the .NET runtime is included.
 
 | System | File |
 |---|---|
-| Windows (x64) | `d3skcommander-<version>-windows-x86_64.zip` |
+| Windows (x64), portable | `d3skcommander-<version>-windows-x86_64.zip` |
+| Windows (x64), setup | `d3skcommander-<version>-windows-x86_64-setup.exe` |
 | Linux (x64) | `d3skcommander-<version>-linux-x86_64.tar.gz` |
 | macOS (Apple silicon) | `d3skcommander-<version>-macos-aarch64.tar.gz` |
 
+The setup installs for the current user (no administrator) and asks where to keep settings.
+The proposed folder is `config` inside the install folder. That choice is written to
+`config-location.txt` next to the program; an upgrade leaves an existing choice alone.
 The programs are not signed yet: Windows SmartScreen asks once (More info, then Run anyway);
-on macOS, right-click the program, then Open. Installers (.deb, AppImage, .dmg, Windows setup)
+on macOS, right-click the program, then Open. Linux and macOS installers (.deb, AppImage, .dmg)
 are not built yet.
 
 ## Build
@@ -66,15 +70,17 @@ dependency; `src/D3skCommander.App` draws with ImGui; each has its test project 
 csharp/packaging/publish.sh win-x64     # dist/d3skcommander-<version>-windows-x86_64.zip
 csharp/packaging/publish.sh linux-x64   # dist/d3skcommander-<version>-linux-x86_64.tar.gz
 csharp/packaging/publish.sh osx-arm64   # dist/d3skcommander-<version>-macos-aarch64.tar.gz
+csharp/packaging/setup-windows.sh       # dist/d3skcommander-<version>-windows-x86_64-setup.exe
 ```
 
-Each is a self-contained build: one executable with the native ImGui and GLFW libraries beside
-it, plus a `.sha256` file. Any of them builds from any OS. The version is in
-`csharp/Directory.Build.props`.
+Each archive is a self-contained build: one executable with the native ImGui and GLFW libraries
+beside it, plus a `.sha256` file. Any of them builds from any OS. The setup needs NSIS 3
+(`makensis`) and packs the Windows publish; it builds that publish first when the folder is
+not already there. The version is in `csharp/Directory.Build.props`.
 
 Pushing a tag `v<version>` (that version) runs `.github/workflows/release.yml`, which runs the
-gate, builds the three archives and publishes the release. `gh workflow run release.yml --ref
-master` builds them without publishing. The logo and app icon come from the brand kit in
+gate, builds the three archives and the Windows setup, and publishes the release.
+`gh workflow run release.yml --ref master` builds them without publishing. The logo and app icon come from the brand kit in
 `d3skcommander_logo/`; `packaging/make_icon.py` (Python with Pillow) turns its PNGs into
 `packaging/icons/`.
 
