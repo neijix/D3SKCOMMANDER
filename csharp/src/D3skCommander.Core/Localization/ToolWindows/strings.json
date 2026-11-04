@@ -1,0 +1,46 @@
+{
+  "tool.search.title": {
+    "en": "Search files",
+    "fr": "Rechercher"
+  },
+  "tool.multirename.title": {
+    "en": "Multi-rename tool",
+    "fr": "Renommage multiple"
+  },
+  "tool.sync.title": {
+    "en": "Synchronize directories",
+    "fr": "Synchroniser les dossiers"
+  },
+  "tool.ftp.title": {
+    "en": "FTP connect",
+    "fr": "Connexion FTP"
+  },
+  "tool.settings.title": {
+    "en": "Settings",
+    "fr": "Options"
+  },
+  "tool.log.title": {
+    "en": "Operation log",
+    "fr": "Journal des opérations"
+  },
+  "tool.lister.title": {
+    "en": "View file",
+    "fr": "Voir le fichier"
+  },
+  "tool.editor.title": {
+    "en": "Edit file",
+    "fr": "Éditer le fichier"
+  },
+  "tool.compare.title": {
+    "en": "Compare files",
+    "fr": "Comparer les fichiers"
+  },
+  "tool.passwords.title": {
+    "en": "Password manager",
+    "fr": "Gestionnaire de mots de passe"
+  },
+  "tool.update.title": {
+    "en": "Check for updates",
+    "fr": "Mises à jour"
+  }
+}
