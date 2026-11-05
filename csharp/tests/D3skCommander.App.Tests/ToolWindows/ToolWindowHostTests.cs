@@ -170,9 +170,7 @@ internal sealed class GuardWidget : IShellWidget, ICloseGuard
 
     public string? Name => "Guard";
 
-    public void Draw()
-    {
-    }
+    public Avalonia.Controls.Control CreateContent() => new Avalonia.Controls.Border { Name = Name };
 
     public Task<bool> CanCloseAsync()
     {

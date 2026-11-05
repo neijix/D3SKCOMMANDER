@@ -4,7 +4,7 @@
 #   csharp/packaging/publish.sh linux-x64   -> dist/d3skcommander-<version>-linux-x86_64.tar.gz
 #   csharp/packaging/publish.sh osx-arm64   -> dist/d3skcommander-<version>-macos-aarch64.tar.gz
 # Any runtime builds from any OS (cross-publish). The program is one executable
-# (D3skCommander[.exe]) with the native ImGui/GLFW libraries beside it; nothing is extracted
+# (D3skCommander[.exe]) with the native Avalonia (Skia, HarfBuzz) libraries beside it; nothing is extracted
 # to a temp folder at start. The Windows setup is csharp/packaging/setup-windows.sh.
 # .deb, AppImage and .dmg are still plan row 91.
 set -euo pipefail

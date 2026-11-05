@@ -1,5 +1,4 @@
 using Avalonia.Controls;
-using Hexa.NET.ImGui;
 
 namespace D3skCommander.App.Shell;
 
@@ -17,8 +16,6 @@ public sealed class MenuExtraWidget : IShellWidget
     public string? Name { get; }
 
     public string Header { get; }
-
-    public void Draw() => ImGui.MenuItem(Header);
 
     public Control CreateContent() => new MenuItem { Name = Name, Header = Header };
 }

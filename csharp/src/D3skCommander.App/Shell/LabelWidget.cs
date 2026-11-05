@@ -1,5 +1,4 @@
 using Avalonia.Controls;
-using Hexa.NET.ImGui;
 
 namespace D3skCommander.App.Shell;
 
@@ -17,8 +16,6 @@ public sealed class LabelWidget : IShellWidget
     public string? Name { get; }
 
     public string Text { get; }
-
-    public void Draw() => ImGui.TextUnformatted(Text);
 
     public Control CreateContent() => new TextBlock { Name = Name, Text = Text };
 }

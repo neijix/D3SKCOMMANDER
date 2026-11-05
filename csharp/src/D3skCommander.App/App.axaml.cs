@@ -4,7 +4,7 @@ using Avalonia.Markup.Xaml;
 namespace D3skCommander.App;
 
 /// <summary>The Avalonia application: Fluent theme following the OS light/dark setting.
-/// <see cref="Program"/> does not start it yet; the window host still runs the ImGui shell.</summary>
+/// <see cref="Program"/> starts it.</summary>
 public class App : Application
 {
     private readonly IServiceProvider _services;

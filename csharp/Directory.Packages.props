@@ -9,21 +9,13 @@
   </PropertyGroup>
 
   <!-- UI: Avalonia 12 (Fluent theme) with AvaloniaEdit for the editor and CommunityToolkit.Mvvm for view
-       models. The Hexa.NET.ImGui pins below are the window being replaced; they go with the last ImGui view.
-       Hexa.NET.ImGui with the GLFW and OpenGL3 backends, plus ImPlot.
-       Stable line that matches Dear ImGui 1.92.2b (not the 3.x experimental packages). -->
+       models. -->
   <ItemGroup>
     <PackageVersion Include="Avalonia" Version="12.1.5" />
     <PackageVersion Include="Avalonia.Desktop" Version="12.1.5" />
     <PackageVersion Include="Avalonia.Themes.Fluent" Version="12.1.5" />
     <PackageVersion Include="Avalonia.AvaloniaEdit" Version="12.0.0" />
     <PackageVersion Include="CommunityToolkit.Mvvm" Version="8.4.2" />
-    <PackageVersion Include="Hexa.NET.ImGui" Version="2.2.9" />
-    <PackageVersion Include="Hexa.NET.ImGui.Backends" Version="1.0.18" />
-    <PackageVersion Include="Hexa.NET.ImGui.Backends.GLFW" Version="1.0.18" />
-    <PackageVersion Include="Hexa.NET.GLFW" Version="1.0.5" />
-    <PackageVersion Include="Hexa.NET.OpenGL3" Version="1.1.0" />
-    <PackageVersion Include="Hexa.NET.ImPlot" Version="2.2.9" />
     <PackageVersion Include="Microsoft.Extensions.DependencyInjection" Version="10.0.14" />
   </ItemGroup>
 

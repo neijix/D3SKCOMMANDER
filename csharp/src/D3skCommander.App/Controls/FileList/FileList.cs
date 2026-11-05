@@ -20,7 +20,6 @@ public sealed partial class FileList : IShellWidget
     private int _scrollRequest = -1;
     private int _activated = -1;
     private readonly Dictionary<int, float> _rowTops = new();
-    private float _rowHitX;
     private bool _custom;
 
     public FileList()
@@ -77,8 +76,7 @@ public sealed partial class FileList : IShellWidget
 
     public int MarkedCount => _marks.Count;
 
-    /// <summary>Screen X on the open part of a row, past a short name. Valid after <see cref="Draw"/>.</summary>
-    public float RowHitX => _rowHitX;
+    public Avalonia.Controls.Control CreateContent() => new FileListControl(this);
 
     public bool IsRenaming => Editing is not null;
 
