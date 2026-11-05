@@ -86,6 +86,7 @@ public class QuickViewTests
     {
         using var rig = await Rig.Open();
         rig.Toggle();
+        await rig.Settle(); // the load reads a.txt in the background; Windows cannot delete it mid-read
 
         rig.Workspace.Activate(PanelSide.Right);
         rig.Commands.Tick();
