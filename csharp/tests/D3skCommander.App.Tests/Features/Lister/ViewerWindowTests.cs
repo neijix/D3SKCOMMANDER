@@ -1,5 +1,6 @@
 using System.Text;
 using Avalonia.Controls;
+using Avalonia.Controls.Primitives;
 using Avalonia.Headless.XUnit;
 using D3skCommander.App.Dialogs;
 using D3skCommander.App.Features.Lister;
@@ -8,6 +9,7 @@ using D3skCommander.App.Shell;
 using D3skCommander.App.Tests.Dialogs;
 using D3skCommander.App.Tests.ToolWindows;
 using D3skCommander.App.ToolWindows;
+using D3skCommander.Core.Jobs;
 using D3skCommander.Core.Localization;
 using D3skCommander.Core.Providers;
 using D3skCommander.Core.Viewer;
@@ -108,47 +110,119 @@ public class ViewerWindowTests
         using var dir = new TempDir();
         var path = Path.Combine(dir.Path, "a.txt");
         File.WriteAllText(path, "Alpha\nbeta\nALPHA beta\n");
-        var model = new ViewerViewModel(English());
+        var jobs = new JobService();
+        var model = new ViewerViewModel(English(), jobs);
         await model.OpenAsync(path);
 
         model.FindText = "alpha";
-        Assert.True(model.Find(true));
+        Assert.True(await model.FindAsync(true));
         Assert.Equal(0, model.TextCursor);
         Assert.Equal(0, model.SelectedRow);
-        Assert.True(model.Find(true));
+        Assert.True(await model.FindAsync(true));
         Assert.Equal(2, model.TextCursor);
-        Assert.True(model.Find(false));
+        Assert.True(await model.FindAsync(false));
         Assert.Equal(0, model.TextCursor);
+        Assert.Equal("Searching a.txt", jobs.Jobs[0].Title);
 
         model.MatchCase = true;
         model.FindText = "zzz";
-        Assert.False(model.Find(true));
+        Assert.False(await model.FindAsync(true));
         Assert.Equal("Not found", model.Notice);
         model.FindText = "beta";
-        Assert.True(model.Find(true));
+        Assert.True(await model.FindAsync(true));
         Assert.Equal("", model.Notice);
     }
 
     [AvaloniaFact]
-    public async Task ASparseFileAboveMaxReadOpensAndScrollsToItsLastLoadedRow()
+    public async Task ASparseFileAboveMaxReadShowsAPageAndScrollsToItsLastByte()
     {
         using var dir = new TempDir();
         var path = Path.Combine(dir.Path, "big.bin");
-        using (var stream = new FileStream(path, FileMode.Create))
-        {
-            stream.SetLength(ViewerLimits.MaxRead + (64L * 1024 * 1024));
-        }
+        var size = ViewerLimits.MaxRead + (64L * 1024 * 1024);
+        MakeSparse(path, size);
 
         var model = new ViewerViewModel(English());
         await model.OpenAsync(path);
 
         Assert.True(model.IsHex);
-        Assert.Equal(ViewerLimits.MaxRead / ViewerLimits.HexWidth, model.Rows.Count);
-        Assert.Equal(model.Rows.Count, model.Rows.Count());
-        Assert.Equal(English().Get("lister.truncated"), model.TruncatedText);
-        model.GoToEnd();
+        Assert.Equal(ViewerLimits.PageSize / ViewerLimits.HexWidth, model.Rows.Count);
+        Assert.Equal(size / ViewerLimits.HexWidth - 1, model.ScrollMaximum);
+        var view = Assert.IsType<ViewerView>(model.CreateContent());
+        var bar = view.FindControl<ScrollBar>("PageScroll")!;
+        Assert.True(bar.IsVisible);
+        Assert.Equal(model.ScrollMaximum, bar.Maximum);
+
+        await model.GoToEndAsync();
+        Assert.False(model.IsBusy);
         Assert.Equal(model.Rows.Count - 1, model.SelectedRow);
-        Assert.StartsWith("00FFFFF0", model.Rows[model.SelectedRow].Text, StringComparison.Ordinal);
+        Assert.StartsWith((size - 16).ToString("X8", System.Globalization.CultureInfo.InvariantCulture), model.Rows[model.SelectedRow].Text, StringComparison.Ordinal);
+        await model.NextPageAsync();
+        Assert.StartsWith((size - 16).ToString("X8", System.Globalization.CultureInfo.InvariantCulture), model.Rows[^1].Text, StringComparison.Ordinal);
+
+        await model.JumpAsync(0);
+        Assert.StartsWith("00000000", model.Rows[0].Text, StringComparison.Ordinal);
+        await model.NextPageAsync();
+        Assert.StartsWith(ViewerLimits.PageSize.ToString("X8", System.Globalization.CultureInfo.InvariantCulture), model.Rows[0].Text, StringComparison.Ordinal);
+        await model.PreviousPageAsync();
+        Assert.StartsWith("00000000", model.Rows[0].Text, StringComparison.Ordinal);
+    }
+
+    [AvaloniaFact]
+    public async Task FindReachesTextPlacedPastMaxReadAndSelectsItsRow()
+    {
+        using var dir = new TempDir();
+        var path = Path.Combine(dir.Path, "big.bin");
+        var at = ViewerLimits.MaxRead + 4096L;
+        MakeSparse(path, ViewerLimits.MaxRead + (64L * 1024 * 1024), (at, "needle"));
+        var jobs = new JobService();
+        var model = new ViewerViewModel(English(), jobs);
+        await model.OpenAsync(path);
+
+        model.FindText = "NEEDLE";
+        Assert.True(await model.FindAsync(true));
+
+        Assert.Equal(at, model.HexCursor);
+        Assert.True(model.SelectedRow >= 0);
+        Assert.StartsWith(at.ToString("X8", System.Globalization.CultureInfo.InvariantCulture), model.Rows[model.SelectedRow].Text, StringComparison.Ordinal);
+        Assert.Contains("|needle", model.Rows[model.SelectedRow].Text, StringComparison.Ordinal);
+        Assert.Single(jobs.Jobs);
+
+        Assert.True(await model.FindAsync(true));
+        Assert.Equal(at, model.HexCursor);
+        model.FindText = "absent";
+        Assert.False(await model.FindAsync(false));
+        Assert.Equal("Not found", model.Notice);
+    }
+
+    [AvaloniaFact]
+    public async Task TextPagesFollowEachOtherAndFindCrossesPages()
+    {
+        using var dir = new TempDir();
+        var path = Path.Combine(dir.Path, "lines.txt");
+        var builder = new StringBuilder();
+        for (var i = 0; builder.Length < 2 * ViewerLimits.PageSize + 1000; i++)
+        {
+            builder.Append("line ").Append(i).Append(i == 120000 ? " marker" : "").Append('\n');
+        }
+
+        File.WriteAllText(path, builder.ToString());
+        var model = new ViewerViewModel(English());
+        model.SetColumns(10000);
+        await model.OpenAsync(path);
+
+        Assert.True(model.IsText);
+        Assert.Equal("line 0", model.Rows[0].Text);
+        var count = model.Rows.Count;
+        await model.NextPageAsync();
+        Assert.Equal("line " + count, model.Rows[0].Text);
+        await model.PreviousPageAsync();
+        Assert.Equal("line 0", model.Rows[0].Text);
+
+        model.FindText = "marker";
+        Assert.True(await model.FindAsync(true));
+        Assert.Contains("line 120000 marker", model.Rows[model.SelectedRow].Text, StringComparison.Ordinal);
+        Assert.Equal("marker", model.FindText);
+        Assert.True(model.ScrollValue > 0);
     }
 
     [AvaloniaFact]
@@ -174,7 +248,7 @@ public class ViewerWindowTests
         var path = Path.Combine(dir.Path, "slow.txt");
         File.WriteAllText(path, "x\n");
         var gate = new ManualResetEventSlim();
-        var model = new ViewerViewModel(English(), file =>
+        var model = new ViewerViewModel(English(), new JobService(), file =>
         {
             gate.Wait(TestContext.Current.CancellationToken);
             return FileViewer.Open(file);
@@ -200,7 +274,7 @@ public class ViewerWindowTests
         [
             "lister.mode.text", "lister.mode.hex", "lister.mode.table", "lister.mode.image", "lister.wrap",
             "lister.match_case", "lister.find", "lister.find_next", "lister.find_prev", "lister.filter",
-            "lister.not_found", "lister.opening", "lister.truncated",
+            "lister.not_found", "lister.opening", "lister.find_job",
         ];
         foreach (var key in keys)
         {
@@ -211,6 +285,17 @@ public class ViewerWindowTests
         Assert.Equal("Wrap", new ViewerViewModel(en).WrapLabel);
         Assert.Equal("Retour à la ligne", new ViewerViewModel(fr).WrapLabel);
         Assert.Equal("Suivant", new ViewerViewModel(fr).NextLabel);
+    }
+
+    private static void MakeSparse(string path, long length, params (long Offset, string Text)[] texts)
+    {
+        using var stream = new FileStream(path, FileMode.Create);
+        stream.SetLength(length);
+        foreach (var (offset, text) in texts)
+        {
+            stream.Position = offset;
+            stream.Write(Encoding.UTF8.GetBytes(text));
+        }
     }
 
     private static ILocalizer English() => Localizer.Load(settingsLanguage: Language.En, systemLanguage: Language.En);

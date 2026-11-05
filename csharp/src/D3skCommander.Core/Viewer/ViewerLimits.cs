@@ -9,6 +9,9 @@ public static class ViewerLimits
     /// <summary>A NUL in this many leading bytes marks the file as binary.</summary>
     public const int Sniff = 8 * 1024;
 
+    /// <summary>Bytes in one page of the paged reader (<see cref="ViewerPages"/>); a multiple of <see cref="HexWidth"/>.</summary>
+    public const int PageSize = 1024 * 1024;
+
     /// <summary>Bytes per hex row.</summary>
     public const int HexWidth = 16;
 

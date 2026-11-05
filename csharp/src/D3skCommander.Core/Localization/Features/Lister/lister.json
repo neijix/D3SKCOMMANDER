@@ -47,8 +47,8 @@
     "en": "Opening {name}...",
     "fr": "Ouverture de {name}..."
   },
-  "lister.truncated": {
-    "en": "Only the first 16 MiB are shown.",
-    "fr": "Seuls les 16 premiers Mio sont affichés."
+  "lister.find_job": {
+    "en": "Searching {name}",
+    "fr": "Recherche dans {name}"
   }
 }

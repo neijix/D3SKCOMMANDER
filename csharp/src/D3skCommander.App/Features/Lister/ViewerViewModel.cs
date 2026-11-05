@@ -6,12 +6,13 @@ using D3skCommander.App.Host;
 using D3skCommander.App.Shell;
 using D3skCommander.Core.Common;
 using D3skCommander.Core.FileSystem;
+using D3skCommander.Core.Jobs;
 using D3skCommander.Core.Localization;
 using D3skCommander.Core.Viewer;
 
 namespace D3skCommander.App.Features.Lister;
 
-/// <summary>One row of the viewer list: the line number gutter (text mode) and the text.</summary>
+/// <summary>One row of the viewer list: the gutter (line number or byte offset) and the text.</summary>
 public sealed record ViewerLine(string Gutter, string Text);
 
 /// <summary>A mode the switch offers, with its localized label.</summary>
@@ -20,13 +21,20 @@ public sealed record ViewerModeChoice(ViewerMode Mode, string Label);
 /// <summary>
 /// The viewer tool window's state over Core's <see cref="FileViewer"/>. A file opens off the UI
 /// thread: the name and a busy state show at once, then the file or its typed error. Text and
-/// hex rows are built on demand, so a list of a million rows costs nothing until it scrolls.
+/// hex show one <see cref="ViewerLimits.PageSize"/> page at a time (<see cref="ViewerPages"/>):
+/// a scroll bar over the whole file jumps, the page edges load the neighbours, and find scans
+/// the whole file as a job. Rows are built on demand, so a page of a million rows costs nothing
+/// until it scrolls.
 /// </summary>
 public sealed class ViewerViewModel : ObservableObject, IShellWidget
 {
     private readonly ILocalizer _text;
+    private readonly IJobService _jobs;
     private readonly Func<string, FileViewer> _open;
     private FileViewer? _viewer;
+    private ViewerPage? _page;
+    private PageRows? _shown;
+    private IJob? _findJob;
     private int _ticket;
     private int _columns = 100;
     private string _name = "";
@@ -34,29 +42,43 @@ public sealed class ViewerViewModel : ObservableObject, IShellWidget
     private string _error = "";
     private string _notice = "";
     private string _status = "";
-    private string _truncated = "";
     private string _header = "";
     private IReadOnlyList<ViewerLine> _rows = [];
     private IReadOnlyList<ViewerModeChoice> _modes = [];
     private ViewerModeChoice? _selectedMode;
     private int _selectedRow = -1;
+    private int? _cursorLine;
+    private long? _hexCursor;
+    private long? _matchOffset;
+    private double _scrollValue;
     private bool _wrap = true;
     private bool _matchCase;
     private string _findText = "";
     private string _filter = "";
 
+    /// <summary>A viewer whose find job runs on a private job service (not in the operations bar).</summary>
     public ViewerViewModel(ILocalizer text)
-        : this(text, FileViewer.Open)
+        : this(text, new JobService(), FileViewer.Open)
     {
     }
 
-    public ViewerViewModel(ILocalizer text, Func<string, FileViewer> open)
+    public ViewerViewModel(ILocalizer text, IJobService jobs)
+        : this(text, jobs, FileViewer.Open)
+    {
+    }
+
+    public ViewerViewModel(ILocalizer text, IJobService jobs, Func<string, FileViewer> open)
     {
         ArgumentNullException.ThrowIfNull(text);
+        ArgumentNullException.ThrowIfNull(jobs);
         ArgumentNullException.ThrowIfNull(open);
         _text = text;
+        _jobs = jobs;
         _open = open;
     }
+
+    /// <summary>Raised with a row of <see cref="Rows"/> the view should bring into view (a page edge crossed).</summary>
+    public event Action<int>? RevealRequested;
 
     public string? Name => "Lister";
 
@@ -100,13 +122,6 @@ public sealed class ViewerViewModel : ObservableObject, IShellWidget
         private set => SetProperty(ref _status, value);
     }
 
-    /// <summary>Core's truncated notice, empty when the whole file is loaded.</summary>
-    public string TruncatedText
-    {
-        get => _truncated;
-        private set => SetProperty(ref _truncated, value);
-    }
-
     /// <summary>Column titles above the rows in table mode.</summary>
     public string Header
     {
@@ -137,6 +152,7 @@ public sealed class ViewerViewModel : ObservableObject, IShellWidget
                 OnPropertyChanged(nameof(IsHex));
                 OnPropertyChanged(nameof(IsTable));
                 OnPropertyChanged(nameof(CanFind));
+                OnPropertyChanged(nameof(HasPageScroll));
             }
         }
     }
@@ -148,6 +164,38 @@ public sealed class ViewerViewModel : ObservableObject, IShellWidget
     public bool IsTable => _selectedMode?.Mode == ViewerMode.Table;
 
     public bool CanFind => IsText || IsHex;
+
+    /// <summary>True when the page scroll bar over the whole file is shown (text and hex).</summary>
+    public bool HasPageScroll => CanFind;
+
+    /// <summary>The scroll bar's range: the file size in bytes in text mode, the row count (offset / 16) in hex mode.</summary>
+    public double ScrollMaximum
+    {
+        get
+        {
+            if (_viewer is null)
+            {
+                return 0;
+            }
+
+            if (IsHex)
+            {
+                return HexRowCount > 1 ? HexRowCount - 1 : 0;
+            }
+
+            return _viewer.Size;
+        }
+    }
+
+    /// <summary>The first loaded position on the scroll range, moved as the list scrolls.</summary>
+    public double ScrollValue
+    {
+        get => _scrollValue;
+        private set => SetProperty(ref _scrollValue, value);
+    }
+
+    /// <summary>The part of the scroll range the loaded page covers.</summary>
+    public double ScrollViewport => _page is null ? 0 : IsHex ? _page.HexRows.Count : _page.End - _page.Start;
 
     /// <summary>The display row to highlight and keep in view; -1 for none.</summary>
     public int SelectedRow
@@ -163,7 +211,6 @@ public sealed class ViewerViewModel : ObservableObject, IShellWidget
         {
             if (SetProperty(ref _wrap, value) && _viewer is { } viewer)
             {
-                viewer.Wrap = value;
                 Reshow(viewer);
             }
         }
@@ -194,9 +241,11 @@ public sealed class ViewerViewModel : ObservableObject, IShellWidget
         }
     }
 
-    public int? TextCursor => _viewer?.TextCursor;
+    /// <summary>The index, among the loaded page's lines, of the last find hit in text mode.</summary>
+    public int? TextCursor => _cursorLine;
 
-    public int? HexCursor => _viewer?.HexCursor;
+    /// <summary>The file offset of the last find hit in hex mode.</summary>
+    public long? HexCursor => _hexCursor;
 
     public string WrapLabel => _text.Get("lister.wrap");
 
@@ -212,6 +261,8 @@ public sealed class ViewerViewModel : ObservableObject, IShellWidget
 
     /// <summary>The opened file's path, or empty.</summary>
     public string Path => _viewer?.Path ?? "";
+
+    private long HexRowCount => (((long)(_viewer?.Size ?? 0)) + ViewerLimits.HexWidth - 1) / ViewerLimits.HexWidth;
 
     public void Draw()
     {
@@ -229,7 +280,7 @@ public sealed class ViewerViewModel : ObservableObject, IShellWidget
         }
 
         _columns = next;
-        if (_viewer is { Mode: ViewerMode.Text, Wrap: true } viewer)
+        if (_viewer is { Mode: ViewerMode.Text } viewer && _wrap)
         {
             Reshow(viewer);
         }
@@ -239,12 +290,13 @@ public sealed class ViewerViewModel : ObservableObject, IShellWidget
     public async Task OpenAsync(string path)
     {
         ArgumentException.ThrowIfNullOrEmpty(path);
+        _findJob?.Cancel();
         var ticket = ++_ticket;
         Begin(path);
         var loaded = await Task.Run(() => Load(path)).ConfigureAwait(true);
         if (ticket == _ticket)
         {
-            UiThread.Invoke(() => Show(loaded));
+            UiThread.Invoke(() => Show(loaded, true));
         }
     }
 
@@ -256,42 +308,115 @@ public sealed class ViewerViewModel : ObservableObject, IShellWidget
         }
 
         var ticket = ++_ticket;
+        var at = _page?.Start ?? 0;
         IsBusy = true;
         var loaded = await Task.Run(() =>
         {
-            viewer.SetMode(mode);
-            return new Loaded(viewer, Render(viewer));
+            if (mode is ViewerMode.Text or ViewerMode.Hex)
+            {
+                viewer.UsePagedMode(mode);
+            }
+            else
+            {
+                viewer.SetMode(mode);
+            }
+
+            return Prepare(viewer, at, false);
         }).ConfigureAwait(true);
         if (ticket == _ticket)
         {
-            UiThread.Invoke(() => Show(loaded));
+            UiThread.Invoke(() => Show(loaded, true));
         }
     }
 
-    /// <summary>Finds the next or previous hit of <see cref="FindText"/> and selects its row.</summary>
-    public bool Find(bool forward)
+    /// <summary>
+    /// Finds the next or previous hit of <see cref="FindText"/> in the whole file, as a cancelable
+    /// job, and shows it: its page loads and its row is selected. Not found sets the notice.
+    /// </summary>
+    public async Task<bool> FindAsync(bool forward)
     {
-        if (_viewer is not { } viewer || !CanFind)
+        if (_viewer is not { } viewer || _page is null || !CanFind || _findText.Length == 0)
         {
             return false;
         }
 
-        viewer.FindText = _findText;
-        viewer.MatchCase = _matchCase;
-        var found = viewer.Find(forward);
-        Notice = viewer.Notice == ViewerNotice.NotFound ? _text.Get("lister.not_found") : "";
-        if (found && viewer.TakeScrollRow() is int row)
+        _findJob?.Cancel();
+        Notice = "";
+        var request = new FindRequest(viewer, _findText, _matchCase, FindFrom(viewer, forward), forward);
+        var found = default(ViewerFound);
+        var job = _jobs.Start(
+            _text.Get("lister.find_job").Replace("{name}", FileName, StringComparison.Ordinal),
+            (progress, cancellation) =>
+            {
+                found = Scan(request, progress, cancellation);
+                return Task.CompletedTask;
+            });
+        _findJob = job;
+        var result = await job.Completion.ConfigureAwait(true);
+        if (!ReferenceEquals(_findJob, job) || result.Outcome == JobOutcome.Cancelled)
         {
-            SelectedRow = row;
+            return false;
         }
 
-        OnPropertyChanged(nameof(TextCursor));
-        OnPropertyChanged(nameof(HexCursor));
-        return found;
+        _findJob = null;
+        var error = found.Error ?? result.Failed.FirstOrDefault()?.Error;
+        if (error is not null)
+        {
+            Notice = ErrorLine(error, viewer.Path);
+            return false;
+        }
+
+        if (found.Match is not { } match)
+        {
+            Notice = _text.Get("lister.not_found");
+            return false;
+        }
+
+        await ShowMatchAsync(match).ConfigureAwait(true);
+        return true;
     }
 
-    /// <summary>Selects the last loaded row.</summary>
-    public void GoToEnd() => SelectedRow = Rows.Count - 1;
+    /// <summary>Scrolls to <paramref name="position"/> of the scroll range (see <see cref="ScrollMaximum"/>); the end shows the last rows.</summary>
+    public Task JumpAsync(double position)
+    {
+        if (_viewer is null || _page is null)
+        {
+            return Task.CompletedTask;
+        }
+
+        var toEnd = position >= ScrollMaximum;
+        var offset = toEnd ? long.MaxValue : (long)position * (IsHex ? ViewerLimits.HexWidth : 1);
+        return GoToAsync(new PageGoal(offset, false, null, false, toEnd));
+    }
+
+    public Task GoToEndAsync() => JumpAsync(ScrollMaximum);
+
+    /// <summary>Loads the page after the current one, shown from its first row. Does nothing at the end.</summary>
+    public Task NextPageAsync() =>
+        _page is { AtEnd: false } page ? GoToAsync(new PageGoal(page.End, true, null, false, false)) : Task.CompletedTask;
+
+    /// <summary>Loads the page before the current one, keeping the first row of the current page in view.</summary>
+    public Task PreviousPageAsync()
+    {
+        if (_page is not { Start: > 0 } page)
+        {
+            return Task.CompletedTask;
+        }
+
+        return GoToAsync(new PageGoal(Math.Max(0, page.Start - ViewerLimits.PageSize), false, page.Start, false, false));
+    }
+
+    /// <summary>Moves the scroll bar to <paramref name="fraction"/> (0 to 1) of the loaded page.</summary>
+    public void SetScrollFraction(double fraction)
+    {
+        if (_page is null)
+        {
+            return;
+        }
+
+        var origin = IsHex ? _page.Start / ViewerLimits.HexWidth : _page.Start;
+        ScrollValue = Math.Min(ScrollMaximum, origin + (Math.Clamp(fraction, 0, 1) * ScrollViewport));
+    }
 
     private void Begin(string path)
     {
@@ -302,40 +427,75 @@ public sealed class ViewerViewModel : ObservableObject, IShellWidget
         Rows = [];
         Header = "";
         SelectedRow = -1;
+        _page = null;
+        _shown = null;
+        _cursorLine = null;
+        _hexCursor = null;
+        _matchOffset = null;
     }
 
     private Loaded Load(string path)
     {
         var viewer = _open(path);
-        if (viewer.Error is null && viewer.Mode == ViewerMode.Image)
+        if (viewer.Error is not null)
         {
-            // Image mode is a later row; until then an image file opens as bytes.
-            viewer.SetMode(ViewerMode.Hex);
+            return new Loaded(viewer, null, null, [], viewer.Error);
         }
 
-        viewer.Wrap = _wrap;
-        return new Loaded(viewer, viewer.Error is null ? Render(viewer) : []);
+        if (viewer.Mode == ViewerMode.Image)
+        {
+            // Image mode is a later row; until then an image file opens as bytes.
+            viewer.UsePagedMode(ViewerMode.Hex);
+        }
+
+        return Prepare(viewer, 0, false);
     }
 
-    private void Show(Loaded loaded)
+    /// <summary>Reads the page at <paramref name="offset"/> (text, hex) or builds the table rows.</summary>
+    private Loaded Prepare(FileViewer viewer, long offset, bool exact)
+    {
+        if (viewer.Mode is not (ViewerMode.Text or ViewerMode.Hex))
+        {
+            return new Loaded(viewer, null, null, RenderTable(viewer), null);
+        }
+
+        var read = ViewerPages.Read(viewer.Path, offset, viewer.Mode, viewer.Encoding, exact);
+        if (read.Page is not { } page)
+        {
+            return new Loaded(viewer, null, null, [], read.Error);
+        }
+
+        var shown = Build(page, viewer.Mode);
+        return new Loaded(viewer, page, shown, shown.Lines, null);
+    }
+
+    private void Show(Loaded loaded, bool reset)
     {
         var viewer = loaded.Viewer;
         _viewer = viewer;
         IsBusy = false;
         Notice = "";
         SelectedRow = -1;
-        if (viewer.Error is { } error)
+        if (loaded.Error is { } error)
         {
-            ErrorMessage = _text.Get(ErrorText.Key(error.Kind)) + ": " + (error.Path ?? viewer.Path);
+            ErrorMessage = ErrorLine(error, viewer.Path);
             Modes = [];
             SelectedMode = null;
             Rows = [];
             StatusText = "";
-            TruncatedText = "";
+            _page = null;
             return;
         }
 
         ErrorMessage = "";
+        _page = loaded.Page;
+        _shown = loaded.Shown;
+        if (reset)
+        {
+            _cursorLine = null;
+            _hexCursor = null;
+        }
+
         var choices = new List<ViewerModeChoice>();
         foreach (var mode in viewer.Modes.Where(mode => mode != ViewerMode.Image))
         {
@@ -348,8 +508,16 @@ public sealed class ViewerViewModel : ObservableObject, IShellWidget
         OnPropertyChanged(nameof(Filter));
         Display(viewer, loaded.Rows);
         OnPropertyChanged(nameof(Path));
+        PageChanged();
+    }
+
+    private void PageChanged()
+    {
         OnPropertyChanged(nameof(TextCursor));
         OnPropertyChanged(nameof(HexCursor));
+        OnPropertyChanged(nameof(ScrollMaximum));
+        OnPropertyChanged(nameof(ScrollViewport));
+        SetScrollFraction(0);
     }
 
     private void Display(FileViewer viewer, IReadOnlyList<ViewerLine> rows)
@@ -359,142 +527,237 @@ public sealed class ViewerViewModel : ObservableObject, IShellWidget
         if (viewer.Mode == ViewerMode.Table)
         {
             StatusText = viewer.Table?.Note ?? "";
-            TruncatedText = "";
             return;
         }
 
         StatusText = viewer.EncodingName + " | " + LocalFileSystem.FormatSize(viewer.Size);
-        TruncatedText = viewer.Truncated ? _text.Get("lister.truncated") : "";
     }
 
     private void Reshow(FileViewer viewer)
     {
+        if (_page is { } page && viewer.Mode is ViewerMode.Text or ViewerMode.Hex)
+        {
+            _shown = Build(page, viewer.Mode);
+            Rows = _shown.Lines;
+            SelectedRow = CursorRow();
+            return;
+        }
+
         SelectedRow = -1;
-        Display(viewer, Render(viewer));
+        Display(viewer, RenderTable(viewer));
     }
 
-    private IReadOnlyList<ViewerLine> Render(FileViewer viewer)
+    /// <summary>Loads another page off the UI thread; a result for a goal no longer wanted is dropped.</summary>
+    private async Task GoToAsync(PageGoal goal)
     {
-        switch (viewer.Mode)
+        if (_viewer is not { } viewer)
         {
-            case ViewerMode.Text:
-                var rows = viewer.TextRows(_columns);
-                return new LazyRows(rows.Count, i => new ViewerLine(Gutter(rows[i]), rows[i].Text));
-            case ViewerMode.Hex:
-                return new LazyRows(viewer.HexRowCount, i => new ViewerLine("", viewer.HexLine(i)));
-            case ViewerMode.Table when viewer.Table is { } table:
-                var shown = viewer.FilteredRows;
-                return new LazyRows(shown.Count, i => new ViewerLine("", ViewerRowText.Row(table, shown[i])));
-            default:
-                return [];
-        }
-    }
-
-    private static string Gutter(ViewerTextRow row) =>
-        row.Number is int number ? number.ToString(CultureInfo.InvariantCulture).PadLeft(6) + "  " : new string(' ', 8);
-
-    private sealed record Loaded(FileViewer Viewer, IReadOnlyList<ViewerLine> Rows);
-}
-
-/// <summary>Monospace text of a table row: cells padded to the table's width hints.</summary>
-internal static class ViewerRowText
-{
-    private const string Separator = " | ";
-
-    public static string Header(ViewerTable table) => Join(table, table.Columns);
-
-    public static string Row(ViewerTable table, int index) => Join(table, table.Rows[index]);
-
-    private static string Join(ViewerTable table, IReadOnlyList<string> cells)
-    {
-        var parts = new string[cells.Count];
-        for (var i = 0; i < cells.Count; i++)
-        {
-            var width = i < table.Widths.Count ? table.Widths[i] : 0;
-            parts[i] = cells[i].PadRight(width);
+            return;
         }
 
-        return string.Join(Separator, parts);
-    }
-}
-
-/// <summary>A read-only list whose items are made when asked for, so a huge file costs nothing until scrolled.</summary>
-internal sealed class LazyRows : IList, IReadOnlyList<ViewerLine>
-{
-    private readonly Func<int, ViewerLine> _make;
-
-    public LazyRows(int count, Func<int, ViewerLine> make)
-    {
-        Count = count;
-        _make = make;
-    }
-
-    public int Count { get; }
-
-    public bool IsReadOnly => true;
-
-    public bool IsFixedSize => true;
-
-    public bool IsSynchronized => false;
-
-    public object SyncRoot => this;
-
-    public ViewerLine this[int index]
-    {
-        get
+        var ticket = ++_ticket;
+        IsBusy = true;
+        var loaded = await Task.Run(() => Prepare(viewer, goal.Offset, goal.Exact)).ConfigureAwait(true);
+        if (ticket != _ticket)
         {
-            ArgumentOutOfRangeException.ThrowIfNegative(index);
-            ArgumentOutOfRangeException.ThrowIfGreaterThanOrEqual(index, Count);
-            return _make(index);
+            return;
         }
-    }
 
-    object? IList.this[int index]
-    {
-        get => this[index];
-        set => throw new NotSupportedException();
-    }
-
-    public IEnumerator<ViewerLine> GetEnumerator()
-    {
-        for (var i = 0; i < Count; i++)
+        IsBusy = false;
+        if (loaded.Page is null)
         {
-            yield return _make(i);
+            Notice = ErrorLine(loaded.Error ?? OperationError.Other("unreadable", viewer.Path), viewer.Path);
+            return;
         }
+
+        Notice = "";
+        _page = loaded.Page;
+        _shown = loaded.Shown;
+        _cursorLine = null;
+        _hexCursor = null;
+        Rows = loaded.Rows;
+        SelectedRow = -1;
+        if (goal.Focus is long focus)
+        {
+            Focus(focus, goal.Select);
+        }
+        else if (goal.ToEnd)
+        {
+            RevealRequested?.Invoke(Rows.Count - 1);
+            SelectedRow = Rows.Count - 1;
+        }
+
+        PageChanged();
     }
 
-    IEnumerator IEnumerable.GetEnumerator() => GetEnumerator();
-
-    public bool Contains(object? value) => IndexOf(value) >= 0;
-
-    public int IndexOf(object? value)
+    private async Task ShowMatchAsync(ViewerMatch match)
     {
-        for (var i = 0; i < Count; i++)
+        _matchOffset = match.Offset;
+        if (_page is { } page && match.Offset >= page.Start && match.Offset + match.Length <= page.End)
         {
-            if (Equals(_make(i), value))
+            Focus(match.Offset, true);
+            return;
+        }
+
+        var around = Math.Max(0, match.Offset - (ViewerLimits.PageSize / 2));
+        await GoToAsync(new PageGoal(around, false, match.Offset, true, false)).ConfigureAwait(true);
+    }
+
+    /// <summary>Marks the line or hex row holding <paramref name="offset"/> and selects it, or only brings it into view.</summary>
+    private void Focus(long offset, bool select)
+    {
+        if (_page is null)
+        {
+            return;
+        }
+
+        if (_viewer?.Mode == ViewerMode.Hex)
+        {
+            _hexCursor = select ? offset : null;
+        }
+        else
+        {
+            _cursorLine = select ? _page.LineAt(offset) : null;
+        }
+
+        var row = select ? CursorRow() : RowAt(offset);
+        if (select)
+        {
+            SelectedRow = row;
+        }
+        else
+        {
+            RevealRequested?.Invoke(row);
+        }
+
+        OnPropertyChanged(nameof(TextCursor));
+        OnPropertyChanged(nameof(HexCursor));
+    }
+
+    private int CursorRow()
+    {
+        if (_hexCursor is long hex && _page is not null)
+        {
+            return _page.HexRowAt(hex);
+        }
+
+        return _cursorLine is int line && _shown is not null ? _shown.RowOfLine(line) : -1;
+    }
+
+    private int RowAt(long offset)
+    {
+        if (_page is null)
+        {
+            return -1;
+        }
+
+        return _viewer?.Mode == ViewerMode.Hex ? _page.HexRowAt(offset) : _shown?.RowOfLine(_page.LineAt(offset)) ?? -1;
+    }
+
+    private long FindFrom(FileViewer viewer, bool forward)
+    {
+        if (_matchOffset is long match)
+        {
+            return forward ? match + 1 : match;
+        }
+
+        return forward ? _page?.Start ?? 0 : (long)viewer.Size;
+    }
+
+    private ViewerFound Scan(FindRequest request, IJobProgress progress, CancellationToken cancellation)
+    {
+        var viewer = request.Viewer;
+        var total = (long)viewer.Size;
+        var done = 0L;
+        return ViewerSearch.Find(
+            viewer.Path,
+            request.Query,
+            request.MatchCase,
+            viewer.Mode,
+            viewer.Encoding,
+            request.From,
+            request.Forward,
+            step =>
             {
-                return i;
-            }
-        }
-
-        return -1;
+                done += step;
+                progress.Report(new JobProgress(0, 1, Math.Min(done, total), total, FileName));
+            },
+            cancellation);
     }
 
-    public void CopyTo(Array array, int index)
+    private string ErrorLine(OperationError error, string path) =>
+        _text.Get(ErrorText.Key(error.Kind)) + ": " + (error.Path ?? path);
+
+    private PageRows Build(ViewerPage page, ViewerMode mode)
     {
-        foreach (var row in this)
+        if (mode == ViewerMode.Hex)
         {
-            array.SetValue(row, index++);
+            var hex = page.HexRows;
+            return new PageRows(new LazyRows(hex.Count, i => new ViewerLine("", hex[i].Format())), null);
         }
+
+        var lines = page.Lines;
+        var numbered = page.Start == 0 && page.AtEnd;
+        string Gutter(int line) => numbered
+            ? (line + 1).ToString(CultureInfo.InvariantCulture).PadLeft(6) + "  "
+            : lines[line].Offset.ToString("X8", CultureInfo.InvariantCulture) + "  ";
+        var blank = new string(' ', numbered ? 8 : 10);
+        if (!_wrap)
+        {
+            return new PageRows(new LazyRows(lines.Count, i => new ViewerLine(Gutter(i), ViewerText.ClipLine(lines[i].Text))), null);
+        }
+
+        var spans = new List<LineSpan>(lines.Count);
+        var joined = new System.Text.StringBuilder();
+        foreach (var line in lines)
+        {
+            spans.Add(new LineSpan(joined.Length, joined.Length + line.Text.Length));
+            joined.Append(line.Text).Append('\n');
+        }
+
+        var text = joined.ToString();
+        var visual = ViewerText.WrapRows(text, spans, _columns);
+        var first = new int[lines.Count];
+        for (var i = visual.Count - 1; i >= 0; i--)
+        {
+            first[visual[i].Line] = i;
+        }
+
+        var rows = new LazyRows(visual.Count, i =>
+        {
+            var row = visual[i];
+            var slice = ViewerText.ClipLine(text.Substring(row.Start, row.End - row.Start));
+            return new ViewerLine(row.First ? Gutter(row.Line) : blank, slice);
+        });
+        return new PageRows(rows, first);
     }
 
-    public int Add(object? value) => throw new NotSupportedException();
+    private static IReadOnlyList<ViewerLine> RenderTable(FileViewer viewer)
+    {
+        if (viewer.Mode != ViewerMode.Table || viewer.Table is not { } table)
+        {
+            return [];
+        }
 
-    public void Clear() => throw new NotSupportedException();
+        var shown = viewer.FilteredRows;
+        return new LazyRows(shown.Count, i => new ViewerLine("", ViewerRowText.Row(table, shown[i])));
+    }
 
-    public void Insert(int index, object? value) => throw new NotSupportedException();
+    private sealed record Loaded(
+        FileViewer Viewer,
+        ViewerPage? Page,
+        PageRows? Shown,
+        IReadOnlyList<ViewerLine> Rows,
+        OperationError? Error);
 
-    public void Remove(object? value) => throw new NotSupportedException();
+    private sealed record FindRequest(FileViewer Viewer, string Query, bool MatchCase, long From, bool Forward);
 
-    public void RemoveAt(int index) => throw new NotSupportedException();
+    /// <summary>Where a page load goes: the offset to read, and what to do with the result.</summary>
+    private sealed record PageGoal(long Offset, bool Exact, long? Focus, bool Select, bool ToEnd);
+
+    /// <summary>The rows of a text or hex page, and for text the first row of each line (wrapping makes them differ).</summary>
+    private sealed record PageRows(IReadOnlyList<ViewerLine> Lines, int[]? FirstRow)
+    {
+        public int RowOfLine(int line) => FirstRow is null ? line : line >= 0 && line < FirstRow.Length ? FirstRow[line] : -1;
+    }
 }

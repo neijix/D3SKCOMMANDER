@@ -102,6 +102,24 @@ public sealed partial class FileViewer
         Prepare();
     }
 
+    /// <summary>
+    /// Switches to text or hex for the paged reader (<see cref="ViewerPages"/>). Nothing is read
+    /// beyond the byte order mark; the pages come from the file on demand.
+    /// </summary>
+    public void UsePagedMode(ViewerMode mode)
+    {
+        if (mode != ViewerMode.Text && mode != ViewerMode.Hex)
+        {
+            throw new ArgumentOutOfRangeException(nameof(mode));
+        }
+
+        Mode = mode;
+        if (!_bytesLoaded)
+        {
+            Encoding = ViewerPages.DetectEncoding(Path);
+        }
+    }
+
     /// <summary>Loads whatever the current mode needs. Text and hex read the file; a table does not.</summary>
     public void Prepare()
     {

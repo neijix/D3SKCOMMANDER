@@ -24,11 +24,13 @@
     <ProgressBar DockPanel.Dock="Top" IsIndeterminate="True" IsVisible="{Binding IsBusy}"/>
     <StackPanel DockPanel.Dock="Bottom" Orientation="Horizontal" Spacing="16" Margin="8,4">
       <TextBlock x:Name="StatusLine" Text="{Binding StatusText}"/>
-      <TextBlock x:Name="TruncatedLine" Text="{Binding TruncatedText}"/>
       <TextBlock x:Name="NoticeLine" Text="{Binding Notice}"/>
     </StackPanel>
     <TextBlock x:Name="ErrorLine" DockPanel.Dock="Top" Margin="8,4" TextWrapping="Wrap" Text="{Binding ErrorMessage}" IsVisible="{Binding HasError}"/>
     <TextBlock x:Name="HeaderLine" DockPanel.Dock="Top" Margin="8,0" FontWeight="Bold" FontFamily="Cascadia Mono,Consolas,Menlo,monospace" Text="{Binding Header}" IsVisible="{Binding IsTable}"/>
+    <ScrollBar x:Name="PageScroll" DockPanel.Dock="Right" Orientation="Vertical" AllowAutoHide="False"
+               IsVisible="{Binding HasPageScroll}" Minimum="0" Maximum="{Binding ScrollMaximum}"
+               ViewportSize="{Binding ScrollViewport}" Value="{Binding ScrollValue, Mode=OneWay}"/>
     <ListBox x:Name="RowList" ItemsSource="{Binding Rows}" SelectedIndex="{Binding SelectedRow, Mode=TwoWay}">
       <ListBox.ItemTemplate>
         <DataTemplate x:DataType="l:ViewerLine">

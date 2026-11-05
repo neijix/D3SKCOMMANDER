@@ -19,6 +19,29 @@ public readonly record struct ViewerRead(byte[] Bytes, bool Truncated, Operation
         }
     }
 
+    /// <summary>Opens <paramref name="path"/> read-only and shared, so a file another program writes can still be viewed.</summary>
+    internal static FileStream OpenShared(string path) =>
+        new(path, FileMode.Open, FileAccess.Read, FileShare.ReadWrite | FileShare.Delete, 1, FileOptions.None);
+
+    /// <summary>Reads up to <paramref name="count"/> bytes at <paramref name="position"/>; fewer only at the end of the file.</summary>
+    internal static int ReadAt(Stream stream, long position, byte[] buffer, int count)
+    {
+        stream.Seek(position, SeekOrigin.Begin);
+        var filled = 0;
+        while (filled < count)
+        {
+            var read = stream.Read(buffer, filled, count - filled);
+            if (read == 0)
+            {
+                break;
+            }
+
+            filled += read;
+        }
+
+        return filled;
+    }
+
     private static ViewerRead FromStream(Stream stream)
     {
         var limit = ViewerLimits.MaxRead + 1;
