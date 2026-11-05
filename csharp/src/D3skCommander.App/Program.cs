@@ -1,6 +1,7 @@
 using Avalonia;
 using Avalonia.Controls;
 using D3skCommander.App.Shell;
+using D3skCommander.App.Startup;
 using D3skCommander.Core.Common;
 using D3skCommander.Core.Localization;
 using Microsoft.Extensions.DependencyInjection;
@@ -13,9 +14,16 @@ public static class Program
     public static void Main(string[] args)
     {
         using var services = BuildProvider();
+        var settings = services.GetRequiredService<AppSettings>();
+        if (services.GetRequiredService<ILocalizer>() is Localizer text)
+        {
+            text.Use(settings.Preferences.Current.Language);
+        }
+
         BuildAvaloniaApp(services).StartWithClassicDesktopLifetime(
             args,
             lifetime => lifetime.Startup += (_, _) => lifetime.MainWindow = services.GetRequiredService<MainWindow>());
+        settings.Flush();
     }
 
     /// <summary>
