@@ -17,6 +17,7 @@ public sealed partial class Tab
     private readonly TimeProvider _clock;
     private readonly List<Entry> _entries = [];
     private readonly List<int> _visible = [];
+    private readonly Dictionary<string, ulong> _folderSizes = new(StringComparer.Ordinal);
     private readonly Selection _selected = new();
     private readonly List<Location> _back = [];
     private readonly List<Location> _forward = [];
@@ -88,7 +89,7 @@ public sealed partial class Tab
     public async Task ReloadAsync(bool showHidden, CancellationToken cancellationToken = default)
     {
         var keep = Current?.Path;
-        var listed = await ReadListingAsync(Location, showHidden, cancellationToken).ConfigureAwait(false);
+        var listed = await ReadListingAsync(Location, showHidden, Branch, cancellationToken).ConfigureAwait(false);
         if (!listed.IsSuccess)
         {
             Error = listed.Error ?? OperationError.NotFound(Location.Path);
@@ -191,6 +192,7 @@ public sealed partial class Tab
     private async Task<FileResult<List<Entry>>> ReadListingAsync(
         Location location,
         bool showHidden,
+        bool branch,
         CancellationToken cancellationToken)
     {
         var entries = new List<Entry>();
@@ -203,6 +205,11 @@ public sealed partial class Tab
             }
 
             entries.Add(item.Value);
+        }
+
+        if (branch && ReferenceEquals(provider, _provider) && location.Provider is null)
+        {
+            entries = FlatBranch(entries, location.Path, showHidden, cancellationToken);
         }
 
         return FileResult<List<Entry>>.Ok(entries);
@@ -226,7 +233,11 @@ public sealed partial class Tab
     private void ReplaceEntries(List<Entry> listed)
     {
         _entries.Clear();
-        _entries.AddRange(listed);
+        foreach (var entry in listed)
+        {
+            _entries.Add(WithKnownSize(entry));
+        }
+
         LocalFileSystem.Sort(_entries, Sort);
     }
 

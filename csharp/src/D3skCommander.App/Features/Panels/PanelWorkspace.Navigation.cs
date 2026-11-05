@@ -180,6 +180,7 @@ public sealed partial class PanelWorkspace
         try
         {
             _showHidden = !_showHidden;
+            SaveShowHidden();
             await Reload(PanelSide.Left, linked.Token).ConfigureAwait(false);
             await Reload(PanelSide.Right, linked.Token).ConfigureAwait(false);
         }
@@ -282,6 +283,7 @@ public sealed partial class PanelWorkspace
         {
             ClearInput(side);
             PreferEntry(tab);
+            RememberVisit(full);
         }
 
         Remember(side);
@@ -319,6 +321,11 @@ public sealed partial class PanelWorkspace
             var failed = tab.Error is not null
                 && tab.Location.Path == location
                 && tab.Error.Message != before;
+            if (!failed && tab.Error is null)
+            {
+                RememberVisit(tab.Location.Path);
+            }
+
             Remember(_active);
             Publish(_active, failed);
         }

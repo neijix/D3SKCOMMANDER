@@ -10,5 +10,65 @@
   "panels.folder": {
     "en": "Folder",
     "fr": "Dossier"
+  },
+  "panels.select": {
+    "en": "Select group",
+    "fr": "Sélectionner un groupe"
+  },
+  "panels.unselect": {
+    "en": "Unselect group",
+    "fr": "Désélectionner un groupe"
+  },
+  "panels.mask": {
+    "en": "Mask (e.g. *.txt;*.md)",
+    "fr": "Masque (ex. *.txt;*.md)"
+  },
+  "panels.dirsizes": {
+    "en": "Folder sizes",
+    "fr": "Tailles des dossiers"
+  },
+  "panels.hotlist": {
+    "en": "Saved folders",
+    "fr": "Dossiers favoris"
+  },
+  "panels.hotlistEmpty": {
+    "en": "No saved folders yet. Use Add current folder.",
+    "fr": "Aucun dossier favori. Utilisez Ajouter le dossier courant."
+  },
+  "panels.hotlistPick": {
+    "en": "Choose a folder",
+    "fr": "Choisissez un dossier"
+  },
+  "panels.hotlistAdd": {
+    "en": "Save this folder",
+    "fr": "Enregistrer ce dossier"
+  },
+  "panels.name": {
+    "en": "Name",
+    "fr": "Nom"
+  },
+  "panels.go": {
+    "en": "Go to folder",
+    "fr": "Aller au dossier"
+  },
+  "panels.remove": {
+    "en": "Remove",
+    "fr": "Retirer"
+  },
+  "panels.history": {
+    "en": "Recent folders",
+    "fr": "Dossiers récents"
+  },
+  "panels.historyEmpty": {
+    "en": "No folder visited yet.",
+    "fr": "Aucun dossier visité."
+  },
+  "panels.historyPick": {
+    "en": "Choose a folder",
+    "fr": "Choisissez un dossier"
+  },
+  "panels.filter": {
+    "en": "Filter",
+    "fr": "Filtre"
   }
 }

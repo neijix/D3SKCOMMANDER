@@ -25,6 +25,7 @@ public sealed partial class PanelPaneView : UserControl
         PathBox.KeyDown += OnPathKey;
         PathBox.GotFocus += (_, _) => Edit(true);
         PathBox.LostFocus += (_, _) => Edit(false);
+        FilterBox.KeyDown += OnFilterKey;
         BrowseButton.Click += (_, _) => _ = Model?.BrowseAsync();
         SizeChanged += (_, e) => Model?.Fit(e.NewSize.Width);
     }
@@ -42,6 +43,7 @@ public sealed partial class PanelPaneView : UserControl
         _files.EnterPressed += (_, _) => _ = model.OpenEntryAsync();
         _files.RowActivated += (_, _) => _ = model.OpenEntryAsync();
         ListHost.Content = _files;
+        model.FilterOpened += (_, _) => Dispatcher.UIThread.Post(() => FilterBox.Focus());
     }
 
     public FileListControl Files => _files ?? throw new InvalidOperationException("The pane has no model.");
@@ -90,6 +92,16 @@ public sealed partial class PanelPaneView : UserControl
         {
             Focus();
             Dispatcher.UIThread.Post(model.Sync);
+        }
+    }
+
+    private void OnFilterKey(object? sender, KeyEventArgs e)
+    {
+        if (e.Key == Key.Escape)
+        {
+            Model?.CloseFilter();
+            Focus();
+            e.Handled = true;
         }
     }
 

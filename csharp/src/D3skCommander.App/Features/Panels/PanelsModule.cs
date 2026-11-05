@@ -9,15 +9,18 @@ namespace D3skCommander.App.Features.Panels;
 public sealed class PanelsModule : IShellModule
 {
     private readonly PanelWorkspace _panels;
+    private readonly PanelCommands _commands;
     private readonly ILocalizer _text;
     private readonly IDialogService _dialogs;
 
-    public PanelsModule(PanelWorkspace panels, ILocalizer text, IDialogService dialogs)
+    public PanelsModule(PanelWorkspace panels, PanelCommands commands, ILocalizer text, IDialogService dialogs)
     {
         ArgumentNullException.ThrowIfNull(panels);
+        ArgumentNullException.ThrowIfNull(commands);
         ArgumentNullException.ThrowIfNull(text);
         ArgumentNullException.ThrowIfNull(dialogs);
         _panels = panels;
+        _commands = commands;
         _text = text;
         _dialogs = dialogs;
     }
@@ -28,6 +31,7 @@ public sealed class PanelsModule : IShellModule
         services.AddSingleton<IFileSystemProvider, LocalFileSystemProvider>();
         services.AddSingleton<PanelWorkspace>();
         services.AddSingleton<IPanelWorkspace>(provider => provider.GetRequiredService<PanelWorkspace>());
+        services.AddSingleton<PanelCommands>();
         services.AddSingleton<PanelsModule>();
         services.AddSingleton<IShellModule>(provider => provider.GetRequiredService<PanelsModule>());
     }
@@ -36,6 +40,7 @@ public sealed class PanelsModule : IShellModule
     {
         ArgumentNullException.ThrowIfNull(shell);
         _panels.Bind(shell);
+        _commands.Bind(shell);
         shell.SetPanel(PanelSide.Left, () => new PanelPaneModel(PanelSide.Left, _panels, _text, _dialogs));
         shell.SetPanel(PanelSide.Right, () => new PanelPaneModel(PanelSide.Right, _panels, _text, _dialogs));
     }

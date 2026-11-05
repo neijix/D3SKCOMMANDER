@@ -14,6 +14,8 @@
       <TextBox x:Name="PathBox" Text="{Binding Path, Mode=TwoWay}"/>
       <Button x:Name="BrowseButton" Grid.Column="1" Margin="4,0,0,0" Content="{Binding BrowseText}"/>
     </Grid>
+    <TextBox x:Name="FilterBox" DockPanel.Dock="Top" Margin="2,0,2,2" IsVisible="{Binding FilterOpen}"
+             Text="{Binding FilterText, Mode=TwoWay}" PlaceholderText="{Binding FilterWatermark}"/>
     <TextBlock x:Name="StatusText" DockPanel.Dock="Bottom" Margin="4,2"
                Classes.active="{Binding IsActive}" Text="{Binding StatusText}"/>
     <ContentControl x:Name="ListHost"/>

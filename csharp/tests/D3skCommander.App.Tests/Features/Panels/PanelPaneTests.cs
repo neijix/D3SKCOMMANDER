@@ -174,6 +174,55 @@ public class PanelPaneTests
         Assert.Equal(1, rig.Dialogs.ShownCount);
     }
 
+    [AvaloniaFact]
+    public async Task EnterOnAFileHandsItToTheFileOpener()
+    {
+        using var rig = await Rig.Opened();
+        var opened = new List<string>();
+        rig.Workspace.OpenFile = opened.Add;
+        rig.Left.List.CursorIndex = Index(rig.Workspace.Read(PanelSide.Left), "b.txt");
+
+        await rig.Left.OpenEntryAsync();
+
+        Assert.Equal([Path.Combine(rig.Directory, "b.txt")], opened);
+        Assert.Equal(rig.Directory, rig.Workspace.Read(PanelSide.Left).Path);
+    }
+
+    [AvaloniaFact]
+    public async Task ARenameStartsOnTheActivePaneAndCommitsThroughTheHook()
+    {
+        using var rig = await Rig.Opened();
+        var renames = new List<(string Path, string Name)>();
+        rig.Workspace.Commit = (path, name) =>
+        {
+            renames.Add((path, name));
+            return Task.CompletedTask;
+        };
+        rig.Left.List.CursorIndex = Index(rig.Workspace.Read(PanelSide.Left), "a.txt");
+
+        rig.Workspace.Begin();
+        Assert.True(rig.Left.List.IsRenaming);
+        Assert.False(rig.Right.List.IsRenaming);
+        rig.Left.List.RenameText = "z.txt";
+        rig.Left.List.CommitRename();
+
+        await rig.WaitUntil(() => renames.Count == 1);
+        Assert.Equal((Path.Combine(rig.Directory, "a.txt"), "z.txt"), renames[0]);
+    }
+
+    private static int Index(PanelSnapshot snap, string name)
+    {
+        for (var i = 0; i < snap.Entries.Count; i++)
+        {
+            if (snap.Entries[i].Name == name)
+            {
+                return i;
+            }
+        }
+
+        throw new InvalidOperationException("Missing " + name);
+    }
+
     private sealed class Rig : IDisposable
     {
         private readonly Window _window;

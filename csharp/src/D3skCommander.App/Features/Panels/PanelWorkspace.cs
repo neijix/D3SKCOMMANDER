@@ -1,6 +1,7 @@
 using D3skCommander.App.Controls.FileList;
 using D3skCommander.App.Dialogs;
 using D3skCommander.App.Shell;
+using D3skCommander.App.Startup;
 using D3skCommander.Core.Common;
 using D3skCommander.Core.FileSystem;
 using D3skCommander.Core.Panels;
@@ -16,6 +17,7 @@ public sealed partial class PanelWorkspace : IPanelWorkspace, IDisposable
     private readonly IFileSystemProvider _files;
     private readonly IFolderPicker _folders;
     private readonly TimeProvider _clock;
+    private readonly AppSettings? _settings;
     private readonly CancellationTokenSource _lifetime = new();
     private readonly SemaphoreSlim _nav = new(1, 1);
     private readonly long[] _stamps = new long[2];
@@ -37,13 +39,19 @@ public sealed partial class PanelWorkspace : IPanelWorkspace, IDisposable
     private int _polling;
     private Task? _opening;
 
-    public PanelWorkspace(IFileSystemProvider files, IFolderPicker folders, TimeProvider? clock = null)
+    public PanelWorkspace(
+        IFileSystemProvider files,
+        IFolderPicker folders,
+        TimeProvider? clock = null,
+        AppSettings? settings = null)
     {
         ArgumentNullException.ThrowIfNull(files);
         ArgumentNullException.ThrowIfNull(folders);
         _files = files;
         _folders = folders;
         _clock = clock ?? TimeProvider.System;
+        _settings = settings;
+        _showHidden = settings?.Preferences.Current.ShowHidden ?? false;
     }
 
     public PanelSide ActiveSide => _active;

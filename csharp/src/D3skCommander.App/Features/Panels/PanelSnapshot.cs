@@ -17,7 +17,8 @@ public sealed record PanelSnapshot(
     int Generation,
     int FailureToken,
     ErrorKind? Error,
-    string? ErrorPath)
+    string? ErrorPath,
+    string? Filter = null)
 {
     public static PanelSnapshot Empty { get; } = new(
         "",
@@ -65,6 +66,7 @@ public sealed record PanelSnapshot(
             generation,
             failureToken,
             error?.Kind,
-            error?.Path ?? error?.Message);
+            error?.Path ?? error?.Message,
+            tab.Filter);
     }
 }

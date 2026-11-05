@@ -5,6 +5,7 @@ using D3skCommander.App.Controls.FileList;
 using D3skCommander.App.Dialogs;
 using D3skCommander.App.Shell;
 using D3skCommander.Core.Common;
+using D3skCommander.Core.FileSystem;
 using D3skCommander.Core.Localization;
 using D3skCommander.Core.Panels;
 
@@ -31,6 +32,11 @@ public sealed partial class PanelPaneModel : ObservableObject, IShellWidget
     private string _statusText = "";
     [ObservableProperty]
     private bool _isActive;
+    [ObservableProperty]
+    private bool _filterOpen;
+    [ObservableProperty]
+    private string _filterText = "";
+    private bool _binding;
 
     public PanelPaneModel(PanelSide side, PanelWorkspace panels, ILocalizer text, IDialogService dialogs)
     {
@@ -42,7 +48,10 @@ public sealed partial class PanelPaneModel : ObservableObject, IShellWidget
         _text = text;
         _dialogs = dialogs;
         List = new FileList(text);
+        List.RenameCommitted += OnRenameCommitted;
+        _panels.RenameRequested += OnRenameRequested;
         BrowseText = text.Get("panels.browse");
+        FilterWatermark = text.Get("panels.filter");
     }
 
     public string? Name => _side == PanelSide.Left ? "Left" : "Right";
@@ -52,6 +61,11 @@ public sealed partial class PanelPaneModel : ObservableObject, IShellWidget
     public FileList List { get; }
 
     public string BrowseText { get; }
+
+    public string FilterWatermark { get; }
+
+    /// <summary>Raised when the quick-filter box opens, so the view can focus it.</summary>
+    public event EventHandler? FilterOpened;
 
     /// <summary>True while the path box has the focus: a new listing then leaves the typed text alone.</summary>
     public bool EditingPath { get; set; }
@@ -99,8 +113,27 @@ public sealed partial class PanelPaneModel : ObservableObject, IShellWidget
             PushSelection(snap);
         }
 
+        PushFilter(snap);
         Refresh(_panels.Read(_side));
         ShowFailure(snap);
+    }
+
+    /// <summary>Esc in the filter box: the full list comes back.</summary>
+    public void CloseFilter()
+    {
+        FilterOpen = false;
+        _binding = true;
+        FilterText = "";
+        _binding = false;
+        _panels.SetFilter(_side, null);
+    }
+
+    partial void OnFilterTextChanged(string value)
+    {
+        if (!_binding && FilterOpen)
+        {
+            _panels.SetFilter(_side, value);
+        }
     }
 
     /// <summary>Pushes what the list shows (cursor and marks) to the workspace, after input.</summary>
@@ -129,6 +162,14 @@ public sealed partial class PanelPaneModel : ObservableObject, IShellWidget
         }
 
         Sync();
+        var file = _panels.FileToOpen(_side);
+        var open = _panels.OpenFile;
+        if (file is not null && open is not null)
+        {
+            open(file);
+            return Task.CompletedTask;
+        }
+
         return _panels.EnterAsync();
     }
 
@@ -146,9 +187,40 @@ public sealed partial class PanelPaneModel : ObservableObject, IShellWidget
         List.Entries = snap.Entries;
         List.CursorIndex = snap.Cursor;
         List.SetMarks(snap.Marked);
+        BindFilter(snap);
         if (!EditingPath)
         {
             Path = snap.Path;
+        }
+    }
+
+    // The workspace opens the filter (Ctrl+S) or closes it (a new folder); the box follows.
+    private void BindFilter(PanelSnapshot snap)
+    {
+        if (snap.Filter is null)
+        {
+            FilterOpen = false;
+            return;
+        }
+
+        if (FilterOpen)
+        {
+            return;
+        }
+
+        _binding = true;
+        FilterText = snap.Filter;
+        _binding = false;
+        FilterOpen = true;
+        FilterOpened?.Invoke(this, EventArgs.Empty);
+    }
+
+    // A keystroke that arrived while a listing was busy is sent again on the next beat.
+    private void PushFilter(PanelSnapshot snap)
+    {
+        if (FilterOpen && snap.Filter is not null && snap.Filter != FilterText)
+        {
+            _panels.SetFilter(_side, FilterText);
         }
     }
 
@@ -159,7 +231,7 @@ public sealed partial class PanelPaneModel : ObservableObject, IShellWidget
             return;
         }
 
-        var flags = Flags(Columns.Default.Fitting((float)_width, 8f));
+        var flags = Flags(_panels.Columns.Fitting((float)_width, 8f));
         if (List.ShownColumns != flags)
         {
             List.ShownColumns = flags;
@@ -207,6 +279,22 @@ public sealed partial class PanelPaneModel : ObservableObject, IShellWidget
         }
 
         return false;
+    }
+
+    private void OnRenameRequested(object? sender, PanelSide side)
+    {
+        if (side == _side)
+        {
+            List.BeginRename();
+        }
+    }
+
+    private void OnRenameCommitted(object? sender, FileListRenameEventArgs e)
+    {
+        if (e.Row.Source is Entry entry && !entry.IsParent && entry.Name != e.Name)
+        {
+            _panels.CommitRename(entry.Path, e.Name);
+        }
     }
 
     private void ShowFailure(PanelSnapshot snap)

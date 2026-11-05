@@ -13,7 +13,7 @@ public sealed partial class Tab
     public async Task<bool> GoAsync(Location location, bool showHidden, CancellationToken cancellationToken = default)
     {
         ArgumentNullException.ThrowIfNull(location);
-        var listed = await ReadListingAsync(location, showHidden, cancellationToken).ConfigureAwait(false);
+        var listed = await ReadListingAsync(location, showHidden, false, cancellationToken).ConfigureAwait(false);
         if (!listed.IsSuccess)
         {
             Error = listed.Error ?? OperationError.NotFound(location.Path);
@@ -24,6 +24,8 @@ public sealed partial class Tab
         Location = location;
         Error = null;
         Filter = null;
+        Branch = false;
+        _folderSizes.Clear();
         _selected.Clear();
         Cursor = 0;
         ReplaceEntries(listed.Value);
@@ -81,7 +83,7 @@ public sealed partial class Tab
         }
 
         var next = from[^1];
-        var listed = await ReadListingAsync(next, showHidden, cancellationToken).ConfigureAwait(false);
+        var listed = await ReadListingAsync(next, showHidden, false, cancellationToken).ConfigureAwait(false);
         if (!listed.IsSuccess)
         {
             Error = listed.Error ?? OperationError.NotFound(next.Path);
@@ -94,6 +96,8 @@ public sealed partial class Tab
         Location = next;
         Error = null;
         Filter = null;
+        Branch = false;
+        _folderSizes.Clear();
         _selected.Clear();
         Cursor = 0;
         ReplaceEntries(listed.Value);
