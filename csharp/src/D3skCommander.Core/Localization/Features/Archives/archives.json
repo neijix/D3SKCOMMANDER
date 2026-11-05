@@ -1,0 +1,10 @@
+{
+  "archives.archive_name": {
+    "en": "Archive name",
+    "fr": "Nom de l'archive"
+  },
+  "archives.not_archive": {
+    "en": "None of the selected files is an archive.",
+    "fr": "Aucun des fichiers sélectionnés n'est une archive."
+  }
+}
