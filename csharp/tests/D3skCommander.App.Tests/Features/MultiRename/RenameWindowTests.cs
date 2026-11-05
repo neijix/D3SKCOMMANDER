@@ -163,7 +163,7 @@ public class RenameWindowTests
     public void ModuleRegistersTheCommand()
     {
         var text = Localizer.Load(Language.En, Language.En);
-        using var provider = Program.BuildProvider(text);
+        using var provider = TestComposition.Build(text);
         var module = provider.GetRequiredService<MultiRenameModule>();
         var shell = new ShellContributions();
         module.Contribute(shell);

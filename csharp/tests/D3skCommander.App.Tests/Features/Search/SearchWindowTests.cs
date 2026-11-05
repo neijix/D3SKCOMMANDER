@@ -35,7 +35,7 @@ public class SearchWindowTests
     public void ModuleRegistersTheCommandAndTheToolWindow()
     {
         var text = English();
-        using var provider = Program.BuildProvider(text);
+        using var provider = TestComposition.Build(text);
         var module = provider.GetRequiredService<SearchModule>();
         var shell = new ShellContributions();
         module.Contribute(shell);

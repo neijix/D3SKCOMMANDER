@@ -14,7 +14,7 @@ public sealed class StartupWiringTests
     {
         var folder = Environment.GetEnvironmentVariable(SettingsPlaces.ConfigDirVariable);
         Assert.False(string.IsNullOrEmpty(folder));
-        using var services = Program.BuildProvider();
+        using var services = TestComposition.Build();
         var settings = services.GetRequiredService<AppSettings>();
         Assert.Equal(folder, settings.Directory);
         Assert.Equal(SettingsSource.Env, settings.Folder.Source);

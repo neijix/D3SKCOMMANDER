@@ -14,7 +14,7 @@ public class DriveListTests
         using var harness = await DrivesHarness.Open();
         var pending = harness.Commands.ChooseDriveAsync(PanelSide.Left);
         var shown = await harness.Dialogs.WaitShownAsync();
-        Assert.Equal(["/ - 1.0 KB free", "smb://nas/media (network)"], shown.Choices);
+        Assert.Equal([DrivesHarness.DriveRoot + " - 1.0 KB free", "smb://nas/media (network)"], shown.Choices);
         harness.Dialogs.Answer(DialogResult.Cancel());
         await pending;
 

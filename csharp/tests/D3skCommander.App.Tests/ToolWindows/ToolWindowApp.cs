@@ -29,7 +29,7 @@ internal sealed class ToolWindowApp : IDisposable
     public static ToolWindowApp Open()
     {
         var localizer = TextCatalog.Load(settingsLanguage: Language.En, systemLanguage: Language.En);
-        return new ToolWindowApp(Program.BuildProvider(localizer));
+        return new ToolWindowApp(TestComposition.Build(localizer));
     }
 
     public void Dispose()

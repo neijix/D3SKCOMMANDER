@@ -73,9 +73,12 @@ internal sealed class DrivesHarness : IDisposable
         Directory.Delete(_root, true);
     }
 
+    /// <summary>The one fake drive: the root of the temp folder ("/" on Unix, the system drive on Windows).</summary>
+    public static string DriveRoot { get; } = Path.GetPathRoot(Path.GetTempPath())!;
+
     private sealed class FixedDrives : IDriveSource
     {
-        public IReadOnlyList<DriveEntry> Mounted() => [new DriveEntry("/", "/", "ext4", 1024, 4096)];
+        public IReadOnlyList<DriveEntry> Mounted() => [new DriveEntry(DriveRoot, DriveRoot, "ext4", 1024, 4096)];
     }
 
     private sealed class FixedShares : INetDriveRunner

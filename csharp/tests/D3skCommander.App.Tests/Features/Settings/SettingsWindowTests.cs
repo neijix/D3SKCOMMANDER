@@ -21,7 +21,7 @@ public class SettingsWindowTests
     public void F9OpensTheSettingsToolWindowWithTheStoredValues()
     {
         var text = Localizer.Load(settingsLanguage: Language.En, systemLanguage: Language.En);
-        using var provider = Program.BuildProvider(text);
+        using var provider = TestComposition.Build(text);
         var main = provider.GetRequiredService<MainWindow>();
         main.Show();
         var tools = provider.GetRequiredService<IToolWindowHost>();

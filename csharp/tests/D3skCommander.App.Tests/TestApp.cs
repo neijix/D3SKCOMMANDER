@@ -12,7 +12,7 @@ namespace D3skCommander.App.Tests;
 public static class TestApp
 {
     public static AppBuilder BuildAvaloniaApp() =>
-        AppBuilder.Configure(() => new App(Program.BuildProvider()))
+        AppBuilder.Configure(() => new App(TestComposition.Build()))
             .UseSkia()
             .UseHeadless(new AvaloniaHeadlessPlatformOptions { UseHeadlessDrawing = false });
 }

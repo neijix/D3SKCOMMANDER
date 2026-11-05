@@ -123,7 +123,7 @@ public class UpdateWindowTests
     public async Task CheckUpdateOpensTheUpdateToolWindowWithTheVersions()
     {
         var feed = new FakeFeed { Answer = Releases.Ok("0.3.0", Asset("d3skcommander-0.3.0-linux-x86_64.tar.gz", [1])) };
-        using var provider = Program.BuildProvider(English);
+        using var provider = TestComposition.Build(English);
         var main = provider.GetRequiredService<MainWindow>();
         main.Show();
         var tools = provider.GetRequiredService<IToolWindowHost>();

@@ -309,7 +309,7 @@ public class ScreenshotHookTests
             (string Name, string? Value)[] variables)
         {
             var localizer = Localizer.Load(settingsLanguage: Language.En, systemLanguage: Language.En);
-            var provider = Program.BuildProvider(localizer, services =>
+            var provider = TestComposition.Build(localizer, services =>
             {
                 if (clock is not null)
                 {

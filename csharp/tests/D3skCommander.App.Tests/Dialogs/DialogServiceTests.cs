@@ -116,7 +116,7 @@ public class DialogServiceTests
     [AvaloniaFact]
     public void ModuleRegistersDialogServiceAndFolderPicker()
     {
-        using var provider = Program.BuildProvider(Localizer.Load(settingsLanguage: Language.En, systemLanguage: Language.En));
+        using var provider = TestComposition.Build(Localizer.Load(settingsLanguage: Language.En, systemLanguage: Language.En));
         Assert.IsType<DialogService>(provider.GetRequiredService<IDialogService>());
         Assert.IsType<OsFolderPicker>(provider.GetRequiredService<IFolderPicker>());
         Assert.IsType<WindowDialogSurface>(provider.GetRequiredService<IDialogSurface>());

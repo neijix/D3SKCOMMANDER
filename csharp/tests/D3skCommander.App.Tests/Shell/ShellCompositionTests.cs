@@ -41,7 +41,7 @@ public class ShellCompositionTests
     [AvaloniaFact]
     public void CompositionRegistersEveryModule()
     {
-        using var provider = Program.BuildProvider(Localizer.Load(settingsLanguage: Language.En, systemLanguage: Language.En));
+        using var provider = TestComposition.Build(Localizer.Load(settingsLanguage: Language.En, systemLanguage: Language.En));
         Assert.IsType<ArchivesModule>(provider.GetRequiredService<ArchivesModule>());
         Assert.IsType<CatalogModule>(provider.GetRequiredService<CatalogModule>());
         Assert.IsType<ClipboardModule>(provider.GetRequiredService<ClipboardModule>());

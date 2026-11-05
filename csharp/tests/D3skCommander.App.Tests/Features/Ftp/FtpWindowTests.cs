@@ -66,7 +66,7 @@ public sealed class FtpWindowTests : IDisposable
     [AvaloniaFact]
     public void ModuleRegistersTheCommandAndTheToolWindow()
     {
-        using var provider = Program.BuildProvider(English());
+        using var provider = TestComposition.Build(English());
         var module = provider.GetRequiredService<FtpModule>();
         var shell = new ShellContributions();
         module.Contribute(shell);

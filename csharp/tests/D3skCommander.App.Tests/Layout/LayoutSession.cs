@@ -54,7 +54,7 @@ internal sealed class LayoutSession : IDisposable
         var directory = System.IO.Directory.CreateTempSubdirectory("d3sk-layout-").FullName;
         var picker = new FakeFolderPicker();
         var localizer = TextCatalog.Load(Language.En, Language.En);
-        var provider = Program.BuildProvider(localizer, services =>
+        var provider = TestComposition.Build(localizer, services =>
         {
             services.AddSingleton<IFolderPicker>(picker);
             services.AddSingleton<TimeProvider>(new FixedClock());

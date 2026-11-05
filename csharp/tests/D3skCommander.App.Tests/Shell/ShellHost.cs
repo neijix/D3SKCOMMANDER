@@ -27,7 +27,7 @@ internal sealed class ShellHost : IDisposable
     public static ShellHost Open(Language language, Action<IServiceCollection>? configure = null)
     {
         var localizer = TextCatalog.Load(settingsLanguage: language, systemLanguage: language);
-        return new ShellHost(Program.BuildProvider(localizer, configure));
+        return new ShellHost(TestComposition.Build(localizer, configure));
     }
 
     public void Dispose()
