@@ -104,12 +104,14 @@ public class ViewerWindowTests
             var text = item.GetVisualDescendants().OfType<TextBlock>().Last();
             Assert.Equal(model.Rows[0].Text, text.Text);
             Assert.True(model.Rows.Count > 1);
-            // The rendered advance of one character of the row font, read from the row itself.
-            var charWidth = text.Bounds.Width / text.Text!.Length;
+            // The advance of one character of the row font, read from the row's own text layout:
+            // its Bounds are snapped to whole pixels (layout rounding), which spread over a long
+            // row overstates the width by up to a pixel.
+            var charWidth = text.TextLayout.WidthIncludingTrailingWhitespace / text.Text!.Length;
             var room = list.Scroll!.Viewport.Width - 8;
             var used = (model.Rows[0].Gutter.Length + text.Text.Length) * charWidth;
             var at = width.ToString(System.Globalization.CultureInfo.InvariantCulture);
-            Assert.True(used <= room + 0.01, $"{used} > {room} at {at}");
+            Assert.True(used <= room + 0.01, $"{used} > {room} at {at} (bounds {text.Bounds.Width})");
             Assert.True(used + charWidth > room, $"one more character fits in {room} at {at}");
         }
     }
