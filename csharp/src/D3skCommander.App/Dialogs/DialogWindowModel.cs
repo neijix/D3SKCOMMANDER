@@ -1,16 +1,17 @@
-using System.ComponentModel;
-using System.Runtime.CompilerServices;
 using System.Windows.Input;
+using CommunityToolkit.Mvvm.ComponentModel;
+using CommunityToolkit.Mvvm.Input;
 using D3skCommander.Core.Localization;
 
 namespace D3skCommander.App.Dialogs;
 
 /// <summary>What the shared dialog window binds to. Built from one <see cref="DialogRequest"/>.</summary>
-public sealed class DialogWindowModel : INotifyPropertyChanged
+public sealed partial class DialogWindowModel : ObservableObject
 {
-    private readonly DialogCommand _accept;
+    private readonly RelayCommand _accept;
     private Action<DialogResult>? _finish;
     private bool _closed;
+    [ObservableProperty]
     private string _input;
 
     private DialogWindowModel(DialogRequest request, ILocalizer localizer)
@@ -27,16 +28,14 @@ public sealed class DialogWindowModel : INotifyPropertyChanged
         ShowChoices = request.Kind == DialogKind.Choice;
         ShowAccept = request.Kind != DialogKind.Choice;
         ShowCancel = request.Kind != DialogKind.Message;
-        _accept = new DialogCommand(Accept, CanAccept);
-        CancelCommand = new DialogCommand(Cancel);
+        _accept = new RelayCommand(Accept, CanAccept);
+        CancelCommand = new RelayCommand(Cancel);
         Choices = BuildChoices(request);
         if (Form is not null)
         {
             Form.Changed += (_, _) => _accept.NotifyCanExecuteChanged();
         }
     }
-
-    public event PropertyChangedEventHandler? PropertyChanged;
 
     public string Title { get; }
 
@@ -65,12 +64,6 @@ public sealed class DialogWindowModel : INotifyPropertyChanged
     public ICommand AcceptCommand => _accept;
 
     public ICommand CancelCommand { get; }
-
-    public string Input
-    {
-        get => _input;
-        set => SetInput(value);
-    }
 
     public static DialogWindowModel Create(DialogRequest request, ILocalizer localizer, IFolderPicker folders)
     {
@@ -125,7 +118,7 @@ public sealed class DialogWindowModel : INotifyPropertyChanged
         for (var i = 0; i < request.Choices.Count; i++)
         {
             var index = i;
-            buttons.Add(new DialogChoiceButton(request.Choices[i], new DialogCommand(() => Finish(DialogResult.Picked(index)))));
+            buttons.Add(new DialogChoiceButton(request.Choices[i], new RelayCommand(() => Finish(DialogResult.Picked(index)))));
         }
 
         return buttons;
@@ -157,20 +150,6 @@ public sealed class DialogWindowModel : INotifyPropertyChanged
         var finish = _finish ?? throw new InvalidOperationException("The dialog window is not open.");
         finish(result);
     }
-
-    private void SetInput(string value)
-    {
-        if (_input == value)
-        {
-            return;
-        }
-
-        _input = value;
-        OnPropertyChanged();
-    }
-
-    private void OnPropertyChanged([CallerMemberName] string? name = null) =>
-        PropertyChanged?.Invoke(this, new PropertyChangedEventArgs(name));
 }
 
 /// <summary>One button in a choice dialog. The label is already localized by the caller.</summary>

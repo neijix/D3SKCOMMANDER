@@ -1,7 +1,8 @@
+using Avalonia.Controls;
+using Avalonia.VisualTree;
 using D3skCommander.App.Dialogs;
 using D3skCommander.App.Features.Panels;
 using D3skCommander.App.Features.Tools;
-using D3skCommander.App.Host;
 using D3skCommander.App.Shell;
 using D3skCommander.App.Tests.Dialogs;
 using D3skCommander.Core.Checksums;
@@ -9,7 +10,6 @@ using D3skCommander.Core.Jobs;
 using D3skCommander.Core.Localization;
 using D3skCommander.Core.Providers;
 using D3skCommander.Core.Splitter;
-using Hexa.NET.ImGui;
 using Xunit;
 
 namespace D3skCommander.App.Tests.Features.Tools;
@@ -97,10 +97,12 @@ internal sealed class ToolHarness : IDisposable
         Workspace.ApplySelection(side, cursor, marked);
     }
 
+    /// <summary>Renders the form through the shared template; fails if a field type has no editor.</summary>
     public static void Draw(DialogForm form)
     {
         ArgumentNullException.ThrowIfNull(form);
-        DrawView(new FormDialogView(form));
+        using var shown = Render(form);
+        Assert.NotEmpty(shown.View.GetVisualDescendants().OfType<Control>());
     }
 
     public static void Browse(DialogRequest request, ILocalizer text, string chosen)
@@ -111,30 +113,28 @@ internal sealed class ToolHarness : IDisposable
         var picker = new FakeFolderPicker();
         picker.Enqueue(chosen);
         DialogWindowModel.Create(request, text, picker);
-        var view = new FormDialogView(form);
-        DrawView(view);
-
-        var button = Assert.Single(view.BrowseButtons);
-        Assert.Equal(text.Get("dialog.browse"), button.Content);
-        Assert.True(button.Command.CanExecute(null));
+        using var shown = Render(form);
+        var button = Assert.Single(
+            shown.View.GetVisualDescendants().OfType<Button>(),
+            candidate => Equals(candidate.Content, text.Get("dialog.browse")));
+        Assert.True(button.Command!.CanExecute(null));
         button.Command.Execute(null);
         Assert.Equal(chosen, Assert.Single(form.Fields.OfType<FolderDialogField>()).Path);
     }
 
-    private static void DrawView(FormDialogView view)
+    private static RenderedForm Render(DialogForm form)
     {
-        ImGuiProbe.Draw(() =>
-        {
-            ImGui.Begin("tool-form");
-            try
-            {
-                view.Draw();
-            }
-            finally
-            {
-                ImGui.End();
-            }
-        });
+        var view = new FormDialogView { DataContext = form };
+        var window = new Window { Content = view };
+        window.Show();
+        return new RenderedForm(window, view);
+    }
+
+    private sealed class RenderedForm(Window window, FormDialogView view) : IDisposable
+    {
+        public FormDialogView View { get; } = view;
+
+        public void Dispose() => window.Close();
     }
 
     public void Dispose()

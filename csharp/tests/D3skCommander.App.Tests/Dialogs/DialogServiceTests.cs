@@ -1,4 +1,8 @@
+using Avalonia.Controls;
+using Avalonia.Headless;
 using Avalonia.Headless.XUnit;
+using Avalonia.Input;
+using Avalonia.VisualTree;
 using D3skCommander.App;
 using D3skCommander.App.Dialogs;
 using D3skCommander.App.Shell;
@@ -115,7 +119,7 @@ public class DialogServiceTests
         using var provider = Program.BuildProvider(Localizer.Load(settingsLanguage: Language.En, systemLanguage: Language.En));
         Assert.IsType<DialogService>(provider.GetRequiredService<IDialogService>());
         Assert.IsType<OsFolderPicker>(provider.GetRequiredService<IFolderPicker>());
-        Assert.IsType<ImGuiDialogSurface>(provider.GetRequiredService<IDialogSurface>());
+        Assert.IsType<WindowDialogSurface>(provider.GetRequiredService<IDialogSurface>());
         Assert.IsType<DialogsModule>(provider.GetRequiredService<DialogsModule>());
     }
 
@@ -123,27 +127,55 @@ public class DialogServiceTests
     public async Task OwnedModalWindowsOpenOneAtATime()
     {
         using var host = ShellHost.Open(Language.Fr);
-        var surface = new ImGuiDialogSurface(new FixedOwner(host.Window), host.Localizer, new FakeFolderPicker());
+        var surface = new WindowDialogSurface(new FixedOwner(host.Window), host.Localizer, new FakeFolderPicker());
         var dialogs = new DialogService(surface);
         var stop = TestContext.Current.CancellationToken;
         var text = dialogs.AskTextAsync(host.Localizer.Get("dialog.choose_folder"), host.Localizer.Get("dialog.browse"), "dossier", stop);
-        var first = await WaitForCurrent(surface);
-        Assert.Same(host.Window, first.Owner);
+        var first = await WaitForDialog(host.Window);
         Assert.Equal("Choisir un dossier", first.Title);
-        Assert.Equal("Annuler", first.CancelButton.Content);
+        Assert.Equal("Annuler", ButtonNamed(first, "CancelButton").Content);
         Assert.False(text.IsCompleted);
 
         var confirm = dialogs.ConfirmAsync("Confirmer", "Continuer", stop);
-        Assert.Single(host.Window.OwnedWindows);
+        Assert.Single(Dialogs(host.Window));
         Assert.False(confirm.IsCompleted);
 
         Accept(first);
         Assert.Equal("dossier", await text);
-        var second = await WaitForCurrent(surface, first);
+        var second = await WaitForDialog(host.Window, first);
         Assert.NotSame(first, second);
-        Cancel(second);
+        ButtonNamed(second, "CancelButton").Command!.Execute(null);
         Assert.False(await confirm);
-        Assert.Empty(host.Window.OwnedWindows);
+        Assert.Empty(Dialogs(host.Window));
+    }
+
+    [AvaloniaFact]
+    public async Task EnterAcceptsWhenAllowedAndEscapeCancels()
+    {
+        using var host = ShellHost.Open(Language.En);
+        var dialogs = new DialogService(new WindowDialogSurface(new FixedOwner(host.Window), host.Localizer, new FakeFolderPicker()));
+        var stop = TestContext.Current.CancellationToken;
+        var text = dialogs.AskTextAsync("Rename", "Name", "old", stop);
+        var window = await WaitForDialog(host.Window);
+        window.KeyPressQwerty(PhysicalKey.Enter, RawInputModifiers.None);
+        Assert.Equal("old", await text);
+
+        var confirm = dialogs.ConfirmAsync("Delete", "Sure?", stop);
+        window = await WaitForDialog(host.Window, window);
+        window.KeyPressQwerty(PhysicalKey.Escape, RawInputModifiers.None);
+        Assert.False(await confirm);
+    }
+
+    [AvaloniaFact]
+    public async Task ChoiceDialogReturnsThePickedButton()
+    {
+        using var host = ShellHost.Open(Language.En);
+        var dialogs = new DialogService(new WindowDialogSurface(new FixedOwner(host.Window), host.Localizer, new FakeFolderPicker()));
+        var pending = dialogs.ChooseAsync("Conflict", "Exists", ["Overwrite", "Skip"], TestContext.Current.CancellationToken);
+        var window = await WaitForDialog(host.Window);
+        var skip = window.GetVisualDescendants().OfType<Button>().Single(button => Equals(button.Content, "Skip"));
+        skip.Command!.Execute(null);
+        Assert.Equal(1, await pending);
     }
 
     [AvaloniaFact]
@@ -154,20 +186,20 @@ public class DialogServiceTests
         picker.Enqueue("/picked");
         var folder = new FolderDialogField("Cible", "");
         var form = new DialogForm("Décompresser", FormFields(folder), FolderIsFilled);
-        var surface = new ImGuiDialogSurface(new FixedOwner(host.Window), host.Localizer, picker);
+        var surface = new WindowDialogSurface(new FixedOwner(host.Window), host.Localizer, picker);
         var dialogs = new DialogService(surface);
         var pending = dialogs.ShowFormAsync(form, TestContext.Current.CancellationToken);
-        var window = await WaitForCurrent(surface);
-        Assert.Same(host.Window, window.Owner);
-        Assert.IsType<FormDialogView>(window.Form);
-        Assert.Equal("Annuler", window.CancelButton.Content);
-        Assert.Contains("deux fichiers", window.Labels);
-        var browse = Assert.Single(window.Form!.BrowseButtons);
-        Assert.Equal(host.Localizer.Get("dialog.browse"), browse.Content);
-        Assert.False(window.AcceptButton.Command.CanExecute(null));
-        browse.Command.Execute(null);
+        var window = await WaitForDialog(host.Window);
+        Assert.IsType<FormDialogView>(window.GetVisualDescendants().OfType<FormDialogView>().Single());
+        Assert.Equal("Annuler", ButtonNamed(window, "CancelButton").Content);
+        Assert.Contains(window.GetVisualDescendants().OfType<TextBlock>(), block => block.Text == "deux fichiers");
+        var browse = window.GetVisualDescendants().OfType<Button>()
+            .Single(button => Equals(button.Content, host.Localizer.Get("dialog.browse")));
+        var accept = ButtonNamed(window, "AcceptButton");
+        Assert.False(accept.Command!.CanExecute(null));
+        browse.Command!.Execute(null);
         Assert.Equal("/picked", folder.Path);
-        Assert.True(window.AcceptButton.Command.CanExecute(null));
+        Assert.True(accept.Command.CanExecute(null));
         Accept(window);
         Assert.True(await pending);
     }
@@ -189,23 +221,28 @@ public class DialogServiceTests
 
     private static void Accept(DialogWindow window)
     {
-        Assert.True(window.AcceptButton.Command.CanExecute(null));
-        window.AcceptButton.Command.Execute(null);
+        var command = ButtonNamed(window, "AcceptButton").Command!;
+        Assert.True(command.CanExecute(null));
+        command.Execute(null);
     }
 
-    private static void Cancel(DialogWindow window) => window.CancelButton.Command.Execute(null);
+    private static Button ButtonNamed(DialogWindow window, string name) =>
+        window.GetVisualDescendants().OfType<Button>().Single(button => button.Name == name);
 
-    private static async Task<DialogWindow> WaitForCurrent(ImGuiDialogSurface surface, DialogWindow? previous = null)
+    private static List<DialogWindow> Dialogs(MainWindow main) =>
+        ((Window)main).OwnedWindows.OfType<DialogWindow>().ToList();
+
+    private static async Task<DialogWindow> WaitForDialog(MainWindow main, DialogWindow? previous = null)
     {
-        for (var i = 0; i < 30; i++)
+        for (var i = 0; i < 50; i++)
         {
-            var current = surface.Current;
-            if (current is { IsVisible: true } && !ReferenceEquals(current, previous))
+            var current = Dialogs(main).FirstOrDefault(window => !ReferenceEquals(window, previous) && window.IsVisible);
+            if (current is not null)
             {
                 return current;
             }
 
-            await Task.Yield();
+            await Task.Delay(10);
         }
 
         throw new TimeoutException("The next dialog did not open.");

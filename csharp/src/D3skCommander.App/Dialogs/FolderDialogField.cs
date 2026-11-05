@@ -1,4 +1,5 @@
 using System.Windows.Input;
+using CommunityToolkit.Mvvm.Input;
 
 namespace D3skCommander.App.Dialogs;
 
@@ -29,6 +30,6 @@ public sealed class FolderDialogField : DialogField
         ArgumentException.ThrowIfNullOrEmpty(browseText);
         ArgumentNullException.ThrowIfNull(browse);
         BrowseText = browseText;
-        BrowseCommand = new DialogCommand(browse);
+        BrowseCommand = new AsyncRelayCommand(browse);
     }
 }

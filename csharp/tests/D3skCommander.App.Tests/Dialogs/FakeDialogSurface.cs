@@ -36,10 +36,6 @@ public sealed class FakeDialogSurface : IDialogSurface
         }
     }
 
-    public void Draw()
-    {
-    }
-
     public ValueTask<DialogRequest> WaitShownAsync() => _shown.Reader.ReadAsync();
 
     public async Task<DialogResult> ShowAsync(DialogRequest request, CancellationToken cancellationToken)
