@@ -1,3 +1,4 @@
+using Avalonia.Headless.XUnit;
 using D3skCommander.App;
 using D3skCommander.App.Dialogs;
 using D3skCommander.App.Shell;
@@ -10,7 +11,7 @@ namespace D3skCommander.App.Tests.Dialogs;
 
 public class DialogServiceTests
 {
-    [Fact]
+    [AvaloniaFact]
     public async Task OneModalAtATimeIsAwaitedAndAnsweredByTheFake()
     {
         var stop = TestContext.Current.CancellationToken;
@@ -38,7 +39,7 @@ public class DialogServiceTests
         Assert.Null(dialogs.Current);
     }
 
-    [Fact]
+    [AvaloniaFact]
     public async Task TextChoiceAndFormReturnTheFakeAnswer()
     {
         var stop = TestContext.Current.CancellationToken;
@@ -71,7 +72,7 @@ public class DialogServiceTests
         Assert.Equal("renamed", name.Text);
     }
 
-    [Fact]
+    [AvaloniaFact]
     public async Task FakeAnswersTheFolderPicker()
     {
         var stop = TestContext.Current.CancellationToken;
@@ -87,7 +88,7 @@ public class DialogServiceTests
         Assert.Equal(2, picker.Calls);
     }
 
-    [Fact]
+    [AvaloniaFact]
     public void FormAcceptFollowsTheFields()
     {
         var folder = new FolderDialogField("Target", "");
@@ -97,7 +98,7 @@ public class DialogServiceTests
         Assert.True(form.CanAccept);
     }
 
-    [Fact]
+    [AvaloniaFact]
     public void DialogStringsAreBilingual()
     {
         var localizer = Localizer.Load(settingsLanguage: Language.En, systemLanguage: Language.En);
@@ -108,7 +109,7 @@ public class DialogServiceTests
         Assert.NotEqual(localizer.Get("dialog.browse", Language.En), localizer.Get("dialog.browse", Language.Fr));
     }
 
-    [Fact]
+    [AvaloniaFact]
     public void ModuleRegistersDialogServiceAndFolderPicker()
     {
         using var provider = Program.BuildProvider(Localizer.Load(settingsLanguage: Language.En, systemLanguage: Language.En));
@@ -118,7 +119,7 @@ public class DialogServiceTests
         Assert.IsType<DialogsModule>(provider.GetRequiredService<DialogsModule>());
     }
 
-    [Fact]
+    [AvaloniaFact]
     public async Task OwnedModalWindowsOpenOneAtATime()
     {
         using var host = ShellHost.Open(Language.Fr);
@@ -145,7 +146,7 @@ public class DialogServiceTests
         Assert.Empty(host.Window.OwnedWindows);
     }
 
-    [Fact]
+    [AvaloniaFact]
     public async Task FormDialogUsesTheSharedTemplate()
     {
         using var host = ShellHost.Open(Language.Fr);

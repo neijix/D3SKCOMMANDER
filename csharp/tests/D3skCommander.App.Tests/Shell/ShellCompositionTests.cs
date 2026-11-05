@@ -1,3 +1,4 @@
+using Avalonia.Headless.XUnit;
 using D3skCommander.App;
 using D3skCommander.App.Dialogs;
 using D3skCommander.App.Features.Archives;
@@ -36,7 +37,7 @@ namespace D3skCommander.App.Tests.Shell;
 
 public class ShellCompositionTests
 {
-    [Fact]
+    [AvaloniaFact]
     public void CompositionRegistersEveryModule()
     {
         using var provider = Program.BuildProvider(Localizer.Load(settingsLanguage: Language.En, systemLanguage: Language.En));
@@ -69,7 +70,7 @@ public class ShellCompositionTests
         Assert.IsType<StartupModule>(provider.GetRequiredService<StartupModule>());
     }
 
-    [Fact]
+    [AvaloniaFact]
     public void ARegisteredFeaturesCommandDispatches()
     {
         var probe = new DispatchProbe();
@@ -88,7 +89,7 @@ public class ShellCompositionTests
         Assert.Equal("probe", Assert.IsType<MenuExtraWidget>(trailing).Header);
     }
 
-    [Fact]
+    [AvaloniaFact]
     public void QuitClosesTheWindow()
     {
         using var host = ShellHost.Open(Language.En);

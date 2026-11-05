@@ -1,3 +1,4 @@
+using Avalonia.Headless.XUnit;
 using D3skCommander.App.Dialogs;
 using D3skCommander.App.Shell;
 using D3skCommander.App.Tests.Dialogs;
@@ -8,7 +9,7 @@ namespace D3skCommander.App.Tests.Features.Tools;
 
 public class ChecksumDialogTests
 {
-    [Fact]
+    [AvaloniaFact]
     public async Task ChecksumCreateWritesOneListOrOneFileEach()
     {
         var dialogs = new FakeDialogService();
@@ -48,7 +49,7 @@ public class ChecksumDialogTests
         Assert.NotEmpty(harness.Jobs.Jobs);
     }
 
-    [Fact]
+    [AvaloniaFact]
     public async Task ChecksumCreateExpandsAFolder()
     {
         var dialogs = new FakeDialogService();
@@ -70,7 +71,7 @@ public class ChecksumDialogTests
         Assert.Contains("b.txt", list);
     }
 
-    [Fact]
+    [AvaloniaFact]
     public async Task ChecksumVerifyReportsMatchAndMismatch()
     {
         var dialogs = new FakeDialogService();
@@ -102,7 +103,7 @@ public class ChecksumDialogTests
         await verify;
     }
 
-    [Fact]
+    [AvaloniaFact]
     public async Task ChecksumVerifyRefusesAFileThatIsNotAList()
     {
         var dialogs = new FakeDialogService();

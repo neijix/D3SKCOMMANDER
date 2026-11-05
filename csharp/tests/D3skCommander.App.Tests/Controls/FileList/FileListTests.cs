@@ -1,3 +1,4 @@
+using Avalonia.Headless.XUnit;
 using D3skCommander.App.Controls.FileList;
 using D3skCommander.App.Host;
 using D3skCommander.Core.FileSystem;
@@ -10,7 +11,7 @@ namespace D3skCommander.App.Tests.Controls.FileLists;
 
 public class FileListTests
 {
-    [Fact]
+    [AvaloniaFact]
     public void OneVirtualizedListServesFullAndBrief()
     {
         var entries = FileListSamples.Files(400);
@@ -28,7 +29,7 @@ public class FileListTests
         }, height: 220);
     }
 
-    [Fact]
+    [AvaloniaFact]
     public void FullViewShowsTheEntryFields()
     {
         var text = TextCatalog.Load(Language.En, Language.En);
@@ -44,7 +45,7 @@ public class FileListTests
         }, localizer: text);
     }
 
-    [Fact]
+    [AvaloniaFact]
     public void HeadersFollowTheLanguage()
     {
         var text = TextCatalog.Load(Language.Fr, Language.Fr);
@@ -60,14 +61,14 @@ public class FileListTests
         }, localizer: text);
     }
 
-    [Fact]
+    [AvaloniaFact]
     public void APressOnAFileNameSelectsItEvenIfTheMouseMovesOrLingers()
     {
         AssertPressSurvives(1);
         AssertPressSurvives(70);
     }
 
-    [Fact]
+    [AvaloniaFact]
     public void ACtrlPressTogglesAndAPlainPressClearsTheSelection()
     {
         var entries = new[]
@@ -95,7 +96,7 @@ public class FileListTests
         });
     }
 
-    [Fact]
+    [AvaloniaFact]
     public void AShiftPressAddsTheRangeAndCtrlSkipsTheParent()
     {
         var entries = new List<Entry> { FileListSamples.Parent("/t") };
@@ -115,7 +116,7 @@ public class FileListTests
         });
     }
 
-    [Fact]
+    [AvaloniaFact]
     public void InsertAndSpaceMarkTheCursorEntry()
     {
         var entries = new[]
@@ -149,7 +150,7 @@ public class FileListTests
         });
     }
 
-    [Fact]
+    [AvaloniaFact]
     public void PageUpAndPageDownMoveByTwentyRows()
     {
         FileListHarness.Use(FileListSamples.Files(50), list =>
@@ -178,7 +179,7 @@ public class FileListTests
         });
     }
 
-    [Fact]
+    [AvaloniaFact]
     public void RenameEditsTheNameInPlace()
     {
         var entries = new[]
@@ -205,7 +206,7 @@ public class FileListTests
         });
     }
 
-    [Fact]
+    [AvaloniaFact]
     public void EscapeCancelsRenameAndAnInvalidNameStaysOpen()
     {
         var entries = new[] { FileListSamples.File("report.txt", "/t/report.txt", 4, "rw-r--r--") };
@@ -226,7 +227,7 @@ public class FileListTests
         });
     }
 
-    [Fact]
+    [AvaloniaFact]
     public void CustomRowsUseTheSameList()
     {
         var text = TextCatalog.Load(Language.En, Language.En);
@@ -244,7 +245,7 @@ public class FileListTests
         }, localizer: text);
     }
 
-    [Fact]
+    [AvaloniaFact]
     public void TheListDrawsOneImGuiFrame()
     {
         var list = FileListHarness.Open(FileListSamples.Files(400), FileListView.Full, 220, null);
@@ -252,7 +253,7 @@ public class FileListTests
         Assert.InRange(list.RealizedCount, 1, 399);
     }
 
-    [Fact]
+    [AvaloniaFact]
     public void AClickPastTheNameSelectsTheRow()
     {
         var entries = new[]
@@ -290,7 +291,7 @@ public class FileListTests
         Assert.Equal(0, list.MarkedCount);
     }
 
-    [Fact]
+    [AvaloniaFact]
     public void ADoubleClickOnTheRowActivatesIt()
     {
         var entries = new[]
@@ -342,7 +343,7 @@ public class FileListTests
         Assert.Equal(1, list.CursorIndex);
     }
 
-    [Fact]
+    [AvaloniaFact]
     public void TheCursorStaysOnScreenAfterALongJump()
     {
         var list = FileListHarness.Open(FileListSamples.Files(400), FileListView.Full, 220, null);
@@ -352,7 +353,7 @@ public class FileListTests
         Assert.True(list.TryRowTop(399, out _));
     }
 
-    [Fact]
+    [AvaloniaFact]
     public void TheWheelMovesALongFolder()
     {
         var list = FileListHarness.Open(FileListSamples.Files(400), FileListView.Full, 220, null);

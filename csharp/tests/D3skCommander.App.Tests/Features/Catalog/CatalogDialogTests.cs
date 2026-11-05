@@ -1,3 +1,4 @@
+using Avalonia.Headless.XUnit;
 using D3skCommander.App.Dialogs;
 using D3skCommander.App.Features.Catalog;
 using D3skCommander.App.Features.Panels;
@@ -17,7 +18,7 @@ namespace D3skCommander.App.Tests.Features.Catalog;
 
 public class CatalogDialogTests
 {
-    [Fact]
+    [AvaloniaFact]
     public async Task CreateSearchesOfflineAndOpensTheHit()
     {
         var stop = TestContext.Current.CancellationToken;
@@ -63,7 +64,7 @@ public class CatalogDialogTests
         Assert.True(DiskCatalog.IsCatalog(output));
     }
 
-    [Fact]
+    [AvaloniaFact]
     public async Task PlainTextNamedD3catIsNotSearched()
     {
         var text = English();
@@ -84,7 +85,7 @@ public class CatalogDialogTests
         Assert.Null(dialog.Hits.CellText(0, 0));
     }
 
-    [Fact]
+    [AvaloniaFact]
     public async Task CancelLeavesNoCatalog()
     {
         var stop = TestContext.Current.CancellationToken;
@@ -107,7 +108,7 @@ public class CatalogDialogTests
         Assert.Empty(Directory.GetFiles(other, "*" + DiskCatalog.FileExtension));
     }
 
-    [Fact]
+    [AvaloniaFact]
     public void RegisterBindsTheCatalogCommand()
     {
         var services = new ServiceCollection();
@@ -128,7 +129,7 @@ public class CatalogDialogTests
         Assert.False(dialog.IsOpen);
     }
 
-    [Fact]
+    [AvaloniaFact]
     public void CatalogStringsAreBilingual()
     {
         var text = English();

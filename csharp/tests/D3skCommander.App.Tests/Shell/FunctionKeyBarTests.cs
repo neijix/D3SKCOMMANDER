@@ -1,3 +1,4 @@
+using Avalonia.Headless.XUnit;
 using D3skCommander.Core.Commands;
 using D3skCommander.Core.Localization;
 using Xunit;
@@ -6,7 +7,7 @@ namespace D3skCommander.App.Tests.Shell;
 
 public class FunctionKeyBarTests
 {
-    [Fact]
+    [AvaloniaFact]
     public void ShowsTheEightFunctionKeys()
     {
         using var host = ShellHost.Open(Language.En);
@@ -45,7 +46,7 @@ public class FunctionKeyBarTests
         }
     }
 
-    [Fact]
+    [AvaloniaFact]
     public void FrenchLabelsFollowTheLanguage()
     {
         using var host = ShellHost.Open(Language.Fr);

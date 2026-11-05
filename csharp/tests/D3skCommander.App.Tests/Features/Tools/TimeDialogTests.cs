@@ -1,3 +1,4 @@
+using Avalonia.Headless.XUnit;
 using D3skCommander.App.Dialogs;
 using D3skCommander.App.Shell;
 using D3skCommander.App.Tests.Dialogs;
@@ -8,7 +9,7 @@ namespace D3skCommander.App.Tests.Features.Tools;
 
 public class TimeDialogTests
 {
-    [Fact]
+    [AvaloniaFact]
     public async Task AddTimeShiftsTheModificationTime()
     {
         var dialogs = new FakeDialogService();
@@ -43,7 +44,7 @@ public class TimeDialogTests
         Assert.NotEmpty(harness.Jobs.Jobs);
     }
 
-    [Fact]
+    [AvaloniaFact]
     public async Task ReDateStepsEachFile()
     {
         var dialogs = new FakeDialogService();
@@ -80,7 +81,7 @@ public class TimeDialogTests
         AssertClose(times[1], parsed.Time.UtcDateTime.AddSeconds(60));
     }
 
-    [Fact]
+    [AvaloniaFact]
     public async Task TouchSetsTheDate()
     {
         var dialogs = new FakeDialogService();
@@ -105,7 +106,7 @@ public class TimeDialogTests
         AssertClose(File.GetLastWriteTimeUtc(path), parsed.Time.UtcDateTime);
     }
 
-    [Fact]
+    [AvaloniaFact]
     public async Task TouchOnAFolderChangesTheFilesInside()
     {
         var dialogs = new FakeDialogService();
@@ -135,7 +136,7 @@ public class TimeDialogTests
         AssertClose(File.GetLastWriteTimeUtc(outside), old);
     }
 
-    [Fact]
+    [AvaloniaFact]
     public async Task ABadDateDoesNotStartAJob()
     {
         var dialogs = new FakeDialogService();

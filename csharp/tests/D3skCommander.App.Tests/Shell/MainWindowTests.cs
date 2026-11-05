@@ -1,3 +1,4 @@
+using Avalonia.Headless.XUnit;
 using D3skCommander.App.Host;
 using D3skCommander.Core.Localization;
 using Xunit;
@@ -6,7 +7,7 @@ namespace D3skCommander.App.Tests.Shell;
 
 public class MainWindowTests
 {
-    [Fact]
+    [AvaloniaFact]
     public void EmptyMainWindowOpens()
     {
         using var host = ShellHost.Open(Language.En);
@@ -18,7 +19,7 @@ public class MainWindowTests
         Assert.NotNull(host.Window.RightPanel);
     }
 
-    [Fact]
+    [AvaloniaFact]
     public void TheShellDrawsOneImGuiFrame()
     {
         using var host = ShellHost.Open(Language.En);

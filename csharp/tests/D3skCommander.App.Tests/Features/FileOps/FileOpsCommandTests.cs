@@ -1,3 +1,4 @@
+using Avalonia.Headless.XUnit;
 using D3skCommander.App.Dialogs;
 using D3skCommander.App.Features.FileOps;
 using D3skCommander.App.Features.Panels;
@@ -13,7 +14,7 @@ namespace D3skCommander.App.Tests.Features.FileOps;
 
 public class FileOpsCommandTests
 {
-    [Fact]
+    [AvaloniaFact]
     public async Task CopyAsksForTheOtherPanelAndOverwritesWhenChosen()
     {
         using var root = new TempDir();
@@ -37,7 +38,7 @@ public class FileOpsCommandTests
         Assert.Contains(workspace.Read(PanelSide.Right).Entries, entry => entry.Name == "a.txt");
     }
 
-    [Fact]
+    [AvaloniaFact]
     public async Task NewFolderAndDeleteChangeThePanel()
     {
         using var root = new TempDir();

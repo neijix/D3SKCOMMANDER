@@ -1,3 +1,4 @@
+using Avalonia.Headless.XUnit;
 using D3skCommander.App.Dialogs;
 using D3skCommander.App.Features.Compare;
 using D3skCommander.App.Features.Panels;
@@ -12,7 +13,7 @@ namespace D3skCommander.App.Tests.Features.Compare;
 
 public class ComparePanelsDialogTests
 {
-    [Fact]
+    [AvaloniaFact]
     public async Task ShiftF2MarksFilesThatDifferInBothPanels()
     {
         using var root = new TempDir();
@@ -49,7 +50,7 @@ public class ComparePanelsDialogTests
         Assert.Equal(0, Extra(rightMarks, "only-right.txt"));
     }
 
-    [Fact]
+    [AvaloniaFact]
     public async Task CompareFilesOpensThePairFromEachPanel()
     {
         using var root = new TempDir();
@@ -76,7 +77,7 @@ public class ComparePanelsDialogTests
         Assert.Equal("", dialogs.Message);
     }
 
-    [Fact]
+    [AvaloniaFact]
     public async Task CompareFilesAsksWhenThePairIsMissing()
     {
         using var root = new TempDir();

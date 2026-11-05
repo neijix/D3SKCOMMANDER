@@ -1,3 +1,4 @@
+using Avalonia.Headless.XUnit;
 using D3skCommander.App.Dialogs;
 using D3skCommander.App.Features.Panels;
 using D3skCommander.App.Shell;
@@ -9,7 +10,7 @@ namespace D3skCommander.App.Tests.Features.Panels;
 
 public class PanelWorkspaceTests
 {
-    [Fact]
+    [AvaloniaFact]
     public async Task EnterThenParentLeavesTheCursorOnThatFolder()
     {
         using var root = new TempDir();
@@ -37,7 +38,7 @@ public class PanelWorkspaceTests
         Assert.Equal(PanelSide.Right, workspace.ActiveSide);
     }
 
-    [Fact]
+    [AvaloniaFact]
     public async Task AMissingFolderKeepsTheLocation()
     {
         using var root = new TempDir();
@@ -57,7 +58,7 @@ public class PanelWorkspaceTests
         Assert.True(after.FailureToken > before);
     }
 
-    [Fact]
+    [AvaloniaFact]
     public async Task AClickKeepsTheListing()
     {
         using var root = new TempDir();
@@ -78,7 +79,7 @@ public class PanelWorkspaceTests
         Assert.Equal(file, after.Cursor);
     }
 
-    [Fact]
+    [AvaloniaFact]
     public async Task AChangedFolderIsRereadAfterTheInterval()
     {
         using var root = new TempDir();

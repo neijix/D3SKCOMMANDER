@@ -1,3 +1,4 @@
+using Avalonia.Headless.XUnit;
 using D3skCommander.App.Shell;
 using D3skCommander.Core.Commands;
 using D3skCommander.Core.Localization;
@@ -7,7 +8,7 @@ namespace D3skCommander.App.Tests.Shell;
 
 public class MenuTests
 {
-    [Fact]
+    [AvaloniaFact]
     public void EveryCommandIsInAMenuOrBound()
     {
         Assert.Equal(MenuExpectations.Titles, CommandCatalog.Menus.Select(menu => menu.TitleKey).ToArray());
@@ -22,7 +23,7 @@ public class MenuTests
         AssertEveryCommandIsReachable();
     }
 
-    [Fact]
+    [AvaloniaFact]
     public void CommandsAreEnabledOnlyWhenAHandlerIsRegistered()
     {
         using var host = ShellHost.Open(Language.En);
@@ -34,7 +35,7 @@ public class MenuTests
         }
     }
 
-    [Fact]
+    [AvaloniaFact]
     public void FunctionKeyChordsRoundTripThroughImGui()
     {
         foreach (var key in CommandCatalog.FunctionKeys)

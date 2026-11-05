@@ -1,4 +1,5 @@
 using System.Numerics;
+using Avalonia.Headless.XUnit;
 using D3skCommander.App;
 using D3skCommander.App.Features.MultiRename;
 using D3skCommander.App.Host;
@@ -16,7 +17,7 @@ namespace D3skCommander.App.Tests.Features.MultiRename;
 
 public class RenameWindowTests
 {
-    [Fact]
+    [AvaloniaFact]
     public void EveryTokenButtonExpands()
     {
         using var dir = new WorkDir();
@@ -48,7 +49,7 @@ public class RenameWindowTests
         Assert.Equal(text.Get("rename.col.new"), view.Preview.HeaderText("rename.col.new"));
     }
 
-    [Fact]
+    [AvaloniaFact]
     public void PreviewErrorBlocksTheStartButton()
     {
         using var dir = new WorkDir();
@@ -69,7 +70,7 @@ public class RenameWindowTests
         Assert.True(File.Exists(second));
     }
 
-    [Fact]
+    [AvaloniaFact]
     public async Task StartThenUndoRenamesAndRestores()
     {
         using var dir = new WorkDir();
@@ -97,7 +98,7 @@ public class RenameWindowTests
         Assert.False(view.Session.CanUndo);
     }
 
-    [Fact]
+    [AvaloniaFact]
     public void ModuleRegistersTheCommand()
     {
         var text = Localizer.Load(Language.En, Language.En);

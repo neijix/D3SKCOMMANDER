@@ -1,3 +1,4 @@
+using Avalonia.Headless.XUnit;
 using D3skCommander.App.Host;
 using D3skCommander.App.Shell;
 using Xunit;
@@ -6,7 +7,7 @@ namespace D3skCommander.App.Tests.Layout;
 
 public class LayoutTests
 {
-    [Fact]
+    [AvaloniaFact]
     public async Task MainWindowFitsAtEverySizeAndScale()
     {
         using var session = await LayoutSession.Open(TestContext.Current.CancellationToken);
@@ -25,7 +26,7 @@ public class LayoutTests
         }
     }
 
-    [Fact]
+    [AvaloniaFact]
     public async Task PanelsShrinkBackAfterTheWindowGetsSmaller()
     {
         using var session = await LayoutSession.Open(TestContext.Current.CancellationToken);
@@ -51,7 +52,7 @@ public class LayoutTests
         Assert.True(widths[4].Right > widths[3].Right, "the right panel did not grow again");
     }
 
-    [Fact]
+    [AvaloniaFact]
     public async Task AChosenFolderOpensInThePanelWhoseButtonWasClicked()
     {
         using var session = await LayoutSession.Open(TestContext.Current.CancellationToken);
@@ -76,7 +77,7 @@ public class LayoutTests
         });
     }
 
-    [Fact]
+    [AvaloniaFact]
     public async Task APressOnAFileNameSelectsItEvenIfTheMouseMovesOrLingers()
     {
         foreach (var (shift, frames) in new (float Shift, int Frames)[] { (0, 1), (12, 1), (0, 70) })
@@ -90,7 +91,7 @@ public class LayoutTests
         }
     }
 
-    [Fact]
+    [AvaloniaFact]
     public async Task ACtrlPressUnselectsAndAPlainPressClearsTheSelection()
     {
         using var session = await LayoutSession.Open(TestContext.Current.CancellationToken);

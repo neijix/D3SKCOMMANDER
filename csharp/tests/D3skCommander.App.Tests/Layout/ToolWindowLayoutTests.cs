@@ -1,4 +1,5 @@
 using System.Numerics;
+using Avalonia.Headless.XUnit;
 using D3skCommander.App.Host;
 using D3skCommander.App.Shell;
 using D3skCommander.App.ToolWindows;
@@ -8,7 +9,7 @@ namespace D3skCommander.App.Tests.Layout;
 
 public class ToolWindowLayoutTests
 {
-    [Fact]
+    [AvaloniaFact]
     public async Task ToolWindowsOpenOnScreen()
     {
         using var session = await LayoutSession.Open(TestContext.Current.CancellationToken);

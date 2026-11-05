@@ -1,3 +1,4 @@
+using Avalonia.Headless.XUnit;
 using D3skCommander.App.Shell;
 using D3skCommander.App.ToolWindows;
 using D3skCommander.Core.Commands;
@@ -7,7 +8,7 @@ namespace D3skCommander.App.Tests.ToolWindows;
 
 public class ToolWindowHostTests
 {
-    [Fact]
+    [AvaloniaFact]
     public void AToolOpensAsItsOwnTopLevelWindow()
     {
         using var app = ToolWindowApp.Open();
@@ -23,7 +24,7 @@ public class ToolWindowHostTests
         Assert.DoesNotContain(app.Window.OwnedWindows, window => ReferenceEquals(window, app.Window));
     }
 
-    [Fact]
+    [AvaloniaFact]
     public void ARegisteredStubOpensAsItsOwnWindow()
     {
         using var app = ToolWindowApp.Open();
@@ -40,7 +41,7 @@ public class ToolWindowHostTests
         Assert.Null(tool.Parent);
     }
 
-    [Fact]
+    [AvaloniaFact]
     public void PositionAndSizeComeBackOnTheNextOpen()
     {
         using var app = ToolWindowApp.Open();
@@ -64,7 +65,7 @@ public class ToolWindowHostTests
         Assert.Equal(ToolKind.Editor.DefaultHeight, (int)Math.Round(other.Height));
     }
 
-    [Fact]
+    [AvaloniaFact]
     public void AnOffScreenFrameIsClampedOnTheNextOpen()
     {
         using var app = ToolWindowApp.Open();
@@ -90,7 +91,7 @@ public class ToolWindowHostTests
         Assert.Contains(clamped, app.Window.OwnedWindows);
     }
 
-    [Fact]
+    [AvaloniaFact]
     public void EscapeClosesTheToolWindow()
     {
         using var app = ToolWindowApp.Open();
@@ -104,7 +105,7 @@ public class ToolWindowHostTests
         Assert.DoesNotContain(tool, app.Window.OwnedWindows);
     }
 
-    [Fact]
+    [AvaloniaFact]
     public void OneWindowOpensPerKind()
     {
         using var app = ToolWindowApp.Open();

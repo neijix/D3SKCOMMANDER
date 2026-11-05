@@ -1,3 +1,4 @@
+using Avalonia.Headless.XUnit;
 using D3skCommander.App.Dialogs;
 using D3skCommander.App.Features.Panels;
 using D3skCommander.App.Features.Tools;
@@ -13,7 +14,7 @@ namespace D3skCommander.App.Tests.Features.Tools;
 
 public class SplitCombineDialogTests
 {
-    [Fact]
+    [AvaloniaFact]
     public async Task SplitAsksForAFolderAndWritesTheParts()
     {
         var dialogs = new FakeDialogService();
@@ -49,7 +50,7 @@ public class SplitCombineDialogTests
         Assert.NotEmpty(harness.Jobs.Jobs);
     }
 
-    [Fact]
+    [AvaloniaFact]
     public async Task CombineJoinsThePartsIntoTheChosenFolder()
     {
         var dialogs = new FakeDialogService();
@@ -78,7 +79,7 @@ public class SplitCombineDialogTests
         Assert.Equal(Original, await File.ReadAllTextAsync(Path.Combine(joined, "blob.bin"), TestContext.Current.CancellationToken));
     }
 
-    [Fact]
+    [AvaloniaFact]
     public async Task CancelAndAFolderDoNotSplit()
     {
         var dialogs = new FakeDialogService();
@@ -103,7 +104,7 @@ public class SplitCombineDialogTests
         await pending;
     }
 
-    [Fact]
+    [AvaloniaFact]
     public async Task ContributeBindsTheToolCommands()
     {
         var dialogs = new FakeDialogService();
@@ -132,7 +133,7 @@ public class SplitCombineDialogTests
         Assert.Null(dialogs.Current);
     }
 
-    [Fact]
+    [AvaloniaFact]
     public async Task RegisterExposesTheModuleAsAShellFeature()
     {
         var dialogs = new FakeDialogService();
@@ -148,7 +149,7 @@ public class SplitCombineDialogTests
         Assert.Same(module, Assert.Single(provider.GetServices<IShellModule>()));
     }
 
-    [Fact]
+    [AvaloniaFact]
     public void ToolStringsAreBilingual()
     {
         var text = Localizer.Load(settingsLanguage: Language.En, systemLanguage: Language.En);
@@ -162,7 +163,7 @@ public class SplitCombineDialogTests
         Assert.Contains(".sha256", text.Get("tools.select_checksum", Language.En));
     }
 
-    [Fact]
+    [AvaloniaFact]
     public async Task TheSplitTitleFollowsTheLanguage()
     {
         var dialogs = new FakeDialogService();

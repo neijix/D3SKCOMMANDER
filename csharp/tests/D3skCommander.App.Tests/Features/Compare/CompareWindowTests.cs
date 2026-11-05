@@ -1,4 +1,5 @@
 using System.Numerics;
+using Avalonia.Headless.XUnit;
 using D3skCommander.App.Features.Compare;
 using D3skCommander.App.Host;
 using D3skCommander.Core.Compare;
@@ -11,7 +12,7 @@ namespace D3skCommander.App.Tests.Features.Compare;
 
 public class CompareWindowTests
 {
-    [Fact]
+    [AvaloniaFact]
     public void WindowRendersTextBinaryAndEditModes()
     {
         using var dir = new TempDir();
@@ -61,7 +62,7 @@ public class CompareWindowTests
         AssertTitled(jobs, text.Get("tool.compare.title"));
     }
 
-    [Fact]
+    [AvaloniaFact]
     public void StatusKindIsTranslated()
     {
         var text = Localizer.Load(settingsLanguage: Language.Fr, systemLanguage: Language.Fr);
@@ -71,7 +72,7 @@ public class CompareWindowTests
         Assert.Equal("", CompareText.Status(text, CompareStatus.Empty));
     }
 
-    [Fact]
+    [AvaloniaFact]
     public void TheJobTitleFollowsTheLanguage()
     {
         var jobs = new JobService();
