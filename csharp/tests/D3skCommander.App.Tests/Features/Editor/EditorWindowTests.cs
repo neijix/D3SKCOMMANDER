@@ -210,7 +210,8 @@ public class EditorWindowTests
             var error = await rig.Dialogs.WaitShownAsync();
             Assert.StartsWith(rig.Text.Get(FailureKey) + ": ", error.Text, StringComparison.Ordinal);
             rig.Dialogs.Answer(DialogResult.Ok(""));
-            await rig.WaitForAsync(() => false);
+            await AskAgainAsync(rig.Dialogs, () => tool.KeyPress(Key.Escape, RawInputModifiers.None, PhysicalKey.Escape, null));
+            rig.Dialogs.Answer(DialogResult.Picked(2));
         }
         finally
         {
@@ -397,11 +398,8 @@ public class EditorWindowTests
             var shown = await dialogs.WaitShownAsync();
             Assert.Equal(["Save", "Don't save", "Cancel"], shown.Choices);
             dialogs.Answer(DialogResult.Picked(2));
-            for (var i = 0; i < 10; i++)
-            {
-                await Task.Delay(10, TestContext.Current.CancellationToken);
-                Avalonia.Threading.Dispatcher.UIThread.RunJobs();
-            }
+            await AskAgainAsync(dialogs, () => host.Window.Dispatch(CommandId.Quit));
+            dialogs.Answer(DialogResult.Picked(2));
 
             Assert.True(host.Window.IsVisible);
             Assert.True(tool.IsVisible);
@@ -412,6 +410,23 @@ public class EditorWindowTests
         {
             Directory.Delete(root, true);
         }
+    }
+
+    /// <summary>
+    /// Repeats a close attempt until it asks again: an attempt still in flight swallows the repeat, so
+    /// the new question proves the previous attempt (its dialogs answered, its close task) has finished.
+    /// </summary>
+    private static async Task AskAgainAsync(FakeDialogService dialogs, Action attempt)
+    {
+        var before = dialogs.ShownCount;
+        for (var i = 0; i < 400 && dialogs.ShownCount == before; i++)
+        {
+            attempt();
+            await Task.Delay(10, TestContext.Current.CancellationToken);
+            Avalonia.Threading.Dispatcher.UIThread.RunJobs();
+        }
+
+        Assert.True(dialogs.ShownCount > before, "The close attempt never finished.");
     }
 
     private sealed class EditorRig : IDisposable
