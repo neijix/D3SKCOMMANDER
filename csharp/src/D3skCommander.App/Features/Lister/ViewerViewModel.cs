@@ -299,10 +299,13 @@ public sealed class ViewerViewModel : ObservableObject, IShellWidget
         var ticket = ++_ticket;
         Begin(path);
         var loaded = await Task.Run(() => Load(path)).ConfigureAwait(true);
-        if (ticket == _ticket)
+        if (ticket != _ticket)
         {
-            UiThread.Invoke(() => Show(loaded, true));
+            loaded.Image?.Dispose();
+            return;
         }
+
+        UiThread.Invoke(() => Show(loaded, true));
     }
 
     public async Task SetModeAsync(ViewerMode mode)
@@ -459,14 +462,10 @@ public sealed class ViewerViewModel : ObservableObject, IShellWidget
     /// <summary>Decodes an image file; one that does not decode opens as bytes, with a notice.</summary>
     private Loaded LoadImage(FileViewer viewer)
     {
-        var image = ViewerImage.Decode(viewer.Path);
-        if (image is not null)
-        {
-            return new Loaded(viewer, null, null, [], null) { Image = image };
-        }
-
-        viewer.UsePagedMode(ViewerMode.Hex);
-        return Prepare(viewer, 0, false) with { Notice = _text.Get("lister.image_failed") };
+        var image = ViewerImage.Open(viewer);
+        return image is null
+            ? Prepare(viewer, 0, false) with { Notice = _text.Get("lister.image_failed") }
+            : new Loaded(viewer, null, null, [], null) { Image = image };
     }
 
     /// <summary>Reads the page at <paramref name="offset"/> (text, hex) or builds the table rows.</summary>

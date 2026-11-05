@@ -3,6 +3,7 @@ using Avalonia.Controls;
 using Avalonia.Controls.Primitives;
 using Avalonia.Headless.XUnit;
 using Avalonia.Media;
+using Avalonia.Media.Imaging;
 using Avalonia.VisualTree;
 using D3skCommander.App.Dialogs;
 using D3skCommander.App.Features.Lister;
@@ -312,6 +313,48 @@ public class ViewerWindowTests
         model.ReleaseImage();
         Assert.Throws<ObjectDisposedException>(() => second.PixelSize);
         Assert.Null(model.Image);
+    }
+
+    [AvaloniaFact]
+    public async Task TheImageOfAStaleOpenIsDisposed()
+    {
+        using var dir = new TempDir();
+        var slow = Path.Combine(dir.Path, "slow.png");
+        File.Copy(Fixture("pixel.png"), slow);
+        var gate = new ManualResetEventSlim();
+        Bitmap? stale = null;
+        ViewerImage.Decoded = (path, bitmap) =>
+        {
+            if (path == slow)
+            {
+                stale = bitmap;
+            }
+        };
+        try
+        {
+            var model = new ViewerViewModel(English(), new JobService(), file =>
+            {
+                if (file == slow)
+                {
+                    gate.Wait(TestContext.Current.CancellationToken);
+                }
+
+                return FileViewer.Open(file);
+            });
+
+            var first = model.OpenAsync(slow);
+            await model.OpenAsync(Fixture("corrupt.png"));
+            gate.Set();
+            await first;
+
+            Assert.NotNull(stale);
+            Assert.Throws<ObjectDisposedException>(() => stale.PixelSize);
+            Assert.Null(model.Image);
+        }
+        finally
+        {
+            ViewerImage.Decoded = null;
+        }
     }
 
     [AvaloniaFact]

@@ -1,6 +1,7 @@
 using System.Globalization;
 using Avalonia.Media.Imaging;
 using D3skCommander.Core.FileSystem;
+using D3skCommander.Core.Viewer;
 
 namespace D3skCommander.App.Features.Lister;
 
@@ -10,6 +11,25 @@ namespace D3skCommander.App.Features.Lister;
 /// </summary>
 public static class ViewerImage
 {
+    /// <summary>Test seam: called with the path and bitmap of each successful <see cref="Open"/>.</summary>
+    internal static Action<string, Bitmap>? Decoded { get; set; }
+
+    /// <summary>
+    /// Decodes the viewer's file; one that does not decode switches the viewer to bytes (hex) and returns null.
+    /// </summary>
+    public static Bitmap? Open(FileViewer viewer)
+    {
+        var image = Decode(viewer.Path);
+        if (image is null)
+        {
+            viewer.UsePagedMode(ViewerMode.Hex);
+            return null;
+        }
+
+        Decoded?.Invoke(viewer.Path, image);
+        return image;
+    }
+
     /// <summary>The decoded image, or null when the file is corrupt, truncated or unreadable.</summary>
     public static Bitmap? Decode(string path)
     {
