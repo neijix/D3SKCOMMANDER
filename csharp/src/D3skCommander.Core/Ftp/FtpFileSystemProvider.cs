@@ -78,7 +78,8 @@ public sealed class FtpFileSystemProvider : FileSystemProvider
     protected override Task<FileStatus> DeleteCore(string path, CancellationToken cancellationToken) =>
         Connection.DeleteAsync(path, cancellationToken);
 
-    private static Entry ToEntry(RemoteEntry remote, string path) =>
+    /// <summary>A remote listing entry as a panel entry at <paramref name="path"/>; a dot name is hidden.</summary>
+    public static Entry ToEntry(RemoteEntry remote, string path) =>
         new(
             remote.Name,
             path,

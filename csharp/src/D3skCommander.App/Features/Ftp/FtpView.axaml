@@ -1,0 +1,34 @@
+<UserControl xmlns="https://github.com/avaloniaui"
+             xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+             xmlns:f="using:D3skCommander.App.Features.Ftp"
+             x:Class="D3skCommander.App.Features.Ftp.FtpView"
+             x:DataType="f:FtpViewModel">
+  <Grid Margin="12" RowDefinitions="*,Auto,Auto" RowSpacing="8">
+    <Grid x:Name="SitesPanel" Grid.Row="0" ColumnDefinitions="*,Auto" ColumnSpacing="12" IsVisible="{Binding !IsConnected}">
+      <ListBox x:Name="SitesList" Grid.Column="0" ItemsSource="{Binding SiteNames}"
+               SelectedIndex="{Binding SelectedIndex, Mode=TwoWay}"/>
+      <StackPanel Grid.Column="1" Spacing="6">
+        <Button x:Name="ConnectButton" MinWidth="110" Command="{Binding ConnectCommand}"/>
+        <Button x:Name="AddButton" MinWidth="110" Command="{Binding AddCommand}"/>
+        <Button x:Name="EditButton" MinWidth="110" Command="{Binding EditCommand}"/>
+        <Button x:Name="DeleteButton" MinWidth="110" Command="{Binding DeleteCommand}"/>
+      </StackPanel>
+    </Grid>
+    <Grid x:Name="BrowserPanel" Grid.Row="0" RowDefinitions="Auto,*" RowSpacing="6" IsVisible="{Binding IsConnected}">
+      <TextBox x:Name="PathBox" Grid.Row="0" IsReadOnly="True" Text="{Binding RemotePath}"/>
+      <ContentControl x:Name="RemoteHost" Grid.Row="1" MinHeight="120"/>
+    </Grid>
+    <StackPanel x:Name="BrowserButtons" Grid.Row="1" Orientation="Horizontal" Spacing="8" IsVisible="{Binding IsConnected}">
+      <Button x:Name="UpButton" Command="{Binding UpCommand}"/>
+      <Button x:Name="RefreshButton" Command="{Binding RefreshCommand}"/>
+      <Button x:Name="DownloadButton" Command="{Binding DownloadCommand}"/>
+      <Button x:Name="UploadButton" Command="{Binding UploadCommand}"/>
+      <Button x:Name="DisconnectButton" Command="{Binding DisconnectCommand}"/>
+    </StackPanel>
+    <StackPanel Grid.Row="2" Spacing="4">
+      <TextBlock x:Name="StatusLine" Text="{Binding Status}"/>
+      <TextBlock x:Name="ErrorText" Text="{Binding ErrorLine}" TextWrapping="Wrap"
+                 IsVisible="{Binding ErrorLine.Length}"/>
+    </StackPanel>
+  </Grid>
+</UserControl>

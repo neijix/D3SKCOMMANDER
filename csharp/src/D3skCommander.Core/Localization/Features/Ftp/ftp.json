@@ -1,0 +1,126 @@
+{
+  "ftp.connect": {
+    "en": "Connect",
+    "fr": "Connecter"
+  },
+  "ftp.add": {
+    "en": "Add site…",
+    "fr": "Ajouter un site…"
+  },
+  "ftp.edit": {
+    "en": "Edit site…",
+    "fr": "Modifier le site…"
+  },
+  "ftp.delete": {
+    "en": "Delete site",
+    "fr": "Supprimer le site"
+  },
+  "ftp.up": {
+    "en": "Parent folder",
+    "fr": "Dossier parent"
+  },
+  "ftp.refresh": {
+    "en": "Refresh",
+    "fr": "Actualiser"
+  },
+  "ftp.download": {
+    "en": "Download to panel",
+    "fr": "Télécharger vers le panneau"
+  },
+  "ftp.upload": {
+    "en": "Upload from panel",
+    "fr": "Envoyer depuis le panneau"
+  },
+  "ftp.disconnect": {
+    "en": "Disconnect",
+    "fr": "Déconnecter"
+  },
+  "ftp.password": {
+    "en": "Password",
+    "fr": "Mot de passe"
+  },
+  "ftp.password_title": {
+    "en": "FTP password",
+    "fr": "Mot de passe FTP"
+  },
+  "ftp.cert_refused": {
+    "en": "The server certificate was refused",
+    "fr": "Le certificat du serveur a été refusé"
+  },
+  "ftp.delete_title": {
+    "en": "Delete site",
+    "fr": "Supprimer le site"
+  },
+  "ftp.delete_confirm": {
+    "en": "Delete this saved site? Its stored password stays in the password vault.",
+    "fr": "Supprimer ce site enregistré ? Son mot de passe reste dans le coffre de mots de passe."
+  },
+  "ftp.status.ready": {
+    "en": "Pick a site and connect.",
+    "fr": "Choisissez un site et connectez-vous."
+  },
+  "ftp.status.connecting": {
+    "en": "Connecting…",
+    "fr": "Connexion…"
+  },
+  "ftp.status.listing": {
+    "en": "Reading the folder…",
+    "fr": "Lecture du dossier…"
+  },
+  "ftp.status.entries": {
+    "en": "{0} entries",
+    "fr": "{0} éléments"
+  },
+  "ftp.status.cancelled": {
+    "en": "Transfer cancelled.",
+    "fr": "Transfert annulé."
+  },
+  "ftp.job.download": {
+    "en": "FTP download",
+    "fr": "Téléchargement FTP"
+  },
+  "ftp.job.upload": {
+    "en": "FTP upload",
+    "fr": "Envoi FTP"
+  },
+  "ftp.site.title": {
+    "en": "FTP site",
+    "fr": "Site FTP"
+  },
+  "ftp.site.name": {
+    "en": "Name",
+    "fr": "Nom"
+  },
+  "ftp.site.host": {
+    "en": "Host",
+    "fr": "Hôte"
+  },
+  "ftp.site.port": {
+    "en": "Port",
+    "fr": "Port"
+  },
+  "ftp.site.user": {
+    "en": "User (empty for anonymous)",
+    "fr": "Utilisateur (vide pour anonyme)"
+  },
+  "ftp.site.secure": {
+    "en": "FTPS (TLS, certificate checked)",
+    "fr": "FTPS (TLS, certificat vérifié)"
+  },
+  "ftp.site.passive": {
+    "en": "Passive mode",
+    "fr": "Mode passif"
+  },
+  "ftp.site.remote_dir": {
+    "en": "Start folder",
+    "fr": "Dossier de départ"
+  },
+  "ftp.site.save_password": {
+    "en": "Keep the password in the password vault",
+    "fr": "Garder le mot de passe dans le coffre"
+  },
+  "ftp.site.hint": {
+    "en": "The password is never saved with the site: it comes from the password vault or is asked when you connect.",
+    "fr": "Le mot de passe n'est jamais enregistré avec le site : il vient du coffre de mots de passe ou est demandé à la connexion."
+  }
+}
