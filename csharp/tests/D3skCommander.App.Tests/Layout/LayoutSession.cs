@@ -120,6 +120,14 @@ internal sealed class LayoutSession : IDisposable
         Window.UpdateLayout();
     }
 
+    /// <summary>Runs the queued UI work and lays the window out again.</summary>
+    public void Settle()
+    {
+        Avalonia.Threading.Dispatcher.UIThread.RunJobs();
+        Window.UpdateLayout();
+        Avalonia.Threading.Dispatcher.UIThread.RunJobs();
+    }
+
     public async Task WaitUntil(Func<bool> ready, CancellationToken cancellationToken)
     {
         var start = DateTime.UtcNow;
@@ -130,6 +138,7 @@ internal sealed class LayoutSession : IDisposable
                 throw new TimeoutException("The panel did not update.");
             }
 
+            Avalonia.Threading.Dispatcher.UIThread.RunJobs();
             await Task.Delay(20, cancellationToken);
         }
     }

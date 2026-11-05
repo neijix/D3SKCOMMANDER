@@ -36,7 +36,7 @@ public sealed class PanelsModule : IShellModule
     {
         ArgumentNullException.ThrowIfNull(shell);
         _panels.Bind(shell);
-        shell.SetPanel(PanelSide.Left, () => new PanelPane(PanelSide.Left, _panels, _text, _dialogs));
-        shell.SetPanel(PanelSide.Right, () => new PanelPane(PanelSide.Right, _panels, _text, _dialogs));
+        shell.SetPanel(PanelSide.Left, () => new PanelPaneModel(PanelSide.Left, _panels, _text, _dialogs));
+        shell.SetPanel(PanelSide.Right, () => new PanelPaneModel(PanelSide.Right, _panels, _text, _dialogs));
     }
 }

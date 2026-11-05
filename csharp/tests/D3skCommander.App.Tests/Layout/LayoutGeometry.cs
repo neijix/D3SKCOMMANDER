@@ -27,6 +27,7 @@ internal static class LayoutGeometry
         Assert.True(left.Width > 0 && left.Height > 0, what + ": left panel is empty " + left);
         Assert.True(left.Right <= half + 0.5, what + ": left panel " + left + " leaves its half (" + half + ")");
         Assert.True(right.Left >= half - 0.5, what + ": right panel " + right + " leaves its half (" + half + ")");
+        AssertHeaders(window, what);
         AssertBars(window, screen, left, what);
         AssertRegions(window, screen, right, what);
         return new Fit(left.Width, right.Width);
@@ -41,6 +42,21 @@ internal static class LayoutGeometry
         return new Rect(origin.Value, control.Bounds.Size);
     }
 
+    public static PanelPaneView Pane(MainWindow window, PanelSide side)
+    {
+        var slot = window.FindControl<ContentControl>(side == PanelSide.Left ? "LeftSlot" : "RightSlot");
+        Assert.NotNull(slot);
+        return Assert.IsType<PanelPaneView>(slot.Content);
+    }
+
+    /// <summary>Window coordinates of a point on a file row's name, clear of the scrollbar at the right edge.</summary>
+    public static Point FilePoint(MainWindow window, PanelSide side, int index)
+    {
+        var at = Pane(window, side).Files.RowPoint(index, window);
+        Assert.True(at.HasValue, "row " + index + " is not realized");
+        return new Point(at.Value.X - 60, at.Value.Y);
+    }
+
     public static int EntryIndex(PanelSnapshot snap, string prefix)
     {
         for (var i = 0; i < snap.Entries.Count; i++)
@@ -52,6 +68,22 @@ internal static class LayoutGeometry
         }
 
         throw new InvalidOperationException("Missing " + prefix);
+    }
+
+    private static void AssertHeaders(MainWindow window, string what)
+    {
+        foreach (var side in new[] { PanelSide.Left, PanelSide.Right })
+        {
+            var pane = Pane(window, side);
+            Assert.Equal("Name", pane.Files.HeaderText("name"));
+            var browse = pane.FindControl<Button>("BrowseButton");
+            Assert.NotNull(browse);
+            Assert.Equal("Browse", browse.Content);
+            var panel = Box(window, side == PanelSide.Left ? "LeftSlot" : "RightSlot");
+            var button = browse.TranslatePoint(default, window);
+            Assert.True(button.HasValue, what + ": Browse is detached");
+            AssertInside(panel, new Rect(button.Value, browse.Bounds.Size), what + ": Browse in the " + side + " panel");
+        }
     }
 
     private static void AssertBars(MainWindow window, Rect screen, Rect panel, string what)

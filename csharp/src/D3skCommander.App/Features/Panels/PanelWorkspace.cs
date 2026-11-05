@@ -8,7 +8,7 @@ using D3skCommander.Core.Providers;
 
 namespace D3skCommander.App.Features.Panels;
 
-/// <summary>Left and right panels. Listing runs off the UI thread; a frame reads a snapshot.</summary>
+/// <summary>Left and right panels. Listing runs off the UI thread; a pane reads a snapshot on each beat.</summary>
 public sealed partial class PanelWorkspace : IPanelWorkspace, IDisposable
 {
     public static readonly TimeSpan RefreshInterval = TimeSpan.FromMilliseconds(1500);
@@ -193,7 +193,7 @@ public sealed partial class PanelWorkspace : IPanelWorkspace, IDisposable
         }
     }
 
-    public void NoteFrame()
+    public void PollWhenDue()
     {
         if (_left is null || _clock.GetUtcNow() - _polled < RefreshInterval)
         {

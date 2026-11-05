@@ -47,6 +47,18 @@ public sealed partial class FileListControl : UserControl
     /// <summary>A double-click landed on a row (the row index).</summary>
     public event EventHandler<int>? RowActivated;
 
+    /// <summary>A key the list handled (it may have moved the cursor or the marks).</summary>
+    public event EventHandler<FileListKey>? KeyHandled;
+
+    /// <summary>
+    /// Enter outside a rename. With no subscriber the key stays unhandled; with one, the host
+    /// opens the entry under the cursor.
+    /// </summary>
+    public event EventHandler? EnterPressed;
+
+    /// <summary>The host can refuse a key (inactive side, Ctrl or Super held): false leaves it unhandled.</summary>
+    public Func<KeyEventArgs, bool>? AcceptKey { get; set; }
+
     /// <summary>Rows that exist as controls right now: the viewport and a small buffer.</summary>
     public int RealizedCount => Rows.GetRealizedContainers().Count();
 
@@ -186,10 +198,11 @@ public sealed partial class FileListControl : UserControl
         return modifiers;
     }
 
-    private void OnKeyDown(object? sender, KeyEventArgs e)
+    /// <summary>Maps a key event to the list's key map. Hosts that own the focus forward their keys here.</summary>
+    public void HandleKey(KeyEventArgs e)
     {
-        var key = MapKey(e.Key);
-        if (key is null)
+        ArgumentNullException.ThrowIfNull(e);
+        if (e.Handled || MapKey(e.Key) is not FileListKey key || AcceptKey?.Invoke(e) == false)
         {
             return;
         }
@@ -210,11 +223,19 @@ public sealed partial class FileListControl : UserControl
             modifiers |= FileListModifiers.Command;
         }
 
-        if (_list.Key(key.Value, modifiers))
+        if (_list.Key(key, modifiers))
         {
             e.Handled = true;
+            KeyHandled?.Invoke(this, key);
+        }
+        else if (key == FileListKey.Enter && !_list.IsRenaming && EnterPressed is { } enter)
+        {
+            e.Handled = true;
+            enter(this, EventArgs.Empty);
         }
     }
+
+    private void OnKeyDown(object? sender, KeyEventArgs e) => HandleKey(e);
 
     private static FileListKey? MapKey(Key key) => key switch
     {

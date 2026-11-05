@@ -1,0 +1,21 @@
+<UserControl xmlns="https://github.com/avaloniaui"
+             xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+             xmlns:panels="using:D3skCommander.App.Features.Panels"
+             x:Class="D3skCommander.App.Features.Panels.PanelPaneView"
+             x:DataType="panels:PanelPaneModel"
+             Focusable="True">
+  <UserControl.Styles>
+    <Style Selector="TextBlock.active">
+      <Setter Property="Foreground" Value="#A6D1FF"/>
+    </Style>
+  </UserControl.Styles>
+  <DockPanel>
+    <Grid DockPanel.Dock="Top" ColumnDefinitions="*,Auto" Margin="2">
+      <TextBox x:Name="PathBox" Text="{Binding Path, Mode=TwoWay}"/>
+      <Button x:Name="BrowseButton" Grid.Column="1" Margin="4,0,0,0" Content="{Binding BrowseText}"/>
+    </Grid>
+    <TextBlock x:Name="StatusText" DockPanel.Dock="Bottom" Margin="4,2"
+               Classes.active="{Binding IsActive}" Text="{Binding StatusText}"/>
+    <ContentControl x:Name="ListHost"/>
+  </DockPanel>
+</UserControl>
