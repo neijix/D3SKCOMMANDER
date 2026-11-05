@@ -62,6 +62,28 @@ public class ViewerTests
     }
 
     [Fact]
+    public void EachOfTheSevenImageExtensionsGetsImageAndHexAndTiffDoesNot()
+    {
+        using var dir = new ViewerTemp();
+        foreach (var extension in new[] { "png", "jpg", "jpeg", "gif", "bmp", "webp", "ico", "PNG" })
+        {
+            var path = Path.Combine(dir.Path, "a." + extension);
+            File.WriteAllBytes(path, [1, 2, 3]);
+            var viewer = FileViewer.Open(path);
+            Assert.Equal(ViewerMode.Image, viewer.Mode);
+            Assert.Equal([ViewerMode.Image, ViewerMode.Hex], viewer.Modes);
+        }
+
+        foreach (var extension in new[] { "tif", "tiff", "svg" })
+        {
+            var path = Path.Combine(dir.Path, "a." + extension);
+            File.WriteAllBytes(path, [1, 2, 3, 0]);
+            Assert.False(ViewerFiles.IsImage(path));
+            Assert.NotEqual(ViewerMode.Image, FileViewer.Open(path).Mode);
+        }
+    }
+
+    [Fact]
     public void DbfOpensAsATable()
     {
         using var dir = new ViewerTemp();

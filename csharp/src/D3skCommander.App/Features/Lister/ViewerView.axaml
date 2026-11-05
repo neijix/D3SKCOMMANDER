@@ -31,15 +31,18 @@
     <ScrollBar x:Name="PageScroll" DockPanel.Dock="Right" Orientation="Vertical" AllowAutoHide="False"
                IsVisible="{Binding HasPageScroll}" Minimum="0" Maximum="{Binding ScrollMaximum}"
                ViewportSize="{Binding ScrollViewport}" Value="{Binding ScrollValue, Mode=OneWay}"/>
-    <ListBox x:Name="RowList" ItemsSource="{Binding Rows}" SelectedIndex="{Binding SelectedRow, Mode=TwoWay}">
-      <ListBox.ItemTemplate>
-        <DataTemplate x:DataType="l:ViewerLine">
-          <StackPanel Orientation="Horizontal">
-            <TextBlock Text="{Binding Gutter}" Opacity="0.6" FontFamily="Cascadia Mono,Consolas,Menlo,monospace"/>
-            <TextBlock Text="{Binding Text}" FontFamily="Cascadia Mono,Consolas,Menlo,monospace"/>
-          </StackPanel>
-        </DataTemplate>
-      </ListBox.ItemTemplate>
-    </ListBox>
+    <Panel>
+      <ListBox x:Name="RowList" IsVisible="{Binding !IsImage}" ItemsSource="{Binding Rows}" SelectedIndex="{Binding SelectedRow, Mode=TwoWay}">
+        <ListBox.ItemTemplate>
+          <DataTemplate x:DataType="l:ViewerLine">
+            <StackPanel Orientation="Horizontal">
+              <TextBlock Text="{Binding Gutter}" Opacity="0.6" FontFamily="Cascadia Mono,Consolas,Menlo,monospace"/>
+              <TextBlock Text="{Binding Text}" FontFamily="Cascadia Mono,Consolas,Menlo,monospace"/>
+            </StackPanel>
+          </DataTemplate>
+        </ListBox.ItemTemplate>
+      </ListBox>
+      <Image x:Name="ImageBox" Source="{Binding Image}" Stretch="Uniform" IsVisible="{Binding IsImage}" Margin="8"/>
+    </Panel>
   </DockPanel>
 </UserControl>

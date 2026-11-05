@@ -50,5 +50,9 @@
   "lister.find_job": {
     "en": "Searching {name}",
     "fr": "Recherche dans {name}"
+  },
+  "lister.image_failed": {
+    "en": "This image could not be decoded; showing its bytes.",
+    "fr": "Cette image ne peut pas être décodée ; ses octets sont affichés."
   }
 }

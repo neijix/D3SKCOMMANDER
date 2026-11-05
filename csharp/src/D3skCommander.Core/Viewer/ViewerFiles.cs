@@ -1,14 +1,14 @@
 namespace D3skCommander.Core.Viewer;
 
 /// <summary>
-/// How the lister classifies a path before it reads it. Image extensions are v0.1's nine
-/// (<c>png</c> through <c>tiff</c>), which is shorter than the file-kind image list.
+/// How the lister classifies a path before it reads it. Image extensions are the seven the App
+/// can decode (<c>png</c> through <c>ico</c>); TIFF has no decoder, so it opens like any binary file.
 /// </summary>
 public static class ViewerFiles
 {
     private static readonly string[] ImageExtensions =
     [
-        "png", "jpg", "jpeg", "gif", "bmp", "webp", "ico", "tif", "tiff",
+        "png", "jpg", "jpeg", "gif", "bmp", "webp", "ico",
     ];
 
     public static bool IsImage(string path)

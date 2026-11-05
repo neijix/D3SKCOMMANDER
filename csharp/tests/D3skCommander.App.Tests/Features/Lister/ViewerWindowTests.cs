@@ -256,6 +256,42 @@ public class ViewerWindowTests
     }
 
     [AvaloniaFact]
+    public async Task AnImageOpensInImageModeWithItsPixelSize()
+    {
+        var model = new ViewerViewModel(English(), new JobService());
+
+        await model.OpenAsync(Fixture("pixel.png"));
+
+        Assert.True(model.IsImage);
+        Assert.Equal(new Avalonia.PixelSize(3, 2), model.Image?.PixelSize);
+        Assert.Equal([ViewerMode.Image, ViewerMode.Hex], model.Modes.Select(choice => choice.Mode));
+        Assert.StartsWith("3 x 2", model.StatusText, StringComparison.Ordinal);
+        Assert.Equal("", model.Notice);
+
+        await model.SetModeAsync(ViewerMode.Hex);
+        Assert.True(model.IsHex);
+        Assert.StartsWith("00000000", model.Rows[0].Text, StringComparison.Ordinal);
+        await model.SetModeAsync(ViewerMode.Image);
+        Assert.True(model.IsImage);
+        Assert.NotNull(model.Image);
+    }
+
+    [AvaloniaFact]
+    public async Task ACorruptImageOpensInHexWithALocalizedNotice()
+    {
+        var model = new ViewerViewModel(French(), new JobService());
+
+        await model.OpenAsync(Fixture("corrupt.png"));
+
+        Assert.True(model.IsHex);
+        Assert.False(model.HasError);
+        Assert.Null(model.Image);
+        Assert.Equal([ViewerMode.Hex], model.Modes.Select(choice => choice.Mode));
+        Assert.Equal(French().Get("lister.image_failed"), model.Notice);
+        Assert.StartsWith("00000000", model.Rows[0].Text, StringComparison.Ordinal);
+    }
+
+    [AvaloniaFact]
     public async Task TheWindowOpensAtOnceWithTheNameAndABusyState()
     {
         using var dir = new TempDir();
@@ -288,7 +324,7 @@ public class ViewerWindowTests
         [
             "lister.mode.text", "lister.mode.hex", "lister.mode.table", "lister.mode.image", "lister.wrap",
             "lister.match_case", "lister.find", "lister.find_next", "lister.find_prev", "lister.filter",
-            "lister.not_found", "lister.opening", "lister.find_job",
+            "lister.not_found", "lister.opening", "lister.find_job", "lister.image_failed",
         ];
         foreach (var key in keys)
         {
@@ -311,6 +347,8 @@ public class ViewerWindowTests
             stream.Write(Encoding.UTF8.GetBytes(text));
         }
     }
+
+    private static string Fixture(string name) => Path.Combine(AppContext.BaseDirectory, "fixtures", "images", name);
 
     private static ILocalizer English() => Localizer.Load(settingsLanguage: Language.En, systemLanguage: Language.En);
 

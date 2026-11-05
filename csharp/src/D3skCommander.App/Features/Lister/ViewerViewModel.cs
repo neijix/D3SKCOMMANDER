@@ -1,6 +1,7 @@
 using System.Collections;
 using System.Globalization;
 using Avalonia.Controls;
+using Avalonia.Media.Imaging;
 using CommunityToolkit.Mvvm.ComponentModel;
 using D3skCommander.App.Host;
 using D3skCommander.App.Shell;
@@ -55,6 +56,7 @@ public sealed class ViewerViewModel : ObservableObject, IShellWidget
     private bool _matchCase;
     private string _findText = "";
     private string _filter = "";
+    private Bitmap? _image;
 
     public ViewerViewModel(ILocalizer text, IJobService jobs)
         : this(text, jobs, FileViewer.Open)
@@ -145,6 +147,7 @@ public sealed class ViewerViewModel : ObservableObject, IShellWidget
                 OnPropertyChanged(nameof(IsText));
                 OnPropertyChanged(nameof(IsHex));
                 OnPropertyChanged(nameof(IsTable));
+                OnPropertyChanged(nameof(IsImage));
                 OnPropertyChanged(nameof(CanFind));
                 OnPropertyChanged(nameof(HasPageScroll));
             }
@@ -156,6 +159,11 @@ public sealed class ViewerViewModel : ObservableObject, IShellWidget
     public bool IsHex => _selectedMode?.Mode == ViewerMode.Hex;
 
     public bool IsTable => _selectedMode?.Mode == ViewerMode.Table;
+
+    public bool IsImage => _selectedMode?.Mode == ViewerMode.Image;
+
+    /// <summary>The decoded image of Image mode; null when the file is not an image or did not decode.</summary>
+    public Bitmap? Image => _image;
 
     public bool CanFind => IsText || IsHex;
 
@@ -423,6 +431,8 @@ public sealed class ViewerViewModel : ObservableObject, IShellWidget
         SelectedRow = -1;
         _page = null;
         _shown = null;
+        _image = null;
+        OnPropertyChanged(nameof(Image));
         _cursorLine = null;
         _hexCursor = null;
         _matchOffset = null;
@@ -438,16 +448,33 @@ public sealed class ViewerViewModel : ObservableObject, IShellWidget
 
         if (viewer.Mode == ViewerMode.Image)
         {
-            // Image mode is a later row; until then an image file opens as bytes.
-            viewer.UsePagedMode(ViewerMode.Hex);
+            return LoadImage(viewer);
         }
 
         return Prepare(viewer, 0, false);
     }
 
+    /// <summary>Decodes an image file; one that does not decode opens as bytes, with a notice.</summary>
+    private Loaded LoadImage(FileViewer viewer)
+    {
+        var image = ViewerImage.Decode(viewer.Path);
+        if (image is not null)
+        {
+            return new Loaded(viewer, null, null, [], null) { Image = image };
+        }
+
+        viewer.UsePagedMode(ViewerMode.Hex);
+        return Prepare(viewer, 0, false) with { Notice = _text.Get("lister.image_failed") };
+    }
+
     /// <summary>Reads the page at <paramref name="offset"/> (text, hex) or builds the table rows.</summary>
     private Loaded Prepare(FileViewer viewer, long offset, bool exact)
     {
+        if (viewer.Mode == ViewerMode.Image)
+        {
+            return new Loaded(viewer, null, null, [], null) { Image = _image };
+        }
+
         if (viewer.Mode is not (ViewerMode.Text or ViewerMode.Hex))
         {
             return new Loaded(viewer, null, null, RenderTable(viewer), null);
@@ -468,8 +495,11 @@ public sealed class ViewerViewModel : ObservableObject, IShellWidget
         var viewer = loaded.Viewer;
         _viewer = viewer;
         IsBusy = false;
-        Notice = "";
+        Notice = loaded.Notice ?? "";
         SelectedRow = -1;
+        _image = loaded.Image ?? _image;
+        OnPropertyChanged(nameof(Image));
+
         if (loaded.Error is { } error)
         {
             ErrorMessage = ErrorLine(error, viewer.Path);
@@ -491,7 +521,7 @@ public sealed class ViewerViewModel : ObservableObject, IShellWidget
         }
 
         var choices = new List<ViewerModeChoice>();
-        foreach (var mode in viewer.Modes.Where(mode => mode != ViewerMode.Image))
+        foreach (var mode in viewer.Modes.Where(mode => mode != ViewerMode.Image || _image is not null))
         {
             choices.Add(new ViewerModeChoice(mode, _text.Get("lister.mode." + mode.ToString().ToLowerInvariant())));
         }
@@ -521,6 +551,12 @@ public sealed class ViewerViewModel : ObservableObject, IShellWidget
         if (viewer.Mode == ViewerMode.Table)
         {
             StatusText = viewer.Table?.Note ?? "";
+            return;
+        }
+
+        if (viewer.Mode == ViewerMode.Image && _image is not null)
+        {
+            StatusText = ViewerImage.Status(_image, viewer.Size);
             return;
         }
 
@@ -742,7 +778,12 @@ public sealed class ViewerViewModel : ObservableObject, IShellWidget
         ViewerPage? Page,
         PageRows? Shown,
         IReadOnlyList<ViewerLine> Rows,
-        OperationError? Error);
+        OperationError? Error)
+    {
+        public Bitmap? Image { get; init; }
+
+        public string? Notice { get; init; }
+    }
 
     private sealed record FindRequest(FileViewer Viewer, string Query, bool MatchCase, long From, bool Forward);
 
