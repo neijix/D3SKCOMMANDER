@@ -38,10 +38,10 @@
           <ListBox.ItemTemplate>
             <DataTemplate x:DataType="c:CompareRow">
               <Grid ColumnDefinitions="48,*,48,*">
-                <TextBlock Grid.Column="0" Background="{Binding NumberBrush}" Text="{Binding LeftNumber}" FontFamily="monospace" TextAlignment="Right" Padding="0,0,4,0"/>
-                <TextBlock Grid.Column="1" Background="{Binding LeftBrush}" Text="{Binding Left}" FontFamily="monospace" Padding="4,0"/>
-                <TextBlock Grid.Column="2" Background="{Binding RightBrush}" Text="{Binding RightNumber}" FontFamily="monospace" TextAlignment="Right" Padding="0,0,4,0"/>
-                <TextBlock Grid.Column="3" Background="{Binding RightBrush}" Text="{Binding Right}" FontFamily="monospace" Padding="4,0"/>
+                <TextBlock Grid.Column="0" Background="{Binding NumberBrush}" Text="{Binding LeftNumber}" FontFamily="{DynamicResource MonoFont}" TextAlignment="Right" Padding="0,0,4,0"/>
+                <TextBlock Grid.Column="1" Background="{Binding LeftBrush}" Text="{Binding Left}" FontFamily="{DynamicResource MonoFont}" Padding="4,0"/>
+                <TextBlock Grid.Column="2" Background="{Binding RightBrush}" Text="{Binding RightNumber}" FontFamily="{DynamicResource MonoFont}" TextAlignment="Right" Padding="0,0,4,0"/>
+                <TextBlock Grid.Column="3" Background="{Binding RightBrush}" Text="{Binding Right}" FontFamily="{DynamicResource MonoFont}" Padding="4,0"/>
               </Grid>
             </DataTemplate>
           </ListBox.ItemTemplate>
@@ -53,7 +53,7 @@
           <ItemsControl ItemsSource="{Binding PeekLeft}">
             <ItemsControl.ItemTemplate>
               <DataTemplate x:DataType="c:ComparePeekLine">
-                <TextBlock Text="{Binding Text}" Foreground="{Binding Brush}" FontFamily="monospace"/>
+                <TextBlock Text="{Binding Text}" Foreground="{Binding Brush}" FontFamily="{DynamicResource MonoFont}"/>
               </DataTemplate>
             </ItemsControl.ItemTemplate>
           </ItemsControl>
@@ -63,7 +63,7 @@
           <ItemsControl ItemsSource="{Binding PeekRight}">
             <ItemsControl.ItemTemplate>
               <DataTemplate x:DataType="c:ComparePeekLine">
-                <TextBlock Text="{Binding Text}" Foreground="{Binding Brush}" FontFamily="monospace"/>
+                <TextBlock Text="{Binding Text}" Foreground="{Binding Brush}" FontFamily="{DynamicResource MonoFont}"/>
               </DataTemplate>
             </ItemsControl.ItemTemplate>
           </ItemsControl>
@@ -72,8 +72,8 @@
       <Grid x:Name="EditPane" ColumnDefinitions="*,*" ColumnSpacing="12" RowDefinitions="Auto,*" IsVisible="{Binding IsEdit}">
         <TextBlock Grid.Column="0" Text="{Binding LeftEditTitle}"/>
         <TextBlock Grid.Column="1" Text="{Binding RightEditTitle}"/>
-        <TextBox x:Name="LeftEditor" Grid.Row="1" Grid.Column="0" AcceptsReturn="True" AcceptsTab="True" FontFamily="monospace" Text="{Binding LeftEdit, Mode=TwoWay}"/>
-        <TextBox x:Name="RightEditor" Grid.Row="1" Grid.Column="1" AcceptsReturn="True" AcceptsTab="True" FontFamily="monospace" Text="{Binding RightEdit, Mode=TwoWay}"/>
+        <TextBox x:Name="LeftEditor" Grid.Row="1" Grid.Column="0" AcceptsReturn="True" AcceptsTab="True" FontFamily="{DynamicResource MonoFont}" Text="{Binding LeftEdit, Mode=TwoWay}"/>
+        <TextBox x:Name="RightEditor" Grid.Row="1" Grid.Column="1" AcceptsReturn="True" AcceptsTab="True" FontFamily="{DynamicResource MonoFont}" Text="{Binding RightEdit, Mode=TwoWay}"/>
       </Grid>
     </Grid>
   </Grid>

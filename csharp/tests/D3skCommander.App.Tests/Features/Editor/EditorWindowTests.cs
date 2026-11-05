@@ -45,6 +45,19 @@ public class EditorWindowTests
     }
 
     [AvaloniaFact]
+    public async Task TheEditorUsesAFixedPitchFont()
+    {
+        using var rig = await EditorRig.Open(("a.txt", "iW\n"));
+        rig.Select("a.txt");
+        await rig.Commands.EditAsync();
+        var tool = rig.Tools.Open(ToolKind.Editor);
+        tool.UpdateLayout();
+
+        var surface = Assert.IsType<EditorView>(tool.Content).FindControl<AvaloniaEdit.TextEditor>("Surface")!;
+        Assert.True(D3skCommander.App.Tests.Features.Lister.FixedPitch.Is(surface.FontFamily), surface.FontFamily.ToString());
+    }
+
+    [AvaloniaFact]
     public async Task TypingThenCtrlSSavesKeepingCrlfAndTheBom()
     {
         using var rig = await EditorRig.Open();

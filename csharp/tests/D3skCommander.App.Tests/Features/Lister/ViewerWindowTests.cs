@@ -2,6 +2,8 @@ using System.Text;
 using Avalonia.Controls;
 using Avalonia.Controls.Primitives;
 using Avalonia.Headless.XUnit;
+using Avalonia.Media;
+using Avalonia.VisualTree;
 using D3skCommander.App.Dialogs;
 using D3skCommander.App.Features.Lister;
 using D3skCommander.App.Features.Panels;
@@ -59,6 +61,25 @@ public class ViewerWindowTests
         Assert.True(await model.FindAsync(true));
 
         Assert.Equal("Searching a.txt", Assert.Single(rig.Jobs.Jobs).Title);
+    }
+
+    [AvaloniaFact]
+    public async Task RowsUseAFixedPitchFontOnACompactLineStep()
+    {
+        using var rig = await Rig.Open(("notes.txt", "iiii\nWWWW\nmore\n"));
+        rig.Select("notes.txt");
+        var tool = await rig.ViewAsync();
+        var view = Assert.IsType<ViewerView>(tool.Content);
+        var list = view.FindControl<ListBox>("RowList")!;
+        tool.UpdateLayout();
+
+        var first = Assert.IsType<ListBoxItem>(list.ContainerFromIndex(0));
+        var second = Assert.IsType<ListBoxItem>(list.ContainerFromIndex(1));
+        var text = first.GetVisualDescendants().OfType<TextBlock>().Last();
+        Assert.True(FixedPitch.Is(text.FontFamily), text.FontFamily.ToString());
+        Assert.Equal(new SolidColorBrush(Colors.Transparent).Color, ((ISolidColorBrush)list.Background!).Color);
+        var step = second.Bounds.Y - first.Bounds.Y;
+        Assert.True(step > 0 && step <= 1.5 * text.Bounds.Height, step.ToString(System.Globalization.CultureInfo.InvariantCulture));
     }
 
     [AvaloniaFact]
@@ -443,5 +464,24 @@ public class ViewerWindowTests
         public string Path { get; }
 
         public void Dispose() => Directory.Delete(Path, true);
+    }
+}
+
+/// <summary>Whether a font family resolves, on the running platform, to a typeface whose glyphs share one advance.</summary>
+internal static class FixedPitch
+{
+    public static bool Is(FontFamily family)
+    {
+        var typeface = new Typeface(family);
+        Assert.True(FontManager.Current.TryGetGlyphTypeface(typeface, out var glyphs));
+        return Advance(glyphs, 'i') == Advance(glyphs, 'W');
+    }
+
+    private static int Advance(GlyphTypeface glyphs, char c)
+    {
+        var glyph = glyphs.CharacterToGlyphMap[c];
+        Assert.NotEqual((ushort)0, glyph);
+        Assert.True(glyphs.TryGetHorizontalGlyphAdvance(glyph, out var advance));
+        return (int)Math.Round(advance * 1000.0);
     }
 }

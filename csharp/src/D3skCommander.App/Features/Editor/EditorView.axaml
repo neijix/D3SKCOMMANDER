@@ -26,6 +26,6 @@
     <TextBlock x:Name="ErrorLine" DockPanel.Dock="Top" Margin="8,4" TextWrapping="Wrap" Text="{Binding ErrorMessage}" IsVisible="{Binding HasError}"/>
     <TextBlock x:Name="LossyLine" DockPanel.Dock="Top" Margin="8,4" TextWrapping="Wrap" Text="{Binding LossyText}" IsVisible="{Binding LossyText, Converter={x:Static StringConverters.IsNotNullOrEmpty}}"/>
     <ae:TextEditor x:Name="Surface" Document="{Binding Buffer}" IsReadOnly="{Binding !CanEdit}" ShowLineNumbers="True"
-                   FontFamily="Cascadia Mono,Consolas,Menlo,monospace" HorizontalScrollBarVisibility="Auto"/>
+                   FontFamily="{DynamicResource MonoFont}" HorizontalScrollBarVisibility="Auto"/>
   </DockPanel>
 </UserControl>

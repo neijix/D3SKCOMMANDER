@@ -27,17 +27,23 @@
       <TextBlock x:Name="NoticeLine" Text="{Binding Notice}"/>
     </StackPanel>
     <TextBlock x:Name="ErrorLine" DockPanel.Dock="Top" Margin="8,4" TextWrapping="Wrap" Text="{Binding ErrorMessage}" IsVisible="{Binding HasError}"/>
-    <TextBlock x:Name="HeaderLine" DockPanel.Dock="Top" Margin="8,0" FontWeight="Bold" FontFamily="Cascadia Mono,Consolas,Menlo,monospace" Text="{Binding Header}" IsVisible="{Binding IsTable}"/>
+    <TextBlock x:Name="HeaderLine" DockPanel.Dock="Top" Margin="8,0" FontWeight="Bold" FontFamily="{DynamicResource MonoFont}" Text="{Binding Header}" IsVisible="{Binding IsTable}"/>
     <ScrollBar x:Name="PageScroll" DockPanel.Dock="Right" Orientation="Vertical" AllowAutoHide="False"
                IsVisible="{Binding HasPageScroll}" Minimum="0" Maximum="{Binding ScrollMaximum}"
                ViewportSize="{Binding ScrollViewport}" Value="{Binding ScrollValue, Mode=OneWay}"/>
     <Panel>
-      <ListBox x:Name="RowList" IsVisible="{Binding !IsImage}" ItemsSource="{Binding Rows}" SelectedIndex="{Binding SelectedRow, Mode=TwoWay}">
+      <ListBox x:Name="RowList" IsVisible="{Binding !IsImage}" ItemsSource="{Binding Rows}" SelectedIndex="{Binding SelectedRow, Mode=TwoWay}" Background="Transparent">
+        <ListBox.Styles>
+          <Style Selector="ListBoxItem">
+            <Setter Property="Padding" Value="4,0"/>
+            <Setter Property="MinHeight" Value="0"/>
+          </Style>
+        </ListBox.Styles>
         <ListBox.ItemTemplate>
           <DataTemplate x:DataType="l:ViewerLine">
             <StackPanel Orientation="Horizontal">
-              <TextBlock Text="{Binding Gutter}" Opacity="0.6" FontFamily="Cascadia Mono,Consolas,Menlo,monospace"/>
-              <TextBlock Text="{Binding Text}" FontFamily="Cascadia Mono,Consolas,Menlo,monospace"/>
+              <TextBlock Text="{Binding Gutter}" Opacity="0.6" FontFamily="{DynamicResource MonoFont}"/>
+              <TextBlock Text="{Binding Text}" FontFamily="{DynamicResource MonoFont}"/>
             </StackPanel>
           </DataTemplate>
         </ListBox.ItemTemplate>
