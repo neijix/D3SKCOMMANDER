@@ -85,7 +85,7 @@ public class EditorWindowTests
             Key = Key.S,
             KeyModifiers = KeyModifiers.Control,
         });
-        await rig.WaitForAsync(() => !model.Dirty);
+        await rig.WaitForAsync(() => !model.Dirty && model.Notice == "Saved");
 
         Assert.Equal("Saved", model.Notice);
         var expected = new byte[] { 0xEF, 0xBB, 0xBF }.Concat(Encoding.UTF8.GetBytes("Xone\r\ntwo\r\n"));
@@ -212,6 +212,7 @@ public class EditorWindowTests
             rig.Dialogs.Answer(DialogResult.Ok(""));
             await AskAgainAsync(rig.Dialogs, () => tool.KeyPress(Key.Escape, RawInputModifiers.None, PhysicalKey.Escape, null));
             rig.Dialogs.Answer(DialogResult.Picked(2));
+            await SettleAsync(rig.Dialogs);
         }
         finally
         {
@@ -222,7 +223,12 @@ public class EditorWindowTests
         Assert.True(model.Dirty);
         Assert.Equal("changed", model.Buffer.Text);
         Assert.Equal("keep\n", File.ReadAllText(path));
-        model.Buffer.Text = "keep\n";
+        Assert.True(await model.SaveAsync());
+        Assert.False(model.Dirty);
+        tool.KeyPress(Key.Escape, RawInputModifiers.None, PhysicalKey.Escape, null);
+        await rig.WaitForAsync(() => !tool.IsVisible);
+        Assert.False(tool.IsVisible);
+        Assert.Equal(3, rig.Dialogs.ShownCount);
     }
 
     [AvaloniaFact]
@@ -400,15 +406,38 @@ public class EditorWindowTests
             dialogs.Answer(DialogResult.Picked(2));
             await AskAgainAsync(dialogs, () => host.Window.Dispatch(CommandId.Quit));
             dialogs.Answer(DialogResult.Picked(2));
+            await SettleAsync(dialogs);
 
             Assert.True(host.Window.IsVisible);
             Assert.True(tool.IsVisible);
             Assert.True(model.Dirty);
             Assert.Equal("one\n", File.ReadAllText(path));
+
+            Assert.True(await model.SaveAsync());
+            host.Dispose();
+            Assert.False(tool.IsVisible);
+            Assert.False(host.Window.IsVisible);
         }
         finally
         {
             Directory.Delete(root, true);
+        }
+    }
+
+    /// <summary>Pumps until the dialog queue is empty and the dispatcher has nothing left: no close attempt is in flight.</summary>
+    private static async Task SettleAsync(FakeDialogService dialogs)
+    {
+        for (var i = 0; i < 400 && dialogs.Current is not null; i++)
+        {
+            await Task.Delay(10, TestContext.Current.CancellationToken);
+            Avalonia.Threading.Dispatcher.UIThread.RunJobs();
+        }
+
+        Assert.Null(dialogs.Current);
+        for (var i = 0; i < 5; i++)
+        {
+            await Task.Delay(10, TestContext.Current.CancellationToken);
+            Avalonia.Threading.Dispatcher.UIThread.RunJobs();
         }
     }
 

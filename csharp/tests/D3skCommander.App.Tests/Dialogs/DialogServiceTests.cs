@@ -180,19 +180,30 @@ public class DialogServiceTests
     }
 
     [AvaloniaFact]
-    public async Task AShowThatReturnsAFaultedTaskFaultsTheCaller()
+    public async Task AShowThatReturnsAFaultedTaskFaultsTheCallerAndTheNextDialogStillOpens()
     {
         using var host = ShellHost.Open(Language.En);
+        var shows = 0;
         var surface = new WindowDialogSurface(new FixedOwner(host.Window), host.Localizer, new FakeFolderPicker())
         {
-            ShowWindow = (_, _) => Task.FromException(new InvalidOperationException("boom")),
+            ShowWindow = (window, owner) => shows++ == 0
+                ? Task.FromException(new InvalidOperationException("boom"))
+                : window.ShowDialog(owner),
         };
-        var pending = surface.ShowAsync(DialogRequest.ForMessage("Title", "Text"), TestContext.Current.CancellationToken);
-        var finished = await Task.WhenAny(pending, Task.Delay(TimeSpan.FromSeconds(2), TestContext.Current.CancellationToken));
+        var dialogs = new DialogService(surface);
+        var stop = TestContext.Current.CancellationToken;
+        var pending = dialogs.ShowMessageAsync("Title", "Text", stop);
+        var finished = await Task.WhenAny(pending, Task.Delay(TimeSpan.FromSeconds(2), stop));
 
         Assert.Same(pending, finished);
         var error = await Assert.ThrowsAsync<InvalidOperationException>(() => pending);
         Assert.Equal("boom", error.Message);
+
+        var next = dialogs.ConfirmAsync("Title", "Again?", stop);
+        var window = await WaitForDialog(host.Window);
+        Accept(window);
+        Assert.True(await next);
+        Assert.Equal(2, shows);
     }
 
     [AvaloniaFact]
