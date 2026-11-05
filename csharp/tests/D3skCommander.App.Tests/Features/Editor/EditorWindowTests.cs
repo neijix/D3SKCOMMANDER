@@ -1,3 +1,4 @@
+using System.Runtime.Versioning;
 using System.Text;
 using Avalonia.Controls;
 using Avalonia.Headless;
@@ -8,10 +9,13 @@ using D3skCommander.App.Features.Editor;
 using D3skCommander.App.Features.Panels;
 using D3skCommander.App.Shell;
 using D3skCommander.App.Tests.Dialogs;
+using D3skCommander.App.Tests.Shell;
 using D3skCommander.App.Tests.ToolWindows;
 using D3skCommander.App.ToolWindows;
+using D3skCommander.Core.Commands;
 using D3skCommander.Core.Localization;
 using D3skCommander.Core.Providers;
+using Microsoft.Extensions.DependencyInjection;
 using Xunit;
 
 namespace D3skCommander.App.Tests.Features.Editor;
@@ -91,11 +95,7 @@ public class EditorWindowTests
     [AvaloniaFact]
     public async Task AFailingSaveKeepsTheBytesTheBufferAndShowsTheTypedError()
     {
-        if (!OperatingSystem.IsLinux() || Environment.IsPrivilegedProcess)
-        {
-            return;
-        }
-
+        Assert.SkipWhen(CannotProvokeASaveFailure(), RootReason);
         using var rig = await EditorRig.Open();
         var folder = Directory.CreateDirectory(Path.Combine(rig.Root, "locked")).FullName;
         var path = Path.Combine(folder, "a.txt");
@@ -103,19 +103,19 @@ public class EditorWindowTests
         var model = new EditorViewModel(rig.Text, rig.Dialogs, () => Task.CompletedTask);
         await model.OpenAsync(path);
         model.Buffer.Text = "changed";
-        File.SetUnixFileMode(folder, UnixFileMode.UserRead | UnixFileMode.UserExecute);
+        var restore = BlockWrites(folder, path);
         try
         {
             var saving = model.SaveAsync();
             var shown = await rig.Dialogs.WaitShownAsync();
-            Assert.StartsWith(rig.Text.Get("error.access_denied") + ": ", shown.Text, StringComparison.Ordinal);
+            Assert.StartsWith(rig.Text.Get(FailureKey) + ": ", shown.Text, StringComparison.Ordinal);
             Assert.Contains("a.txt", shown.Text, StringComparison.Ordinal);
             rig.Dialogs.Answer(DialogResult.Ok(""));
             Assert.False(await saving);
         }
         finally
         {
-            File.SetUnixFileMode(folder, UnixFileMode.UserRead | UnixFileMode.UserWrite | UnixFileMode.UserExecute);
+            restore();
         }
 
         Assert.True(model.Dirty);
@@ -192,11 +192,7 @@ public class EditorWindowTests
     [AvaloniaFact]
     public async Task AFailingSaveOnCloseShowsTheErrorAndKeepsTheWindowAndBuffer()
     {
-        if (!OperatingSystem.IsLinux() || Environment.IsPrivilegedProcess)
-        {
-            return;
-        }
-
+        Assert.SkipWhen(CannotProvokeASaveFailure(), RootReason);
         using var rig = await EditorRig.Open();
         var folder = Directory.CreateDirectory(Path.Combine(rig.Root, "locked")).FullName;
         var path = Path.Combine(folder, "a.txt");
@@ -205,20 +201,20 @@ public class EditorWindowTests
         await model.OpenAsync(path);
         model.Buffer.Text = "changed";
         var tool = rig.Tools.Open(ToolKind.Editor);
-        File.SetUnixFileMode(folder, UnixFileMode.UserRead | UnixFileMode.UserExecute);
+        var restore = BlockWrites(folder, path);
         try
         {
             tool.KeyPress(Key.Escape, RawInputModifiers.None, PhysicalKey.Escape, null);
             await rig.Dialogs.WaitShownAsync();
             rig.Dialogs.Answer(DialogResult.Picked(0));
             var error = await rig.Dialogs.WaitShownAsync();
-            Assert.StartsWith(rig.Text.Get("error.access_denied") + ": ", error.Text, StringComparison.Ordinal);
+            Assert.StartsWith(rig.Text.Get(FailureKey) + ": ", error.Text, StringComparison.Ordinal);
             rig.Dialogs.Answer(DialogResult.Ok(""));
             await rig.WaitForAsync(() => false);
         }
         finally
         {
-            File.SetUnixFileMode(folder, UnixFileMode.UserRead | UnixFileMode.UserWrite | UnixFileMode.UserExecute);
+            restore();
         }
 
         Assert.True(tool.IsVisible);
@@ -256,10 +252,7 @@ public class EditorWindowTests
     [InlineData("a*b")]
     public async Task EditNewWithACancelOrABadNameOpensNothing(string? answer)
     {
-        if (answer == "a*b" && !OperatingSystem.IsWindows())
-        {
-            return; // '*' is a forbidden character on Windows only
-        }
+        Assert.SkipWhen(answer == "a*b" && !OperatingSystem.IsWindows(), "'*' is a forbidden character on Windows only");
 
         using var rig = await EditorRig.Open();
         rig.Select();
@@ -340,6 +333,85 @@ public class EditorWindowTests
         var dialogs = new FakeDialogService();
         Assert.Equal("Replace all", new EditorViewModel(en, dialogs, () => Task.CompletedTask).ReplaceAllLabel);
         Assert.Equal("Tout remplacer", new EditorViewModel(fr, dialogs, () => Task.CompletedTask).ReplaceAllLabel);
+    }
+
+    private const string RootReason = "root can write anywhere: the failure cannot be provoked";
+
+    // Windows: the read-only file refuses the atomic replace as a denied access; elsewhere the unwritable folder does.
+    private static string FailureKey => "error.access_denied";
+
+    private static bool CannotProvokeASaveFailure() => !OperatingSystem.IsWindows() && Environment.IsPrivilegedProcess;
+
+    private static Action BlockWrites(string folder, string path)
+    {
+        if (OperatingSystem.IsWindows())
+        {
+            File.SetAttributes(path, FileAttributes.ReadOnly);
+            return () => File.SetAttributes(path, FileAttributes.Normal);
+        }
+
+        return BlockFolder(folder);
+    }
+
+    [UnsupportedOSPlatform("windows")]
+    private static Action BlockFolder(string folder)
+    {
+        var mode = File.GetUnixFileMode(folder);
+        File.SetUnixFileMode(folder, UnixFileMode.UserRead | UnixFileMode.UserExecute);
+        return () => File.SetUnixFileMode(folder, mode);
+    }
+
+    [AvaloniaFact]
+    public async Task TheSelectionAfterFindIsUtf16WhateverTheBytesBefore()
+    {
+        using var rig = await EditorRig.Open(("u.txt", "\u00e9 cat\n"));
+        rig.Select("u.txt");
+        await rig.Commands.EditAsync();
+        var model = rig.Model;
+        var picked = new List<(int Start, int Length)>();
+        model.SelectionRequested += (start, length) => picked.Add((start, length));
+
+        model.FindText = "cat";
+        model.FindNext();
+
+        Assert.Equal((2, 3), picked[^1]);
+    }
+
+    [AvaloniaFact]
+    public async Task QuitWithADirtyEditorAsksAndCancelKeepsTheAppAndTheEditorOpen()
+    {
+        var dialogs = new FakeDialogService();
+        using var host = ShellHost.Open(Language.En, services => services.AddSingleton<IDialogService>(dialogs));
+        var root = Directory.CreateTempSubdirectory("d3sk-editor-").FullName;
+        try
+        {
+            var path = Path.Combine(root, "a.txt");
+            File.WriteAllText(path, "one\n");
+            var tools = host.Provider.GetRequiredService<IToolWindowHost>();
+            var tool = tools.Open(ToolKind.Editor);
+            var model = Assert.IsType<EditorViewModel>(tool.View);
+            await model.OpenAsync(path);
+            model.Buffer.Insert(0, "X");
+
+            host.Window.Dispatch(CommandId.Quit);
+            var shown = await dialogs.WaitShownAsync();
+            Assert.Equal(["Save", "Don't save", "Cancel"], shown.Choices);
+            dialogs.Answer(DialogResult.Picked(2));
+            for (var i = 0; i < 10; i++)
+            {
+                await Task.Delay(10, TestContext.Current.CancellationToken);
+                Avalonia.Threading.Dispatcher.UIThread.RunJobs();
+            }
+
+            Assert.True(host.Window.IsVisible);
+            Assert.True(tool.IsVisible);
+            Assert.True(model.Dirty);
+            Assert.Equal("one\n", File.ReadAllText(path));
+        }
+        finally
+        {
+            Directory.Delete(root, true);
+        }
     }
 
     private sealed class EditorRig : IDisposable

@@ -171,10 +171,6 @@ public sealed class EditorViewModel : ObservableObject, IShellWidget, ICloseGuar
 
     public string MatchCaseLabel => _text.Get("editor.match_case");
 
-    public void Draw()
-    {
-    }
-
     public Control CreateContent() => new EditorView { DataContext = this };
 
     /// <summary>Shows <paramref name="path"/>: the name and busy state at once, the text when the load ends.</summary>
