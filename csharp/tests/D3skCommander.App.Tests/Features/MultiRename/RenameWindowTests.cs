@@ -33,28 +33,34 @@ public class RenameWindowTests
         var view = new RenameViewModel(text, new JobService());
         view.Load([file]);
         var (window, form) = Show(view, text);
-        var buttons = Tokens(form);
-        Assert.Equal(RenameToken.All.Count, buttons.Count);
-
-        foreach (var token in RenameToken.All)
+        try
         {
-            var label = text.Get(token.LabelKey);
-            view.NameMask = "";
-            Click(buttons.Single(b => (string?)b.Content == label));
-            Assert.True(view.Session.Rule.NameMask == label, label + " inserted '" + view.Session.Rule.NameMask + "'");
-            var expected = Engine.NewName(file, 0, view.Session.Rule);
-            var preview = Assert.Single(view.Session.Previews);
-            Assert.Null(preview.Error);
-            Assert.Equal(expected, Path.GetFileName(preview.To));
-            Assert.Equal(expected, view.Preview.CellText(0, 1));
-            Assert.Equal("report.txt", view.Preview.CellText(0, 0));
-            Assert.Equal(label, form.FindControl<TextBox>("MaskBox")!.Text);
+            var buttons = Tokens(form);
+            Assert.Equal(RenameToken.All.Count, buttons.Count);
+
+            foreach (var token in RenameToken.All)
+            {
+                var label = text.Get(token.LabelKey);
+                view.NameMask = "";
+                Click(buttons.Single(b => (string?)b.Content == label));
+                Assert.True(view.Session.Rule.NameMask == label, label + " inserted '" + view.Session.Rule.NameMask + "'");
+                var expected = Engine.NewName(file, 0, view.Session.Rule);
+                var preview = Assert.Single(view.Session.Previews);
+                Assert.Null(preview.Error);
+                Assert.Equal(expected, Path.GetFileName(preview.To));
+                Assert.Equal(expected, view.Preview.CellText(0, 1));
+                Assert.Equal("report.txt", view.Preview.CellText(0, 0));
+                Assert.Equal(label, form.FindControl<TextBox>("MaskBox")!.Text);
+            }
+
+
+            Assert.Equal(text.Get("rename.col.old"), view.Preview.HeaderText("rename.col.old"));
+            Assert.Equal(text.Get("rename.col.new"), view.Preview.HeaderText("rename.col.new"));
         }
-
-        window.Close();
-
-        Assert.Equal(text.Get("rename.col.old"), view.Preview.HeaderText("rename.col.old"));
-        Assert.Equal(text.Get("rename.col.new"), view.Preview.HeaderText("rename.col.new"));
+        finally
+        {
+            window.Close();
+        }
     }
 
     [AvaloniaFact]
@@ -66,23 +72,29 @@ public class RenameWindowTests
         var view = new RenameViewModel(text, new JobService());
         view.Load([file]);
         var (window, form) = Show(view, text);
-        var box = form.FindControl<TextBox>("MaskBox")!;
-        var label = text.Get(RenameToken.All[0].LabelKey);
-        var button = Tokens(form).Single(b => (string?)b.Content == label);
+        try
+        {
+            var box = form.FindControl<TextBox>("MaskBox")!;
+            var label = text.Get(RenameToken.All[0].LabelKey);
+            var button = Tokens(form).Single(b => (string?)b.Content == label);
 
-        view.NameMask = "ab";
-        box.CaretIndex = 1;
-        Click(button);
-        Assert.Equal("a" + label + "b", view.Session.Rule.NameMask);
-        Assert.Equal("a" + label + "b", box.Text);
-        Assert.Equal(1 + label.Length, box.CaretIndex);
+            view.NameMask = "ab";
+            box.CaretIndex = 1;
+            Click(button);
+            Assert.Equal("a" + label + "b", view.Session.Rule.NameMask);
+            Assert.Equal("a" + label + "b", box.Text);
+            Assert.Equal(1 + label.Length, box.CaretIndex);
 
-        view.NameMask = "\U0001F600b";
-        box.CaretIndex = 2;
-        Click(button);
-        Assert.Equal("\U0001F600" + label + "b", view.Session.Rule.NameMask);
-        Assert.Equal(2 + label.Length, box.CaretIndex);
-        window.Close();
+            view.NameMask = "\U0001F600b";
+            box.CaretIndex = 2;
+            Click(button);
+            Assert.Equal("\U0001F600" + label + "b", view.Session.Rule.NameMask);
+            Assert.Equal(2 + label.Length, box.CaretIndex);
+        }
+        finally
+        {
+            window.Close();
+        }
     }
 
     [AvaloniaFact]
@@ -96,14 +108,20 @@ public class RenameWindowTests
         view.Load([first, second]);
         view.NameMask = "same";
         var (window, form) = Show(view, Localizer.Load(Language.En, Language.En));
-        Assert.False(Named(form, "RunButton").IsEffectivelyEnabled);
-        Assert.False(string.IsNullOrEmpty(view.Preview.CellText(0, 2)));
-        Click(Named(form, "RunButton"));
-        Assert.Empty(jobs.Jobs);
-        Assert.Empty(view.Session.Done);
-        Assert.True(File.Exists(first));
-        Assert.True(File.Exists(second));
-        window.Close();
+        try
+        {
+            Assert.False(Named(form, "RunButton").IsEffectivelyEnabled);
+            Assert.False(string.IsNullOrEmpty(view.Preview.CellText(0, 2)));
+            Click(Named(form, "RunButton"));
+            Assert.Empty(jobs.Jobs);
+            Assert.Empty(view.Session.Done);
+            Assert.True(File.Exists(first));
+            Assert.True(File.Exists(second));
+        }
+        finally
+        {
+            window.Close();
+        }
     }
 
     [AvaloniaFact]
@@ -116,23 +134,29 @@ public class RenameWindowTests
         var second = dir.Touch("b.txt");
         view.Load([first, second]);
         var (window, form) = Show(view, Localizer.Load(Language.En, Language.En));
-        view.NameMask = "n[C]";
-        Click(Named(form, "RunButton"));
-        var started = Assert.Single(jobs.Jobs);
-        var applied = await started.Completion.WaitAsync(TimeSpan.FromSeconds(5), TestContext.Current.CancellationToken);
-        Assert.Equal(JobOutcome.Completed, applied.Outcome);
-        await Idle(view);
-        Assert.True(File.Exists(dir.PathOf("n1.txt")));
-        Assert.True(File.Exists(dir.PathOf("n2.txt")));
-        Click(Named(form, "UndoButton"));
-        Assert.Collection(jobs.Jobs, _ => { }, _ => { });
-        var restored = await jobs.Jobs[1].Completion.WaitAsync(TimeSpan.FromSeconds(5), TestContext.Current.CancellationToken);
-        Assert.Equal(JobOutcome.Completed, restored.Outcome);
-        await Idle(view);
-        Assert.True(File.Exists(first));
-        Assert.True(File.Exists(second));
-        Assert.False(view.Session.CanUndo);
-        window.Close();
+        try
+        {
+            view.NameMask = "n[C]";
+            Click(Named(form, "RunButton"));
+            var started = Assert.Single(jobs.Jobs);
+            var applied = await started.Completion.WaitAsync(TimeSpan.FromSeconds(5), TestContext.Current.CancellationToken);
+            Assert.Equal(JobOutcome.Completed, applied.Outcome);
+            await Idle(view);
+            Assert.True(File.Exists(dir.PathOf("n1.txt")));
+            Assert.True(File.Exists(dir.PathOf("n2.txt")));
+            Click(Named(form, "UndoButton"));
+            Assert.Collection(jobs.Jobs, _ => { }, _ => { });
+            var restored = await jobs.Jobs[1].Completion.WaitAsync(TimeSpan.FromSeconds(5), TestContext.Current.CancellationToken);
+            Assert.Equal(JobOutcome.Completed, restored.Outcome);
+            await Idle(view);
+            Assert.True(File.Exists(first));
+            Assert.True(File.Exists(second));
+            Assert.False(view.Session.CanUndo);
+        }
+        finally
+        {
+            window.Close();
+        }
     }
 
     [AvaloniaFact]

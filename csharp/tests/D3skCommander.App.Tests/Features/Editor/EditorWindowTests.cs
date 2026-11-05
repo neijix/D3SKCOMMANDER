@@ -424,7 +424,7 @@ public class EditorWindowTests
         }
     }
 
-    /// <summary>Pumps until the dialog queue is empty and the dispatcher has nothing left: no close attempt is in flight.</summary>
+    /// <summary>Pumps until the dialog queue is empty, then five more 10 ms rounds so a close attempt still queued on the dispatcher runs; there is no idle signal to wait on.</summary>
     private static async Task SettleAsync(FakeDialogService dialogs)
     {
         for (var i = 0; i < 400 && dialogs.Current is not null; i++)
