@@ -9,10 +9,14 @@ namespace D3skCommander.App.Smoke;
 /// <summary>Renders one window to a PNG at its pixel size. Without a platform encoder the pixels are encoded here.</summary>
 internal static class SmokeShot
 {
-    public static void Save(Window window, string path)
+    public static void Save(Window window, string path) => Save(window, path, static (bitmap, file) => bitmap.Save(file, PngBitmapEncoderOptions.Default));
+
+    /// <summary>Test seam: <paramref name="platformSave"/> stands in for the platform PNG encoder.</summary>
+    public static void Save(Window window, string path, Action<Bitmap, string> platformSave)
     {
         ArgumentNullException.ThrowIfNull(window);
         ArgumentNullException.ThrowIfNull(path);
+        ArgumentNullException.ThrowIfNull(platformSave);
         window.UpdateLayout();
         var size = SizeOf(window);
         using var bitmap = new RenderTargetBitmap(size, new Vector(96 * Scale(window), 96 * Scale(window)));
@@ -24,7 +28,7 @@ internal static class SmokeShot
         }
 
         File.Delete(path);
-        TryPlatformSave(bitmap, path);
+        TryPlatformSave(platformSave, bitmap, path);
         if (IsPng(path))
         {
             return;
@@ -33,11 +37,11 @@ internal static class SmokeShot
         WritePixels(bitmap, path);
     }
 
-    private static void TryPlatformSave(Bitmap bitmap, string path)
+    private static void TryPlatformSave(Action<Bitmap, string> platformSave, Bitmap bitmap, string path)
     {
         try
         {
-            bitmap.Save(path, PngBitmapEncoderOptions.Default);
+            platformSave(bitmap, path);
         }
         catch (NotSupportedException)
         {

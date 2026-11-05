@@ -160,6 +160,34 @@ public class ScreenshotHookTests
         AssertPng(path, width, height);
     }
 
+    [AvaloniaTheory]
+    [InlineData(false)]
+    [InlineData(true)]
+    public void AStalePngSurvivesNoPlatformSave(bool throws)
+    {
+        var path = NewPngPath();
+        byte[] stale = [137, 80, 78, 71, 13, 10, 26, 10, 0, 0, 0, 13, 73, 72, 68, 82, 0, 0, 0, 1, 0, 0, 0, 1];
+        File.WriteAllBytes(path, stale);
+        var window = new Window { Width = 120, Height = 80 };
+        window.Show();
+        try
+        {
+            SmokeShot.Save(window, path, (_, _) =>
+            {
+                if (throws)
+                {
+                    throw new NotSupportedException();
+                }
+            });
+            AssertPng(path, 120, 80);
+        }
+        finally
+        {
+            window.Close();
+            File.Delete(path);
+        }
+    }
+
     private static int Colours(string path)
     {
         using var bitmap = new Bitmap(path);
