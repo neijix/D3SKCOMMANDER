@@ -34,7 +34,13 @@
           <TextBlock Grid.Column="1" FontWeight="SemiBold" Text="{Binding LeftHeader}"/>
           <TextBlock Grid.Column="3" FontWeight="SemiBold" Text="{Binding RightHeader}"/>
         </Grid>
-        <ListBox x:Name="RowList" Grid.Row="2" ItemsSource="{Binding Rows}" Padding="0">
+        <ListBox x:Name="RowList" Grid.Row="2" ItemsSource="{Binding Rows}" Padding="0" Background="Transparent">
+          <ListBox.Styles>
+            <Style Selector="ListBoxItem">
+              <Setter Property="Padding" Value="4,0"/>
+              <Setter Property="MinHeight" Value="0"/>
+            </Style>
+          </ListBox.Styles>
           <ListBox.ItemTemplate>
             <DataTemplate x:DataType="c:CompareRow">
               <Grid ColumnDefinitions="48,*,48,*">

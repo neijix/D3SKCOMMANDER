@@ -266,8 +266,11 @@ public sealed class ViewerViewModel : ObservableObject, IShellWidget
 
     private long HexRowCount => (((long)(_viewer?.Size ?? 0)) + ViewerLimits.HexWidth - 1) / ViewerLimits.HexWidth;
 
-    public void Draw()
+    public void ReleaseImage()
     {
+        _image?.Dispose();
+        _image = null;
+        OnPropertyChanged(nameof(Image));
     }
 
     public Control CreateContent() => new ViewerView { DataContext = this };
@@ -431,8 +434,7 @@ public sealed class ViewerViewModel : ObservableObject, IShellWidget
         SelectedRow = -1;
         _page = null;
         _shown = null;
-        _image = null;
-        OnPropertyChanged(nameof(Image));
+        ReleaseImage();
         _cursorLine = null;
         _hexCursor = null;
         _matchOffset = null;

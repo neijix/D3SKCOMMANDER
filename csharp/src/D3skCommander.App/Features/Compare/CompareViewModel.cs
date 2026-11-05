@@ -141,10 +141,6 @@ public sealed partial class CompareViewModel : ObservableObject, IShellWidget
     /// <summary>The line shown above the body for pending, error and binary results.</summary>
     public string MessageText => Surface is CompareSurface.Text or CompareSurface.Edit ? "" : SurfaceText;
 
-    public void Draw()
-    {
-    }
-
     public Control CreateContent() => new CompareView(this);
 
     public void Restart(string left, string right)

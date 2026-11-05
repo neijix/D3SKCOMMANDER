@@ -26,7 +26,7 @@ What works today:
   and file operations (copy, move, delete, new folder; an overwrite writes through a temporary
   file beside the target and swaps it in, so a failed or cancelled copy keeps the old file).
 
-Not wired into the window yet: search, and the other add-ons (archives, compare, synchronize, multi-rename, FTP, network drives, tools).
+Not wired into the window yet: search, and the other add-ons (archives, synchronize, FTP, network drives, the remaining tools).
 What is planned beyond that: [docs/ROADMAP.md](docs/ROADMAP.md).
 
 ## Install

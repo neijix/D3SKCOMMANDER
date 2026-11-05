@@ -298,6 +298,23 @@ public class ViewerWindowTests
     }
 
     [AvaloniaFact]
+    public async Task AReplacedImageIsDisposed()
+    {
+        var model = new ViewerViewModel(English(), new JobService());
+        await model.OpenAsync(Fixture("pixel.png"));
+        var first = model.Image!;
+
+        await model.OpenAsync(Fixture("pixel.png"));
+
+        Assert.Throws<ObjectDisposedException>(() => first.PixelSize);
+        var second = model.Image!;
+        Assert.NotSame(first, second);
+        model.ReleaseImage();
+        Assert.Throws<ObjectDisposedException>(() => second.PixelSize);
+        Assert.Null(model.Image);
+    }
+
+    [AvaloniaFact]
     public async Task ACorruptImageOpensInHexWithALocalizedNotice()
     {
         var model = new ViewerViewModel(French(), new JobService());

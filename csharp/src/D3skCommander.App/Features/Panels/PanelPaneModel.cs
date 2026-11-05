@@ -56,10 +56,6 @@ public sealed partial class PanelPaneModel : ObservableObject, IShellWidget
     /// <summary>True while the path box has the focus: a new listing then leaves the typed text alone.</summary>
     public bool EditingPath { get; set; }
 
-    public void Draw()
-    {
-    }
-
     public Control CreateContent() => new PanelPaneView(this);
 
     /// <summary>The pane appeared: the first show starts the initial listing.</summary>

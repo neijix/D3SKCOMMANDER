@@ -150,10 +150,6 @@ public sealed partial class RenameViewModel : ObservableObject, IShellWidget
     /// <summary>The case-mode names in the current language, in <see cref="CaseIndex"/> order.</summary>
     public IReadOnlyList<string> LocalizedCases() => Cases.Select(row => _text.Get(row.Key)).ToList();
 
-    public void Draw()
-    {
-    }
-
     public Control CreateContent() => new RenameView(this, _text) { Name = Name };
 
     public void Load(IReadOnlyList<string> files)

@@ -40,6 +40,27 @@ public partial class ViewerView : UserControl
         Model?.SetColumns((int)((e.NewSize.Width - 100) / CharWidth));
     }
 
+    protected override void OnAttachedToVisualTree(VisualTreeAttachmentEventArgs e)
+    {
+        base.OnAttachedToVisualTree(e);
+        if (TopLevel.GetTopLevel(this) is Window window)
+        {
+            window.Closed += OnWindowClosed;
+        }
+    }
+
+    protected override void OnDetachedFromVisualTree(VisualTreeAttachmentEventArgs e)
+    {
+        if (TopLevel.GetTopLevel(this) is Window window)
+        {
+            window.Closed -= OnWindowClosed;
+        }
+
+        base.OnDetachedFromVisualTree(e);
+    }
+
+    private void OnWindowClosed(object? sender, EventArgs e) => Model?.ReleaseImage();
+
     private void OnDataContextChanged(object? sender, EventArgs e)
     {
         if (_watched is not null)

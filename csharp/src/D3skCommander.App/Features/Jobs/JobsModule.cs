@@ -37,10 +37,6 @@ public sealed class JobsModule : IShellModule
     {
         public string? Name => "Operations";
 
-        public void Draw()
-        {
-        }
-
         public Control CreateContent() => new OperationsBarView(new OperationsBarModel(jobs, text)) { Name = Name };
     }
 }
