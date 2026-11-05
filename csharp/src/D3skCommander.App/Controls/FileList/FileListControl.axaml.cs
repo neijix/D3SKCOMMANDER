@@ -77,6 +77,20 @@ public sealed partial class FileListControl : UserControl
         return null;
     }
 
+    /// <summary>The laid-out width of each header column, left to right.</summary>
+    public IReadOnlyList<double> HeaderColumnWidths() => Header.ColumnDefinitions.Select(c => c.ActualWidth).ToList();
+
+    public double HeaderHeight => Header.Bounds.Height;
+
+    public double HeaderWidth => Header.Bounds.Width;
+
+    /// <summary>The realized list item (row container) height, or null when the row is not realized.</summary>
+    public double? RowContainerHeight(int index) => Rows.ContainerFromIndex(index)?.Bounds.Height;
+
+    /// <summary>The foreground of the row's first cell (the name), or null when the row is not realized.</summary>
+    public IBrush? NameForeground(int index) =>
+        RowViewAt(index)?.GetVisualChildren().OfType<TextBlock>().FirstOrDefault()?.Foreground;
+
     public bool RowHasClass(int index, string name) => RowViewAt(index)?.Classes.Contains(name) ?? false;
 
     public double RowOpacity(int index) => RowViewAt(index)?.Opacity ?? 1;

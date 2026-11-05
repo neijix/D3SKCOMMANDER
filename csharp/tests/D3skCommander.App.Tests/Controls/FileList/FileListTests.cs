@@ -49,6 +49,34 @@ public class FileListTests
     }
 
     [AvaloniaFact]
+    public void FullViewHasTheColumnWidthsAndHeights()
+    {
+        FileListHarness.Use(SampleEntries(), h =>
+        {
+            var widths = h.Control.HeaderColumnWidths();
+            Assert.Equal(5, widths.Count);
+            Assert.Equal([72d, 96d, 148d, 96d], widths.Skip(1).ToArray());
+            Assert.Equal(h.Control.HeaderWidth - 412, widths[0], 0.5);
+            Assert.True(widths[0] > 40);
+            Assert.Equal(24, h.Control.HeaderHeight);
+            Assert.Equal(22, h.Control.RowContainerHeight(1));
+        });
+    }
+
+    [AvaloniaFact]
+    public void AMarkedRowDrawsItsNameInRed()
+    {
+        FileListHarness.Use(SampleEntries(), h =>
+        {
+            h.Press(1, Ctrl);
+            Assert.True(h.Control.RowHasClass(1, "marked"));
+            var red = Assert.IsAssignableFrom<Avalonia.Media.ISolidColorBrush>(h.Control.NameForeground(1));
+            Assert.Equal(Avalonia.Media.Color.FromRgb(200, 30, 20), red.Color);
+            Assert.False(h.Control.NameForeground(2) is Avalonia.Media.ISolidColorBrush other && other.Color == red.Color);
+        });
+    }
+
+    [AvaloniaFact]
     public void HeadersFollowTheLanguage()
     {
         var text = TextCatalog.Load(Language.Fr, Language.Fr);
