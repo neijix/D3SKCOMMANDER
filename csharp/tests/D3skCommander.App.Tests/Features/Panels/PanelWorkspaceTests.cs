@@ -59,6 +59,22 @@ public class PanelWorkspaceTests
     }
 
     [AvaloniaFact]
+    public async Task AnInvalidTypedPathShowsItsKindAndThePathNotTheExceptionText()
+    {
+        using var root = new TempDir();
+        using var workspace = await Open(root.Path, root.Path);
+        var typed = "bad\0name";
+
+        var ok = await workspace.GoAsync(PanelSide.Left, typed, TestContext.Current.CancellationToken);
+
+        var after = workspace.Read(PanelSide.Left);
+        Assert.False(ok);
+        Assert.Equal(root.Path, after.Path);
+        Assert.Equal(ErrorKind.InvalidData, after.Error);
+        Assert.Equal(typed, after.ErrorPath);
+    }
+
+    [AvaloniaFact]
     public async Task AClickKeepsTheListing()
     {
         using var root = new TempDir();

@@ -265,7 +265,7 @@ public sealed partial class RenameViewModel : ObservableObject, IShellWidget
         catch (Exception ex)
         {
             Interlocked.Exchange(ref _busy, 0);
-            Remember(ex.Message, error: true);
+            Remember(ErrorLines.Describe(_text, ex), error: true);
             NotifyActions();
         }
     }

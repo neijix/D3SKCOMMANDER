@@ -1,6 +1,7 @@
 using D3skCommander.App.Controls.FileList;
 using D3skCommander.App.Shell;
 using D3skCommander.Core.Commands;
+using D3skCommander.Core.Common;
 using D3skCommander.Core.FileSystem;
 
 namespace D3skCommander.App.Features.Panels;
@@ -52,7 +53,7 @@ public sealed partial class PanelWorkspace
             {
                 try
                 {
-                    Fail(_active, ex.Message);
+                    Fail(_active, OperationError.FromException(ex, TabOf(_active)?.Location.Path));
                 }
                 finally
                 {

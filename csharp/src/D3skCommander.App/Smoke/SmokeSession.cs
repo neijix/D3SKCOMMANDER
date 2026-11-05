@@ -152,7 +152,7 @@ internal sealed class SmokeSession : IDisposable
         }
         catch (Exception ex) when (IsCaptureFailure(ex))
         {
-            Report("smoke.screenshot.failed", ex.Message);
+            Report("smoke.screenshot.failed", ErrorLines.Describe(_text, ex, _path));
         }
     }
 

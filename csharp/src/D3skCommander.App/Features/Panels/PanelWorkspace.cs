@@ -26,7 +26,7 @@ public sealed partial class PanelWorkspace : IPanelWorkspace, IDisposable
     private FileListView _leftView = FileListView.Full;
     private FileListView _rightView = FileListView.Full;
     private PanelSide _active = PanelSide.Left;
-    private string? _inputError;
+    private OperationError? _inputError;
     private PanelSide _inputSide;
     private bool _showHidden;
     private int _leftGeneration;
@@ -184,7 +184,7 @@ public sealed partial class PanelWorkspace : IPanelWorkspace, IDisposable
 
             try
             {
-                Fail(PanelSide.Left, ex.Message);
+                Fail(PanelSide.Left, OperationError.FromException(ex, TabOf(PanelSide.Left)?.Location.Path));
             }
             finally
             {
@@ -384,7 +384,7 @@ public sealed partial class PanelWorkspace : IPanelWorkspace, IDisposable
         var snap = PanelSnapshot.Capture(tab, ViewOf(side), generation, token);
         if (_inputError is not null && _inputSide == side)
         {
-            snap = snap with { Error = ErrorKind.Other, ErrorPath = _inputError };
+            snap = snap with { Error = _inputError.Kind, ErrorPath = _inputError.Path };
         }
 
         if (side == PanelSide.Left)
@@ -397,9 +397,10 @@ public sealed partial class PanelWorkspace : IPanelWorkspace, IDisposable
         }
     }
 
-    private void Fail(PanelSide side, string message)
+    /// <summary>Shows <paramref name="error"/> on <paramref name="side"/>: its localized kind and path, never the raw exception text.</summary>
+    private void Fail(PanelSide side, OperationError error)
     {
-        _inputError = message;
+        _inputError = error;
         _inputSide = side;
         Publish(side, announce: true);
     }

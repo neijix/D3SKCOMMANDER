@@ -1,5 +1,6 @@
 using D3skCommander.App.Controls.FileList;
 using D3skCommander.App.Shell;
+using D3skCommander.Core.Common;
 using D3skCommander.Core.FileSystem;
 using D3skCommander.Core.Panels;
 
@@ -265,7 +266,7 @@ public sealed partial class PanelWorkspace
         }
         catch (Exception ex) when (ex is ArgumentException or NotSupportedException or PathTooLongException)
         {
-            Fail(side, ex.Message);
+            Fail(side, new OperationError(ErrorKind.InvalidData, ex.Message, path));
             return false;
         }
 
