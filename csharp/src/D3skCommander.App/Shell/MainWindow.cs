@@ -37,7 +37,6 @@ public sealed partial class MainWindow
         LeftPanel.Content = BuildOne(shell.LeftPanel);
         RightPanel.Content = BuildOne(shell.RightPanel);
         StartSize = new WindowSize(1100, 700);
-        Screen = new DesktopScreen(new ScreenRect(0, 0, 1920, 1080), 1);
         Build();
     }
 
@@ -46,7 +45,8 @@ public sealed partial class MainWindow
     /// <summary>The size the window opens at; <c>Bounds</c> is the laid-out rectangle.</summary>
     public WindowSize StartSize { get; }
 
-    public DesktopScreen Screen { get; }
+    /// <summary>The screen the window is on (else the primary one); 1920x1080 at 1 when none is reported.</summary>
+    public DesktopScreen Screen => DesktopScreen.From(Screens.ScreenFromWindow(this) ?? Screens.Primary);
 
     public ShellSlot LeftPanel { get; }
 

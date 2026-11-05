@@ -28,6 +28,25 @@ public class MainWindowTests
     }
 
     [AvaloniaFact]
+    public void ScreenIsTheWorkingAreaAvaloniaReports()
+    {
+        using var host = ShellHost.Open(Language.En);
+        var reported = host.Window.Screens.ScreenFromWindow(host.Window) ?? host.Window.Screens.Primary;
+        var expected = DesktopScreen.From(reported);
+        Assert.Equal(expected, host.Window.Screen);
+        if (reported is not null)
+        {
+            var area = reported.WorkingArea;
+            Assert.Equal(new ScreenRect(area.X, area.Y, area.Width, area.Height), host.Window.Screen.WorkingArea);
+            Assert.Equal(reported.Scaling, host.Window.Screen.Scaling);
+        }
+        else
+        {
+            Assert.Equal(new DesktopScreen(new ScreenRect(0, 0, 1920, 1080), 1), host.Window.Screen);
+        }
+    }
+
+    [AvaloniaFact]
     public void TheShellRendersOneHeadlessFrame()
     {
         using var host = ShellHost.Open(Language.En);
