@@ -13,20 +13,25 @@ stays in the git history.
 What works today:
 
 - the main window: the menu bar, the function-key bar and the status line;
-- both panels list a local folder, with a path bar, a folder chooser, and keyboard navigation
-  (Enter opens a folder, Backspace or Ctrl+PgUp goes up, Tab switches panel);
-- copy, move, new folder and delete (F5–F8) run as background jobs, with a progress line,
-  a conflict dialog and a failure report;
-- an English or French interface (from the system language);
-- dialogs and tool windows, the system folder chooser;
+- both panels list a local folder, with a path bar, a folder chooser, keyboard navigation,
+  tabs, history, the hotlist, sorting, the full, brief and thumbnail views, folder and
+  file-type icons, and the last session (tabs, folders, sort, view) reopened at start;
+- selection by pattern, quick filter, branch view, folder sizes, names and paths copied to the
+  clipboard;
+- copy, move, new folder, rename in place, delete and permanent delete (F5–F8) run as background
+  jobs, with a progress line, a conflict dialog and a failure report;
+- Enter on a file opens it with its default application; Open with, a terminal here, the
+  command line under the panels, and your own commands (Settings) in the Tools menu;
+- the drive lists (Alt+F1, Alt+F2), Properties (Alt+Enter), and files dropped from the system
+  copied into a panel;
+- quick view (Ctrl+Q) of the file under the cursor in the other panel;
+- search, synchronize folders, compare, multi-rename, split and join, checksums, file times,
+  archives (pack, unpack, browse), encryption and the password vault, FTP and FTPS sites,
+  network drives, the catalog, the operations log, the settings window (F9) and update checks;
+- an English or French interface;
 - the viewer (F3: text, hex and image modes) and the editor (F4, Shift+F4 for a new file),
-  which asks Save, Don't save or Cancel before closing with unsaved changes;
-- in the core library, with tests: local file listing and sorting, wildcard masks, the panel and
-  tab model (history, selection, columns), background jobs with progress, cancel and retry,
-  and file operations (copy, move, delete, new folder; an overwrite writes through a temporary
-  file beside the target and swaps it in, so a failed or cancelled copy keeps the old file).
+  which asks Save, Don't save or Cancel before closing with unsaved changes.
 
-Not wired into the window yet: search, and the other add-ons (archives, synchronize, FTP, network drives, the remaining tools).
 What is planned beyond that: [docs/ROADMAP.md](docs/ROADMAP.md).
 
 ## Install
