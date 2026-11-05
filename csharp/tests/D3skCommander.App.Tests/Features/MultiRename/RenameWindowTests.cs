@@ -58,6 +58,34 @@ public class RenameWindowTests
     }
 
     [AvaloniaFact]
+    public void TokenGoesInAtTheCaret()
+    {
+        using var dir = new WorkDir();
+        var file = dir.Touch("report.txt");
+        var text = Localizer.Load(Language.En, Language.En);
+        var view = new RenameViewModel(text, new JobService());
+        view.Load([file]);
+        var (window, form) = Show(view, text);
+        var box = form.FindControl<TextBox>("MaskBox")!;
+        var label = text.Get(RenameToken.All[0].LabelKey);
+        var button = Tokens(form).Single(b => (string?)b.Content == label);
+
+        view.NameMask = "ab";
+        box.CaretIndex = 1;
+        Click(button);
+        Assert.Equal("a" + label + "b", view.Session.Rule.NameMask);
+        Assert.Equal("a" + label + "b", box.Text);
+        Assert.Equal(1 + label.Length, box.CaretIndex);
+
+        view.NameMask = "\U0001F600b";
+        box.CaretIndex = 2;
+        Click(button);
+        Assert.Equal("\U0001F600" + label + "b", view.Session.Rule.NameMask);
+        Assert.Equal(2 + label.Length, box.CaretIndex);
+        window.Close();
+    }
+
+    [AvaloniaFact]
     public void PreviewErrorBlocksTheStartButton()
     {
         using var dir = new WorkDir();
