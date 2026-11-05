@@ -64,6 +64,21 @@ public class FileListTests
     }
 
     [AvaloniaFact]
+    public void RowColumnsLineUpWithTheHeader()
+    {
+        FileListHarness.Use(SampleEntries(), h =>
+        {
+            var header = h.Control.HeaderColumnWidths();
+            var row = h.Control.RowColumnWidths(1);
+            Assert.Equal(header.Count, row.Count);
+            for (var i = 0; i < header.Count; i++)
+            {
+                Assert.Equal(header[i], row[i], 0.5);
+            }
+        });
+    }
+
+    [AvaloniaFact]
     public void AMarkedRowDrawsItsNameInRed()
     {
         FileListHarness.Use(SampleEntries(), h =>

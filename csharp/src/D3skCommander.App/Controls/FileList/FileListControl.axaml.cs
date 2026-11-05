@@ -82,6 +82,10 @@ public sealed partial class FileListControl : UserControl
     /// <summary>The laid-out width of each header column, left to right.</summary>
     public IReadOnlyList<double> HeaderColumnWidths() => Header.ColumnDefinitions.Select(c => c.ActualWidth).ToList();
 
+    /// <summary>The laid-out width of each cell column of a realized row, or empty when it is not realized.</summary>
+    public IReadOnlyList<double> RowColumnWidths(int index) =>
+        RowViewAt(index)?.ColumnDefinitions.Select(c => c.ActualWidth).ToList() ?? [];
+
     public double HeaderHeight => Header.Bounds.Height;
 
     public double HeaderWidth => Header.Bounds.Width;
