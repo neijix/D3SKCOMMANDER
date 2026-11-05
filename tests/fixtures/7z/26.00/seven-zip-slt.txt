@@ -1,0 +1,29 @@
+
+7-Zip 26.00 (x64) : Copyright (c) 1999-2026 Igor Pavlov : 2026-02-12
+ 64-bit locale=C.UTF-8 Threads:16 OPEN_MAX:524288, ASM
+
+Scanning the drive for archives:
+1 file, 112 bytes (1 KiB)
+
+Listing archive: sample.7z
+
+--
+Path = sample.7z
+Type = 7z
+Physical Size = 112
+Headers Size = 106
+Method = Copy
+Solid = -
+Blocks = 1
+
+----------
+Path = notes.txt
+Size = 6
+Packed Size = 6
+Modified = 2026-11-04 19:38:15.6474784
+Attributes = A -rw-rw-r--
+CRC = 363A3020
+Encrypted = -
+Method = Copy
+Block = 0
+

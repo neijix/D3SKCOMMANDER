@@ -1,0 +1,10 @@
+Recorded with 7-Zip 26.00 (`7z l -slt`) on 2026-11-04, from the fixture directory
+so the listing names the archive relatively.
+
+rar-slt.txt lists libarchive's public test file
+libarchive/test/test_read_format_rar.rar.uu
+(https://github.com/libarchive/libarchive), BSD-2-Clause, fetched with `gh api`
+and decoded. The archive itself is not stored here.
+
+seven-zip-slt.txt and zip-slt.txt list a one-file archive this capture created
+(notes.txt containing "hello" plus a newline, stored, method level 0).

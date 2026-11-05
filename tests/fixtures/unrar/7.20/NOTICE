@@ -1,0 +1,4 @@
+lb.txt is `unrar lb` (UNRAR 7.20) on libarchive's public test file
+libarchive/test/test_read_format_rar.rar.uu
+(https://github.com/libarchive/libarchive), fetched with `gh api` and decoded
+on 2026-11-04. That file is BSD-2-Clause. The archive itself is not stored here.

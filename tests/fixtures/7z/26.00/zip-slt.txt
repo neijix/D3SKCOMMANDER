@@ -1,0 +1,33 @@
+
+7-Zip 26.00 (x64) : Copyright (c) 1999-2026 Igor Pavlov : 2026-02-12
+ 64-bit locale=C.UTF-8 Threads:16 OPEN_MAX:524288, ASM
+
+Scanning the drive for archives:
+1 file, 158 bytes (1 KiB)
+
+Listing archive: sample.zip
+
+--
+Path = sample.zip
+Type = zip
+Physical Size = 158
+
+----------
+Path = notes.txt
+Folder = -
+Size = 6
+Packed Size = 6
+Modified = 2026-11-04 19:38:15.6474784
+Created = 
+Accessed = 
+Attributes =  -rw-rw-r--
+Encrypted = -
+Comment = 
+CRC = 363A3020
+Method = Store
+Characteristics = NTFS
+Host OS = Unix
+Version = 10
+Volume Index = 0
+Offset = 0
+

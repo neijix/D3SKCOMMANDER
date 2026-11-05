@@ -1,0 +1,5 @@
+test.txt
+testlink
+testdir/test.txt
+testdir
+testemptydir
