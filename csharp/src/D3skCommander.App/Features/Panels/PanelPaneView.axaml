@@ -18,6 +18,9 @@
              Text="{Binding FilterText, Mode=TwoWay}" PlaceholderText="{Binding FilterWatermark}"/>
     <TextBlock x:Name="StatusText" DockPanel.Dock="Bottom" Margin="4,2"
                Classes.active="{Binding IsActive}" Text="{Binding StatusText}"/>
-    <ContentControl x:Name="ListHost"/>
+    <Grid>
+      <ContentControl x:Name="ListHost" IsVisible="{Binding !HasOverlay}"/>
+      <ContentControl x:Name="OverlayHost" IsVisible="{Binding HasOverlay}" Content="{Binding Overlay}"/>
+    </Grid>
   </DockPanel>
 </UserControl>

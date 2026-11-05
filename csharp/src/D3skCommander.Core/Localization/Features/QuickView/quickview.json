@@ -1,0 +1,10 @@
+{
+  "quickview.items": {
+    "en": "Folder: {count} items",
+    "fr": "Dossier : {count} éléments"
+  },
+  "quickview.unreadable": {
+    "en": "Folder: cannot be read",
+    "fr": "Dossier : illisible"
+  }
+}

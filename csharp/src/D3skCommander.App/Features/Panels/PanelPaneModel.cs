@@ -50,6 +50,7 @@ public sealed partial class PanelPaneModel : ObservableObject, IShellWidget
         List = new FileList(text);
         List.RenameCommitted += OnRenameCommitted;
         _panels.RenameRequested += OnRenameRequested;
+        InitOverlay();
         BrowseText = text.Get("panels.browse");
         FilterWatermark = text.Get("panels.filter");
     }
