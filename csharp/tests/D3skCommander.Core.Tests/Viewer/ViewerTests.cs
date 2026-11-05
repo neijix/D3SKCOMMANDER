@@ -2,6 +2,7 @@ using System.Text;
 using D3skCommander.Core.Catalog;
 using D3skCommander.Core.Common;
 using D3skCommander.Core.Viewer;
+using D3skCommander.Tests.Shared;
 using Xunit;
 
 namespace D3skCommander.Core.Tests.Viewer;
@@ -65,7 +66,7 @@ public class ViewerTests
     {
         using var dir = new ViewerTemp();
         var path = Path.Combine(dir.Path, "names.dbf");
-        File.WriteAllBytes(path, NameFile());
+        File.WriteAllBytes(path, DbfSample.NameFile());
         var viewer = FileViewer.Open(path);
         Assert.Equal(ViewerMode.Table, viewer.Mode);
         Assert.Equal([ViewerMode.Table, ViewerMode.Hex], viewer.Modes);
@@ -187,23 +188,5 @@ public class ViewerTests
         Assert.NotEqual(ViewerMode.Table, viewer.Mode);
         Assert.True(viewer.Truncated);
         Assert.Equal(ViewerLimits.MaxRead, viewer.Bytes.Length);
-    }
-
-    // One character field NAME C(4), two records, the second deleted.
-    private static byte[] NameFile()
-    {
-        var bytes = new byte[32 + 32 + 1 + 5 + 5 + 1];
-        bytes[0] = 0x03;
-        bytes[4] = 2;
-        bytes[8] = 65;
-        bytes[10] = 5;
-        Encoding.ASCII.GetBytes("NAME").CopyTo(bytes, 32);
-        bytes[32 + 11] = (byte)'C';
-        bytes[32 + 16] = 4;
-        bytes[64] = 0x0D;
-        Encoding.ASCII.GetBytes(" Ann ").CopyTo(bytes, 65);
-        Encoding.ASCII.GetBytes("*Bob ").CopyTo(bytes, 70);
-        bytes[^1] = 0x1A;
-        return bytes;
     }
 }

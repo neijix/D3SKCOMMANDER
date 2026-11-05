@@ -1,0 +1,54 @@
+{
+  "lister.mode.text": {
+    "en": "Text",
+    "fr": "Texte"
+  },
+  "lister.mode.hex": {
+    "en": "Hex",
+    "fr": "Hexadécimal"
+  },
+  "lister.mode.table": {
+    "en": "Table",
+    "fr": "Tableau"
+  },
+  "lister.mode.image": {
+    "en": "Image",
+    "fr": "Image"
+  },
+  "lister.wrap": {
+    "en": "Wrap",
+    "fr": "Retour à la ligne"
+  },
+  "lister.match_case": {
+    "en": "Match case",
+    "fr": "Respecter la casse"
+  },
+  "lister.find": {
+    "en": "Find",
+    "fr": "Chercher"
+  },
+  "lister.find_next": {
+    "en": "Next",
+    "fr": "Suivant"
+  },
+  "lister.find_prev": {
+    "en": "Previous",
+    "fr": "Précédent"
+  },
+  "lister.filter": {
+    "en": "Filter",
+    "fr": "Filtrer"
+  },
+  "lister.not_found": {
+    "en": "Not found",
+    "fr": "Introuvable"
+  },
+  "lister.opening": {
+    "en": "Opening {name}...",
+    "fr": "Ouverture de {name}..."
+  },
+  "lister.truncated": {
+    "en": "Only the first 16 MiB are shown.",
+    "fr": "Seuls les 16 premiers Mio sont affichés."
+  }
+}

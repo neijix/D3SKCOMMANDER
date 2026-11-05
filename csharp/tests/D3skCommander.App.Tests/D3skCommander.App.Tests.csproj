@@ -14,6 +14,7 @@
   </ItemGroup>
   <ItemGroup>
     <Compile Include="../D3skCommander.Core.Tests/Architecture/SlowAttribute.cs" Link="Shell/SlowAttribute.cs" />
+    <Compile Include="../Shared/*.cs" Link="Shared/%(Filename)%(Extension)" />
     <None Include="$(RepoRoot)tests/fixtures/**" Link="fixtures/%(RecursiveDir)%(Filename)%(Extension)" CopyToOutputDirectory="PreserveNewest" />
   </ItemGroup>
 </Project>

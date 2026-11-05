@@ -15,6 +15,7 @@
     <ProjectReference Include="../../src/D3skCommander.Core/D3skCommander.Core.csproj" />
   </ItemGroup>
   <ItemGroup>
+    <Compile Include="../Shared/*.cs" Link="Shared/%(Filename)%(Extension)" />
     <None Include="$(RepoRoot)tests/fixtures/**" Link="fixtures/%(RecursiveDir)%(Filename)%(Extension)" CopyToOutputDirectory="PreserveNewest" />
     <None Include="$(RepoRoot)csharp/packaging/nsis/setup.nsi" Link="packaging/setup.nsi" CopyToOutputDirectory="PreserveNewest" />
   </ItemGroup>

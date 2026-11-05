@@ -1,0 +1,43 @@
+<UserControl xmlns="https://github.com/avaloniaui"
+             xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+             xmlns:l="using:D3skCommander.App.Features.Lister"
+             x:Class="D3skCommander.App.Features.Lister.ViewerView"
+             x:DataType="l:ViewerViewModel">
+  <DockPanel>
+    <StackPanel DockPanel.Dock="Top" Orientation="Horizontal" Spacing="8" Margin="8,6">
+      <ComboBox x:Name="ModeBox" MinWidth="110" ItemsSource="{Binding Modes}" SelectedItem="{Binding SelectedMode, Mode=OneWay}">
+        <ComboBox.ItemTemplate>
+          <DataTemplate x:DataType="l:ViewerModeChoice">
+            <TextBlock Text="{Binding Label}"/>
+          </DataTemplate>
+        </ComboBox.ItemTemplate>
+      </ComboBox>
+      <CheckBox x:Name="WrapBox" IsVisible="{Binding IsText}" IsChecked="{Binding Wrap, Mode=TwoWay}" Content="{Binding WrapLabel}"/>
+      <StackPanel Orientation="Horizontal" Spacing="6" IsVisible="{Binding CanFind}">
+        <TextBox x:Name="FindBox" MinWidth="180" Text="{Binding FindText, Mode=TwoWay}" PlaceholderText="{Binding FindLabel}"/>
+        <Button x:Name="PreviousButton" Content="{Binding PreviousLabel}"/>
+        <Button x:Name="NextButton" Content="{Binding NextLabel}"/>
+        <CheckBox x:Name="CaseBox" IsChecked="{Binding MatchCase, Mode=TwoWay}" Content="{Binding MatchCaseLabel}"/>
+      </StackPanel>
+      <TextBox x:Name="FilterBox" MinWidth="220" IsVisible="{Binding IsTable}" Text="{Binding Filter, Mode=TwoWay}" PlaceholderText="{Binding FilterLabel}"/>
+    </StackPanel>
+    <ProgressBar DockPanel.Dock="Top" IsIndeterminate="True" IsVisible="{Binding IsBusy}"/>
+    <StackPanel DockPanel.Dock="Bottom" Orientation="Horizontal" Spacing="16" Margin="8,4">
+      <TextBlock x:Name="StatusLine" Text="{Binding StatusText}"/>
+      <TextBlock x:Name="TruncatedLine" Text="{Binding TruncatedText}"/>
+      <TextBlock x:Name="NoticeLine" Text="{Binding Notice}"/>
+    </StackPanel>
+    <TextBlock x:Name="ErrorLine" DockPanel.Dock="Top" Margin="8,4" TextWrapping="Wrap" Text="{Binding ErrorMessage}" IsVisible="{Binding HasError}"/>
+    <TextBlock x:Name="HeaderLine" DockPanel.Dock="Top" Margin="8,0" FontWeight="Bold" FontFamily="Cascadia Mono,Consolas,Menlo,monospace" Text="{Binding Header}" IsVisible="{Binding IsTable}"/>
+    <ListBox x:Name="RowList" ItemsSource="{Binding Rows}" SelectedIndex="{Binding SelectedRow, Mode=TwoWay}">
+      <ListBox.ItemTemplate>
+        <DataTemplate x:DataType="l:ViewerLine">
+          <StackPanel Orientation="Horizontal">
+            <TextBlock Text="{Binding Gutter}" Opacity="0.6" FontFamily="Cascadia Mono,Consolas,Menlo,monospace"/>
+            <TextBlock Text="{Binding Text}" FontFamily="Cascadia Mono,Consolas,Menlo,monospace"/>
+          </StackPanel>
+        </DataTemplate>
+      </ListBox.ItemTemplate>
+    </ListBox>
+  </DockPanel>
+</UserControl>
