@@ -1,0 +1,102 @@
+{
+  "drives.choose": {
+    "en": "Open which drive or network share?",
+    "fr": "Ouvrir quel lecteur ou partage réseau ?"
+  },
+  "drives.free": {
+    "en": "free",
+    "fr": "libres"
+  },
+  "drives.none": {
+    "en": "No drive found.",
+    "fr": "Aucun lecteur trouvé."
+  },
+  "drives.share": {
+    "en": "network",
+    "fr": "réseau"
+  },
+  "props.none": {
+    "en": "Nothing to show properties for.",
+    "fr": "Rien dont afficher les propriétés."
+  },
+  "props.job": {
+    "en": "Measuring",
+    "fr": "Mesure de"
+  },
+  "props.name": {
+    "en": "Name",
+    "fr": "Nom"
+  },
+  "props.path": {
+    "en": "Path",
+    "fr": "Chemin"
+  },
+  "props.type": {
+    "en": "Type",
+    "fr": "Type"
+  },
+  "props.type_file": {
+    "en": "File",
+    "fr": "Fichier"
+  },
+  "props.type_folder": {
+    "en": "Folder",
+    "fr": "Dossier"
+  },
+  "props.type_link": {
+    "en": "Link",
+    "fr": "Lien"
+  },
+  "props.link": {
+    "en": "Link target",
+    "fr": "Cible du lien"
+  },
+  "props.size": {
+    "en": "Size",
+    "fr": "Taille"
+  },
+  "props.bytes": {
+    "en": "bytes",
+    "fr": "octets"
+  },
+  "props.contents": {
+    "en": "Contents",
+    "fr": "Contenu"
+  },
+  "props.contents_value": {
+    "en": "{0} files, {1} folders",
+    "fr": "{0} fichiers, {1} dossiers"
+  },
+  "props.created": {
+    "en": "Created",
+    "fr": "Créé le"
+  },
+  "props.modified": {
+    "en": "Modified",
+    "fr": "Modifié le"
+  },
+  "props.accessed": {
+    "en": "Accessed",
+    "fr": "Consulté le"
+  },
+  "props.attributes": {
+    "en": "Attributes",
+    "fr": "Attributs"
+  },
+  "props.permissions": {
+    "en": "Permissions",
+    "fr": "Permissions"
+  },
+  "props.owner": {
+    "en": "Owner",
+    "fr": "Propriétaire"
+  },
+  "props.selected": {
+    "en": "Items selected",
+    "fr": "Éléments sélectionnés"
+  },
+  "drop.failed": {
+    "en": "Some dropped files could not be copied:",
+    "fr": "Certains fichiers déposés n'ont pas pu être copiés :"
+  }
+}

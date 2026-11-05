@@ -26,6 +26,7 @@ public sealed partial class PanelPaneView : UserControl
         PathBox.GotFocus += (_, _) => Edit(true);
         PathBox.LostFocus += (_, _) => Edit(false);
         FilterBox.KeyDown += OnFilterKey;
+        EnableDrop();
         BrowseButton.Click += (_, _) => _ = Model?.BrowseAsync();
         SizeChanged += (_, e) => Model?.Fit(e.NewSize.Width);
     }
