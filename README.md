@@ -1,7 +1,8 @@
 # d3skcommander
 
 A cross-platform two-panel (orthodox) file manager for Linux, macOS and Windows, written in C#
-on .NET 10 with [Avalonia](https://avaloniaui.net) 12 and its Fluent theme.
+on .NET 10 with [Avalonia](https://avaloniaui.net) 12 and its Fluent theme, which follows the
+operating system's light or dark setting.
 
 ## Status
 
@@ -18,13 +19,14 @@ What works today:
   a conflict dialog and a failure report;
 - an English or French interface (from the system language);
 - dialogs and tool windows, the system folder chooser;
+- the viewer (F3: text, hex and image modes) and the editor (F4, Shift+F4 for a new file),
+  which asks Save, Don't save or Cancel before closing with unsaved changes;
 - in the core library, with tests: local file listing and sorting, wildcard masks, the panel and
   tab model (history, selection, columns), background jobs with progress, cancel and retry,
   and file operations (copy, move, delete, new folder; an overwrite writes through a temporary
   file beside the target and swaps it in, so a failed or cancelled copy keeps the old file).
 
-Not wired into the window yet: view, edit, search, and the other add-ons (lister, editor,
-archives, compare, synchronize, multi-rename, FTP, network drives, tools).
+Not wired into the window yet: search, and the other add-ons (archives, compare, synchronize, multi-rename, FTP, network drives, tools).
 What is planned beyond that: [docs/ROADMAP.md](docs/ROADMAP.md).
 
 ## Install
@@ -51,7 +53,10 @@ are not built yet.
 ## Build
 
 You need the [.NET 10 SDK](https://dotnet.microsoft.com/download). On Linux, the window also
-needs OpenGL 3.2 and X11 or Wayland (any desktop has them).
+needs an X11 session (Wayland desktops use XWayland) and these shared libraries, which any
+desktop install has: `libX11`, `libXi`, `libXrandr`, `libXcursor`, `libXext`, `libICE`, `libSM`
+(loaded by Avalonia) and `libfontconfig` with `libfreetype` (needed by the bundled Skia).
+No GPU or OpenGL is required.
 
 ```sh
 ./start.sh          # build (release) and start; start.bat on Windows
@@ -63,7 +68,7 @@ can set `DOTNET_ROOT`, `DOTNET_CLI_HOME`, `NUGET_PACKAGES` and a `PATH` prefix
 (`.env.example`). `./check.sh --full` adds the slow tests.
 
 The sources are in `csharp/`: `src/D3skCommander.Core` holds every rule and has no UI
-dependency; `src/D3skCommander.App` draws with ImGui; each has its test project under
+dependency; `src/D3skCommander.App` is the Avalonia window layer; each has its test project under
 `csharp/tests/`.
 
 ### Packages
@@ -75,8 +80,8 @@ csharp/packaging/publish.sh osx-arm64   # dist/d3skcommander-<version>-macos-aar
 csharp/packaging/setup-windows.sh       # dist/d3skcommander-<version>-windows-x86_64-setup.exe
 ```
 
-Each archive is a self-contained build: one executable with the native ImGui and GLFW libraries
-beside it, plus a `.sha256` file. Any of them builds from any OS. The setup needs NSIS 3
+Each archive is a self-contained build: one executable with Avalonia's native Skia and HarfBuzz
+libraries beside it, plus a `.sha256` file. Any of them builds from any OS. The setup needs NSIS 3
 (`makensis`) and packs the Windows publish; it builds that publish first when the folder is
 not already there. The version is in `csharp/Directory.Build.props`.
 
@@ -122,8 +127,10 @@ A command whose feature is not built yet shows in its menu, disabled.
 ## Development notes
 
 - `D3SK_SCREENSHOT=/tmp/shot.png` makes the app save a screenshot after two seconds and quit.
-  `D3SK_SCREENSHOT_CMD=Settings` runs a command first (any command name).
-- The App tests draw real ImGui frames headless (no window, no GPU).
+  `D3SK_SCREENSHOT_CMD=Settings` runs a command first (any command name); it shoots the window or dialog that command opened.
+- The App tests run on Avalonia.Headless (no window, no GPU).
+- The first version of the window used an immediate-mode GUI (ImGui); Avalonia replaced it
+  before the port reached parity.
 
 ## License
 
