@@ -6,7 +6,7 @@ operating system's light or dark setting.
 
 ## Status
 
-The app is being rebuilt in C# (version 0.2.0, in progress). The first version, written in
+The app is being rebuilt in C# (version 0.2.1, in progress). The first version, written in
 Rust, is no longer in this tree; its last release is v0.1.x on the releases page and its code
 stays in the git history.
 

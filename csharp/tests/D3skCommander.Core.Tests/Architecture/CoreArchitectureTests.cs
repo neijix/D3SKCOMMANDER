@@ -29,7 +29,7 @@ public class CoreArchitectureTests
         var core = Assembly.Load("D3skCommander.Core");
         var version = core.GetCustomAttribute<AssemblyInformationalVersionAttribute>()!.InformationalVersion;
         var url = core.GetCustomAttributes<AssemblyMetadataAttribute>().Single(a => a.Key == "RepositoryUrl").Value;
-        Assert.Equal("0.2.0", version);
+        Assert.Equal("0.2.1", version);
         Assert.Equal("https://github.com/neijix/D3SKCOMMANDER", url);
     }
 
