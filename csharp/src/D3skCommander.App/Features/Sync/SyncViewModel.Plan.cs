@@ -1,9 +1,9 @@
 using System.Globalization;
+using CommunityToolkit.Mvvm.Input;
 using D3skCommander.Core.FileSystem;
 using D3skCommander.Core.Jobs;
 using D3skCommander.Core.Localization;
 using D3skCommander.Core.Sync;
-using CommunityToolkit.Mvvm.Input;
 
 namespace D3skCommander.App.Features.Sync;
 
