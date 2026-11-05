@@ -13,11 +13,11 @@ namespace D3skCommander.Core.Tests.FileOps;
 /// </summary>
 public partial class FileOpsTests
 {
-    private const long OldTime = 1_500_000_000;
-    private const long NewTime = 1_700_000_000;
-    private static readonly TimeSpan Bound = TimeSpan.FromSeconds(30);
+    internal const long OldTime = 1_500_000_000;
+    internal const long NewTime = 1_700_000_000;
+    internal static readonly TimeSpan Bound = TimeSpan.FromSeconds(30);
 
-    private sealed class Bench : IDisposable
+    internal sealed class Bench : IDisposable
     {
         public Bench()
         {
@@ -59,7 +59,7 @@ public partial class FileOpsTests
         }
     }
 
-    private readonly struct Outcome
+    internal readonly struct Outcome
     {
         public Outcome(FileOperation operation, JobResult result)
         {
@@ -75,7 +75,7 @@ public partial class FileOpsTests
             (Operation.CompletedFiles, Operation.ErrorCount, Result.Outcome == JobOutcome.Cancelled);
     }
 
-    private static async Task<Outcome> Go(
+    internal static async Task<Outcome> Go(
         Bench bench,
         FileOpKind kind,
         string[] sources,
@@ -83,12 +83,13 @@ public partial class FileOpsTests
         string? renameTo = null,
         ConflictChoice? choice = null,
         CancellationTokenSource? cancel = null,
-        Action<FileOpProgress>? onProgress = null)
+        Action<FileOpProgress>? onProgress = null,
+        Func<ConflictQuestion, CancellationToken, Task<ConflictChoice>>? answer = null)
     {
         var token = cancel is null ? CancellationToken.None : cancel.Token;
         var operation = bench.Ops.Start(
             Request(bench, kind, sources, destination, renameTo),
-            Answer(choice),
+            answer ?? Answer(choice),
             onProgress,
             token);
         var result = await operation.Job.Completion.WaitAsync(Bound);
@@ -114,7 +115,7 @@ public partial class FileOpsTests
         };
     }
 
-    private static void WriteText(string path, string text)
+    internal static void WriteText(string path, string text)
     {
         var parent = Path.GetDirectoryName(path);
         if (!string.IsNullOrEmpty(parent))
@@ -125,7 +126,7 @@ public partial class FileOpsTests
         File.WriteAllText(path, text);
     }
 
-    private static void SetMtime(string path, long unixSeconds)
+    internal static void SetMtime(string path, long unixSeconds)
     {
         File.SetLastWriteTimeUtc(path, DateTime.UnixEpoch.AddSeconds(unixSeconds));
     }

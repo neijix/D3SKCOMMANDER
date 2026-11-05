@@ -1,0 +1,7 @@
+-rw-rw-r--    1 1000     1000            7 Nov 05 00:28 .secret
+drwxr-xr-x    2 1000     1000           80 Nov 05 00:28 alpha
+drwxr-xr-x    2 1000     1000           60 Nov 05 00:28 beta dir
+-rw-rw-r--    1 1000     1000            0 Nov 05 00:28 empty.dat
+-rw-rw-r--    1 1000     1000            6 Nov 05 00:28 für-ü.txt
+-rw-rw-r--    1 1000     1000            0 Mar 04  2019 old report.txt
+-rw-rw-r--    1 1000     1000            6 Nov 05 00:28 été file.txt

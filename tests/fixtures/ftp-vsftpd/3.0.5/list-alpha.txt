@@ -1,0 +1,2 @@
+lrwxrwxrwx    1 1000     1000            9 Nov 05 00:28 link to notes -> notes.txt
+-rw-rw-r--    1 1000     1000         4096 Nov 05 00:28 notes.txt
