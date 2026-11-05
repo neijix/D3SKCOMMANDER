@@ -1,0 +1,126 @@
+{
+  "search.roots": {
+    "en": "Search in (folders separated by ;)",
+    "fr": "Chercher dans (dossiers séparés par ;)"
+  },
+  "search.name": {
+    "en": "Name mask",
+    "fr": "Masque du nom"
+  },
+  "search.name_regex": {
+    "en": "Name is a regular expression",
+    "fr": "Le nom est une expression régulière"
+  },
+  "search.text": {
+    "en": "Containing text",
+    "fr": "Contenant le texte"
+  },
+  "search.text_regex": {
+    "en": "Text is a regular expression",
+    "fr": "Le texte est une expression régulière"
+  },
+  "search.case": {
+    "en": "Case sensitive",
+    "fr": "Respecter la casse"
+  },
+  "search.whole_words": {
+    "en": "Whole words",
+    "fr": "Mots entiers"
+  },
+  "search.not_containing": {
+    "en": "Files NOT containing the text",
+    "fr": "Fichiers NE contenant PAS le texte"
+  },
+  "search.depth_limit": {
+    "en": "Limit depth to",
+    "fr": "Limiter la profondeur à"
+  },
+  "search.hidden": {
+    "en": "Hidden files and folders",
+    "fr": "Fichiers et dossiers cachés"
+  },
+  "search.files": {
+    "en": "Files",
+    "fr": "Fichiers"
+  },
+  "search.folders": {
+    "en": "Folders",
+    "fr": "Dossiers"
+  },
+  "search.archives": {
+    "en": "Search inside archives",
+    "fr": "Chercher dans les archives"
+  },
+  "search.min_size": {
+    "en": "Smallest size (e.g. 10K)",
+    "fr": "Taille minimale (ex. 10K)"
+  },
+  "search.max_size": {
+    "en": "Largest size (e.g. 2M)",
+    "fr": "Taille maximale (ex. 2M)"
+  },
+  "search.newer_days": {
+    "en": "Changed in the last (days)",
+    "fr": "Modifié depuis (jours)"
+  },
+  "search.older_days": {
+    "en": "Not changed for (days)",
+    "fr": "Non modifié depuis (jours)"
+  },
+  "search.go": {
+    "en": "Go to file",
+    "fr": "Aller au fichier"
+  },
+  "search.col.folder": {
+    "en": "Folder",
+    "fr": "Dossier"
+  },
+  "search.col.match": {
+    "en": "Match",
+    "fr": "Correspondance"
+  },
+  "search.status.ready": {
+    "en": "Ready",
+    "fr": "Prêt"
+  },
+  "search.status.running": {
+    "en": "Searching: {scanned} looked at, {hits} found",
+    "fr": "Recherche : {scanned} examinés, {hits} trouvés"
+  },
+  "search.status.done": {
+    "en": "Done: {hits} found",
+    "fr": "Terminé : {hits} trouvés"
+  },
+  "search.status.cancelled": {
+    "en": "Cancelled: {hits} found",
+    "fr": "Annulé : {hits} trouvés"
+  },
+  "search.errors": {
+    "en": "{count} problems, first: {first}",
+    "fr": "{count} problèmes, le premier : {first}"
+  },
+  "search.problem.no_folder": {
+    "en": "No folder to search in",
+    "fr": "Aucun dossier où chercher"
+  },
+  "search.problem.no_kind": {
+    "en": "Tick files and/or folders",
+    "fr": "Cochez fichiers et/ou dossiers"
+  },
+  "search.problem.bad_size": {
+    "en": "Invalid size: {text}",
+    "fr": "Taille invalide : {text}"
+  },
+  "search.problem.size_range": {
+    "en": "The smallest size exceeds the largest",
+    "fr": "La taille minimale dépasse la maximale"
+  },
+  "search.problem.bad_days": {
+    "en": "Invalid number of days: {text}",
+    "fr": "Nombre de jours invalide : {text}"
+  },
+  "search.browse": {
+    "en": "Browse…",
+    "fr": "Parcourir…"
+  }
+}

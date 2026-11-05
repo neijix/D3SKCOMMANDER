@@ -1,0 +1,57 @@
+<UserControl xmlns="https://github.com/avaloniaui"
+             xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+             xmlns:s="using:D3skCommander.App.Features.Search"
+             x:Class="D3skCommander.App.Features.Search.SearchView"
+             x:DataType="s:SearchViewModel">
+  <Grid Margin="12" RowDefinitions="Auto,Auto,*,Auto,Auto" RowSpacing="8">
+    <Grid Grid.Row="0" ColumnDefinitions="Auto,*,Auto" RowDefinitions="Auto,Auto,Auto,Auto"
+          ColumnSpacing="12" RowSpacing="6">
+      <TextBlock x:Name="RootsLabel" Grid.Row="0" Grid.Column="0" VerticalAlignment="Center"/>
+      <TextBox x:Name="RootsBox" Grid.Row="0" Grid.Column="1" Text="{Binding Roots, Mode=TwoWay}"/>
+      <Button x:Name="BrowseButton" Grid.Row="0" Grid.Column="2" Command="{Binding BrowseCommand}"/>
+      <TextBlock x:Name="NameLabel" Grid.Row="1" Grid.Column="0" VerticalAlignment="Center"/>
+      <TextBox x:Name="NameBox" Grid.Row="1" Grid.Column="1" Text="{Binding NameMask, Mode=TwoWay}"/>
+      <CheckBox x:Name="NameRegexBox" Grid.Row="1" Grid.Column="2" IsChecked="{Binding NameIsRegex, Mode=TwoWay}"/>
+      <TextBlock x:Name="TextLabel" Grid.Row="2" Grid.Column="0" VerticalAlignment="Center"/>
+      <TextBox x:Name="TextBox" Grid.Row="2" Grid.Column="1" Text="{Binding ContentText, Mode=TwoWay}"/>
+      <CheckBox x:Name="TextRegexBox" Grid.Row="2" Grid.Column="2" IsChecked="{Binding TextIsRegex, Mode=TwoWay}"/>
+      <WrapPanel Grid.Row="3" Grid.Column="1" Grid.ColumnSpan="2" Orientation="Horizontal">
+        <CheckBox x:Name="CaseBox" Margin="0,0,16,0" IsChecked="{Binding CaseSensitive, Mode=TwoWay}"/>
+        <CheckBox x:Name="WordsBox" Margin="0,0,16,0" IsChecked="{Binding WholeWords, Mode=TwoWay}"/>
+        <CheckBox x:Name="NotBox" Margin="0,0,16,0" IsChecked="{Binding NotContaining, Mode=TwoWay}"/>
+      </WrapPanel>
+    </Grid>
+    <Grid Grid.Row="1" ColumnDefinitions="Auto,*" RowDefinitions="Auto,Auto,Auto" ColumnSpacing="12" RowSpacing="6">
+      <WrapPanel Grid.Row="0" Grid.Column="0" Grid.ColumnSpan="2" Orientation="Horizontal">
+        <CheckBox x:Name="FilesBox" Margin="0,0,16,0" IsChecked="{Binding IncludeFiles, Mode=TwoWay}"/>
+        <CheckBox x:Name="FoldersBox" Margin="0,0,16,0" IsChecked="{Binding IncludeFolders, Mode=TwoWay}"/>
+        <CheckBox x:Name="HiddenBox" Margin="0,0,16,0" IsChecked="{Binding IncludeHidden, Mode=TwoWay}"/>
+        <CheckBox x:Name="ArchivesBox" Margin="0,0,16,0" IsChecked="{Binding InArchives, Mode=TwoWay}"/>
+        <CheckBox x:Name="DepthBox" IsChecked="{Binding DepthLimited, Mode=TwoWay}"/>
+        <NumericUpDown x:Name="DepthValue" Width="110" Minimum="1" Maximum="10000" FormatString="0"
+                       IsEnabled="{Binding DepthLimited}" Value="{Binding Depth, Mode=TwoWay}"/>
+      </WrapPanel>
+      <Grid Grid.Row="1" Grid.Column="0" Grid.ColumnSpan="2" ColumnDefinitions="Auto,*,Auto,*" ColumnSpacing="8">
+        <TextBlock x:Name="MinLabel" Grid.Column="0" VerticalAlignment="Center"/>
+        <TextBox x:Name="MinBox" Grid.Column="1" Text="{Binding MinSize, Mode=TwoWay}"/>
+        <TextBlock x:Name="MaxLabel" Grid.Column="2" VerticalAlignment="Center"/>
+        <TextBox x:Name="MaxBox" Grid.Column="3" Text="{Binding MaxSize, Mode=TwoWay}"/>
+      </Grid>
+      <Grid Grid.Row="2" Grid.Column="0" Grid.ColumnSpan="2" ColumnDefinitions="Auto,*,Auto,*" ColumnSpacing="8">
+        <TextBlock x:Name="NewerLabel" Grid.Column="0" VerticalAlignment="Center"/>
+        <TextBox x:Name="NewerBox" Grid.Column="1" Text="{Binding NewerDays, Mode=TwoWay}"/>
+        <TextBlock x:Name="OlderLabel" Grid.Column="2" VerticalAlignment="Center"/>
+        <TextBox x:Name="OlderBox" Grid.Column="3" Text="{Binding OlderDays, Mode=TwoWay}"/>
+      </Grid>
+    </Grid>
+    <ContentControl x:Name="ResultsHost" Grid.Row="2" MinHeight="120"/>
+    <StackPanel Grid.Row="3" Orientation="Horizontal" Spacing="8">
+      <Button x:Name="StartButton" MinWidth="88" Command="{Binding StartCommand}"/>
+      <Button x:Name="CancelButton" MinWidth="88" Command="{Binding CancelCommand}"/>
+      <Button x:Name="GoButton" Command="{Binding GoToFileCommand}"/>
+      <TextBlock x:Name="StatusLine" VerticalAlignment="Center" Text="{Binding Status}"/>
+    </StackPanel>
+    <TextBlock x:Name="ErrorsText" Grid.Row="4" Text="{Binding ErrorsLine}" TextWrapping="Wrap"
+               IsVisible="{Binding ErrorsLine.Length}"/>
+  </Grid>
+</UserControl>
