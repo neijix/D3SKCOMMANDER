@@ -81,6 +81,7 @@ public class CatalogDialogTests
         Directory.CreateDirectory(source);
         Directory.CreateDirectory(other);
         File.WriteAllText(Path.Combine(source, "needle.txt"), "hello");
+        File.WriteAllText(Path.Combine(source, "other.txt"), "hello");
         var output = Path.Combine(other, "mine.d3cat");
         var text = English();
         var dialogs = new FakeDialogService();
@@ -100,13 +101,17 @@ public class CatalogDialogTests
             Assert.True(window.IsVisible);
             Assert.Same(host.Window, window.Owner);
             Assert.Contains(window, ((Window)host.Window).OwnedWindows);
-            Assert.True(IsDialog(window));
+            Assert.True(window.IsDialog);
+
+            dialog.Query = string.Empty;
+            Assert.True(await dialog.SearchAsync());
+            window.UpdateLayout();
+            Assert.Equal(["needle.txt", "other.txt"], Names(window));
 
             dialog.Query = "needle";
             Assert.True(await dialog.SearchAsync());
             window.UpdateLayout();
-            Assert.True(window.Hits.IsRealized(0));
-            Assert.Equal("needle.txt", window.Hits.RenderedCells(0).First());
+            Assert.Equal(["needle.txt"], Names(window));
         }
         finally
         {
@@ -114,13 +119,18 @@ public class CatalogDialogTests
         }
 
         Assert.False(dialog.IsOpen);
-        Assert.False(IsDialog(window));
     }
 
-    /// <summary>Avalonia keeps no public modal flag: a window shown with ShowDialog sets its private <c>_showingAsDialog</c>.</summary>
-    private static bool IsDialog(Window window) =>
-        (bool)typeof(Window).GetField("_showingAsDialog", System.Reflection.BindingFlags.Instance | System.Reflection.BindingFlags.NonPublic)!
-            .GetValue(window)!;
+    private static string[] Names(CatalogWindow window)
+    {
+        var names = new List<string>();
+        for (var row = 0; window.Hits.IsRealized(row); row++)
+        {
+            names.Add(window.Hits.RenderedCells(row).First());
+        }
+
+        return [.. names.Order(StringComparer.Ordinal)];
+    }
 
     private static async Task<CatalogWindow> WaitForWindow(MainWindow main, CancellationToken stop)
     {
