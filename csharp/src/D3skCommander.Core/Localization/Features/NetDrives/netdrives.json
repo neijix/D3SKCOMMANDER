@@ -1,0 +1,66 @@
+{
+  "net.address": {
+    "en": "Address",
+    "fr": "Adresse"
+  },
+  "net.user": {
+    "en": "User",
+    "fr": "Utilisateur"
+  },
+  "net.domain": {
+    "en": "Domain",
+    "fr": "Domaine"
+  },
+  "net.password": {
+    "en": "Password (not saved)",
+    "fr": "Mot de passe (non enregistré)"
+  },
+  "net.letter": {
+    "en": "Drive letter (Windows)",
+    "fr": "Lettre de lecteur (Windows)"
+  },
+  "net.recent": {
+    "en": "Recent addresses",
+    "fr": "Adresses récentes"
+  },
+  "net.recent_none": {
+    "en": "(type an address)",
+    "fr": "(saisir une adresse)"
+  },
+  "net.hint": {
+    "en": "Examples: \\\\server\\share, smb://user@server/share, sftp://server/path",
+    "fr": "Exemples : \\\\serveur\\partage, smb://utilisateur@serveur/partage, sftp://serveur/chemin"
+  },
+  "net.bad_address": {
+    "en": "This address cannot be used.",
+    "fr": "Cette adresse est inutilisable."
+  },
+  "net.bad_protocol": {
+    "en": "Supported protocols: smb, sftp, ftp, dav, davs, afp, nfs.",
+    "fr": "Protocoles pris en charge : smb, sftp, ftp, dav, davs, afp, nfs."
+  },
+  "net.missing_share": {
+    "en": "The share name is missing: \\\\server\\share.",
+    "fr": "Le nom du partage est manquant : \\\\serveur\\partage."
+  },
+  "net.missing_server": {
+    "en": "The server name is missing.",
+    "fr": "Le nom du serveur est manquant."
+  },
+  "net.bad_letter": {
+    "en": "Not a drive letter (use a single letter such as Z:)",
+    "fr": "Lettre de lecteur invalide (une seule lettre, par exemple Z:)"
+  },
+  "net.job_connect": {
+    "en": "Connect",
+    "fr": "Connexion"
+  },
+  "net.none_connected": {
+    "en": "No network drive is connected.",
+    "fr": "Aucun lecteur réseau n'est connecté."
+  },
+  "net.choose_disconnect": {
+    "en": "Choose the network drive to disconnect.",
+    "fr": "Choisissez le lecteur réseau à déconnecter."
+  }
+}
