@@ -58,6 +58,7 @@ internal sealed class LayoutSession : IDisposable
         {
             services.AddSingleton<IFolderPicker>(picker);
             services.AddSingleton<TimeProvider>(new FixedClock());
+            services.AddSingleton<IShellModule>(new BesideModule());
         });
         var session = new LayoutSession(provider, directory, picker);
         try
@@ -167,6 +168,13 @@ internal sealed class LayoutSession : IDisposable
         }
 
         System.IO.Directory.CreateDirectory(Path.Combine(directory, "a folder"));
+    }
+
+    /// <summary>Puts one widget in the BesidePanels region so the shell lays that region out.</summary>
+    private sealed class BesideModule : IShellModule
+    {
+        public void Contribute(IShellContributions shell) =>
+            shell.AddRegion(ShellRegion.BesidePanels, () => new NamedWidget("Beside"));
     }
 
     /// <summary>Holds the panel refresh still so a long press is not a reload.</summary>

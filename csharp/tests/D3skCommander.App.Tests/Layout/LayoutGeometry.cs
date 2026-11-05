@@ -9,7 +9,7 @@ namespace D3skCommander.App.Tests.Layout;
 /// <summary>Rectangles of the shell's controls in window coordinates, read after a layout pass.</summary>
 internal static class LayoutGeometry
 {
-    /// <summary>The BesidePanels region is 180 px wide when it has widgets.</summary>
+    /// <summary>The BesidePanels region is 180 px wide; the test session always fills it.</summary>
     public const double BesideWidth = 180;
 
     public readonly record struct Fit(double LeftWidth, double RightWidth);
@@ -20,7 +20,7 @@ internal static class LayoutGeometry
         var screen = new Rect(window.ClientSize);
         var left = Box(window, "LeftSlot");
         var right = Box(window, "RightSlot");
-        var area = screen.Width - (window.BesidePanels.Count > 0 ? BesideWidth : 0);
+        var area = screen.Width - BesideWidth;
         var half = area / 2;
         AssertInside(screen, left, what + ": left panel");
         AssertInside(screen, right, what + ": right panel");
@@ -111,14 +111,12 @@ internal static class LayoutGeometry
     {
         var beside = window.FindControl<Control>("BesideHost");
         Assert.NotNull(beside);
-        Assert.Equal(window.BesidePanels.Count > 0, beside.IsVisible);
-        if (beside.IsVisible)
-        {
-            var box = Box(window, "BesideHost");
-            AssertInside(screen, box, what + ": beside panels");
-            Assert.Equal(BesideWidth, box.Width, 0.5);
-            Assert.True(box.Left >= rightPanel.Right - 0.5, what + ": beside panels " + box + " overlap the right panel");
-        }
+        Assert.True(window.BesidePanels.Count > 0, what + ": no beside widget was registered");
+        Assert.True(beside.IsVisible, what + ": beside panels are hidden");
+        var box = Box(window, "BesideHost");
+        AssertInside(screen, box, what + ": beside panels");
+        Assert.Equal(BesideWidth, box.Width, 0.5);
+        Assert.True(box.Left >= rightPanel.Right - 0.5, what + ": beside panels " + box + " overlap the right panel");
 
         if (window.UnderPanels.Count > 0)
         {
