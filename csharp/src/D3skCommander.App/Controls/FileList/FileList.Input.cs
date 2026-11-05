@@ -191,6 +191,7 @@ public sealed partial class FileList
         if (scroll)
         {
             ScrollTo(clamped);
+            CursorRevealed?.Invoke(this, clamped);
         }
     }
 

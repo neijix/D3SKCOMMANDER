@@ -1,0 +1,46 @@
+<UserControl xmlns="https://github.com/avaloniaui"
+             xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+             x:Class="D3skCommander.App.Controls.FileList.FileListControl"
+             Focusable="True">
+  <UserControl.Resources>
+    <ControlTemplate x:Key="FileListEditorTemplate" TargetType="TextBox">
+      <Border Background="{DynamicResource TextControlBackground}"
+              BorderBrush="{DynamicResource TextControlBorderBrush}"
+              BorderThickness="1"
+              Padding="{TemplateBinding Padding}">
+        <TextPresenter Name="PART_TextPresenter"
+                       Text="{TemplateBinding Text, Mode=TwoWay}"
+                       CaretIndex="{TemplateBinding CaretIndex}"
+                       SelectionStart="{TemplateBinding SelectionStart}"
+                       SelectionEnd="{TemplateBinding SelectionEnd}"
+                       SelectionBrush="{TemplateBinding SelectionBrush}"
+                       CaretBrush="{TemplateBinding CaretBrush}"
+                       VerticalAlignment="Center"/>
+      </Border>
+    </ControlTemplate>
+  </UserControl.Resources>
+  <UserControl.Styles>
+    <Style Selector="ListBoxItem">
+      <Setter Property="Padding" Value="0"/>
+      <Setter Property="MinHeight" Value="22"/>
+      <Setter Property="HorizontalContentAlignment" Value="Stretch"/>
+      <Setter Property="Background" Value="Transparent"/>
+    </Style>
+    <Style Selector="ListBoxItem:pointerover /template/ ContentPresenter">
+      <Setter Property="Background" Value="Transparent"/>
+    </Style>
+    <Style Selector="ListBoxItem:selected /template/ ContentPresenter">
+      <Setter Property="Background" Value="Transparent"/>
+    </Style>
+  </UserControl.Styles>
+  <DockPanel>
+    <Grid x:Name="Header" DockPanel.Dock="Top" Height="24"/>
+    <ListBox x:Name="Rows" Padding="0" Focusable="False" SelectionMode="Single">
+      <ListBox.ItemsPanel>
+        <ItemsPanelTemplate>
+          <VirtualizingStackPanel/>
+        </ItemsPanelTemplate>
+      </ListBox.ItemsPanel>
+    </ListBox>
+  </DockPanel>
+</UserControl>

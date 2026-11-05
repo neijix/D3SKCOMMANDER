@@ -98,7 +98,15 @@ public sealed partial class FileList : IShellWidget
 
     internal IReadOnlyList<FileListColumn> CurrentColumns => _columns;
 
+    internal IReadOnlyList<FileListRow> Items => _rowList;
+
     internal FileListRow? Editing { get; private set; }
+
+    /// <summary>The rows, the columns or the header texts changed: a view shows the new table.</summary>
+    internal event EventHandler? TableChanged;
+
+    /// <summary>The cursor moved and wants to be on screen (the row index).</summary>
+    internal event EventHandler<int>? CursorRevealed;
 
     public event EventHandler<FileListRenameEventArgs>? RenameCommitted;
 
@@ -227,6 +235,7 @@ public sealed partial class FileList : IShellWidget
         _localizer = localizer;
         if (_custom)
         {
+            TableChanged?.Invoke(this, EventArgs.Empty);
             return;
         }
 
@@ -256,6 +265,7 @@ public sealed partial class FileList : IShellWidget
         }
 
         Publish(0);
+        TableChanged?.Invoke(this, EventArgs.Empty);
     }
 
     public void TypeRename(string text)
@@ -353,6 +363,7 @@ public sealed partial class FileList : IShellWidget
         KeepMarks();
         var preferred = IndexOfKey(keep);
         Publish(preferred < 0 ? previous : preferred);
+        TableChanged?.Invoke(this, EventArgs.Empty);
     }
 
     private void KeepMarks()
@@ -383,6 +394,7 @@ public sealed partial class FileList : IShellWidget
         {
             _rowList[next].IsCursor = true;
             ScrollTo(next);
+            CursorRevealed?.Invoke(this, next);
         }
     }
 
