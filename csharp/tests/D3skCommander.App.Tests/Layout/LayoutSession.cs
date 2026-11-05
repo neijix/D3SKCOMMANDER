@@ -11,7 +11,7 @@ using TextCatalog = D3skCommander.Core.Localization.Localizer;
 
 namespace D3skCommander.App.Tests.Layout;
 
-/// <summary>The v0.1 sample folder, opened in both panels, in a headless main window.</summary>
+/// <summary>The v0.1 sample folder, opened in both panels, in a headless main window; <c>beside: false</c> leaves the beside region empty.</summary>
 internal sealed class LayoutSession : IDisposable
 {
     public static readonly (double Width, double Height)[] Sizes =
@@ -49,7 +49,7 @@ internal sealed class LayoutSession : IDisposable
 
     public string Directory => _directory;
 
-    public static async Task<LayoutSession> Open(CancellationToken cancellationToken)
+    public static async Task<LayoutSession> Open(CancellationToken cancellationToken, bool beside = true)
     {
         var directory = System.IO.Directory.CreateTempSubdirectory("d3sk-layout-").FullName;
         var picker = new FakeFolderPicker();
@@ -58,7 +58,10 @@ internal sealed class LayoutSession : IDisposable
         {
             services.AddSingleton<IFolderPicker>(picker);
             services.AddSingleton<TimeProvider>(new FixedClock());
-            services.AddSingleton<IShellModule>(new BesideModule());
+            if (beside)
+            {
+                services.AddSingleton<IShellModule>(new BesideModule());
+            }
         });
         var session = new LayoutSession(provider, directory, picker);
         try

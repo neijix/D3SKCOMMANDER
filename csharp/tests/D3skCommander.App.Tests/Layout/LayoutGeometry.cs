@@ -14,22 +14,30 @@ internal static class LayoutGeometry
 
     public readonly record struct Fit(double LeftWidth, double RightWidth);
 
-    public static Fit AssertFits(MainWindow window, string what)
+    public static Fit AssertFits(MainWindow window, string what, bool beside = true)
     {
         window.UpdateLayout();
         var screen = new Rect(window.ClientSize);
         var left = Box(window, "LeftSlot");
         var right = Box(window, "RightSlot");
-        var area = screen.Width - BesideWidth;
+        var area = screen.Width - (beside ? BesideWidth : 0);
         var half = area / 2;
         AssertInside(screen, left, what + ": left panel");
         AssertInside(screen, right, what + ": right panel");
         Assert.True(left.Width > 0 && left.Height > 0, what + ": left panel is empty " + left);
         Assert.True(left.Right <= half + 0.5, what + ": left panel " + left + " leaves its half (" + half + ")");
         Assert.True(right.Left >= half - 0.5, what + ": right panel " + right + " leaves its half (" + half + ")");
+        if (!beside)
+        {
+            // Each panel fills its half of the whole width, less its own margins (about 10 px).
+            Assert.InRange(left.Width, screen.Width / 2 - 12, screen.Width / 2);
+            Assert.InRange(right.Width, screen.Width / 2 - 12, screen.Width / 2);
+            Assert.InRange(right.Right, screen.Width - 12, screen.Width);
+        }
+
         AssertHeaders(window, what);
         AssertBars(window, screen, left, what);
-        AssertRegions(window, screen, right, what);
+        AssertRegions(window, screen, right, what, beside);
         return new Fit(left.Width, right.Width);
     }
 
@@ -107,10 +115,17 @@ internal static class LayoutGeometry
         Assert.True(status.Top >= panel.Bottom - 0.5 && status.Bottom <= keys.Top + 0.5, what + ": status line " + status + " is misplaced");
     }
 
-    private static void AssertRegions(MainWindow window, Rect screen, Rect rightPanel, string what)
+    private static void AssertRegions(MainWindow window, Rect screen, Rect rightPanel, string what, bool expectBeside)
     {
         var beside = window.FindControl<Control>("BesideHost");
         Assert.NotNull(beside);
+        if (!expectBeside)
+        {
+            Assert.Empty(window.BesidePanels);
+            Assert.False(beside.IsVisible, what + ": empty beside panels are shown");
+            return;
+        }
+
         Assert.True(window.BesidePanels.Count > 0, what + ": no beside widget was registered");
         Assert.True(beside.IsVisible, what + ": beside panels are hidden");
         var box = Box(window, "BesideHost");

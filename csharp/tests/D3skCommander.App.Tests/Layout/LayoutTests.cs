@@ -26,6 +26,21 @@ public class LayoutTests
     }
 
     [AvaloniaFact]
+    public async Task WithoutABesideWidgetTheRegionIsHiddenAndThePanelsTakeTheFullWidth()
+    {
+        using var session = await LayoutSession.Open(TestContext.Current.CancellationToken, beside: false);
+        foreach (var scale in new[] { 1d, 1.5, 2d })
+        {
+            foreach (var (width, height) in LayoutSession.Sizes)
+            {
+                var what = "no beside widget, " + width + "x" + height + " @" + scale + "x";
+                session.Resize(width, height, scale);
+                LayoutGeometry.AssertFits(session.Window, what, beside: false);
+            }
+        }
+    }
+
+    [AvaloniaFact]
     public async Task PanelsShrinkBackAfterTheWindowGetsSmaller()
     {
         using var session = await LayoutSession.Open(TestContext.Current.CancellationToken);
