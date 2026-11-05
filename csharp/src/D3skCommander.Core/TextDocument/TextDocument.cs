@@ -54,6 +54,9 @@ public sealed partial class TextDocument
     /// <summary>Why the file was not loaded. Null when it loaded or the path is missing.</summary>
     public OperationError? Refused { get; private set; }
 
+    /// <summary>The error behind the last failed <see cref="Save"/>. Null before any save and after a successful one.</summary>
+    public OperationError? SaveError { get; private set; }
+
     /// <summary>True matches case. False, the default, folds each letter.</summary>
     public bool MatchCase { get; set; }
 
@@ -93,8 +96,10 @@ public sealed partial class TextDocument
     /// <summary>Writes the buffer atomically. The view reloads the panel when this returns true.</summary>
     public bool Save()
     {
+        SaveError = null;
         if (TooBig || Refused is not null)
         {
+            SaveError = Refused ?? OperationError.Other(TooBigMessage, FilePath);
             SetNotice(TextNotice.Failed, 0, true, Refused?.Message ?? TooBigMessage);
             return false;
         }
@@ -102,6 +107,7 @@ public sealed partial class TextDocument
         var status = TextAtomicWrite.Write(FilePath, TextCodec.Encode(_text, LineEnding, Bom));
         if (!status.IsSuccess)
         {
+            SaveError = status.Error;
             SetNotice(TextNotice.Failed, 0, true, status.Error?.Message ?? "error");
             return false;
         }

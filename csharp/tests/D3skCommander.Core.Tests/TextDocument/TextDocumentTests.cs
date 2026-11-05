@@ -177,4 +177,50 @@ public class TextDocumentTests
 
         public void Dispose() => Directory.Delete(Path, recursive: true);
     }
+
+    [Fact]
+    public void FailedSaveKeepsTheTypedErrorAndALaterSaveClearsIt()
+    {
+        Assert.SkipWhen(!OperatingSystem.IsWindows() && Environment.UserName == "root", "root can write anywhere: the failure cannot be provoked");
+        var folder = Directory.CreateTempSubdirectory("d3sk-save-").FullName;
+        var path = Path.Combine(folder, "a.txt");
+        File.WriteAllText(path, "old");
+        var document = Document.Open(path);
+        Assert.Null(document.SaveError);
+        document.Text = "new";
+        var mode = OperatingSystem.IsWindows() ? default : File.GetUnixFileMode(folder);
+        try
+        {
+            if (OperatingSystem.IsWindows())
+            {
+                File.SetAttributes(path, FileAttributes.ReadOnly);
+            }
+            else
+            {
+                File.SetUnixFileMode(folder, UnixFileMode.UserRead | UnixFileMode.UserExecute);
+            }
+
+            Assert.False(document.Save());
+            Assert.NotNull(document.SaveError);
+            Assert.Equal(document.SaveError.Message, document.StatusDetail);
+            Assert.Equal(TextNotice.Failed, document.Notice);
+            Assert.Equal("old", File.ReadAllText(path));
+        }
+        finally
+        {
+            if (OperatingSystem.IsWindows())
+            {
+                File.SetAttributes(path, FileAttributes.Normal);
+            }
+            else
+            {
+                File.SetUnixFileMode(folder, mode);
+            }
+        }
+
+        Assert.True(document.Save());
+        Assert.Null(document.SaveError);
+        Assert.Equal("new", File.ReadAllText(path));
+        Directory.Delete(folder, true);
+    }
 }
