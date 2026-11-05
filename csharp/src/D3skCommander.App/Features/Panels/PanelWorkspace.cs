@@ -68,16 +68,18 @@ public sealed partial class PanelWorkspace : IPanelWorkspace, IDisposable
             return Task.CompletedTask;
         }
 
-        return _opening ??= OpenAsync(
-            LocalFileSystem.HomeDirectory(),
-            LocalFileSystem.HomeDirectory(),
-            cancellationToken);
+        return _opening ??= RestoreAsync(cancellationToken);
     }
 
     public async Task OpenAsync(string left, string right, CancellationToken cancellationToken = default)
     {
         ArgumentException.ThrowIfNullOrEmpty(left);
         ArgumentException.ThrowIfNullOrEmpty(right);
+        await OpenCore(Single(left), Single(right), cancellationToken).ConfigureAwait(false);
+    }
+
+    private async Task OpenCore(PanelStart left, PanelStart right, CancellationToken cancellationToken)
+    {
         using var linked = CancellationTokenSource.CreateLinkedTokenSource(_lifetime.Token, cancellationToken);
         await _nav.WaitAsync(linked.Token).ConfigureAwait(false);
         try
@@ -331,12 +333,12 @@ public sealed partial class PanelWorkspace : IPanelWorkspace, IDisposable
         }
     }
 
-    private async Task<Panel> ListPanel(string path, CancellationToken cancellationToken) =>
+    private async Task<Panel> ListPanel(PanelStart start, CancellationToken cancellationToken) =>
         await Task.Run(
             async () => await Panel.OpenAsync(
-                [path],
-                0,
-                SortOrder.NameAscending,
+                start.Paths,
+                start.Active,
+                start.Sort,
                 _showHidden,
                 _files,
                 cancellationToken).ConfigureAwait(false),
@@ -403,6 +405,8 @@ public sealed partial class PanelWorkspace : IPanelWorkspace, IDisposable
         {
             Volatile.Write(ref _rightSnap, snap);
         }
+
+        SaveSession();
     }
 
     /// <summary>Shows <paramref name="error"/> on <paramref name="side"/>: its localized kind and path, never the raw exception text.</summary>
