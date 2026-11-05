@@ -1,8 +1,7 @@
 # d3skcommander
 
 A cross-platform two-panel (orthodox) file manager for Linux, macOS and Windows, written in C#
-on .NET 10 with [Dear ImGui](https://github.com/ocornut/imgui) (through
-[Hexa.NET.ImGui](https://github.com/HexaEngine/Hexa.NET.ImGui), GLFW and OpenGL 3).
+on .NET 10 with [Avalonia](https://avaloniaui.net) 12 and its Fluent theme.
 
 ## Status
 
