@@ -1,5 +1,6 @@
 using D3skCommander.App.Dialogs;
 using D3skCommander.App.Features.Panels;
+using D3skCommander.App.Shell;
 using D3skCommander.App.Startup;
 using D3skCommander.Core.Common;
 using D3skCommander.Core.Launch;
@@ -52,6 +53,18 @@ public sealed class LaunchCommands : IFileLauncher
 
         var configured = _settings.Preferences.Current.Terminal;
         Report(Launcher.OpenTerminal(configured, capture.ActiveDirectory, _runner));
+    }
+
+    /// <summary>The Tools-menu items of the user commands set in the settings, read when the menu opens.</summary>
+    public IReadOnlyList<ShellAction> UserCommandItems()
+    {
+        var items = new List<ShellAction>();
+        foreach (var command in _settings.Preferences.Current.UserCommands)
+        {
+            items.Add(new ShellAction(command.Name, () => RunUserCommand(command)));
+        }
+
+        return items;
     }
 
     /// <summary>Runs a Tools-menu user command on the selected files.</summary>

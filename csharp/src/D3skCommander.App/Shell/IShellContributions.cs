@@ -15,6 +15,9 @@ public interface IShellContributions
 
     void AppendMenuSeparator(string menuKey);
 
+    /// <summary>Items a menu reads again each time it opens, shown after its commands and extras.</summary>
+    void AppendDynamicItems(string menuKey, Func<IReadOnlyList<ShellAction>> items);
+
     void AddMenuBarTrailing(Func<IShellWidget> build);
 
     void OnStartup(Action action);

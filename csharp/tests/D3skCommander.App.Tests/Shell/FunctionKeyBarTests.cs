@@ -44,7 +44,7 @@ public class FunctionKeyBarTests
             buttons.Select(button => button.Command).ToArray());
         foreach (var button in buttons)
         {
-            Assert.Equal(HandledCommands.Handles(button.Command), button.IsEnabled);
+            Assert.True(button.IsEnabled, $"{button.Command} has no handler");
         }
     }
 

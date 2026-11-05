@@ -7,6 +7,7 @@ public sealed class ShellContributions : IShellContributions
 {
     private readonly Dictionary<CommandId, Action> _handlers = [];
     private readonly Dictionary<string, List<CommandId?>> _extras = [];
+    private readonly Dictionary<string, List<Func<IReadOnlyList<ShellAction>>>> _dynamic = [];
     private readonly List<Func<IShellWidget>> _trailing = [];
     private readonly List<Action> _startup = [];
     private readonly List<Func<IShellWidget>> _under = [];
@@ -88,6 +89,29 @@ public sealed class ShellContributions : IShellContributions
     public void AppendMenuItem(string menuKey, CommandId command) => ExtrasFor(menuKey).Add(command);
 
     public void AppendMenuSeparator(string menuKey) => ExtrasFor(menuKey).Add(null);
+
+    public void AppendDynamicItems(string menuKey, Func<IReadOnlyList<ShellAction>> items)
+    {
+        ArgumentException.ThrowIfNullOrEmpty(menuKey);
+        ArgumentNullException.ThrowIfNull(items);
+        if (!_dynamic.TryGetValue(menuKey, out var list))
+        {
+            list = [];
+            _dynamic[menuKey] = list;
+        }
+
+        list.Add(items);
+    }
+
+    public IReadOnlyList<Func<IReadOnlyList<ShellAction>>> DynamicItems(string menuKey)
+    {
+        if (_dynamic.TryGetValue(menuKey, out var items))
+        {
+            return items;
+        }
+
+        return [];
+    }
 
     public void AddMenuBarTrailing(Func<IShellWidget> build)
     {

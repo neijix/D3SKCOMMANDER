@@ -26,7 +26,7 @@ public class MenuTests
     }
 
     [AvaloniaFact]
-    public void CommandsAreEnabledOnlyWhenAHandlerIsRegistered()
+    public void EveryMenuCommandHasAHandler()
     {
         using var host = ShellHost.Open(Language.En);
         var menus = host.Window.Menus;
@@ -115,11 +115,35 @@ public class MenuTests
         Assert.True(item.IsVisible);
     }
 
+    [AvaloniaFact]
+    public void DynamicItemsAreReadAgainEachTimeTheMenuOpens()
+    {
+        var names = new List<string> { "first" };
+        var ran = new List<string>();
+        var probe = new DynamicProbe(() => names.Select(name => new ShellAction(name, () => ran.Add(name))).ToArray());
+        using var host = ShellHost.Open(Language.En, services => services.AddSingleton<IShellModule>(probe));
+        var tools = TopItems(host.Window).Single(item => Equals(item.Header, host.Localizer.Get("menu.tools")));
+        Assert.Contains(tools.Items, entry => entry is MenuItem menu && Equals(menu.Header, "first"));
+
+        names.Add("second");
+        tools.RaiseEvent(new Avalonia.Interactivity.RoutedEventArgs(MenuItem.SubmenuOpenedEvent, tools));
+        var dynamic = tools.Items.OfType<MenuItem>().Where(menu => menu.Tag is ShellAction).ToArray();
+
+        Assert.Equal(["first", "second"], dynamic.Select(menu => (string)menu.Header!).ToArray());
+        dynamic[1].RaiseEvent(new Avalonia.Interactivity.RoutedEventArgs(MenuItem.ClickEvent, dynamic[1]));
+        Assert.Equal(["second"], ran);
+    }
+
     private static string AppendedHeader(ShellHost host) =>
         host.Localizer.Get(CommandCatalog.LabelKey(CommandId.Copy));
 
     private static MenuItem[] TopItems(Avalonia.Controls.Window window) =>
         window.FindControl<Menu>("MainMenu")!.Items.Cast<MenuItem>().ToArray();
+
+    private sealed class DynamicProbe(Func<IReadOnlyList<ShellAction>> items) : IShellModule
+    {
+        public void Contribute(IShellContributions shell) => shell.AppendDynamicItems("menu.tools", items);
+    }
 
     private sealed class AppendProbe : IShellModule
     {
@@ -195,7 +219,7 @@ public class MenuTests
         Assert.False(actual.IsSeparator);
         Assert.Equal(localizer.Get(CommandCatalog.LabelKey(expected.Value)), actual.Header);
         Assert.True(actual.IsVisible);
-        Assert.Equal(HandledCommands.Handles(expected.Value), actual.IsEnabled);
+        Assert.True(actual.IsEnabled, $"{expected.Value} has no handler");
         Assert.Equal(CommandCatalog.PrimaryGesture(expected.Value), actual.Gesture);
     }
 }

@@ -46,7 +46,7 @@ public sealed class MainWindowModel
                 items.Add(CreateEntry(extra));
             }
 
-            menus.Add(new ShellMenu(_localizer.Get(definition.TitleKey), items));
+            menus.Add(new ShellMenu(_localizer.Get(definition.TitleKey), items, _shell.DynamicItems(definition.TitleKey)));
         }
 
         return menus;

@@ -111,7 +111,39 @@ public sealed partial class MainWindow : Window
             top.Items.Add(CreateEntry(entry));
         }
 
+        if (menu.DynamicItems.Count > 0)
+        {
+            var fixedCount = top.Items.Count;
+            FillDynamic(top, fixedCount, menu.DynamicItems);
+            top.SubmenuOpened += (_, _) => FillDynamic(top, fixedCount, menu.DynamicItems);
+        }
+
         return top;
+    }
+
+    /// <summary>Replaces the items after the fixed ones with what the sources give now: a rule, then one item each.</summary>
+    private static void FillDynamic(MenuItem top, int fixedCount, IReadOnlyList<Func<IReadOnlyList<ShellAction>>> sources)
+    {
+        while (top.Items.Count > fixedCount)
+        {
+            top.Items.RemoveAt(top.Items.Count - 1);
+        }
+
+        foreach (var source in sources)
+        {
+            var actions = source();
+            if (actions.Count > 0)
+            {
+                top.Items.Add(new Separator());
+            }
+
+            foreach (var action in actions)
+            {
+                var item = new MenuItem { Header = action.Header, Tag = action };
+                item.Click += (_, _) => action.Invoke();
+                top.Items.Add(item);
+            }
+        }
     }
 
     private Control CreateEntry(ShellMenuEntry entry)

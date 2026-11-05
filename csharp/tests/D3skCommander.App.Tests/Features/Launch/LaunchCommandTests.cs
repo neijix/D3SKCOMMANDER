@@ -130,4 +130,21 @@ public class LaunchCommandTests
         Assert.Equal(3, request.Arguments.Count);
         Assert.Equal("-f", request.Arguments[0]);
     }
+
+    [AvaloniaFact]
+    public async Task TheToolsMenuItemsFollowTheUserCommandsInTheSettings()
+    {
+        using var harness = await LaunchHarness.Open();
+        await harness.AddFileAsync("a.txt");
+        harness.Select("a.txt");
+        Assert.Empty(harness.Commands.UserCommandItems());
+
+        harness.Settings.Preferences.Current.UserCommands.Add(new UserCommand("Show", "show %s", oncePerFile: true));
+        var item = Assert.Single(harness.Commands.UserCommandItems());
+        item.Invoke();
+
+        Assert.Equal("Show", item.Header);
+        var request = Assert.IsType<ProcessRequest.Argv>(Assert.Single(harness.Runner.Started));
+        Assert.Equal("show", request.Program);
+    }
 }

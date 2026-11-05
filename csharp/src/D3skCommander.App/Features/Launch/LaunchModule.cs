@@ -40,6 +40,7 @@ public sealed class LaunchModule : IShellModule
         shell.Handle(CommandId.OpenWith, () => _ = _commands.OpenWithAsync());
         shell.Handle(CommandId.Terminal, _commands.OpenTerminal);
         shell.AddRegion(ShellRegion.UnderPanels, () => _bar);
+        shell.AppendDynamicItems("menu.tools", _commands.UserCommandItems);
         if (_panels is PanelWorkspace workspace)
         {
             // Enter on a file the panel cannot enter opens it with its default application.
