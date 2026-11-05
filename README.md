@@ -50,6 +50,10 @@ The programs are not signed yet: Windows SmartScreen asks once (More info, then 
 on macOS, right-click the program, then Open. Linux and macOS installers (.deb, AppImage, .dmg)
 are not built yet.
 
+If the window stays black, flickers or crashes at start (a broken GPU driver, a virtual machine,
+a remote desktop), start it with `D3SK_RENDERING=software` in the environment: the window is then
+drawn by the CPU, with no GPU or OpenGL needed.
+
 ## Build
 
 You need the [.NET 10 SDK](https://dotnet.microsoft.com/download). On Linux, the window also
@@ -128,7 +132,9 @@ A command whose feature is not built yet shows in its menu, disabled.
 
 - `D3SK_SCREENSHOT=/tmp/shot.png` makes the app save a screenshot after two seconds and quit.
   `D3SK_SCREENSHOT_CMD=Settings` runs a command first (any command name); it shoots the window or dialog that command opened.
-- The App tests run on Avalonia.Headless (no window, no GPU).
+- The App tests run on Avalonia.Headless (no window, no GPU). One test starts the real program
+  with `D3SK_RENDERING=software` under `xvfb-run` (Linux; skipped when Xvfb is not installed, and
+  on Windows/macOS outside CI).
 - The first version of the window used an immediate-mode GUI (ImGui); Avalonia replaced it
   before the port reached parity.
 
