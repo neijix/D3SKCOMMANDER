@@ -8,9 +8,16 @@
     <CentralPackageTransitivePinningEnabled>true</CentralPackageTransitivePinningEnabled>
   </PropertyGroup>
 
-  <!-- UI: Hexa.NET.ImGui with the GLFW and OpenGL3 backends, plus ImPlot.
+  <!-- UI: Avalonia 12 (Fluent theme) with AvaloniaEdit for the editor and CommunityToolkit.Mvvm for view
+       models. The Hexa.NET.ImGui pins below are the window being replaced; they go with the last ImGui view.
+       Hexa.NET.ImGui with the GLFW and OpenGL3 backends, plus ImPlot.
        Stable line that matches Dear ImGui 1.92.2b (not the 3.x experimental packages). -->
   <ItemGroup>
+    <PackageVersion Include="Avalonia" Version="12.1.5" />
+    <PackageVersion Include="Avalonia.Desktop" Version="12.1.5" />
+    <PackageVersion Include="Avalonia.Themes.Fluent" Version="12.1.5" />
+    <PackageVersion Include="Avalonia.AvaloniaEdit" Version="12.0.0" />
+    <PackageVersion Include="CommunityToolkit.Mvvm" Version="8.4.2" />
     <PackageVersion Include="Hexa.NET.ImGui" Version="2.2.9" />
     <PackageVersion Include="Hexa.NET.ImGui.Backends" Version="1.0.18" />
     <PackageVersion Include="Hexa.NET.ImGui.Backends.GLFW" Version="1.0.18" />
@@ -40,6 +47,8 @@
     <PackageVersion Include="Microsoft.NET.Test.Sdk" Version="18.11.0" />
     <PackageVersion Include="xunit.v3" Version="3.2.2" />
     <PackageVersion Include="xunit.runner.visualstudio" Version="3.1.5" />
+    <!-- Headless Avalonia on xunit.v3 (extensibility.core 3.2.2). -->
+    <PackageVersion Include="Avalonia.Headless.XUnit" Version="12.1.5" />
     <PackageVersion Include="Microsoft.Extensions.TimeProvider.Testing" Version="10.11.0" />
     <!-- In-process FTP/FTPS test server. -->
     <PackageVersion Include="FubarDev.FtpServer" Version="3.1.2" />

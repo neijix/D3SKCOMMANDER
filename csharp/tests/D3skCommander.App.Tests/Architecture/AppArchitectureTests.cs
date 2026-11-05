@@ -6,7 +6,7 @@ namespace D3skCommander.App.Tests.Architecture;
 public class AppArchitectureTests
 {
     [Fact]
-    public void AppReferencesTheImGuiStackAndNotAvalonia()
+    public void AppReferencesAvaloniaAndTheImGuiStack()
     {
         var app = Assembly.Load("D3skCommander");
         var names = app.GetReferencedAssemblies().Select(a => a.Name!).ToHashSet(StringComparer.Ordinal);
@@ -16,6 +16,6 @@ public class AppArchitectureTests
         Assert.Contains("Hexa.NET.GLFW", names);
         Assert.Contains("Hexa.NET.OpenGL3", names);
         Assert.Contains("Hexa.NET.ImPlot", names);
-        Assert.DoesNotContain(names, name => name.StartsWith("Avalonia", StringComparison.Ordinal));
+        Assert.Contains("Avalonia.Base", names);
     }
 }

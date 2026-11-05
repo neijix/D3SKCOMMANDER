@@ -18,6 +18,7 @@ public class CoreArchitectureTests
     private static bool IsGuiAssembly(string? name) =>
         name is not null
         && (name.StartsWith("Avalonia", StringComparison.Ordinal)
+            || name.StartsWith("CommunityToolkit", StringComparison.Ordinal)
             || name.StartsWith("Hexa.NET", StringComparison.Ordinal)
             || name.Contains("ImGui", StringComparison.Ordinal)
             || name.Contains("GLFW", StringComparison.Ordinal));

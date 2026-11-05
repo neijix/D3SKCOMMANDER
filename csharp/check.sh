@@ -30,8 +30,8 @@ SLN=D3skCommander.sln
 dotnet format "$SLN" --verify-no-changes
 dotnet build "$SLN" -warnaserror --nologo -v q
 
-# No ImGui view over 600 lines.
-too_long=$(find src \( -name '*View.cs' -o -name '*.Draw.cs' \) -not -path '*/obj/*' -not -path '*/bin/*' -print0 \
+# No Avalonia view over 600 lines (*.axaml, *.axaml.cs, *View.cs).
+too_long=$(find src \( -name '*.axaml' -o -name '*.axaml.cs' -o -name '*View.cs' \) -not -path '*/obj/*' -not -path '*/bin/*' -print0 \
   | xargs -0 -r wc -l | awk '$2 != "total" && $1 > 600 {print $2 " (" $1 " lines)"}')
 if [ -n "$too_long" ]; then
   echo "ERROR: view files over 600 lines:" >&2
