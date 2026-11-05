@@ -1,8 +1,10 @@
+using System.Globalization;
 using Avalonia;
 using Avalonia.Controls;
 using Avalonia.Controls.Primitives;
 using Avalonia.Input;
 using Avalonia.Interactivity;
+using Avalonia.Media;
 using D3skCommander.Core.Viewer;
 
 namespace D3skCommander.App.Features.Lister;
@@ -14,7 +16,9 @@ namespace D3skCommander.App.Features.Lister;
 /// </summary>
 public partial class ViewerView : UserControl
 {
-    private const double CharWidth = 8;
+    // The ListBoxItem padding (4 px each side, set in ViewerView.axaml) is not text width.
+    private const double RowPadding = 8;
+    private const int Sample = 32;
     private ViewerViewModel? _watched;
 
     public ViewerView()
@@ -29,15 +33,39 @@ public partial class ViewerView : UserControl
         RowList.AddHandler(PointerWheelChangedEvent, OnWheel, RoutingStrategies.Bubble, true);
         RowList.AddHandler(ScrollViewer.ScrollChangedEvent, OnListScrolled);
         PageScroll.Scroll += OnPageScroll;
+        RowList.SizeChanged += (_, _) => UpdateColumns();
         DataContextChanged += OnDataContextChanged;
     }
 
     private ViewerViewModel? Model => DataContext as ViewerViewModel;
 
-    protected override void OnSizeChanged(SizeChangedEventArgs e)
+    /// <summary>
+    /// Tells the model how many characters fit across a row: the list's text width over the width
+    /// of one character of the row font (fixed pitch), measured, not assumed.
+    /// </summary>
+    private void UpdateColumns()
     {
-        base.OnSizeChanged(e);
-        Model?.SetColumns((int)((e.NewSize.Width - 100) / CharWidth));
+        if (Model is not { } model)
+        {
+            return;
+        }
+
+        var width = RowList.Scroll is ScrollViewer { Viewport.Width: > 0 } viewer ? viewer.Viewport.Width : RowList.Bounds.Width;
+        model.SetColumns(ViewerText.ColumnsIn(width - RowPadding, CharWidth()));
+    }
+
+    /// <summary>The advance of one character of the row font, at the list's font size.</summary>
+    internal double CharWidth()
+    {
+        var family = this.TryFindResource("MonoFont", out var found) && found is FontFamily mono ? mono : FontFamily.Default;
+        var sample = new FormattedText(
+            new string('0', Sample),
+            CultureInfo.InvariantCulture,
+            FlowDirection.LeftToRight,
+            new Typeface(family),
+            RowList.FontSize,
+            null);
+        return sample.WidthIncludingTrailingWhitespace / Sample;
     }
 
     protected override void OnAttachedToVisualTree(VisualTreeAttachmentEventArgs e)
@@ -72,6 +100,7 @@ public partial class ViewerView : UserControl
         if (_watched is not null)
         {
             _watched.RevealRequested += OnReveal;
+            UpdateColumns();
         }
     }
 

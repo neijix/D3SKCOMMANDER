@@ -1,5 +1,3 @@
-using System.Collections;
-using System.Globalization;
 using Avalonia.Controls;
 using Avalonia.Media.Imaging;
 using CommunityToolkit.Mvvm.ComponentModel;
@@ -12,12 +10,6 @@ using D3skCommander.Core.Localization;
 using D3skCommander.Core.Viewer;
 
 namespace D3skCommander.App.Features.Lister;
-
-/// <summary>One row of the viewer list: the gutter (line number or byte offset) and the text.</summary>
-public sealed record ViewerLine(string Gutter, string Text);
-
-/// <summary>A mode the switch offers, with its localized label.</summary>
-public sealed record ViewerModeChoice(ViewerMode Mode, string Label);
 
 /// <summary>
 /// The viewer tool window's state over Core's <see cref="FileViewer"/>. A file opens off the UI
@@ -275,10 +267,13 @@ public sealed class ViewerViewModel : ObservableObject, IShellWidget
 
     public Control CreateContent() => new ViewerView { DataContext = this };
 
-    /// <summary>Sets the wrapping width in characters. A change rebuilds the wrapped text rows.</summary>
+    /// <summary>
+    /// Sets how many characters fit across a row, gutter included (the view measures it with the
+    /// row font). A change rebuilds the wrapped text rows.
+    /// </summary>
     public void SetColumns(int columns)
     {
-        var next = Math.Max(10, columns);
+        var next = Math.Max(ViewerText.MinWrapColumns, columns);
         if (next == _columns)
         {
             return;
@@ -478,7 +473,7 @@ public sealed class ViewerViewModel : ObservableObject, IShellWidget
 
         if (viewer.Mode is not (ViewerMode.Text or ViewerMode.Hex))
         {
-            return new Loaded(viewer, null, null, RenderTable(viewer), null);
+            return new Loaded(viewer, null, null, ViewerPageRows.Table(viewer), null);
         }
 
         var read = ViewerPages.Read(viewer.Path, offset, viewer.Mode, viewer.Encoding, exact);
@@ -487,7 +482,7 @@ public sealed class ViewerViewModel : ObservableObject, IShellWidget
             return new Loaded(viewer, null, null, [], read.Error);
         }
 
-        var shown = Build(page, viewer.Mode);
+        var shown = ViewerPageRows.Build(page, viewer.Mode, _wrap, _columns);
         return new Loaded(viewer, page, shown, shown.Lines, null);
     }
 
@@ -568,14 +563,14 @@ public sealed class ViewerViewModel : ObservableObject, IShellWidget
     {
         if (_page is { } page && viewer.Mode is ViewerMode.Text or ViewerMode.Hex)
         {
-            _shown = Build(page, viewer.Mode);
+            _shown = ViewerPageRows.Build(page, viewer.Mode, _wrap, _columns);
             Rows = _shown.Lines;
             SelectedRow = CursorRow();
             return;
         }
 
         SelectedRow = -1;
-        Display(viewer, RenderTable(viewer));
+        Display(viewer, ViewerPageRows.Table(viewer));
     }
 
     /// <summary>Loads another page off the UI thread; a result for a goal no longer wanted is dropped.</summary>
@@ -716,63 +711,7 @@ public sealed class ViewerViewModel : ObservableObject, IShellWidget
             cancellation);
     }
 
-    private string ErrorLine(OperationError error, string path) =>
-        _text.Get(ErrorText.Key(error.Kind)) + ": " + (error.Path ?? path);
-
-    private PageRows Build(ViewerPage page, ViewerMode mode)
-    {
-        if (mode == ViewerMode.Hex)
-        {
-            var hex = page.HexRows;
-            return new PageRows(new LazyRows(hex.Count, i => new ViewerLine("", hex[i].Format())), null);
-        }
-
-        var lines = page.Lines;
-        var numbered = page.Start == 0 && page.AtEnd;
-        string Gutter(int line) => numbered
-            ? (line + 1).ToString(CultureInfo.InvariantCulture).PadLeft(6) + "  "
-            : lines[line].Offset.ToString("X8", CultureInfo.InvariantCulture) + "  ";
-        var blank = new string(' ', numbered ? 8 : 10);
-        if (!_wrap)
-        {
-            return new PageRows(new LazyRows(lines.Count, i => new ViewerLine(Gutter(i), ViewerText.ClipLine(lines[i].Text))), null);
-        }
-
-        var spans = new List<LineSpan>(lines.Count);
-        var joined = new System.Text.StringBuilder();
-        foreach (var line in lines)
-        {
-            spans.Add(new LineSpan(joined.Length, joined.Length + line.Text.Length));
-            joined.Append(line.Text).Append('\n');
-        }
-
-        var text = joined.ToString();
-        var visual = ViewerText.WrapRows(text, spans, _columns);
-        var first = new int[lines.Count];
-        for (var i = visual.Count - 1; i >= 0; i--)
-        {
-            first[visual[i].Line] = i;
-        }
-
-        var rows = new LazyRows(visual.Count, i =>
-        {
-            var row = visual[i];
-            var slice = ViewerText.ClipLine(text.Substring(row.Start, row.End - row.Start));
-            return new ViewerLine(row.First ? Gutter(row.Line) : blank, slice);
-        });
-        return new PageRows(rows, first);
-    }
-
-    private static IReadOnlyList<ViewerLine> RenderTable(FileViewer viewer)
-    {
-        if (viewer.Mode != ViewerMode.Table || viewer.Table is not { } table)
-        {
-            return [];
-        }
-
-        var shown = viewer.FilteredRows;
-        return new LazyRows(shown.Count, i => new ViewerLine("", ViewerRowText.Row(table, shown[i])));
-    }
+    private string ErrorLine(OperationError error, string path) => ErrorLines.Describe(_text, error, path);
 
     private sealed record Loaded(
         FileViewer Viewer,
@@ -790,10 +729,4 @@ public sealed class ViewerViewModel : ObservableObject, IShellWidget
 
     /// <summary>Where a page load goes: the offset to read, and what to do with the result.</summary>
     private sealed record PageGoal(long Offset, bool Exact, long? Focus, bool Select, bool ToEnd);
-
-    /// <summary>The rows of a text or hex page, and for text the first row of each line (wrapping makes them differ).</summary>
-    private sealed record PageRows(IReadOnlyList<ViewerLine> Lines, int[]? FirstRow)
-    {
-        public int RowOfLine(int line) => FirstRow is null ? line : line >= 0 && line < FirstRow.Length ? FirstRow[line] : -1;
-    }
 }

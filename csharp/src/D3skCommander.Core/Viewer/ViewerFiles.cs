@@ -2,19 +2,29 @@ namespace D3skCommander.Core.Viewer;
 
 /// <summary>
 /// How the lister classifies a path before it reads it. Image extensions are the seven the App
-/// can decode (<c>png</c> through <c>ico</c>); TIFF has no decoder, so it opens like any binary file.
+/// decodes with Avalonia (<c>png</c> through <c>ico</c>) plus TIFF, which Core decodes
+/// (<see cref="TiffImage"/>).
 /// </summary>
 public static class ViewerFiles
 {
     private static readonly string[] ImageExtensions =
     [
-        "png", "jpg", "jpeg", "gif", "bmp", "webp", "ico",
+        "png", "jpg", "jpeg", "gif", "bmp", "webp", "ico", "tif", "tiff",
     ];
+
+    private static readonly string[] TiffExtensions = ["tif", "tiff"];
 
     public static bool IsImage(string path)
     {
         ArgumentNullException.ThrowIfNull(path);
         return Listed(Extension(path), ImageExtensions);
+    }
+
+    /// <summary>True for a TIFF file, which Core decodes (<see cref="TiffImage"/>) instead of the App.</summary>
+    public static bool IsTiff(string path)
+    {
+        ArgumentNullException.ThrowIfNull(path);
+        return Listed(Extension(path), TiffExtensions);
     }
 
     public static bool IsDbf(string path)

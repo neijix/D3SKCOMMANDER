@@ -84,6 +84,37 @@ public class ViewerWindowTests
     }
 
     [AvaloniaFact]
+    public async Task AWrappedRowFillsTheListWidthAndNoMore()
+    {
+        using var rig = await Rig.Open(("long.txt", new string('x', 3000) + "\n"));
+        rig.Select("long.txt");
+        var tool = await rig.ViewAsync();
+        var model = Assert.IsType<ViewerViewModel>(tool.View);
+        var list = Assert.IsType<ViewerView>(tool.Content).FindControl<ListBox>("RowList")!;
+        Assert.True(model.Wrap);
+
+        foreach (var width in new[] { 520.0, 910.0 })
+        {
+            tool.Width = width;
+            tool.UpdateLayout();
+            Avalonia.Threading.Dispatcher.UIThread.RunJobs();
+            tool.UpdateLayout();
+
+            var item = Assert.IsType<ListBoxItem>(list.ContainerFromIndex(0));
+            var text = item.GetVisualDescendants().OfType<TextBlock>().Last();
+            Assert.Equal(model.Rows[0].Text, text.Text);
+            Assert.True(model.Rows.Count > 1);
+            // The rendered advance of one character of the row font, read from the row itself.
+            var charWidth = text.Bounds.Width / text.Text!.Length;
+            var room = list.Scroll!.Viewport.Width - 8;
+            var used = (model.Rows[0].Gutter.Length + text.Text.Length) * charWidth;
+            var at = width.ToString(System.Globalization.CultureInfo.InvariantCulture);
+            Assert.True(used <= room + 0.01, $"{used} > {room} at {at}");
+            Assert.True(used + charWidth > room, $"one more character fits in {room} at {at}");
+        }
+    }
+
+    [AvaloniaFact]
     public async Task F3OnAnotherFileReusesTheWindow()
     {
         using var rig = await Rig.Open(("a.txt", "first\n"), ("b.txt", "second\n"));
@@ -296,6 +327,40 @@ public class ViewerWindowTests
         await model.SetModeAsync(ViewerMode.Image);
         Assert.True(model.IsImage);
         Assert.NotNull(model.Image);
+    }
+
+    [AvaloniaFact]
+    public async Task ATiffOpensInImageModeAndABrokenOneInHexWithTheNotice()
+    {
+        var model = new ViewerViewModel(English(), new JobService());
+
+        await model.OpenAsync(Fixture("pixel.tif"));
+
+        Assert.True(model.IsImage);
+        var image = Assert.IsAssignableFrom<Bitmap>(model.Image);
+        Assert.Equal(new Avalonia.PixelSize(3, 2), image.PixelSize);
+        Assert.Equal([ViewerMode.Image, ViewerMode.Hex], model.Modes.Select(choice => choice.Mode));
+        Assert.StartsWith("3 x 2", model.StatusText, StringComparison.Ordinal);
+        var first = new byte[4];
+        var pinned = System.Runtime.InteropServices.GCHandle.Alloc(first, System.Runtime.InteropServices.GCHandleType.Pinned);
+        try
+        {
+            image.CopyPixels(new Avalonia.PixelRect(0, 0, 1, 1), pinned.AddrOfPinnedObject(), 4, 4);
+        }
+        finally
+        {
+            pinned.Free();
+        }
+
+        // The top-left pixel is red, whichever byte order the bitmap keeps.
+        var red = image.Format == Avalonia.Platform.PixelFormats.Bgra8888 ? first[2] : first[0];
+        Assert.Equal(255, red);
+        Assert.Equal(255, first[3]);
+
+        await model.OpenAsync(Fixture("corrupt.tif"));
+        Assert.True(model.IsHex);
+        Assert.Null(model.Image);
+        Assert.Equal(English().Get("lister.image_failed"), model.Notice);
     }
 
     [AvaloniaFact]

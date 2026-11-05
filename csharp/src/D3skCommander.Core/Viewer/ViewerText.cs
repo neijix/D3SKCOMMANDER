@@ -101,6 +101,27 @@ public static class ViewerText
         return lines;
     }
 
+    /// <summary>The narrowest text a wrapped row keeps, however small the window.</summary>
+    public const int MinWrapColumns = 10;
+
+    /// <summary>
+    /// How many characters of <paramref name="charWidth"/> fit in <paramref name="width"/> (both in
+    /// the same unit, pixels for the viewer); 0 when either is not positive.
+    /// </summary>
+    public static int ColumnsIn(double width, double charWidth)
+    {
+        if (!(width > 0) || !(charWidth > 0) || double.IsInfinity(width))
+        {
+            return 0;
+        }
+
+        // The epsilon keeps a width that is an exact multiple from losing a column to rounding.
+        return (int)Math.Min(int.MaxValue, Math.Floor((width / charWidth) + 1e-6));
+    }
+
+    /// <summary>The text width of a wrapped row: the row's columns less its gutter, never under <see cref="MinWrapColumns"/>.</summary>
+    public static int WrapWidth(int columns, int gutterColumns) => Math.Max(MinWrapColumns, columns - Math.Max(0, gutterColumns));
+
     /// <summary>Splits every line into rows of at most <paramref name="columns"/> characters.</summary>
     public static List<VisualRow> WrapRows(string text, IReadOnlyList<LineSpan> lines, int columns)
     {

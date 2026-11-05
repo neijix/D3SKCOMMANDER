@@ -111,6 +111,32 @@ public class ViewerTextTests
         Assert.Equal(["ééé", "ééé", "éé"], rows.Select(row => text[row.Start..row.End]).ToArray());
     }
 
+    [Theory]
+    [InlineData(800.0, 8.0, 100)]
+    [InlineData(800.0, 8.4, 95)]
+    [InlineData(84.0, 8.4, 10)]
+    [InlineData(83.9, 8.4, 9)]
+    [InlineData(0.0, 8.0, 0)]
+    [InlineData(-5.0, 8.0, 0)]
+    [InlineData(800.0, 0.0, 0)]
+    [InlineData(double.NaN, 8.0, 0)]
+    [InlineData(double.PositiveInfinity, 8.0, 0)]
+    public void ColumnsInCountsTheWholeCharactersThatFit(double width, double charWidth, int expected)
+    {
+        Assert.Equal(expected, ViewerText.ColumnsIn(width, charWidth));
+    }
+
+    [Theory]
+    [InlineData(100, 8, 92)]
+    [InlineData(100, 10, 90)]
+    [InlineData(15, 10, ViewerText.MinWrapColumns)]
+    [InlineData(0, 0, ViewerText.MinWrapColumns)]
+    [InlineData(50, -3, 50)]
+    public void WrapWidthLeavesRoomForTheGutter(int columns, int gutter, int expected)
+    {
+        Assert.Equal(expected, ViewerText.WrapWidth(columns, gutter));
+    }
+
     [Fact]
     public void ClipsHugeLines()
     {

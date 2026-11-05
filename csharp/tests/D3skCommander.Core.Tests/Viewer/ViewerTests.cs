@@ -62,10 +62,10 @@ public class ViewerTests
     }
 
     [Fact]
-    public void EachOfTheSevenImageExtensionsGetsImageAndHexAndTiffDoesNot()
+    public void EachImageExtensionGetsImageAndHexAndSvgDoesNot()
     {
         using var dir = new ViewerTemp();
-        foreach (var extension in new[] { "png", "jpg", "jpeg", "gif", "bmp", "webp", "ico", "PNG" })
+        foreach (var extension in new[] { "png", "jpg", "jpeg", "gif", "bmp", "webp", "ico", "tif", "tiff", "PNG", "TIF" })
         {
             var path = Path.Combine(dir.Path, "a." + extension);
             File.WriteAllBytes(path, [1, 2, 3]);
@@ -74,14 +74,44 @@ public class ViewerTests
             Assert.Equal([ViewerMode.Image, ViewerMode.Hex], viewer.Modes);
         }
 
-        foreach (var extension in new[] { "tif", "tiff", "svg" })
+        foreach (var extension in new[] { "svg", "heic", "psd" })
         {
             var path = Path.Combine(dir.Path, "a." + extension);
             File.WriteAllBytes(path, [1, 2, 3, 0]);
             Assert.False(ViewerFiles.IsImage(path));
             Assert.NotEqual(ViewerMode.Image, FileViewer.Open(path).Mode);
         }
+
+        Assert.True(ViewerFiles.IsTiff("a.TIFF"));
+        Assert.False(ViewerFiles.IsTiff("a.png"));
     }
+
+    [Fact]
+    public void ATiffSampleDecodesTopRowFirst()
+    {
+        // pixel.tif: 3 x 2, LZW, RGBA, written by Pillow 12.
+        var image = TiffImage.Decode(Fixture("pixel.tif"));
+
+        Assert.NotNull(image);
+        Assert.Equal(3, image.Width);
+        Assert.Equal(2, image.Height);
+        Assert.Equal(3 * 2 * 4, image.Rgba.Length);
+        Assert.Equal(new byte[] { 255, 0, 0, 255 }, image.Rgba[..4]);
+        Assert.Equal(new byte[] { 0, 0, 255, 255 }, image.Rgba[8..12]);
+        Assert.Equal(new byte[] { 255, 255, 255, 255 }, image.Rgba[12..16]);
+        // (10, 20, 30) at alpha 128, premultiplied by LibTiff.
+        Assert.Equal(new byte[] { 5, 10, 15, 128 }, image.Rgba[20..24]);
+    }
+
+    [Fact]
+    public void ATruncatedOrMissingTiffGivesNoImage()
+    {
+        Assert.Null(TiffImage.Decode(Fixture("corrupt.tif")));
+        Assert.Null(TiffImage.Decode(Fixture("missing.tif")));
+        Assert.Null(TiffImage.Decode(Fixture("pixel.png")));
+    }
+
+    private static string Fixture(string name) => Path.Combine(AppContext.BaseDirectory, "fixtures", "images", name);
 
     [Fact]
     public void DbfOpensAsATable()
