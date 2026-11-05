@@ -1,0 +1,78 @@
+{
+  "crypt.wrong_password": {
+    "en": "Wrong password",
+    "fr": "Mot de passe incorrect"
+  },
+  "crypt.mismatch": {
+    "en": "The two passwords are not the same.",
+    "fr": "Les deux mots de passe ne sont pas identiques."
+  },
+  "crypt.overwrite": {
+    "en": "Replace the existing file(s) in the target folder?",
+    "fr": "Remplacer les fichiers existants dans le dossier de destination ?"
+  },
+  "crypt.unlock_title": {
+    "en": "Unlock the password manager",
+    "fr": "Déverrouiller le gestionnaire de mots de passe"
+  },
+  "crypt.create_title": {
+    "en": "Create the password vault",
+    "fr": "Créer le coffre de mots de passe"
+  },
+  "crypt.create_note": {
+    "en": "No vault yet. Choose a master password; it cannot be recovered.",
+    "fr": "Pas encore de coffre. Choisissez un mot de passe maître ; il ne peut pas être récupéré."
+  },
+  "pw.name": {
+    "en": "Name",
+    "fr": "Nom"
+  },
+  "pw.secret": {
+    "en": "Secret",
+    "fr": "Secret"
+  },
+  "pw.new": {
+    "en": "New",
+    "fr": "Nouveau"
+  },
+  "pw.remove": {
+    "en": "Remove",
+    "fr": "Supprimer"
+  },
+  "pw.show": {
+    "en": "Show",
+    "fr": "Afficher"
+  },
+  "pw.hide": {
+    "en": "Hide",
+    "fr": "Masquer"
+  },
+  "pw.copy": {
+    "en": "Copy",
+    "fr": "Copier"
+  },
+  "pw.lock": {
+    "en": "Lock",
+    "fr": "Verrouiller"
+  },
+  "pw.saved": {
+    "en": "Saved",
+    "fr": "Enregistré"
+  },
+  "pw.removed": {
+    "en": "Removed",
+    "fr": "Supprimé"
+  },
+  "pw.copied": {
+    "en": "Copied to the clipboard",
+    "fr": "Copié dans le presse-papiers"
+  },
+  "pw.locked": {
+    "en": "Locked. Run the command again to unlock.",
+    "fr": "Verrouillé. Relancez la commande pour déverrouiller."
+  },
+  "pw.empty": {
+    "en": "No entries yet.",
+    "fr": "Aucune entrée."
+  }
+}
