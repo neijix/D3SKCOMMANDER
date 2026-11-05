@@ -1,7 +1,6 @@
 using D3skCommander.App.Smoke;
 using D3skCommander.Core.Commands;
 using D3skCommander.Core.Localization;
-using Hexa.NET.ImGui;
 
 namespace D3skCommander.App.Shell;
 
@@ -9,6 +8,7 @@ namespace D3skCommander.App.Shell;
 public sealed partial class MainWindow
 {
     private readonly ShellContributions _shell;
+    private readonly MainWindowModel _model;
     private readonly ILocalizer _localizer;
     private readonly List<IOwnedWindow> _owned = [];
 
@@ -30,8 +30,7 @@ public sealed partial class MainWindow
         StatusText = localizer.Get("st.ready");
         LeftPanel = new ShellSlot(localizer.Get("shell.panel.left"));
         RightPanel = new ShellSlot(localizer.Get("shell.panel.right"));
-        Menus = BuildMenus();
-        FunctionKeys = BuildFunctionKeys();
+        _model = new MainWindowModel(shell, localizer);
         UnderPanels = BuildWidgets(shell.UnderPanels);
         BesidePanels = BuildWidgets(shell.BesidePanels);
         MenuBarTrailing = BuildWidgets(shell.MenuBarTrailing);
@@ -53,9 +52,9 @@ public sealed partial class MainWindow
 
     public ShellSlot RightPanel { get; }
 
-    public IReadOnlyList<ShellMenu> Menus { get; }
+    public IReadOnlyList<ShellMenu> Menus => _model.Menus;
 
-    public IReadOnlyList<FunctionButton> FunctionKeys { get; }
+    public IReadOnlyList<FunctionButton> FunctionKeys => _model.FunctionKeys;
 
     public IReadOnlyList<IShellWidget> UnderPanels { get; }
 
@@ -86,27 +85,7 @@ public sealed partial class MainWindow
 
     public void KeyPress(GestureKey key, GestureModifiers modifiers)
     {
-        var command = CommandCatalog.Match(new Gesture(modifiers, key));
-        if (command is CommandId id)
-        {
-            _shell.Dispatch(id);
-        }
-    }
-
-    public void HandleImGuiKeys()
-    {
-        var io = ImGui.GetIO();
-        var modifiers = GestureMap.Modifiers(
-            GestureMap.IsPrimary(io.KeyCtrl, io.KeySuper),
-            io.KeyShift,
-            io.KeyAlt);
-        foreach (var key in WatchedKeys)
-        {
-            if (ImGui.IsKeyPressed(key) && GestureMap.From(key, modifiers) is Gesture gesture)
-            {
-                KeyPress(gesture.Key, gesture.Modifiers);
-            }
-        }
+        _model.KeyPress(key, modifiers);
     }
 
     internal void Attach(IOwnedWindow window)
@@ -116,20 +95,6 @@ public sealed partial class MainWindow
     }
 
     internal void Detach(IOwnedWindow window) => _owned.Remove(window);
-
-    private static readonly ImGuiKey[] WatchedKeys =
-    [
-        ImGuiKey.F1, ImGuiKey.F2, ImGuiKey.F3, ImGuiKey.F4, ImGuiKey.F5,
-        ImGuiKey.F6, ImGuiKey.F7, ImGuiKey.F8, ImGuiKey.F9,
-        ImGuiKey.Delete, ImGuiKey.Enter, ImGuiKey.KeypadEnter,
-        ImGuiKey.LeftArrow, ImGuiKey.RightArrow, ImGuiKey.DownArrow,
-        ImGuiKey.Tab, ImGuiKey.PageUp, ImGuiKey.Backspace,
-        ImGuiKey.A, ImGuiKey.B, ImGuiKey.D, ImGuiKey.H, ImGuiKey.L,
-        ImGuiKey.M, ImGuiKey.N, ImGuiKey.Q, ImGuiKey.R, ImGuiKey.S,
-        ImGuiKey.T, ImGuiKey.U, ImGuiKey.W,
-        ImGuiKey.Equal, ImGuiKey.Minus, ImGuiKey.KeypadAdd, ImGuiKey.KeypadSubtract,
-        ImGuiKey.Backslash,
-    ];
 
     private static IShellWidget? BuildOne(Func<IShellWidget>? build) => build is null ? null : Require(build);
 

@@ -1,7 +1,9 @@
+using Avalonia.Controls;
 using Avalonia.Headless.XUnit;
 using D3skCommander.App.Shell;
 using D3skCommander.Core.Commands;
 using D3skCommander.Core.Localization;
+using Microsoft.Extensions.DependencyInjection;
 using Xunit;
 
 namespace D3skCommander.App.Tests.Shell;
@@ -36,15 +38,98 @@ public class MenuTests
     }
 
     [AvaloniaFact]
-    public void FunctionKeyChordsRoundTripThroughImGui()
+    public void FunctionKeyChordsRoundTripThroughAvaloniaKeys()
     {
         foreach (var key in CommandCatalog.FunctionKeys)
         {
             var gesture = CommandCatalog.PrimaryGesture(key.Command);
             Assert.NotNull(gesture);
-            var imgui = GestureMap.ToImGui(gesture.Value.Key);
-            var back = GestureMap.From(imgui, gesture.Value.Modifiers);
+            var avalonia = GestureMap.ToKeyGesture(gesture.Value);
+            var back = GestureMap.From(avalonia.Key, avalonia.KeyModifiers);
             Assert.Equal(gesture, back);
+        }
+    }
+
+    [AvaloniaFact]
+    public void TopMenusKeepTheCatalogOrderAndLocalizedTitles()
+    {
+        foreach (var language in new[] { Language.En, Language.Fr })
+        {
+            using var host = ShellHost.Open(language);
+            var titles = TopItems(host.Window).Select(item => (string?)item.Header).ToArray();
+            Assert.Equal(
+                CommandCatalog.Menus.Select(menu => host.Localizer.Get(menu.TitleKey)).ToArray(),
+                titles);
+        }
+    }
+
+    [AvaloniaFact]
+    public void SeparatorsStayAndAModuleItemIsAppendedInOrder()
+    {
+        using var host = ShellHost.Open(Language.En, services => services.AddSingleton<IShellModule>(new AppendProbe()));
+        var toolsIndex = CommandCatalog.Menus.ToList().FindIndex(menu => menu.TitleKey == "menu.tools");
+        var tools = CommandCatalog.Menus[toolsIndex];
+        var items = TopItems(host.Window)[toolsIndex].Items.Cast<Control>().ToArray();
+        Assert.Equal(tools.Items.Count + 2, items.Length);
+        for (var i = 0; i < tools.Items.Count; i++)
+        {
+            Assert.Equal(tools.Items[i] is null, items[i] is Separator);
+        }
+
+        Assert.IsType<Separator>(items[^2]);
+        var appended = Assert.IsType<MenuItem>(items[^1]);
+        Assert.Equal(CommandId.Copy, appended.Tag);
+        Assert.StartsWith(AppendedHeader(host), Assert.IsType<string>(appended.Header), StringComparison.Ordinal);
+    }
+
+    [AvaloniaFact]
+    public void EachItemShowsItsPrimaryGestureText()
+    {
+        using var host = ShellHost.Open(Language.En);
+        foreach (var top in TopItems(host.Window))
+        {
+            foreach (var item in top.Items.OfType<MenuItem>())
+            {
+                var command = Assert.IsType<CommandId>(item.Tag);
+                var gesture = CommandCatalog.PrimaryGesture(command);
+                var header = Assert.IsType<string>(item.Header);
+                if (gesture is not null)
+                {
+                    Assert.EndsWith(gesture.Value.Format(), header, StringComparison.Ordinal);
+                }
+                else
+                {
+                    Assert.Equal(host.Localizer.Get(CommandCatalog.LabelKey(command)), header);
+                }
+            }
+        }
+    }
+
+    [AvaloniaFact]
+    public void AMenuBarTrailingItemIsShown()
+    {
+        using var host = ShellHost.Open(Language.En, services => services.AddSingleton<IShellModule>(new AppendProbe()));
+        var trailing = host.Window.FindControl<Menu>("TrailingMenu");
+        Assert.NotNull(trailing);
+        var item = Assert.IsType<MenuItem>(Assert.Single(trailing.Items));
+        Assert.Equal("probe", item.Header);
+        Assert.True(item.IsVisible);
+    }
+
+    private static string AppendedHeader(ShellHost host) =>
+        host.Localizer.Get(CommandCatalog.LabelKey(CommandId.Copy));
+
+    private static MenuItem[] TopItems(Avalonia.Controls.Window window) =>
+        window.FindControl<Menu>("MainMenu")!.Items.Cast<MenuItem>().ToArray();
+
+    private sealed class AppendProbe : IShellModule
+    {
+        public void Contribute(IShellContributions shell)
+        {
+            shell.Handle(CommandId.Copy, () => { });
+            shell.AppendMenuSeparator("menu.tools");
+            shell.AppendMenuItem("menu.tools", CommandId.Copy);
+            shell.AddMenuBarTrailing(() => new MenuExtraWidget("ProbeExtra", "probe"));
         }
     }
 

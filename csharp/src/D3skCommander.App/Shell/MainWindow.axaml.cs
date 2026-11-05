@@ -1,5 +1,6 @@
 using Avalonia.Automation;
 using Avalonia.Controls;
+using Avalonia.Input;
 using Avalonia.Layout;
 using D3skCommander.Core.Commands;
 
@@ -42,6 +43,15 @@ public sealed partial class MainWindow : Window
     {
         base.OnOpened(e);
         HandleOpened();
+    }
+
+    protected override void OnKeyDown(KeyEventArgs e)
+    {
+        base.OnKeyDown(e);
+        if (!e.Handled && GestureMap.From(e.Key, e.KeyModifiers) is Gesture gesture)
+        {
+            e.Handled = _model.KeyPress(gesture.Key, gesture.Modifiers);
+        }
     }
 
     protected override void OnClosing(WindowClosingEventArgs e)
