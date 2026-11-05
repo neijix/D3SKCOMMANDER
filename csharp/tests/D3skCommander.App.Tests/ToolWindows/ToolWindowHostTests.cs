@@ -141,7 +141,7 @@ public class ToolWindowHostTests
     public void AnUnregisteredKindShowsAnEmptyNamedToolSurface()
     {
         using var app = ToolWindowApp.Open();
-        var tool = app.Tools.Open(ToolKind.Passwords);
+        var tool = app.Tools.Open(ToolKind.Define("unregistered", "tool.log.title", 480, 320));
 
         Assert.Equal("ToolSurface", tool.View.Name);
         var surface = Assert.IsType<Avalonia.Controls.Border>(tool.Content);

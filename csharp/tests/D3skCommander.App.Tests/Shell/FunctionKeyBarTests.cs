@@ -65,11 +65,8 @@ public class FunctionKeyBarTests
         using var host = ShellHost.Open(Language.En, services => services.AddSingleton<IShellModule>(new CopyProbe(() => copies++)));
         var buttons = host.Window.FunctionKeys;
         var copy = Assert.Single(buttons, button => button.Command == CommandId.Copy);
-        var view = Assert.Single(buttons, button => button.Command == CommandId.Search);
         Assert.True(copy.IsEnabled);
-        Assert.False(view.IsEnabled);
         copy.Click();
-        view.Click();
         Assert.Equal(1, copies);
     }
 

@@ -111,8 +111,7 @@ public class MenuTests
         using var host = ShellHost.Open(Language.En, services => services.AddSingleton<IShellModule>(new AppendProbe()));
         var trailing = host.Window.FindControl<Menu>("TrailingMenu");
         Assert.NotNull(trailing);
-        var item = Assert.IsType<MenuItem>(Assert.Single(trailing.Items));
-        Assert.Equal("probe", item.Header);
+        var item = Assert.IsType<MenuItem>(Assert.Single(trailing.Items, entry => entry is MenuItem menu && Equals(menu.Header, "probe")));
         Assert.True(item.IsVisible);
     }
 

@@ -2,54 +2,17 @@ using D3skCommander.Core.Commands;
 
 namespace D3skCommander.App.Tests.Shell;
 
-/// <summary>Commands the shell can run today. Everything else stays visible and disabled.</summary>
+/// <summary>Commands the shell can run today: every command but the ones still listed here, which stay visible and disabled.</summary>
 internal static class HandledCommands
 {
-    private static readonly HashSet<CommandId> Enabled =
+    private static readonly HashSet<CommandId> NotYetHandled =
     [
-        CommandId.Quit,
-        CommandId.Copy,
-        CommandId.Move,
-        CommandId.MkDir,
-        CommandId.Delete,
-        CommandId.SelectAll,
-        CommandId.UnselectAll,
-        CommandId.Invert,
-        CommandId.BrowseFolder,
-        CommandId.Back,
-        CommandId.Forward,
-        CommandId.Parent,
-        CommandId.Root,
-        CommandId.Home,
-        CommandId.SameDir,
-        CommandId.Swap,
-        CommandId.ViewFull,
-        CommandId.ViewBrief,
-        CommandId.ToggleHidden,
-        CommandId.SortName,
-        CommandId.SortExt,
-        CommandId.SortDate,
-        CommandId.SortSize,
-        CommandId.NewTab,
-        CommandId.CloseTab,
-        CommandId.NextTab,
-        CommandId.Refresh,
-        CommandId.SwitchPanel,
-        CommandId.Catalog,
-        CommandId.MultiRename,
-        CommandId.CompareFiles,
-        CommandId.ComparePanels,
-        CommandId.Split,
-        CommandId.Combine,
-        CommandId.ChecksumCreate,
-        CommandId.ChecksumVerify,
-        CommandId.AddTime,
-        CommandId.ReDate,
-        CommandId.Touch,
-        CommandId.View,
-        CommandId.Edit,
-        CommandId.EditNew,
+        CommandId.DrivesLeft,
+        CommandId.DrivesRight,
+        CommandId.Ftp,
+        CommandId.Properties,
+        CommandId.QuickView,
     ];
 
-    public static bool Handles(CommandId command) => Enabled.Contains(command);
+    public static bool Handles(CommandId command) => !NotYetHandled.Contains(command);
 }

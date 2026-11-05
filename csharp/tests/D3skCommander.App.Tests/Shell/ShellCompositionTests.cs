@@ -86,7 +86,7 @@ public class ShellCompositionTests
         var under = Assert.Single(host.Window.UnderPanels, item => item.Name == "ProbeRegion");
         Assert.Equal("ProbeRegion", under.Name);
         Assert.IsType<LabelWidget>(under);
-        var trailing = Assert.Single(host.Window.MenuBarTrailing);
+        var trailing = Assert.Single(host.Window.MenuBarTrailing, item => item.Name == "ProbeExtra");
         Assert.Equal("probe", Assert.IsType<MenuExtraWidget>(trailing).Header);
     }
 
