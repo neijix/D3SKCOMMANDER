@@ -69,6 +69,9 @@ public sealed class ToolWindow : Window, IOwnedWindow
         }
     }
 
+    /// <summary>True while a close attempt waits for the content's answer.</summary>
+    internal bool IsAsking => _asking;
+
     /// <summary>Asks the content, then closes on yes. Every close path ends here.</summary>
     public async Task<bool> TryCloseAsync()
     {

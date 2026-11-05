@@ -54,6 +54,9 @@ public sealed partial class MainWindow : Window
         }
     }
 
+    /// <summary>True while a quit waits for the owned windows' answers.</summary>
+    internal bool IsQuitting => _quitting;
+
     protected override void OnClosing(WindowClosingEventArgs e)
     {
         if (!_quitApproved)

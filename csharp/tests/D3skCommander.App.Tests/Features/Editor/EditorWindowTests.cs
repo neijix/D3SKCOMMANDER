@@ -212,7 +212,7 @@ public class EditorWindowTests
             rig.Dialogs.Answer(DialogResult.Ok(""));
             await AskAgainAsync(rig.Dialogs, () => tool.KeyPress(Key.Escape, RawInputModifiers.None, PhysicalKey.Escape, null));
             rig.Dialogs.Answer(DialogResult.Picked(2));
-            await SettleAsync(rig.Dialogs);
+            await SettleAsync(rig.Dialogs, () => !tool.IsAsking);
         }
         finally
         {
@@ -406,7 +406,7 @@ public class EditorWindowTests
             dialogs.Answer(DialogResult.Picked(2));
             await AskAgainAsync(dialogs, () => host.Window.Dispatch(CommandId.Quit));
             dialogs.Answer(DialogResult.Picked(2));
-            await SettleAsync(dialogs);
+            await SettleAsync(dialogs, () => !host.Window.IsQuitting && !tool.IsAsking);
 
             Assert.True(host.Window.IsVisible);
             Assert.True(tool.IsVisible);
@@ -424,21 +424,17 @@ public class EditorWindowTests
         }
     }
 
-    /// <summary>Pumps until the dialog queue is empty, then five more 10 ms rounds so a close attempt still queued on the dispatcher runs; there is no idle signal to wait on.</summary>
-    private static async Task SettleAsync(FakeDialogService dialogs)
+    /// <summary>Pumps until the dialog queue is empty and <paramref name="idle"/> says no close attempt is in flight.</summary>
+    private static async Task SettleAsync(FakeDialogService dialogs, Func<bool> idle)
     {
-        for (var i = 0; i < 400 && dialogs.Current is not null; i++)
+        for (var i = 0; i < 400 && (dialogs.Current is not null || !idle()); i++)
         {
             await Task.Delay(10, TestContext.Current.CancellationToken);
             Avalonia.Threading.Dispatcher.UIThread.RunJobs();
         }
 
         Assert.Null(dialogs.Current);
-        for (var i = 0; i < 5; i++)
-        {
-            await Task.Delay(10, TestContext.Current.CancellationToken);
-            Avalonia.Threading.Dispatcher.UIThread.RunJobs();
-        }
+        Assert.True(idle(), "A close attempt is still in flight.");
     }
 
     /// <summary>
