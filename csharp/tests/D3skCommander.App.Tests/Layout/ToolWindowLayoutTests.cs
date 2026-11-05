@@ -1,6 +1,4 @@
-using System.Numerics;
 using Avalonia.Headless.XUnit;
-using D3skCommander.App.Host;
 using D3skCommander.App.Shell;
 using D3skCommander.App.ToolWindows;
 using Xunit;
@@ -21,16 +19,16 @@ public class ToolWindowLayoutTests
         tool.Width = 200;
         tool.Height = 120;
 
-        foreach (var (width, height) in new (float Width, float Height)[] { (640, 400), (1280, 800) })
+        // Until row 10 the host computes the frame; it must stay on the screen at both window sizes.
+        var area = session.Window.Screen.WorkingArea;
+        foreach (var (width, height) in new (double Width, double Height)[] { (640, 400), (1280, 800) })
         {
-            ImGuiProbe.Frames(1, _ => session.Prepare(width, height, 1), () =>
-            {
-                session.Draw(tools: true);
-                var own = LayoutGeometry.NoAutoMergeWindows();
-                Assert.Single(own);
-                var screen = new LayoutGeometry.Box(Vector2.Zero, new Vector2(width, height));
-                Assert.True(screen.Contains(own[0], 2f), width + "x" + height + ": stub " + own[0] + " is off the display");
-            });
+            session.Resize(width, height, 1);
+            var frame = tool.Read();
+            var what = width + "x" + height + ": stub " + frame + " is off the screen " + area;
+            Assert.True(frame.X >= area.X && frame.Y >= area.Y, what);
+            Assert.True(frame.X + frame.Width <= area.X + area.Width, what);
+            Assert.True(frame.Y + frame.Height <= area.Y + area.Height, what);
         }
 
         Assert.Same(marker, tool.Content);

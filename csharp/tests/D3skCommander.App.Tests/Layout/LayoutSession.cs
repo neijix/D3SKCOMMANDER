@@ -1,23 +1,20 @@
 using System.Globalization;
-using System.Numerics;
+using Avalonia.Headless;
 using D3skCommander.App.Dialogs;
 using D3skCommander.App.Features.Panels;
 using D3skCommander.App.Shell;
 using D3skCommander.App.Tests.Dialogs;
 using D3skCommander.App.ToolWindows;
 using D3skCommander.Core.Localization;
-using Hexa.NET.ImGui;
 using Microsoft.Extensions.DependencyInjection;
 using TextCatalog = D3skCommander.Core.Localization.Localizer;
 
 namespace D3skCommander.App.Tests.Layout;
 
-/// <summary>The v0.1 sample folder, opened in both panels, drawn by <c>ImGuiProbe</c>.</summary>
+/// <summary>The v0.1 sample folder, opened in both panels, in a headless main window.</summary>
 internal sealed class LayoutSession : IDisposable
 {
-    public const float RowHeight = 22f;
-
-    public static readonly (float Width, float Height)[] Sizes =
+    public static readonly (double Width, double Height)[] Sizes =
     [
         (640, 400),
         (1024, 640),
@@ -113,31 +110,14 @@ internal sealed class LayoutSession : IDisposable
         return false;
     }
 
-    /// <summary>Call before <c>NewFrame</c>. Style scale is applied once per context.</summary>
-    public void Prepare(float width, float height, float scale)
+    /// <summary>Sizes the window in device-independent pixels at a render scale, then lays it out.</summary>
+    public void Resize(double width, double height, double scale)
     {
-        var io = ImGui.GetIO();
-        if (ImGui.GetCurrentContext().FrameCount == 0)
-        {
-            var style = ImGui.GetStyle();
-            if (scale != 1f)
-            {
-                style.ScaleAllSizes(scale);
-            }
-
-            style.FontScaleDpi = scale;
-        }
-
-        io.DisplaySize = new Vector2(width * scale, height * scale);
-    }
-
-    public void Draw(bool tools)
-    {
-        Window.Draw();
-        if (tools)
-        {
-            Tools.Draw();
-        }
+        Window.SetRenderScaling(scale);
+        Window.Width = width;
+        Window.Height = height;
+        Avalonia.Threading.Dispatcher.UIThread.RunJobs();
+        Window.UpdateLayout();
     }
 
     public async Task WaitUntil(Func<bool> ready, CancellationToken cancellationToken)
