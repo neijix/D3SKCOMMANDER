@@ -9,7 +9,7 @@ namespace D3skCommander.App.Tests.Layout;
 /// <summary>Rectangles of the shell's controls in window coordinates, read after a layout pass.</summary>
 internal static class LayoutGeometry
 {
-    /// <summary>The BesidePanels region is 180 px wide; the test session always fills it.</summary>
+    /// <summary>The BesidePanels region is 180 px wide when a beside widget is registered (the default <c>LayoutSession</c>).</summary>
     public const double BesideWidth = 180;
 
     public readonly record struct Fit(double LeftWidth, double RightWidth);
