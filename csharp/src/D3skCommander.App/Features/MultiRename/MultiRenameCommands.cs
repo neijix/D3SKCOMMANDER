@@ -14,14 +14,14 @@ public sealed class MultiRenameCommands
     private readonly IDialogService _dialogs;
     private readonly ILocalizer _text;
     private readonly IToolWindowHost _tools;
-    private readonly RenameWindow _window;
+    private readonly RenameViewModel _window;
 
     public MultiRenameCommands(
         IPanelWorkspace panels,
         IDialogService dialogs,
         ILocalizer text,
         IToolWindowHost tools,
-        RenameWindow window)
+        RenameViewModel window)
     {
         ArgumentNullException.ThrowIfNull(panels);
         ArgumentNullException.ThrowIfNull(dialogs);

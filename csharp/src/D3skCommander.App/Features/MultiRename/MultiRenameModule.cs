@@ -16,7 +16,7 @@ public sealed class MultiRenameModule : IShellModule
     public static void Register(IServiceCollection services)
     {
         ArgumentNullException.ThrowIfNull(services);
-        services.AddSingleton<RenameWindow>();
+        services.AddSingleton<RenameViewModel>();
         services.AddSingleton<MultiRenameCommands>();
         services.AddSingleton<MultiRenameModule>();
         services.AddSingleton<IShellModule>(provider => provider.GetRequiredService<MultiRenameModule>());
