@@ -26,7 +26,7 @@ public class InstallKindTests
         Assert.Equal(new InstallKind.Deb(deb.Exe), InstallDetection.Detect(deb));
 
         var mac = Facts("macos", "/Applications/d3skcommander.app/Contents/MacOS/d3skcommander");
-        Assert.Equal(new InstallKind.MacApp("/Applications/d3skcommander.app"), InstallDetection.Detect(mac));
+        Assert.Equal(new InstallKind.MacApp(Native("/Applications/d3skcommander.app")), InstallDetection.Detect(mac));
 
         var windows = Facts("windows", @"C:\Users\u\AppData\Local\d3skcommander\d3skcommander.exe");
         Assert.Equal(new InstallKind.Portable(windows.Exe), InstallDetection.Detect(windows));
@@ -36,6 +36,9 @@ public class InstallKindTests
         var source = new InstallFacts { Os = deb.Os, Exe = deb.Exe, DpkgOwned = true, InCargoTarget = true };
         Assert.Equal(new InstallKind.Source(), InstallDetection.Detect(source));
     }
+
+    /// <summary><c>Path.GetDirectoryName</c> rewrites separators on Windows: compare in the host form.</summary>
+    private static string Native(string path) => path.Replace('/', Path.DirectorySeparatorChar);
 
     private static InstallFacts Facts(string os, string exe) => new() { Os = os, Exe = exe };
 }

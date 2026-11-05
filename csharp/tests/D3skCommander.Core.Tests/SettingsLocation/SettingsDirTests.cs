@@ -142,12 +142,14 @@ public class SettingsDirTests
     public void InstallFoldersPerKind()
     {
         var exe = "/x/app/d3skcommander";
-        Assert.Equal("/x/app", SettingsDirectory.InstallDirectory(new InstallKind.Portable(exe)));
-        Assert.Equal("/x", SettingsDirectory.InstallDirectory(new InstallKind.AppImage("/x/d3sk.AppImage")));
+        Assert.Equal(Native("/x/app"), SettingsDirectory.InstallDirectory(new InstallKind.Portable(exe)));
+        Assert.Equal(Native("/x"), SettingsDirectory.InstallDirectory(new InstallKind.AppImage("/x/d3sk.AppImage")));
         Assert.Null(SettingsDirectory.InstallDirectory(new InstallKind.Deb(exe)));
         Assert.Null(SettingsDirectory.InstallDirectory(new InstallKind.MacApp("/A/d.app")));
         Assert.Null(SettingsDirectory.InstallDirectory(new InstallKind.Source()));
     }
+
+    private static string Native(string path) => path.Replace('/', Path.DirectorySeparatorChar);
 
     private static SettingsPlaces Places(string root)
     {

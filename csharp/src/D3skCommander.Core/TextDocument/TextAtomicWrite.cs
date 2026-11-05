@@ -39,6 +39,7 @@ public static class TextAtomicWrite
 
     private static void WriteTemp(string temp, ReadOnlySpan<byte> bytes)
     {
+        ClearReadOnly(temp);
         using var stream = new FileStream(temp, FileMode.Create, FileAccess.Write, FileShare.None);
         stream.Write(bytes);
         stream.Flush(flushToDisk: true);
@@ -87,11 +88,27 @@ public static class TextAtomicWrite
 
         try
         {
+            ClearReadOnly(temp);
             File.Delete(temp);
         }
         catch (Exception ex) when (IsFileSystem(ex))
         {
             // The write error is the one the caller sees.
+        }
+    }
+
+    /// <summary>A temp that carries the target's ReadOnly flag can neither be rewritten nor deleted until cleared.</summary>
+    private static void ClearReadOnly(string temp)
+    {
+        if (!OperatingSystem.IsWindows() || !File.Exists(temp))
+        {
+            return;
+        }
+
+        var attributes = File.GetAttributes(temp);
+        if ((attributes & FileAttributes.ReadOnly) != 0)
+        {
+            File.SetAttributes(temp, attributes & ~FileAttributes.ReadOnly);
         }
     }
 
