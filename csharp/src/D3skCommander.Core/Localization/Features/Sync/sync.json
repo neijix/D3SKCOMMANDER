@@ -1,0 +1,158 @@
+{
+  "sync.left": {
+    "en": "Left",
+    "fr": "Gauche"
+  },
+  "sync.right": {
+    "en": "Right",
+    "fr": "Droite"
+  },
+  "sync.browse": {
+    "en": "Browse…",
+    "fr": "Parcourir…"
+  },
+  "sync.mode": {
+    "en": "Mode",
+    "fr": "Mode"
+  },
+  "sync.mode.symmetric": {
+    "en": "Symmetric",
+    "fr": "Symétrique"
+  },
+  "sync.mode.left_to_right": {
+    "en": "Left to right",
+    "fr": "Gauche vers droite"
+  },
+  "sync.mode.right_to_left": {
+    "en": "Right to left",
+    "fr": "Droite vers gauche"
+  },
+  "sync.criteria": {
+    "en": "Compare by",
+    "fr": "Comparer par"
+  },
+  "sync.criteria.date": {
+    "en": "Date and size",
+    "fr": "Date et taille"
+  },
+  "sync.criteria.size": {
+    "en": "Size only",
+    "fr": "Taille seule"
+  },
+  "sync.criteria.content": {
+    "en": "Content",
+    "fr": "Contenu"
+  },
+  "sync.empty_dirs": {
+    "en": "Include empty folders",
+    "fr": "Inclure les dossiers vides"
+  },
+  "sync.compare": {
+    "en": "Compare",
+    "fr": "Comparer"
+  },
+  "sync.cancel": {
+    "en": "Cancel",
+    "fr": "Annuler"
+  },
+  "sync.run": {
+    "en": "Synchronize",
+    "fr": "Synchroniser"
+  },
+  "sync.col.name": {
+    "en": "Name",
+    "fr": "Nom"
+  },
+  "sync.col.left": {
+    "en": "Left",
+    "fr": "Gauche"
+  },
+  "sync.col.right": {
+    "en": "Right",
+    "fr": "Droite"
+  },
+  "sync.col.action": {
+    "en": "Action",
+    "fr": "Action"
+  },
+  "sync.action.none": {
+    "en": "Skip",
+    "fr": "Ignorer"
+  },
+  "sync.action.copy_right": {
+    "en": "Copy to right",
+    "fr": "Copier à droite"
+  },
+  "sync.action.copy_left": {
+    "en": "Copy to left",
+    "fr": "Copier à gauche"
+  },
+  "sync.action.delete_right": {
+    "en": "Delete right",
+    "fr": "Supprimer à droite"
+  },
+  "sync.action.delete_left": {
+    "en": "Delete left",
+    "fr": "Supprimer à gauche"
+  },
+  "sync.filter.equal": {
+    "en": "Equal ({n})",
+    "fr": "Identiques ({n})"
+  },
+  "sync.filter.newer": {
+    "en": "Newer or different ({n})",
+    "fr": "Plus récents ou différents ({n})"
+  },
+  "sync.filter.left_only": {
+    "en": "Left only ({n})",
+    "fr": "Gauche seulement ({n})"
+  },
+  "sync.filter.right_only": {
+    "en": "Right only ({n})",
+    "fr": "Droite seulement ({n})"
+  },
+  "sync.pending": {
+    "en": "{n} actions pending",
+    "fr": "{n} actions en attente"
+  },
+  "sync.shown": {
+    "en": "{n} shown",
+    "fr": "{n} affichés"
+  },
+  "sync.scanning": {
+    "en": "Comparing…",
+    "fr": "Comparaison…"
+  },
+  "sync.cancelled": {
+    "en": "Cancelled.",
+    "fr": "Annulé."
+  },
+  "sync.found": {
+    "en": "{n} items compared.",
+    "fr": "{n} éléments comparés."
+  },
+  "sync.running": {
+    "en": "Synchronizing…",
+    "fr": "Synchronisation…"
+  },
+  "sync.progress": {
+    "en": "Synchronizing {done} / {total}: {name}",
+    "fr": "Synchronisation {done} / {total} : {name}"
+  },
+  "sync.done": {
+    "en": "Done: {copied} copied, {deleted} deleted, {errors} failed. Compare again to see the result.",
+    "fr": "Terminé : {copied} copiés, {deleted} supprimés, {errors} en échec. Comparez de nouveau pour voir le résultat."
+  },
+  "sync.run_cancelled": {
+    "en": "Cancelled: {copied} copied, {deleted} deleted, {errors} failed.",
+    "fr": "Annulé : {copied} copiés, {deleted} supprimés, {errors} en échec."
+  },
+  "sync.job.compare": {
+    "en": "Compare directories",
+    "fr": "Comparer les dossiers"
+  },
+  "sync.job.run": {
+    "en": "Synchronize directories",
+    "fr": "Synchroniser les dossiers"
+  }
+}

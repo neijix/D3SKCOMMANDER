@@ -1,0 +1,88 @@
+<UserControl xmlns="https://github.com/avaloniaui"
+             xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+             xmlns:s="using:D3skCommander.App.Features.Sync"
+             x:Class="D3skCommander.App.Features.Sync.SyncView"
+             x:DataType="s:SyncViewModel">
+  <Grid Margin="8" RowDefinitions="Auto,Auto,Auto,Auto,*,Auto,Auto" RowSpacing="6">
+    <Grid Grid.Row="0" ColumnDefinitions="Auto,*,Auto" RowDefinitions="Auto,Auto" ColumnSpacing="6" RowSpacing="4">
+      <TextBlock Grid.Row="0" VerticalAlignment="Center" Text="{Binding LeftLabel}"/>
+      <TextBox x:Name="LeftBox" Grid.Row="0" Grid.Column="1" Text="{Binding LeftPath, Mode=TwoWay}"/>
+      <Button x:Name="BrowseLeftButton" Grid.Row="0" Grid.Column="2" Content="{Binding BrowseText}" Command="{Binding BrowseLeftCommand}"/>
+      <TextBlock Grid.Row="1" VerticalAlignment="Center" Text="{Binding RightLabel}"/>
+      <TextBox x:Name="RightBox" Grid.Row="1" Grid.Column="1" Text="{Binding RightPath, Mode=TwoWay}"/>
+      <Button x:Name="BrowseRightButton" Grid.Row="1" Grid.Column="2" Content="{Binding BrowseText}" Command="{Binding BrowseRightCommand}"/>
+    </Grid>
+    <StackPanel Grid.Row="1" Orientation="Horizontal" Spacing="8">
+      <TextBlock VerticalAlignment="Center" Text="{Binding ModeLabel}"/>
+      <ComboBox x:Name="ModeBox" ItemsSource="{Binding Modes}" SelectedItem="{Binding ModeOption, Mode=TwoWay}">
+        <ComboBox.ItemTemplate>
+          <DataTemplate x:DataType="s:SyncModeOption">
+            <TextBlock Text="{Binding Label}"/>
+          </DataTemplate>
+        </ComboBox.ItemTemplate>
+      </ComboBox>
+      <TextBlock VerticalAlignment="Center" Text="{Binding CriteriaLabel}"/>
+      <ComboBox x:Name="CriteriaBox" ItemsSource="{Binding CriteriaChoices}" SelectedItem="{Binding CriteriaOption, Mode=TwoWay}">
+        <ComboBox.ItemTemplate>
+          <DataTemplate x:DataType="s:SyncCriteriaOption">
+            <TextBlock Text="{Binding Label}"/>
+          </DataTemplate>
+        </ComboBox.ItemTemplate>
+      </ComboBox>
+      <CheckBox x:Name="EmptyBox" Content="{Binding EmptyDirsText}" IsChecked="{Binding EmptyDirs, Mode=TwoWay}"/>
+    </StackPanel>
+    <StackPanel Grid.Row="2" Orientation="Horizontal" Spacing="8">
+      <Button x:Name="CompareButton" Content="{Binding CompareText}" Command="{Binding CompareCommand}" IsEnabled="{Binding !IsBusy}"/>
+      <Button x:Name="CancelButton" Content="{Binding CancelText}" Command="{Binding CancelCommand}" IsEnabled="{Binding IsBusy}"/>
+      <Button x:Name="RunButton" Content="{Binding RunText}" Command="{Binding RunCommand}" IsEnabled="{Binding CanRun}"/>
+      <TextBlock x:Name="StatusText" VerticalAlignment="Center" Text="{Binding StatusLine}" TextTrimming="CharacterEllipsis"/>
+    </StackPanel>
+    <StackPanel Grid.Row="3" Orientation="Horizontal" Spacing="12">
+      <CheckBox x:Name="EqualBox" Content="{Binding EqualText}" IsChecked="{Binding ShowEqual, Mode=TwoWay}"/>
+      <CheckBox x:Name="NewerBox" Content="{Binding NewerText}" IsChecked="{Binding ShowNewer, Mode=TwoWay}"/>
+      <CheckBox x:Name="LeftOnlyBox" Content="{Binding LeftOnlyText}" IsChecked="{Binding ShowLeftOnly, Mode=TwoWay}"/>
+      <CheckBox x:Name="RightOnlyBox" Content="{Binding RightOnlyText}" IsChecked="{Binding ShowRightOnly, Mode=TwoWay}"/>
+    </StackPanel>
+    <DockPanel Grid.Row="4">
+      <Grid DockPanel.Dock="Top" ColumnDefinitions="28,*,170,170,170" Margin="8,0,8,2">
+        <TextBlock Grid.Column="1" FontWeight="SemiBold" Text="{Binding NameHeader}"/>
+        <TextBlock Grid.Column="2" FontWeight="SemiBold" Text="{Binding LeftHeader}"/>
+        <TextBlock Grid.Column="3" FontWeight="SemiBold" Text="{Binding RightHeader}"/>
+        <TextBlock Grid.Column="4" FontWeight="SemiBold" Text="{Binding ActionHeader}"/>
+      </Grid>
+      <ListBox x:Name="PlanList" ItemsSource="{Binding Rows}" Padding="0" Background="Transparent">
+        <ListBox.Styles>
+          <Style Selector="ListBoxItem">
+            <Setter Property="Padding" Value="8,1"/>
+            <Setter Property="MinHeight" Value="0"/>
+          </Style>
+        </ListBox.Styles>
+        <ListBox.ItemTemplate>
+          <DataTemplate x:DataType="s:SyncRow">
+            <Grid ColumnDefinitions="28,*,170,170,170">
+              <TextBlock Grid.Column="0" Text="{Binding Symbol}" FontWeight="Bold" VerticalAlignment="Center"/>
+              <TextBlock Grid.Column="1" Text="{Binding Name}" VerticalAlignment="Center" TextTrimming="CharacterEllipsis"/>
+              <TextBlock Grid.Column="2" Text="{Binding LeftInfo}" VerticalAlignment="Center"/>
+              <TextBlock Grid.Column="3" Text="{Binding RightInfo}" VerticalAlignment="Center"/>
+              <ComboBox Grid.Column="4" MinHeight="0" Padding="6,2" ItemsSource="{Binding Options}" SelectedItem="{Binding Chosen, Mode=TwoWay}">
+                <ComboBox.ItemTemplate>
+                  <DataTemplate x:DataType="s:SyncActionOption">
+                    <TextBlock Text="{Binding Label}"/>
+                  </DataTemplate>
+                </ComboBox.ItemTemplate>
+              </ComboBox>
+            </Grid>
+          </DataTemplate>
+        </ListBox.ItemTemplate>
+      </ListBox>
+    </DockPanel>
+    <TextBlock x:Name="PendingText" Grid.Row="5" Text="{Binding PendingLine}"/>
+    <ItemsControl x:Name="FailureList" Grid.Row="6" ItemsSource="{Binding Failures}" IsVisible="{Binding HasFailures}" MaxHeight="120">
+      <ItemsControl.ItemTemplate>
+        <DataTemplate x:DataType="x:String">
+          <TextBlock Text="{Binding}" Foreground="OrangeRed" TextWrapping="Wrap"/>
+        </DataTemplate>
+      </ItemsControl.ItemTemplate>
+    </ItemsControl>
+  </Grid>
+</UserControl>
