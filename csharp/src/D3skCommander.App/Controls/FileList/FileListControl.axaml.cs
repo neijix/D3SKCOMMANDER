@@ -32,6 +32,7 @@ public sealed partial class FileListControl : UserControl
     {
         ArgumentNullException.ThrowIfNull(list);
         _list = list;
+        DataContext = list;
         InitializeComponent();
         Rows.ItemTemplate = new FuncDataTemplate<FileListRow>((_, _) => new FileListRowView(), true);
         AddHandler(KeyDownEvent, OnKeyDown, RoutingStrategies.Tunnel);

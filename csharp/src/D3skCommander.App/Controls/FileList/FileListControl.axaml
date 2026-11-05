@@ -1,6 +1,8 @@
 <UserControl xmlns="https://github.com/avaloniaui"
              xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+             xmlns:fl="using:D3skCommander.App.Controls.FileList"
              x:Class="D3skCommander.App.Controls.FileList.FileListControl"
+             x:DataType="fl:FileList"
              Focusable="True">
   <UserControl.Resources>
     <ControlTemplate x:Key="FileListEditorTemplate" TargetType="TextBox">

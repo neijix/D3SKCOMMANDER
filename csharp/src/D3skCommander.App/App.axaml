@@ -1,6 +1,8 @@
 <Application xmlns="https://github.com/avaloniaui"
              xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+             xmlns:app="using:D3skCommander.App"
              x:Class="D3skCommander.App.App"
+             x:DataType="app:App"
              RequestedThemeVariant="Default">
   <Application.Resources>
     <FontFamily x:Key="MonoFont">Cascadia Mono, Consolas, Menlo, DejaVu Sans Mono, Liberation Mono, Noto Sans Mono, monospace</FontFamily>
