@@ -3,6 +3,7 @@ using D3skCommander.App.Dialogs;
 using D3skCommander.App.Features.FileOps;
 using D3skCommander.App.Features.Panels;
 using D3skCommander.App.Shell;
+using D3skCommander.App.Startup;
 using D3skCommander.Core.Common;
 using D3skCommander.Core.FileOps;
 using D3skCommander.Core.FileSystem;
@@ -10,6 +11,8 @@ using D3skCommander.Core.Jobs;
 using D3skCommander.Core.Localization;
 using D3skCommander.Core.OperationLog;
 using D3skCommander.Core.Providers;
+using D3skCommander.Core.SettingsLocation;
+using D3skCommander.Core.Trash;
 using Xunit;
 
 namespace D3skCommander.App.Tests.Features.FileOps;
@@ -190,25 +193,36 @@ public class FileOpsCommandTests
         await commands.CopyAsync();
     }
 
-    private static FileOpsCommands Commands(
+    internal static FileOpsCommands Commands(
         PanelWorkspace workspace,
         ScriptedDialogs dialogs,
-        IFileSystemProvider? provider = null)
+        IFileSystemProvider? provider = null,
+        AppSettings? settings = null,
+        ITrash? trash = null)
     {
         var jobs = new JobService();
         var files = new FileOperationService(jobs, new OperationLog());
         var text = Localizer.Load(settingsLanguage: Language.En, systemLanguage: Language.En);
-        return new FileOpsCommands(workspace, files, dialogs, text, jobs, provider ?? new LocalFileSystemProvider());
+        var prefs = settings ?? Settings(true, true);
+        return new FileOpsCommands(
+            workspace,
+            files,
+            dialogs,
+            text,
+            jobs,
+            provider ?? new LocalFileSystemProvider(),
+            prefs,
+            trash ?? new FakeTrash());
     }
 
-    private static async Task<PanelWorkspace> Workspace(string left, string right)
+    internal static async Task<PanelWorkspace> Workspace(string left, string right)
     {
         var workspace = new PanelWorkspace(new LocalFileSystemProvider(), new IdlePicker());
         await workspace.OpenAsync(left, right, TestContext.Current.CancellationToken);
         return workspace;
     }
 
-    private static int At(PanelSnapshot snap, string name)
+    internal static int At(PanelSnapshot snap, string name)
     {
         for (var i = 0; i < snap.Entries.Count; i++)
         {
@@ -221,13 +235,13 @@ public class FileOpsCommandTests
         throw new InvalidOperationException("Missing " + name);
     }
 
-    private sealed class IdlePicker : IFolderPicker
+    internal sealed class IdlePicker : IFolderPicker
     {
         public Task<string?> PickAsync(string? startFolder, CancellationToken cancellationToken = default) =>
             Task.FromResult<string?>(null);
     }
 
-    private sealed class ScriptedDialogs : IDialogService
+    internal sealed class ScriptedDialogs : IDialogService
     {
         public int? Choice { get; set; }
 
@@ -241,11 +255,21 @@ public class FileOpsCommandTests
 
         public DialogForm? Form { get; private set; }
 
-        public Task ShowMessageAsync(string title, string message, CancellationToken cancellationToken = default) =>
-            Task.CompletedTask;
+        public List<string> Confirmed { get; } = [];
 
-        public Task<bool> ConfirmAsync(string title, string message, CancellationToken cancellationToken = default) =>
-            Task.FromResult(Confirm);
+        public List<string> Messages { get; } = [];
+
+        public Task ShowMessageAsync(string title, string message, CancellationToken cancellationToken = default)
+        {
+            Messages.Add(message);
+            return Task.CompletedTask;
+        }
+
+        public Task<bool> ConfirmAsync(string title, string message, CancellationToken cancellationToken = default)
+        {
+            Confirmed.Add(message);
+            return Task.FromResult(Confirm);
+        }
 
         public Task<string?> AskTextAsync(
             string title,
@@ -318,7 +342,44 @@ public class FileOpsCommandTests
             _inner.DeleteAsync(path, cancellationToken);
     }
 
-    private sealed class TempDir : IDisposable
+    internal static AppSettings Settings(bool useTrash, bool confirm)
+    {
+        var dir = Directory.CreateTempSubdirectory("d3sk-fo-cfg-").FullName;
+        var settings = new AppSettings(new SettingsFolder(dir, SettingsSource.Env));
+        var current = settings.Preferences.Current;
+        current.UseTrash = useTrash;
+        current.ConfirmDelete = confirm;
+        settings.Preferences.Save(current);
+        return settings;
+    }
+
+    internal sealed class FakeTrash : ITrash
+    {
+        public List<string> Sent { get; } = [];
+
+        public string? FailName { get; set; }
+
+        public bool Unavailable { get; set; }
+
+        public TrashStatus MoveToTrash(string path)
+        {
+            if (Unavailable)
+            {
+                return TrashStatus.Unavailable(path);
+            }
+
+            if (FailName is not null && Path.GetFileName(path) == FailName)
+            {
+                return TrashStatus.Fail(OperationError.AccessDenied("no", path));
+            }
+
+            Sent.Add(path);
+            File.Delete(path);
+            return TrashStatus.Success;
+        }
+    }
+
+    internal sealed class TempDir : IDisposable
     {
         public TempDir() => Path = Directory.CreateTempSubdirectory("d3sk-ops-").FullName;
 

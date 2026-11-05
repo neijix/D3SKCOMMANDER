@@ -1,0 +1,10 @@
+{
+  "fileops.rename_failed": {
+    "en": "Rename failed",
+    "fr": "Échec du renommage"
+  },
+  "fileops.trash_failed": {
+    "en": "Cannot move to the trash. Delete permanently instead?",
+    "fr": "Impossible de mettre à la corbeille. Supprimer définitivement ?"
+  }
+}

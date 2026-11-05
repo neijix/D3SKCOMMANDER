@@ -2,6 +2,7 @@ using System.Globalization;
 using D3skCommander.App.Dialogs;
 using D3skCommander.App.Features.Panels;
 using D3skCommander.App.Shell;
+using D3skCommander.App.Startup;
 using D3skCommander.Core.Commands;
 using D3skCommander.Core.FileOps;
 using D3skCommander.Core.Jobs;
@@ -10,8 +11,8 @@ using D3skCommander.Core.Providers;
 
 namespace D3skCommander.App.Features.FileOps;
 
-/// <summary>F5, F6, F7 and F8. Work runs on the job service; the panels refresh when it ends.</summary>
-public sealed class FileOpsCommands
+/// <summary>F5, F6, F7, F8, Shift+F8 and F2. Work runs on the job service; the panels refresh when it ends.</summary>
+public sealed partial class FileOpsCommands
 {
     private readonly IPanelWorkspace _panels;
     private readonly FileOperationService _files;
@@ -19,6 +20,8 @@ public sealed class FileOpsCommands
     private readonly ILocalizer _text;
     private readonly IJobService _jobs;
     private readonly IFileSystemProvider _provider;
+    private readonly AppSettings _settings;
+    private readonly ITrash _trash;
     private int _busy;
 
     public FileOpsCommands(
@@ -27,7 +30,9 @@ public sealed class FileOpsCommands
         IDialogService dialogs,
         ILocalizer text,
         IJobService jobs,
-        IFileSystemProvider provider)
+        IFileSystemProvider provider,
+        AppSettings settings,
+        ITrash trash)
     {
         ArgumentNullException.ThrowIfNull(panels);
         ArgumentNullException.ThrowIfNull(files);
@@ -35,12 +40,16 @@ public sealed class FileOpsCommands
         ArgumentNullException.ThrowIfNull(text);
         ArgumentNullException.ThrowIfNull(jobs);
         ArgumentNullException.ThrowIfNull(provider);
+        ArgumentNullException.ThrowIfNull(settings);
+        ArgumentNullException.ThrowIfNull(trash);
         _panels = panels;
         _files = files;
         _dialogs = dialogs;
         _text = text;
         _jobs = jobs;
         _provider = provider;
+        _settings = settings;
+        _trash = trash;
     }
 
     public void Bind(IShellContributions shell)
@@ -50,41 +59,17 @@ public sealed class FileOpsCommands
         shell.Handle(CommandId.Move, () => _ = MoveAsync());
         shell.Handle(CommandId.MkDir, () => _ = NewFolderAsync());
         shell.Handle(CommandId.Delete, () => _ = DeleteAsync());
+        shell.Handle(CommandId.DeletePermanent, () => _ = DeleteAsync(CommandId.DeletePermanent));
+        shell.Handle(CommandId.RenameInPlace, BeginRename);
+        if (_panels is IInPlaceRename rename)
+        {
+            rename.Commit = RenameAsync;
+        }
     }
 
     public Task CopyAsync() => TransferAsync(FileOpKind.Copy);
 
     public Task MoveAsync() => TransferAsync(FileOpKind.Move);
-
-    public async Task DeleteAsync()
-    {
-        if (!Begin())
-        {
-            return;
-        }
-
-        try
-        {
-            var capture = _panels.Capture();
-            if (capture is null || capture.Sources.Count == 0)
-            {
-                await None(_text.Get("cmd.delete")).ConfigureAwait(false);
-                return;
-            }
-
-            var message = Count(_text.Get("dlg.delete"), capture.Sources.Count);
-            if (!await _dialogs.ConfirmAsync(_text.Get("cmd.delete"), message).ConfigureAwait(false))
-            {
-                return;
-            }
-
-            await Finish(_files.Delete(_provider, capture.Sources)).ConfigureAwait(false);
-        }
-        finally
-        {
-            End();
-        }
-    }
 
     public async Task NewFolderAsync()
     {
@@ -170,18 +155,21 @@ public sealed class FileOpsCommands
         return path.Length == 0 ? null : path;
     }
 
-    private async Task Finish(FileOperation operation)
+    private Task Finish(FileOperation operation) =>
+        Finish(operation.Job, () => operation.ErrorCount, () => operation.ErrorMessages());
+
+    private async Task Finish(IJob job, Func<int> errorCount, Func<IReadOnlyList<string>> lines)
     {
-        await operation.Job.Completion.ConfigureAwait(false);
+        await job.Completion.ConfigureAwait(false);
         await _panels.RefreshAsync().ConfigureAwait(false);
-        if (operation.ErrorCount == 0)
+        if (errorCount() == 0)
         {
             return;
         }
 
         var choice = await _dialogs.ChooseAsync(
             _text.Get("jobs.failed"),
-            string.Join('\n', operation.ErrorMessages()),
+            string.Join('\n', lines()),
             [_text.Get("jobs.retry"), _text.Get("dlg.skip")]).ConfigureAwait(false);
         if (choice != 0)
         {
@@ -189,7 +177,7 @@ public sealed class FileOpsCommands
         }
 
         var names = new List<string>();
-        foreach (var item in operation.Job.Completion.Result.Failed)
+        foreach (var item in job.Completion.Result.Failed)
         {
             if (item.Retryable)
             {
@@ -202,35 +190,18 @@ public sealed class FileOpsCommands
             return;
         }
 
-        await _jobs.Retry(operation.Job, names).Completion.ConfigureAwait(false);
+        await _jobs.Retry(job, names).Completion.ConfigureAwait(false);
         await _panels.RefreshAsync().ConfigureAwait(false);
     }
 
-    private Task<ConflictChoice> AskConflict(ConflictQuestion question, CancellationToken cancellationToken)
+    private async Task<ConflictChoice> AskConflict(ConflictQuestion question, CancellationToken cancellationToken)
     {
-        var body = _text.Get("dlg.source") + ": " + question.SourcePath + "\n"
-            + _text.Get("dlg.existing") + ": " + question.TargetPath;
-        var choices = new[]
-        {
-            _text.Get("dlg.overwrite_btn"),
-            _text.Get("dlg.skip"),
-            _text.Get("cancel"),
-            _text.Get("dlg.overwrite_all"),
-            _text.Get("dlg.skip_all"),
-        };
-        return Map(_dialogs.ChooseAsync(_text.Get("dlg.overwrite"), body, choices, cancellationToken));
-    }
-
-    private static async Task<ConflictChoice> Map(Task<int?> choice)
-    {
-        return (await choice.ConfigureAwait(false)) switch
-        {
-            0 => ConflictChoice.Overwrite,
-            1 => ConflictChoice.Skip,
-            3 => ConflictChoice.OverwriteAll,
-            4 => ConflictChoice.SkipAll,
-            _ => ConflictChoice.Cancel,
-        };
+        var choice = await _dialogs.ChooseAsync(
+            _text.Get("dlg.overwrite"),
+            ConflictPrompt.Body(_text, question),
+            ConflictPrompt.Choices(_text),
+            cancellationToken).ConfigureAwait(false);
+        return ConflictPrompt.Map(choice);
     }
 
     private Task None(string title) => _dialogs.ShowMessageAsync(title, _text.Get("dlg.no_selection"));
@@ -239,7 +210,7 @@ public sealed class FileOpsCommands
 
     private void End() => Interlocked.Exchange(ref _busy, 0);
 
-    private static string Count(string template, int count) =>
+    internal static string Count(string template, int count) =>
         template.Replace("{n}", count.ToString(CultureInfo.InvariantCulture), StringComparison.Ordinal);
 
     private static FolderDialogField Folder(DialogForm form) => (FolderDialogField)form.Fields[0];

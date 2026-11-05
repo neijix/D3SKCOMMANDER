@@ -18,6 +18,7 @@ public sealed class FileOpsModule : IShellModule
     {
         ArgumentNullException.ThrowIfNull(services);
         services.AddSingleton<FileOperationService>();
+        services.AddSingleton<ITrash, SystemTrash>();
         services.AddSingleton<FileOpsCommands>();
         services.AddSingleton<FileOpsModule>();
         services.AddSingleton<IShellModule>(provider => provider.GetRequiredService<FileOpsModule>());
