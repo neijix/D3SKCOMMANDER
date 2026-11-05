@@ -7,6 +7,7 @@ using D3skCommander.App.Features.Panels;
 using D3skCommander.App.Host;
 using D3skCommander.App.Shell;
 using D3skCommander.App.Tests.Dialogs;
+using D3skCommander.App.Tests.Shell;
 using D3skCommander.Core.Catalog;
 using D3skCommander.Core.Commands;
 using D3skCommander.Core.Jobs;
@@ -68,6 +69,72 @@ public class CatalogDialogTests
         Assert.True(DiskCatalog.IsCatalog(output));
         window.Close();
         Assert.False(dialog.IsOpen);
+    }
+
+    [AvaloniaFact]
+    public async Task TheCatalogOpensAsAnOwnedModalWindowAndSearchesInIt()
+    {
+        var stop = TestContext.Current.CancellationToken;
+        using var root = new TempDir();
+        var source = Path.Combine(root.Path, "photos");
+        var other = Path.Combine(root.Path, "out");
+        Directory.CreateDirectory(source);
+        Directory.CreateDirectory(other);
+        File.WriteAllText(Path.Combine(source, "needle.txt"), "hello");
+        var output = Path.Combine(other, "mine.d3cat");
+        var text = English();
+        var dialogs = new FakeDialogService();
+        using var host = ShellHost.Open(Language.En);
+        using var panels = await OpenPanels(source, other, stop);
+        var dialog = new CatalogDialog(new JobService(), dialogs, text);
+        var commands = new CatalogCommands(panels, dialog, dialogs, text, new FixedOwner(host.Window));
+        CatalogWindow? window = null;
+        try
+        {
+            var running = commands.RunAsync();
+            await dialogs.WaitShownAsync();
+            dialogs.Answer(DialogResult.Ok(output));
+            await running.WaitAsync(TimeSpan.FromSeconds(15), stop);
+            window = await WaitForWindow(host.Window, stop);
+
+            Assert.True(window.IsVisible);
+            Assert.Same(host.Window, window.Owner);
+            Assert.Contains(window, ((Window)host.Window).OwnedWindows);
+            Assert.True(IsDialog(window));
+
+            dialog.Query = "needle";
+            Assert.True(await dialog.SearchAsync());
+            window.UpdateLayout();
+            Assert.True(window.Hits.IsRealized(0));
+            Assert.Equal("needle.txt", window.Hits.RenderedCells(0).First());
+        }
+        finally
+        {
+            window?.Close();
+        }
+
+        Assert.False(dialog.IsOpen);
+        Assert.False(IsDialog(window));
+    }
+
+    /// <summary>Avalonia keeps no public modal flag: a window shown with ShowDialog sets its private <c>_showingAsDialog</c>.</summary>
+    private static bool IsDialog(Window window) =>
+        (bool)typeof(Window).GetField("_showingAsDialog", System.Reflection.BindingFlags.Instance | System.Reflection.BindingFlags.NonPublic)!
+            .GetValue(window)!;
+
+    private static async Task<CatalogWindow> WaitForWindow(MainWindow main, CancellationToken stop)
+    {
+        for (var i = 0; i < 200; i++)
+        {
+            if (((Window)main).OwnedWindows.OfType<CatalogWindow>().FirstOrDefault() is { } found)
+            {
+                return found;
+            }
+
+            await Task.Delay(25, stop);
+        }
+
+        throw new TimeoutException("The catalog window never opened.");
     }
 
     [AvaloniaFact]
@@ -170,6 +237,11 @@ public class CatalogDialogTests
     private sealed class NoOwner : IDialogOwner
     {
         public MainWindow? Current => null;
+    }
+
+    private sealed class FixedOwner(MainWindow window) : IDialogOwner
+    {
+        public MainWindow? Current => window;
     }
 
     private sealed class IdlePicker : IFolderPicker
