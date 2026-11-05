@@ -1,0 +1,22 @@
+{
+  "launch.hint": {
+    "en": "Type a command and press Enter; cd moves this panel",
+    "fr": "Tapez une commande puis Entrée ; cd déplace ce panneau"
+  },
+  "launch.openwith.program": {
+    "en": "Program (full path or name)",
+    "fr": "Programme (chemin complet ou nom)"
+  },
+  "launch.openwith.default": {
+    "en": "Use the system default application",
+    "fr": "Utiliser l'application par défaut du système"
+  },
+  "launch.openwith.hint": {
+    "en": "%s = the selected files; without %s they are appended.",
+    "fr": "%s = les fichiers sélectionnés ; sans %s ils sont ajoutés à la fin."
+  },
+  "launch.failed": {
+    "en": "Could not start the program",
+    "fr": "Impossible de lancer le programme"
+  }
+}

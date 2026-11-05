@@ -1,0 +1,12 @@
+<UserControl xmlns="https://github.com/avaloniaui"
+             xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+             xmlns:launch="using:D3skCommander.App.Features.Launch"
+             x:Class="D3skCommander.App.Features.Launch.CommandLineView"
+             x:DataType="launch:CommandLineModel">
+  <DockPanel Margin="8,2">
+    <TextBlock x:Name="PromptText" DockPanel.Dock="Left" VerticalAlignment="Center" Margin="0,0,6,0"
+               Text="{Binding Prompt}"/>
+    <TextBox x:Name="LineBox" Text="{Binding Line}" PlaceholderText="{Binding Hint}"
+             KeyDown="OnKeyDown" GotFocus="OnFocused"/>
+  </DockPanel>
+</UserControl>
