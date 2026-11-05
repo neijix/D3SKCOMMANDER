@@ -19,7 +19,7 @@ public sealed class CompareCommands
     private readonly ILocalizer _text;
     private readonly IJobService _jobs;
     private readonly IToolWindowHost _tools;
-    private CompareView? _view;
+    private CompareViewModel? _view;
     private string _left = "";
     private string _right = "";
 
@@ -49,9 +49,9 @@ public sealed class CompareCommands
         shell.Handle(CommandId.ComparePanels, () => _ = ComparePanelsAsync());
     }
 
-    public CompareView CreateView()
+    public CompareViewModel CreateView()
     {
-        _view = new CompareView(_left, _right, _jobs, _text, ReloadPanels);
+        _view = new CompareViewModel(_left, _right, _jobs, _text, ReloadPanels);
         return _view;
     }
 

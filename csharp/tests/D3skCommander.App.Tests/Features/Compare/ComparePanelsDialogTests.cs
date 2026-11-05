@@ -71,7 +71,7 @@ public class ComparePanelsDialogTests
 
         commands.CompareFiles();
 
-        var view = Assert.IsType<CompareView>(tools.View);
+        var view = Assert.IsType<CompareViewModel>(tools.View);
         Assert.Equal(leftFile, view.Session.LeftPath);
         Assert.Equal(rightFile, view.Session.RightPath);
         Assert.Equal("", dialogs.Message);
@@ -226,10 +226,6 @@ public class ComparePanelsDialogTests
         }
 
         public bool IsOpen(ToolKind kind) => false;
-
-        public void Draw()
-        {
-        }
     }
 
     private sealed class TempDir : IDisposable

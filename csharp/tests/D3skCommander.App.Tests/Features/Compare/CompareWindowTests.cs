@@ -1,11 +1,10 @@
-using System.Numerics;
+using Avalonia.Controls;
 using Avalonia.Headless.XUnit;
+using Avalonia.VisualTree;
 using D3skCommander.App.Features.Compare;
-using D3skCommander.App.Host;
 using D3skCommander.Core.Compare;
 using D3skCommander.Core.Jobs;
 using D3skCommander.Core.Localization;
-using Hexa.NET.ImGui;
 using Xunit;
 
 namespace D3skCommander.App.Tests.Features.Compare;
@@ -22,44 +21,86 @@ public class CompareWindowTests
         File.WriteAllBytes(right, "x\nY\nz\nw\n"u8.ToArray());
         var jobs = new JobService();
         var text = Localizer.Load(settingsLanguage: Language.En, systemLanguage: Language.En);
-        var view = new CompareView(left, right, jobs, text, null);
+        var view = new CompareViewModel(left, right, jobs, text, null);
 
         Until(view, () => view.Surface == CompareSurface.Text);
         Assert.Equal(CompareSurface.Text, view.Surface);
-        Assert.True(view.DrewNext);
+        Assert.True(view.CanNavigate);
         Assert.Contains("Y", view.DrawnRows);
         Assert.Contains("w", view.DrawnRows);
         Assert.Equal(CompareText.Fill(text.Get("compare.blocks"), "{n}", "2"), view.SurfaceText);
         AssertTitled(jobs, text.Get("tool.compare.title"));
 
         view.NextBlock();
-        Draw(view);
+        view.Refresh();
         Assert.Equal(1, view.Session.Current);
 
         view.BeginEdit();
-        Draw(view);
+        view.Refresh();
         Assert.Equal(CompareSurface.Edit, view.Surface);
-        Assert.True(view.DrewSave);
+        Assert.True(view.CanSave);
         Assert.Equal(left, view.SurfaceText);
 
         view.Session.Save(0);
-        Draw(view);
+        view.Refresh();
         Assert.Equal(CompareText.Fill(text.Get("compare.status.saved"), "{path}", left), view.StatusLine);
 
         view.ShowCompareView();
-        Draw(view);
+        view.Refresh();
         Assert.Equal(CompareSurface.Text, view.Surface);
 
         var binaryLeft = Path.Combine(dir.Path, "a.bin");
         var binaryRight = Path.Combine(dir.Path, "b.bin");
         File.WriteAllBytes(binaryLeft, [0, 1, 2, 3]);
         File.WriteAllBytes(binaryRight, [0, 1, 9, 3]);
-        var binary = new CompareView(binaryLeft, binaryRight, jobs, text, null);
+        var binary = new CompareViewModel(binaryLeft, binaryRight, jobs, text, null);
         Until(binary, () => binary.Surface == CompareSurface.Binary);
         Assert.Equal(CompareSurface.Binary, binary.Surface);
         Assert.Equal(CompareText.Offset(text, 2), binary.SurfaceText);
-        Assert.True(binary.DrewPeek);
+        Assert.True(binary.HasPeek);
         AssertTitled(jobs, text.Get("tool.compare.title"));
+    }
+
+    [AvaloniaFact]
+    public void ContentShowsRowsAndTheButtonsOfEachMode()
+    {
+        using var dir = new TempDir();
+        var left = Path.Combine(dir.Path, "a.txt");
+        var right = Path.Combine(dir.Path, "b.txt");
+        File.WriteAllBytes(left, "x\ny\nz\n"u8.ToArray());
+        File.WriteAllBytes(right, "x\nY\nz\n"u8.ToArray());
+        var text = Localizer.Load(settingsLanguage: Language.En, systemLanguage: Language.En);
+        var model = new CompareViewModel(left, right, new JobService(), text, null);
+        var window = new Window { Width = 900, Height = 600, Content = model.CreateContent() };
+        window.Show();
+        Until(model, () => model.Surface == CompareSurface.Text);
+        Assert.True(Shown(window, "NextButton"));
+        Assert.True(Shown(window, "RowList"));
+        Assert.Equal(3, window.FindDescendantOfType<ListBox>()!.ItemCount);
+        Assert.False(Shown(window, "SaveLeftButton"));
+
+        model.BeginEdit();
+        Assert.True(Shown(window, "SaveLeftButton"));
+        Assert.True(Shown(window, "LeftEditor"));
+        Assert.False(Shown(window, "RowList"));
+        model.LeftEdit = "changed\n";
+        Assert.True(model.Session.LeftBuffer!.Dirty);
+
+        var binaryLeft = Path.Combine(dir.Path, "a.bin");
+        var binaryRight = Path.Combine(dir.Path, "b.bin");
+        File.WriteAllBytes(binaryLeft, [0, 1, 2, 3]);
+        File.WriteAllBytes(binaryRight, [0, 1, 9, 3]);
+        model.Restart(binaryLeft, binaryRight);
+        Until(model, () => model.Surface == CompareSurface.Binary);
+        Assert.True(Shown(window, "BinaryPane"));
+        Assert.NotEmpty(model.PeekLeft);
+        window.Close();
+    }
+
+    private static bool Shown(Window window, string name)
+    {
+        var found = window.GetVisualDescendants().OfType<Control>().FirstOrDefault(c => c.Name == name);
+        return found is { IsVisible: true } && found.IsEffectivelyVisible;
     }
 
     [AvaloniaFact]
@@ -77,8 +118,8 @@ public class CompareWindowTests
     {
         var jobs = new JobService();
         var text = Localizer.Load(settingsLanguage: Language.Fr, systemLanguage: Language.Fr);
-        var view = new CompareView("missing-left", "missing-right", jobs, text, null);
-        Draw(view);
+        var view = new CompareViewModel("missing-left", "missing-right", jobs, text, null);
+        view.Refresh();
         var job = Assert.Single(jobs.Jobs);
         Assert.Equal(text.Get("tool.compare.title"), job.Title);
         Assert.Equal("Comparer les fichiers", job.Title);
@@ -95,12 +136,12 @@ public class CompareWindowTests
         }
     }
 
-    private static void Until(CompareView view, Func<bool> ready)
+    private static void Until(CompareViewModel view, Func<bool> ready)
     {
         var end = DateTime.UtcNow.AddSeconds(5);
         while (DateTime.UtcNow < end)
         {
-            Draw(view);
+            view.Refresh();
             if (ready())
             {
                 return;
@@ -109,23 +150,7 @@ public class CompareWindowTests
             Thread.Sleep(5);
         }
 
-        Draw(view);
-    }
-
-    private static void Draw(CompareView view) => ImGuiProbe.Draw(() => Frame(view));
-
-    private static void Frame(CompareView view)
-    {
-        ImGui.SetNextWindowSize(new Vector2(1000, 640), ImGuiCond.Always);
-        ImGui.Begin("compare-probe");
-        try
-        {
-            view.Draw();
-        }
-        finally
-        {
-            ImGui.End();
-        }
+        view.Refresh();
     }
 
     private sealed class TempDir : IDisposable

@@ -1,0 +1,80 @@
+<UserControl xmlns="https://github.com/avaloniaui"
+             xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+             xmlns:c="using:D3skCommander.App.Features.Compare"
+             x:Class="D3skCommander.App.Features.Compare.CompareView"
+             x:DataType="c:CompareViewModel">
+  <Grid Margin="8" RowDefinitions="Auto,Auto,Auto,Auto,Auto,*" RowSpacing="6">
+    <Grid Grid.Row="0" ColumnDefinitions="*,Auto,*,Auto" ColumnSpacing="6">
+      <TextBox x:Name="LeftBox" Grid.Column="0" Text="{Binding LeftPath, Mode=TwoWay}"/>
+      <Button x:Name="SwapButton" Grid.Column="1" Content="{Binding SwapText}" Command="{Binding SwapCommand}"/>
+      <TextBox x:Name="RightBox" Grid.Column="2" Text="{Binding RightPath, Mode=TwoWay}"/>
+      <Button x:Name="RunButton" Grid.Column="3" Content="{Binding RunText}" Command="{Binding RunCompareCommand}"/>
+    </Grid>
+    <StackPanel Grid.Row="1" Orientation="Horizontal" Spacing="8">
+      <Button x:Name="PreviousButton" Content="{Binding PreviousText}" Command="{Binding PreviousBlockCommand}" IsVisible="{Binding CanNavigate}"/>
+      <Button x:Name="NextButton" Content="{Binding NextText}" Command="{Binding NextBlockCommand}" IsVisible="{Binding CanNavigate}"/>
+      <TextBlock x:Name="BlockText" VerticalAlignment="Center" Text="{Binding BlockLabel}" IsVisible="{Binding CanNavigate}"/>
+      <CheckBox x:Name="CaseBox" Content="{Binding IgnoreCaseText}" IsChecked="{Binding IgnoreCase, Mode=TwoWay}"/>
+      <CheckBox x:Name="SpaceBox" Content="{Binding IgnoreWhitespaceText}" IsChecked="{Binding IgnoreWhitespace, Mode=TwoWay}"/>
+    </StackPanel>
+    <StackPanel Grid.Row="2" Orientation="Horizontal" Spacing="8">
+      <Button x:Name="ViewButton" Content="{Binding ViewText}" Command="{Binding ShowCompareViewCommand}" IsVisible="{Binding CanChooseMode}"/>
+      <Button x:Name="EditButton" Content="{Binding EditText}" Command="{Binding BeginEditCommand}" IsVisible="{Binding CanChooseMode}"/>
+      <Button x:Name="RecompareButton" Content="{Binding RecompareText}" Command="{Binding RecompareBuffersCommand}" IsVisible="{Binding CanSave}"/>
+      <Button x:Name="SaveLeftButton" Content="{Binding SaveLeftText}" Command="{Binding SaveLeftCommand}" IsVisible="{Binding CanSave}"/>
+      <Button x:Name="SaveRightButton" Content="{Binding SaveRightText}" Command="{Binding SaveRightCommand}" IsVisible="{Binding CanSave}"/>
+      <TextBlock x:Name="WorkingLabel" VerticalAlignment="Center" Text="{Binding WorkingText}" IsVisible="{Binding IsPending}"/>
+    </StackPanel>
+    <TextBlock x:Name="StatusText" Grid.Row="3" Text="{Binding StatusLine}" TextWrapping="Wrap" IsVisible="{Binding StatusLine.Length}"/>
+    <TextBlock x:Name="MessageBlock" Grid.Row="4" Text="{Binding MessageText}" TextWrapping="Wrap" IsVisible="{Binding HasMessage}"/>
+    <Grid Grid.Row="5">
+      <Grid x:Name="TextPane" RowDefinitions="Auto,Auto,*" IsVisible="{Binding IsText}">
+        <TextBlock x:Name="IdenticalLabel" Text="{Binding IdenticalText}" IsVisible="{Binding IsIdentical}"/>
+        <Grid Grid.Row="1" ColumnDefinitions="48,*,48,*" Margin="0,0,0,2">
+          <TextBlock Grid.Column="1" FontWeight="SemiBold" Text="{Binding LeftHeader}"/>
+          <TextBlock Grid.Column="3" FontWeight="SemiBold" Text="{Binding RightHeader}"/>
+        </Grid>
+        <ListBox x:Name="RowList" Grid.Row="2" ItemsSource="{Binding Rows}" Padding="0">
+          <ListBox.ItemTemplate>
+            <DataTemplate x:DataType="c:CompareRow">
+              <Grid ColumnDefinitions="48,*,48,*">
+                <TextBlock Grid.Column="0" Background="{Binding NumberBrush}" Text="{Binding LeftNumber}" FontFamily="monospace" TextAlignment="Right" Padding="0,0,4,0"/>
+                <TextBlock Grid.Column="1" Background="{Binding LeftBrush}" Text="{Binding Left}" FontFamily="monospace" Padding="4,0"/>
+                <TextBlock Grid.Column="2" Background="{Binding RightBrush}" Text="{Binding RightNumber}" FontFamily="monospace" TextAlignment="Right" Padding="0,0,4,0"/>
+                <TextBlock Grid.Column="3" Background="{Binding RightBrush}" Text="{Binding Right}" FontFamily="monospace" Padding="4,0"/>
+              </Grid>
+            </DataTemplate>
+          </ListBox.ItemTemplate>
+        </ListBox>
+      </Grid>
+      <Grid x:Name="BinaryPane" ColumnDefinitions="*,*" ColumnSpacing="12" IsVisible="{Binding HasPeek}">
+        <DockPanel Grid.Column="0">
+          <TextBlock DockPanel.Dock="Top" FontWeight="SemiBold" Text="{Binding LeftHeader}"/>
+          <ItemsControl ItemsSource="{Binding PeekLeft}">
+            <ItemsControl.ItemTemplate>
+              <DataTemplate x:DataType="c:ComparePeekLine">
+                <TextBlock Text="{Binding Text}" Foreground="{Binding Brush}" FontFamily="monospace"/>
+              </DataTemplate>
+            </ItemsControl.ItemTemplate>
+          </ItemsControl>
+        </DockPanel>
+        <DockPanel Grid.Column="1">
+          <TextBlock DockPanel.Dock="Top" FontWeight="SemiBold" Text="{Binding RightHeader}"/>
+          <ItemsControl ItemsSource="{Binding PeekRight}">
+            <ItemsControl.ItemTemplate>
+              <DataTemplate x:DataType="c:ComparePeekLine">
+                <TextBlock Text="{Binding Text}" Foreground="{Binding Brush}" FontFamily="monospace"/>
+              </DataTemplate>
+            </ItemsControl.ItemTemplate>
+          </ItemsControl>
+        </DockPanel>
+      </Grid>
+      <Grid x:Name="EditPane" ColumnDefinitions="*,*" ColumnSpacing="12" RowDefinitions="Auto,*" IsVisible="{Binding IsEdit}">
+        <TextBlock Grid.Column="0" Text="{Binding LeftEditTitle}"/>
+        <TextBlock Grid.Column="1" Text="{Binding RightEditTitle}"/>
+        <TextBox x:Name="LeftEditor" Grid.Row="1" Grid.Column="0" AcceptsReturn="True" AcceptsTab="True" FontFamily="monospace" Text="{Binding LeftEdit, Mode=TwoWay}"/>
+        <TextBox x:Name="RightEditor" Grid.Row="1" Grid.Column="1" AcceptsReturn="True" AcceptsTab="True" FontFamily="monospace" Text="{Binding RightEdit, Mode=TwoWay}"/>
+      </Grid>
+    </Grid>
+  </Grid>
+</UserControl>
