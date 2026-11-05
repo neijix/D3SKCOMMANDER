@@ -223,4 +223,31 @@ public class TextDocumentTests
         Assert.Equal("new", File.ReadAllText(path));
         Directory.Delete(folder, true);
     }
+
+    [Fact]
+    public void AStaleReadOnlySaveTempIsRecoveredByTheNextSave()
+    {
+        Assert.SkipUnless(OperatingSystem.IsWindows(), "ReadOnly attribute semantics: FileMode.Create on a read-only file throws only on Windows");
+        using var folder = new TempFolder();
+        var path = Path.Combine(folder.Path, "a.txt");
+        var temp = Path.Combine(folder.Path, ".a.txt.d3sk-tmp");
+        File.WriteAllText(path, "old");
+        File.WriteAllText(temp, "stale");
+        File.SetAttributes(temp, FileAttributes.ReadOnly);
+        try
+        {
+            var status = TextAtomicWrite.Write(path, "new"u8);
+
+            Assert.True(status.IsSuccess);
+            Assert.Equal("new", File.ReadAllText(path));
+            Assert.False(File.Exists(temp));
+        }
+        finally
+        {
+            if (File.Exists(temp))
+            {
+                File.SetAttributes(temp, FileAttributes.Normal);
+            }
+        }
+    }
 }
