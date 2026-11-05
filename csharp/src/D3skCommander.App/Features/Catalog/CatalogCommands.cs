@@ -1,5 +1,6 @@
 using D3skCommander.App.Dialogs;
 using D3skCommander.App.Features.Panels;
+using D3skCommander.App.Host;
 using D3skCommander.App.Shell;
 using D3skCommander.Core.Catalog;
 using D3skCommander.Core.Commands;
@@ -14,13 +15,17 @@ public sealed class CatalogCommands
     private readonly CatalogDialog _dialog;
     private readonly IDialogService _dialogs;
     private readonly ILocalizer _text;
+    private readonly IDialogOwner _owner;
+    private CatalogWindow? _window;
 
-    public CatalogCommands(IPanelWorkspace panels, CatalogDialog dialog, IDialogService dialogs, ILocalizer text)
+    public CatalogCommands(IPanelWorkspace panels, CatalogDialog dialog, IDialogService dialogs, ILocalizer text, IDialogOwner owner)
     {
         ArgumentNullException.ThrowIfNull(panels);
         ArgumentNullException.ThrowIfNull(dialog);
         ArgumentNullException.ThrowIfNull(dialogs);
         ArgumentNullException.ThrowIfNull(text);
+        ArgumentNullException.ThrowIfNull(owner);
+        _owner = owner;
         _panels = panels;
         _dialog = dialog;
         _dialogs = dialogs;
@@ -57,6 +62,7 @@ public sealed class CatalogCommands
             _dialog.Prepare(capture.ActiveDirectory, output);
             if (await _dialog.WriteAsync().ConfigureAwait(false))
             {
+                UiThread.Post(ShowWindow);
                 await _panels.RefreshAsync().ConfigureAwait(false);
             }
         }
@@ -64,6 +70,18 @@ public sealed class CatalogCommands
         {
             _dialog.End();
         }
+    }
+
+    /// <summary>Opens the catalog window over the main window; a window already open stays.</summary>
+    private void ShowWindow()
+    {
+        if (_window is { IsVisible: true } || _owner.Current is not { } main)
+        {
+            return;
+        }
+
+        _window = new CatalogWindow(_dialog, _text);
+        _ = _window.ShowDialog(main);
     }
 
     private async Task<string?> AskOutput(PanelCapture capture)

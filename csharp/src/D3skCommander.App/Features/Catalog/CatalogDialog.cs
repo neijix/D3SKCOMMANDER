@@ -1,8 +1,8 @@
 using System.Globalization;
+using CommunityToolkit.Mvvm.ComponentModel;
 using D3skCommander.App.Controls.FileList;
 using D3skCommander.App.Dialogs;
 using D3skCommander.App.Host;
-using D3skCommander.App.Shell;
 using D3skCommander.Core.Catalog;
 using D3skCommander.Core.Common;
 using D3skCommander.Core.Jobs;
@@ -11,10 +11,10 @@ using D3skCommander.Core.Localization;
 namespace D3skCommander.App.Features.Catalog;
 
 /// <summary>
-/// Modal catalog dialog: create a <c>.d3cat</c>, search it without the original folder,
+/// Model of the catalog window: create a <c>.d3cat</c>, search it without the original folder,
 /// and open a hit. The lister window is a later row; opening records the catalog path.
 /// </summary>
-public sealed partial class CatalogDialog : IShellWidget
+public sealed partial class CatalogDialog : ObservableObject
 {
     private readonly IJobService _jobs;
     private readonly IDialogService _dialogs;
@@ -24,6 +24,14 @@ public sealed partial class CatalogDialog : IShellWidget
     private CatalogHeader? _header;
     private int _busy;
     private string _status = "";
+    private string? _openedPath;
+    private bool _isOpen;
+    [ObservableProperty]
+    private string _root = "";
+    [ObservableProperty]
+    private string _outputPath = "";
+    [ObservableProperty]
+    private string _query = "";
 
     public CatalogDialog(IJobService jobs, IDialogService dialogs, ILocalizer text)
     {
@@ -36,21 +44,25 @@ public sealed partial class CatalogDialog : IShellWidget
         _hits = new FileList(text);
     }
 
-    public string? Name => "Catalog";
-
     public FileList Hits => _hits;
 
-    public string Root { get; set; } = "";
+    public string? OpenedPath
+    {
+        get => _openedPath;
+        private set => SetProperty(ref _openedPath, value);
+    }
 
-    public string OutputPath { get; set; } = "";
+    public bool IsOpen
+    {
+        get => _isOpen;
+        private set => SetProperty(ref _isOpen, value);
+    }
 
-    public string Query { get; set; } = "";
-
-    public string? OpenedPath { get; private set; }
-
-    public bool IsOpen { get; private set; }
-
-    public string Status => _status;
+    public string Status
+    {
+        get => _status;
+        private set => SetProperty(ref _status, value);
+    }
 
     public bool IsBusy => Volatile.Read(ref _busy) != 0;
 
@@ -91,15 +103,28 @@ public sealed partial class CatalogDialog : IShellWidget
         }
 
         OpenedPath = CatalogHits.Absolute(header, _shown[index]);
-        _status = _text.Get("catalog.opened");
+        Status = _text.Get("catalog.opened");
         return true;
     }
 
     public void Close() => IsOpen = false;
 
-    internal bool TryBegin() => Interlocked.CompareExchange(ref _busy, 1, 0) == 0;
+    internal bool TryBegin()
+    {
+        var began = Interlocked.CompareExchange(ref _busy, 1, 0) == 0;
+        if (began)
+        {
+            UiThread.Post(() => OnPropertyChanged(nameof(IsBusy)));
+        }
 
-    internal void End() => Interlocked.Exchange(ref _busy, 0);
+        return began;
+    }
+
+    internal void End()
+    {
+        Interlocked.Exchange(ref _busy, 0);
+        UiThread.Post(() => OnPropertyChanged(nameof(IsBusy)));
+    }
 
     internal async Task<bool> WriteAsync()
     {
@@ -164,7 +189,7 @@ public sealed partial class CatalogDialog : IShellWidget
         }
 
         _hits.ShowRows(CatalogHits.Columns, rows);
-        _status = string.Format(CultureInfo.InvariantCulture, _text.Get("catalog.shown"), hits.Count);
+        Status = string.Format(CultureInfo.InvariantCulture, _text.Get("catalog.shown"), hits.Count);
         IsOpen = true;
         OpenedPath = null;
     }

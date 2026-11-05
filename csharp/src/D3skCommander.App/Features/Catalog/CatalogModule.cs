@@ -6,14 +6,11 @@ namespace D3skCommander.App.Features.Catalog;
 public sealed class CatalogModule : IShellModule
 {
     private readonly CatalogCommands _commands;
-    private readonly CatalogDialog _dialog;
 
-    public CatalogModule(CatalogCommands commands, CatalogDialog dialog)
+    public CatalogModule(CatalogCommands commands)
     {
         ArgumentNullException.ThrowIfNull(commands);
-        ArgumentNullException.ThrowIfNull(dialog);
         _commands = commands;
-        _dialog = dialog;
     }
 
     public static void Register(IServiceCollection services)
@@ -29,6 +26,5 @@ public sealed class CatalogModule : IShellModule
     {
         ArgumentNullException.ThrowIfNull(shell);
         _commands.Bind(shell);
-        shell.AddRegion(ShellRegion.UnderPanels, () => _dialog);
     }
 }

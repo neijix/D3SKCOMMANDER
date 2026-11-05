@@ -1,4 +1,6 @@
+using Avalonia.Controls;
 using Avalonia.Headless.XUnit;
+using D3skCommander.App.Controls.FileList;
 using D3skCommander.App.Dialogs;
 using D3skCommander.App.Features.Catalog;
 using D3skCommander.App.Features.Panels;
@@ -10,7 +12,6 @@ using D3skCommander.Core.Commands;
 using D3skCommander.Core.Jobs;
 using D3skCommander.Core.Localization;
 using D3skCommander.Core.Providers;
-using Hexa.NET.ImGui;
 using Microsoft.Extensions.DependencyInjection;
 using Xunit;
 
@@ -36,7 +37,7 @@ public class CatalogDialogTests
         var dialogs = new FakeDialogService();
         using var panels = await OpenPanels(source, other, stop);
         var dialog = new CatalogDialog(new JobService(), dialogs, text);
-        var commands = new CatalogCommands(panels, dialog, dialogs, text);
+        var commands = new CatalogCommands(panels, dialog, dialogs, text, new NoOwner());
 
         var running = commands.RunAsync();
         var shown = await dialogs.WaitShownAsync();
@@ -53,15 +54,20 @@ public class CatalogDialogTests
         Assert.Equal("b.md", dialog.Hits.CellText(0, 0));
         Assert.Equal("docs/b.md", dialog.Hits.CellText(0, 1));
         Assert.Equal("2 B", dialog.Hits.CellText(0, 2));
-        Draw(dialog);
-        Assert.True(dialog.Hits.TryRowTop(0, out _));
-        Assert.Equal(text.Get("name"), dialog.Hits.HeaderText("name"));
+        var window = new CatalogWindow(dialog, text);
+        window.Show();
+        window.UpdateLayout();
+        Assert.True(window.Hits.IsRealized(0));
+        Assert.Equal(text.Get("name"), window.Hits.HeaderText("name"));
+        Assert.Equal(["b.md", "docs/b.md", "2 B"], window.Hits.RenderedCells(0).Take(3));
         Assert.True(dialog.OpenSelected());
         Assert.Equal(expected, dialog.OpenedPath);
         Assert.False(File.Exists(expected));
         Assert.Equal(text.Get("catalog.opened"), dialog.Status);
         Assert.Equal(output, dialog.OutputPath);
         Assert.True(DiskCatalog.IsCatalog(output));
+        window.Close();
+        Assert.False(dialog.IsOpen);
     }
 
     [AvaloniaFact]
@@ -97,7 +103,7 @@ public class CatalogDialogTests
         var dialogs = new FakeDialogService();
         using var panels = await OpenPanels(source, other, stop);
         var dialog = new CatalogDialog(new JobService(), dialogs, English());
-        var commands = new CatalogCommands(panels, dialog, dialogs, English());
+        var commands = new CatalogCommands(panels, dialog, dialogs, English(), new NoOwner());
 
         var running = commands.RunAsync();
         await dialogs.WaitShownAsync();
@@ -116,6 +122,7 @@ public class CatalogDialogTests
         services.AddSingleton<IDialogService>(new FakeDialogService());
         services.AddSingleton<IJobService, JobService>();
         services.AddSingleton<IPanelWorkspace>(new IdlePanels());
+        services.AddSingleton<IDialogOwner>(new NoOwner());
         CatalogModule.Register(services);
         using var provider = services.BuildServiceProvider();
         var module = provider.GetRequiredService<CatalogModule>();
@@ -125,7 +132,7 @@ public class CatalogDialogTests
         Assert.True(shell.CanExecute(CommandId.Catalog));
         Assert.True(shell.Dispatch(CommandId.Catalog));
         var dialog = provider.GetRequiredService<CatalogDialog>();
-        Assert.Same(dialog, Assert.Single(shell.UnderPanels)());
+        Assert.Empty(shell.UnderPanels);
         Assert.False(dialog.IsOpen);
     }
 
@@ -143,23 +150,6 @@ public class CatalogDialogTests
         AssertPair(text, "catalog.not_catalog", "This file is not a disk catalog.", "Ce fichier n'est pas un catalogue de disque.");
     }
 
-    private static void Draw(CatalogDialog dialog)
-    {
-        ImGuiProbe.Frames(2, null, () =>
-        {
-            ImGui.SetNextWindowPos(System.Numerics.Vector2.Zero);
-            ImGui.SetNextWindowSize(ImGui.GetIO().DisplaySize);
-            if (!ImGui.Begin("##catalog-host"))
-            {
-                ImGui.End();
-                return;
-            }
-
-            dialog.Draw();
-            ImGui.End();
-        });
-    }
-
     private static void AssertPair(Localizer text, string key, string english, string french)
     {
         Assert.Equal(english, text.Get(key, Language.En));
@@ -175,6 +165,11 @@ public class CatalogDialogTests
         var workspace = new PanelWorkspace(new LocalFileSystemProvider(), new IdlePicker());
         await workspace.OpenAsync(left, right, cancellationToken);
         return workspace;
+    }
+
+    private sealed class NoOwner : IDialogOwner
+    {
+        public MainWindow? Current => null;
     }
 
     private sealed class IdlePicker : IFolderPicker
