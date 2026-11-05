@@ -18,7 +18,4 @@ public interface IToolWindowHost
     ToolWindow Open(ToolKind kind);
 
     bool IsOpen(ToolKind kind);
-
-    /// <summary>Draws each open tool as its own ImGui platform window.</summary>
-    void Draw();
 }

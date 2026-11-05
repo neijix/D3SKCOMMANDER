@@ -1,169 +1,89 @@
-using System.Numerics;
+using Avalonia;
+using Avalonia.Controls;
+using Avalonia.Input;
+using Avalonia.Interactivity;
 using D3skCommander.App.Shell;
-using D3skCommander.Core.Commands;
-using Hexa.NET.ImGui;
 
 namespace D3skCommander.App.ToolWindows;
 
-/// <summary>One owned top-level tool window. Esc closes it. ImGui gives it its own platform window.</summary>
-public sealed class ToolWindow : IOwnedWindow
+/// <summary>One owned top-level tool window. Esc closes it, and its frame is remembered per kind.</summary>
+public sealed class ToolWindow : Window, IOwnedWindow
 {
     private readonly Action<ToolWindowFrame> _remember;
-    private readonly string _id;
-    private double _width;
-    private double _height;
+    private readonly MainWindow _main;
     private bool _quiet;
 
-    public ToolWindow(string id, string title, IShellWidget content, MainWindow owner, Action<ToolWindowFrame> remember)
+    public ToolWindow(string title, IShellWidget view, MainWindow owner, Action<ToolWindowFrame> remember)
     {
-        ArgumentException.ThrowIfNullOrEmpty(id);
         ArgumentException.ThrowIfNullOrEmpty(title);
-        ArgumentNullException.ThrowIfNull(content);
+        ArgumentNullException.ThrowIfNull(view);
         ArgumentNullException.ThrowIfNull(owner);
         ArgumentNullException.ThrowIfNull(remember);
-        _id = id;
         _remember = remember;
-        Title = title;
-        Content = content;
-        Owner = owner;
+        _main = owner;
+        View = view;
         Scale = owner.Screen.Scaling <= 0 ? 1 : owner.Screen.Scaling;
+        Title = title;
+        Content = view.CreateContent();
+        WindowStartupLocation = WindowStartupLocation.Manual;
+        SizeToContent = SizeToContent.Manual;
+        AddHandler(KeyDownEvent, OnToolKeyDown, RoutingStrategies.Tunnel);
+        PositionChanged += (_, _) => Remember();
+        Closing += (_, _) => Remember();
     }
 
-    public string Title { get; }
+    /// <summary>The shell view this window shows.</summary>
+    public IShellWidget View { get; }
 
-    public IShellWidget Content { get; }
-
-    public MainWindow Owner { get; }
-
-    public object? Parent => null;
-
-    public bool IsVisible { get; private set; }
-
+    /// <summary>Device pixels per device-independent pixel of the owner's screen.</summary>
     public double Scale { get; }
 
-    public ScreenPoint Position
+    /// <summary>Applies the frame, attaches the window to its owner's list and shows it owned.</summary>
+    public void Present(ToolWindowFrame frame)
     {
-        get => new(X, Y);
-        set
-        {
-            X = value.X;
-            Y = value.Y;
-            Remember();
-        }
-    }
-
-    public double Width
-    {
-        get => _width;
-        set
-        {
-            _width = value;
-            Remember();
-        }
-    }
-
-    public double Height
-    {
-        get => _height;
-        set
-        {
-            _height = value;
-            Remember();
-        }
-    }
-
-    internal int X { get; private set; }
-
-    internal int Y { get; private set; }
-
-    public void Show()
-    {
-        IsVisible = true;
-        Owner.Attach(this);
-    }
-
-    public void Close()
-    {
-        if (!IsVisible)
-        {
-            return;
-        }
-
-        Remember();
-        IsVisible = false;
-        Owner.Detach(this);
-        Closed?.Invoke();
-    }
-
-    internal event Action? Closed;
-
-    public void KeyPress(GestureKey key, GestureModifiers modifiers = GestureModifiers.None)
-    {
-        if (key == GestureKey.Escape && modifiers == GestureModifiers.None)
-        {
-            Close();
-        }
+        Apply(frame);
+        _main.Attach(this);
+        Show(_main);
     }
 
     public void Apply(ToolWindowFrame frame)
     {
         RunQuiet(() =>
         {
-            X = frame.X;
-            Y = frame.Y;
-            _width = frame.Width / Scale;
-            _height = frame.Height / Scale;
+            Width = frame.Width / Scale;
+            Height = frame.Height / Scale;
+            Position = new PixelPoint(frame.X, frame.Y);
         });
     }
 
-    public ToolWindowFrame Read() => new(X, Y, ToPx(_width), ToPx(_height));
+    public ToolWindowFrame Read() => new(Position.X, Position.Y, ToPx(Width), ToPx(Height));
 
-    public void Draw()
+    protected override void OnPropertyChanged(AvaloniaPropertyChangedEventArgs change)
     {
-        if (!IsVisible)
+        base.OnPropertyChanged(change);
+        if (change.Property == WidthProperty || change.Property == HeightProperty)
         {
-            return;
-        }
-
-        ImGui.SetNextWindowPos(new Vector2(X, Y), ImGuiCond.Appearing);
-        ImGui.SetNextWindowSize(new Vector2(ToPx(_width), ToPx(_height)), ImGuiCond.Appearing);
-        SetOwnViewport();
-        var open = true;
-        if (ImGui.Begin(Title + "###" + _id, ref open))
-        {
-            Content.Draw();
-            var pos = ImGui.GetWindowPos();
-            var size = ImGui.GetWindowSize();
-            RunQuiet(() =>
-            {
-                X = (int)Math.Round(pos.X);
-                Y = (int)Math.Round(pos.Y);
-                _width = size.X / Scale;
-                _height = size.Y / Scale;
-            });
             Remember();
-            if (ImGui.IsWindowFocused() && ImGui.IsKeyPressed(ImGuiKey.Escape))
-            {
-                Close();
-            }
         }
+    }
 
-        ImGui.End();
-        if (!open)
-        {
-            Close();
-        }
+    protected override void OnClosed(EventArgs e)
+    {
+        base.OnClosed(e);
+        _main.Detach(this);
     }
 
     private void Remember()
     {
-        if (_quiet || _width < 1 || _height < 1)
+        if (_quiet || !HasSize())
         {
             return;
         }
 
         _remember(Read());
     }
+
+    private bool HasSize() => !double.IsNaN(Width) && !double.IsNaN(Height) && Width >= 1 && Height >= 1;
 
     private void RunQuiet(Action action)
     {
@@ -180,10 +100,14 @@ public sealed class ToolWindow : IOwnedWindow
 
     private int ToPx(double dips) => (int)Math.Round(dips * Scale);
 
-    private static unsafe void SetOwnViewport()
+    private void OnToolKeyDown(object? sender, KeyEventArgs e)
     {
-        var windowClass = new ImGuiWindowClass();
-        windowClass.ViewportFlagsOverrideSet = ImGuiViewportFlags.NoAutoMerge;
-        ImGui.SetNextWindowClass(&windowClass);
+        if (e.Handled || e.Key != Key.Escape || e.KeyModifiers != KeyModifiers.None)
+        {
+            return;
+        }
+
+        e.Handled = true;
+        Close();
     }
 }

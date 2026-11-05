@@ -44,22 +44,13 @@ public sealed class ToolWindowHost : IToolWindowHost
         return ShowNew(kind, ToolWindowOwners.Require());
     }
 
-    public void Draw()
-    {
-        foreach (var window in _open.Values)
-        {
-            window.Draw();
-        }
-    }
-
     private ToolWindow ShowNew(ToolKind kind, MainWindow owner)
     {
         var screen = ScreenOf(owner);
         var frame = FrameFor(kind, screen);
-        var window = new ToolWindow(kind.Id, TitleOf(kind), ContentFor(kind), owner, remembered => _geometry.Remember(kind, remembered));
-        window.Closed += () => Forget(kind, window);
-        window.Apply(frame);
-        window.Show();
+        var window = new ToolWindow(TitleOf(kind), ContentFor(kind), owner, remembered => _geometry.Remember(kind, remembered));
+        window.Closed += (_, _) => Forget(kind, window);
+        window.Present(frame);
         _open[kind.Id] = window;
         _geometry.Remember(kind, frame);
         return window;

@@ -1,7 +1,9 @@
+using Avalonia;
+using Avalonia.Headless;
 using Avalonia.Headless.XUnit;
+using Avalonia.Input;
 using D3skCommander.App.Shell;
 using D3skCommander.App.ToolWindows;
-using D3skCommander.Core.Commands;
 using Xunit;
 
 namespace D3skCommander.App.Tests.ToolWindows;
@@ -36,7 +38,7 @@ public class ToolWindowHostTests
 
         Assert.Contains(tool, app.Window.OwnedWindows);
         Assert.Same(app.Window, tool.Owner);
-        Assert.Same(marker, tool.Content);
+        Assert.Same(marker, tool.View);
         Assert.Equal(app.Localizer.Get("tool.log.title"), tool.Title);
         Assert.Null(tool.Parent);
     }
@@ -46,7 +48,7 @@ public class ToolWindowHostTests
     {
         using var app = ToolWindowApp.Open();
         var tool = app.Tools.Open(ToolKind.Search);
-        tool.Position = new ScreenPoint(120, 80);
+        tool.Position = new PixelPoint(120, 80);
         tool.Width = 640;
         tool.Height = 400;
         tool.Close();
@@ -54,13 +56,13 @@ public class ToolWindowHostTests
         Assert.False(app.Tools.IsOpen(ToolKind.Search));
         var again = app.Tools.Open(ToolKind.Search);
 
-        Assert.Equal(new ScreenPoint(120, 80), again.Position);
+        Assert.Equal(new PixelPoint(120, 80), again.Position);
         Assert.Equal(640, (int)Math.Round(again.Width));
         Assert.Equal(400, (int)Math.Round(again.Height));
         Assert.Contains(again, app.Window.OwnedWindows);
 
         var other = app.Tools.Open(ToolKind.Editor);
-        Assert.NotEqual(new ScreenPoint(120, 80), other.Position);
+        Assert.NotEqual(new PixelPoint(120, 80), other.Position);
         Assert.Equal(ToolKind.Editor.DefaultWidth, (int)Math.Round(other.Width));
         Assert.Equal(ToolKind.Editor.DefaultHeight, (int)Math.Round(other.Height));
     }
@@ -75,7 +77,7 @@ public class ToolWindowHostTests
         var requestedHeight = 220;
         tool.Width = requestedWidth;
         tool.Height = requestedHeight;
-        tool.Position = new ScreenPoint(screen.X - 80, screen.Y + screen.Height - 15);
+        tool.Position = new PixelPoint(screen.X - 80, screen.Y + screen.Height - 15);
         tool.Close();
 
         var clamped = app.Tools.Open(ToolKind.Lister);
@@ -98,7 +100,7 @@ public class ToolWindowHostTests
         var tool = app.Tools.Open(ToolKind.Log);
         Assert.Contains(tool, app.Window.OwnedWindows);
 
-        tool.KeyPress(GestureKey.Escape);
+        tool.KeyPress(Key.Escape, RawInputModifiers.None, PhysicalKey.Escape, null);
 
         Assert.False(tool.IsVisible);
         Assert.False(app.Tools.IsOpen(ToolKind.Log));
@@ -116,5 +118,16 @@ public class ToolWindowHostTests
         Assert.Same(first, second);
         Assert.NotSame(first, other);
         Assert.Equal(2, app.Window.OwnedWindows.Count);
+    }
+
+    [AvaloniaFact]
+    public void AnUnregisteredKindShowsAnEmptyNamedToolSurface()
+    {
+        using var app = ToolWindowApp.Open();
+        var tool = app.Tools.Open(ToolKind.Passwords);
+
+        Assert.Equal("ToolSurface", tool.View.Name);
+        var surface = Assert.IsType<Avalonia.Controls.Border>(tool.Content);
+        Assert.Equal("ToolSurface", surface.Name);
     }
 }

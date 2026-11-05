@@ -1,3 +1,4 @@
+using Avalonia;
 using Avalonia.Headless.XUnit;
 using D3skCommander.App.Shell;
 using D3skCommander.App.ToolWindows;
@@ -15,11 +16,11 @@ public class ToolWindowLayoutTests
         var marker = new NamedWidget("StubTool");
         session.Tools.Register(kind, () => marker);
         var tool = session.Tools.Open(kind);
-        tool.Position = new ScreenPoint(16, 16);
+        tool.Position = new PixelPoint(16, 16);
         tool.Width = 200;
         tool.Height = 120;
 
-        // Until row 10 the host computes the frame; it must stay on the screen at both window sizes.
+        // The frame comes from the host; it must stay on the screen at both window sizes.
         var area = session.Window.Screen.WorkingArea;
         foreach (var (width, height) in new (double Width, double Height)[] { (640, 400), (1280, 800) })
         {
@@ -31,7 +32,7 @@ public class ToolWindowLayoutTests
             Assert.True(frame.Y + frame.Height <= area.Y + area.Height, what);
         }
 
-        Assert.Same(marker, tool.Content);
+        Assert.Same(marker, tool.View);
         Assert.Same(session.Window, tool.Owner);
         Assert.Contains(tool, session.Window.OwnedWindows);
         Assert.Null(tool.Parent);
