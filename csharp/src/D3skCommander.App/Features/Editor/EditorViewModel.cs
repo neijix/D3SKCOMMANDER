@@ -18,7 +18,7 @@ namespace D3skCommander.App.Features.Editor;
 /// name and a busy state show at once, then the text or its typed error. AvaloniaEdit's buffer
 /// feeds <c>TextDocument.Text</c>, so a keystroke marks the document dirty.
 /// </summary>
-public sealed class EditorViewModel : ObservableObject, IShellWidget
+public sealed class EditorViewModel : ObservableObject, IShellWidget, ICloseGuard
 {
     private readonly ILocalizer _text;
     private readonly IDialogService _dialogs;
@@ -191,6 +191,25 @@ public sealed class EditorViewModel : ObservableObject, IShellWidget
         {
             UiThread.Invoke(() => Show(document));
         }
+    }
+
+    /// <summary>
+    /// A clean buffer may go. A dirty one asks Save / Don't save / Cancel: Save that succeeds and
+    /// Don't save answer yes; a failed Save (its error is shown) and Cancel answer no.
+    /// </summary>
+    public Task<bool> CanCloseAsync() => Dirty && !IsBusy ? AskUnsavedAsync() : Task.FromResult(true);
+
+    private async Task<bool> AskUnsavedAsync()
+    {
+        var message = _text.Get("editor.unsaved").Replace("{name}", FileName, StringComparison.Ordinal);
+        string[] choices = [_text.Get("editor.save"), _text.Get("editor.dont_save"), _text.Get("cancel")];
+        var answer = await _dialogs.ChooseAsync(_text.Get("cmd.edit"), message, choices).ConfigureAwait(true);
+        return answer switch
+        {
+            0 => await SaveAsync().ConfigureAwait(true),
+            1 => true,
+            _ => false,
+        };
     }
 
     /// <summary>Writes the buffer. Success refreshes the panels; a failure shows its typed error and keeps the buffer.</summary>

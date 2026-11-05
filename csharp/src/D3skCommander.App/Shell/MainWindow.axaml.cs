@@ -56,8 +56,42 @@ public sealed partial class MainWindow : Window
 
     protected override void OnClosing(WindowClosingEventArgs e)
     {
-        CloseOwnedWindows();
+        if (!_quitApproved)
+        {
+            if (_quitting)
+            {
+                e.Cancel = true;
+            }
+            else
+            {
+                _quitting = true;
+                var ask = CloseOwnedWindowsAsync();
+                if (ask.IsCompleted)
+                {
+                    _quitting = false;
+                    _quitApproved = ask.Result;
+                    e.Cancel = !ask.Result;
+                }
+                else
+                {
+                    e.Cancel = true;
+                    _ = QuitWhenApproved(ask);
+                }
+            }
+        }
+
         base.OnClosing(e);
+    }
+
+    private async Task QuitWhenApproved(Task<bool> ask)
+    {
+        var approved = await ask.ConfigureAwait(true);
+        _quitting = false;
+        if (approved)
+        {
+            _quitApproved = true;
+            Close();
+        }
     }
 
     protected override void OnClosed(EventArgs e)

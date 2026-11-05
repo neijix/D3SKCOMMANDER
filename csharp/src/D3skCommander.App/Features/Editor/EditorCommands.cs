@@ -67,9 +67,15 @@ public sealed class EditorCommands(IPanelWorkspace panels, IToolWindowHost tools
         await OpenAsync(Path.Combine(capture.ActiveDirectory, name)).ConfigureAwait(true);
     }
 
-    private Task OpenAsync(string path)
+    /// <summary>Shows <paramref name="path"/>; a dirty buffer is settled first, and a refusal keeps it.</summary>
+    private async Task OpenAsync(string path)
     {
         var window = _tools.Open(ToolKind.Editor);
-        return window.View is EditorViewModel model ? model.OpenAsync(path) : Task.CompletedTask;
+        if (window.View is not EditorViewModel model || !await model.CanCloseAsync().ConfigureAwait(true))
+        {
+            return;
+        }
+
+        await model.OpenAsync(path).ConfigureAwait(true);
     }
 }

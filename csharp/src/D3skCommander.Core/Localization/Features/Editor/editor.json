@@ -59,6 +59,14 @@
     "en": "Match case",
     "fr": "Respecter la casse"
   },
+  "editor.unsaved": {
+    "en": "{name} has unsaved changes.",
+    "fr": "{name} a des modifications non enregistrées."
+  },
+  "editor.dont_save": {
+    "en": "Don't save",
+    "fr": "Ne pas enregistrer"
+  },
   "editor.save": {
     "en": "Save",
     "fr": "Enregistrer"

@@ -11,6 +11,8 @@ public sealed partial class MainWindow
     private readonly MainWindowModel _model;
     private readonly ILocalizer _localizer;
     private readonly List<IOwnedWindow> _owned = [];
+    private bool _quitApproved;
+    private bool _quitting;
 
     /// <summary>For the XAML loader and the previewer: an empty shell.</summary>
     public MainWindow()
@@ -74,13 +76,21 @@ public sealed partial class MainWindow
         _shell.RunStartup();
     }
 
-    /// <summary>The window is closing: the owned windows first.</summary>
-    private void CloseOwnedWindows()
+    /// <summary>
+    /// Quit: asks each owned window in turn and closes it on yes. The first refusal stops it, and the
+    /// windows not yet asked stay open.
+    /// </summary>
+    private async Task<bool> CloseOwnedWindowsAsync()
     {
         foreach (var owned in _owned.ToArray())
         {
-            owned.Close();
+            if (!await owned.TryCloseAsync().ConfigureAwait(true))
+            {
+                return false;
+            }
         }
+
+        return true;
     }
 
     public void KeyPress(GestureKey key, GestureModifiers modifiers)

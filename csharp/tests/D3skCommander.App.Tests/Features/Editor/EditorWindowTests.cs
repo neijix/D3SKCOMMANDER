@@ -1,5 +1,6 @@
 using System.Text;
 using Avalonia.Controls;
+using Avalonia.Headless;
 using Avalonia.Headless.XUnit;
 using Avalonia.Input;
 using D3skCommander.App.Dialogs;
@@ -109,6 +110,111 @@ public class EditorWindowTests
         Assert.Equal("keep\n", File.ReadAllText(path));
     }
 
+    [AvaloniaTheory]
+    [InlineData(0)]
+    [InlineData(1)]
+    [InlineData(2)]
+    public async Task EscapeOnADirtyBufferAsksSaveDontSaveOrCancel(int pick)
+    {
+        using var rig = await EditorRig.Open(("a.txt", "one\n"));
+        rig.Select("a.txt");
+        await rig.Commands.EditAsync();
+        var tool = rig.Tools.Open(ToolKind.Editor);
+        var model = rig.Model;
+        model.Buffer.Insert(0, "X");
+
+        tool.KeyPress(Key.Escape, RawInputModifiers.None, PhysicalKey.Escape, null);
+        var shown = await rig.Dialogs.WaitShownAsync();
+        Assert.Equal(["Save", "Don't save", "Cancel"], shown.Choices);
+        Assert.Contains("a.txt", shown.Text, StringComparison.Ordinal);
+        Assert.True(tool.IsVisible);
+        rig.Dialogs.Answer(DialogResult.Picked(pick));
+        await rig.WaitForAsync(() => pick == 2 || !tool.IsVisible);
+
+        var bytes = File.ReadAllText(Path.Combine(rig.Root, "a.txt"));
+        Assert.Equal(pick != 2, !tool.IsVisible);
+        Assert.Equal(pick == 0 ? "Xone\n" : "one\n", bytes);
+        Assert.Equal(pick != 0, model.Dirty);
+    }
+
+    [AvaloniaTheory]
+    [InlineData(0)]
+    [InlineData(1)]
+    [InlineData(2)]
+    public async Task F4OntoAnotherFileAsksFirstAndOnlyAYesOpensIt(int pick)
+    {
+        using var rig = await EditorRig.Open(("a.txt", "one\n"), ("b.txt", "two\n"));
+        rig.Select("a.txt");
+        await rig.Commands.EditAsync();
+        var model = rig.Model;
+        model.Buffer.Insert(0, "X");
+
+        rig.Select("b.txt");
+        var opening = rig.Commands.EditAsync();
+        await rig.Dialogs.WaitShownAsync();
+        Assert.Equal("a.txt", model.FileName);
+        rig.Dialogs.Answer(DialogResult.Picked(pick));
+        await opening;
+
+        Assert.Equal(pick == 2 ? "a.txt" : "b.txt", model.FileName);
+        Assert.Equal(pick == 2 ? "Xone\n" : "two\n", model.Buffer.Text);
+        Assert.Equal(pick == 2, model.Dirty);
+        Assert.Equal(pick == 0 ? "Xone\n" : "one\n", File.ReadAllText(Path.Combine(rig.Root, "a.txt")));
+    }
+
+    [AvaloniaFact]
+    public async Task ACleanBufferClosesWithoutAsking()
+    {
+        using var rig = await EditorRig.Open(("a.txt", "one\n"));
+        rig.Select("a.txt");
+        await rig.Commands.EditAsync();
+        var tool = rig.Tools.Open(ToolKind.Editor);
+
+        tool.KeyPress(Key.Escape, RawInputModifiers.None, PhysicalKey.Escape, null);
+
+        Assert.False(tool.IsVisible);
+        Assert.Equal(0, rig.Dialogs.ShownCount);
+    }
+
+    [AvaloniaFact]
+    public async Task AFailingSaveOnCloseShowsTheErrorAndKeepsTheWindowAndBuffer()
+    {
+        if (!OperatingSystem.IsLinux() || Environment.IsPrivilegedProcess)
+        {
+            return;
+        }
+
+        using var rig = await EditorRig.Open();
+        var folder = Directory.CreateDirectory(Path.Combine(rig.Root, "locked")).FullName;
+        var path = Path.Combine(folder, "a.txt");
+        File.WriteAllText(path, "keep\n");
+        var model = rig.Model;
+        await model.OpenAsync(path);
+        model.Buffer.Text = "changed";
+        var tool = rig.Tools.Open(ToolKind.Editor);
+        File.SetUnixFileMode(folder, UnixFileMode.UserRead | UnixFileMode.UserExecute);
+        try
+        {
+            tool.KeyPress(Key.Escape, RawInputModifiers.None, PhysicalKey.Escape, null);
+            await rig.Dialogs.WaitShownAsync();
+            rig.Dialogs.Answer(DialogResult.Picked(0));
+            var error = await rig.Dialogs.WaitShownAsync();
+            Assert.StartsWith(rig.Text.Get("error.access_denied") + ": ", error.Text, StringComparison.Ordinal);
+            rig.Dialogs.Answer(DialogResult.Ok(""));
+            await rig.WaitForAsync(() => false);
+        }
+        finally
+        {
+            File.SetUnixFileMode(folder, UnixFileMode.UserRead | UnixFileMode.UserWrite | UnixFileMode.UserExecute);
+        }
+
+        Assert.True(tool.IsVisible);
+        Assert.True(model.Dirty);
+        Assert.Equal("changed", model.Buffer.Text);
+        Assert.Equal("keep\n", File.ReadAllText(path));
+        model.Buffer.Text = "keep\n";
+    }
+
     [AvaloniaFact]
     public async Task EditNewOpensAnEmptyBufferWrittenOnTheFirstSave()
     {
@@ -210,6 +316,7 @@ public class EditorWindowTests
             "editor.opening", "editor.new_name", "editor.dirty", "editor.bom", "editor.lossy", "editor.saved",
             "editor.save_failed", "editor.not_found", "editor.replaced", "editor.find", "editor.replace",
             "editor.find_next", "editor.replace_one", "editor.replace_all", "editor.match_case", "editor.save",
+            "editor.unsaved", "editor.dont_save",
         ];
         foreach (var key in keys)
         {

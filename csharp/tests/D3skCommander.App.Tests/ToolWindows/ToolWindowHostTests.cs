@@ -130,4 +130,56 @@ public class ToolWindowHostTests
         var surface = Assert.IsType<Avalonia.Controls.Border>(tool.Content);
         Assert.Equal("ToolSurface", surface.Name);
     }
+
+    [AvaloniaFact]
+    public async Task AContentThatRefusesKeepsItsWindowOpenOnEscapeAndWhenItsOwnerCloses()
+    {
+        using var app = ToolWindowApp.Open();
+        var kind = ToolKind.Define("guarded", "tool.log.title", 480, 320);
+        var guard = new GuardWidget();
+        app.Tools.Register(kind, () => guard);
+        var tool = app.Tools.Open(kind);
+
+        tool.KeyPress(Key.Escape, RawInputModifiers.None, PhysicalKey.Escape, null);
+        Assert.Equal(1, guard.Asked);
+        Assert.True(tool.IsVisible);
+        guard.Answer(false);
+        await Task.Yield();
+        Assert.True(tool.IsVisible);
+
+        app.Window.Close();
+        guard.Answer(false);
+        await Task.Yield();
+        Assert.True(tool.IsVisible);
+        Assert.True(app.Window.IsVisible);
+        Assert.Contains(tool, app.Window.OwnedWindows);
+
+        _ = tool.TryCloseAsync();
+        guard.Answer(true);
+        await Task.Yield();
+        Assert.False(tool.IsVisible);
+    }
+}
+
+/// <summary>A tool body whose close answer the test gives, later.</summary>
+internal sealed class GuardWidget : IShellWidget, ICloseGuard
+{
+    private TaskCompletionSource<bool> _answer = new();
+
+    public int Asked { get; private set; }
+
+    public string? Name => "Guard";
+
+    public void Draw()
+    {
+    }
+
+    public Task<bool> CanCloseAsync()
+    {
+        Asked++;
+        _answer = new TaskCompletionSource<bool>(TaskCreationOptions.RunContinuationsAsynchronously);
+        return _answer.Task;
+    }
+
+    public void Answer(bool close) => _answer.TrySetResult(close);
 }

@@ -12,6 +12,8 @@ public sealed class ToolWindow : Window, IOwnedWindow
     private readonly Action<ToolWindowFrame> _remember;
     private readonly MainWindow _main;
     private bool _quiet;
+    private bool _approved;
+    private bool _asking;
 
     public ToolWindow(string title, IShellWidget view, MainWindow owner, Action<ToolWindowFrame> remember)
     {
@@ -29,7 +31,7 @@ public sealed class ToolWindow : Window, IOwnedWindow
         SizeToContent = SizeToContent.Manual;
         AddHandler(KeyDownEvent, OnToolKeyDown, RoutingStrategies.Tunnel);
         PositionChanged += (_, _) => Remember();
-        Closing += (_, _) => Remember();
+        Closing += OnToolClosing;
     }
 
     /// <summary>The shell view this window shows.</summary>
@@ -67,10 +69,100 @@ public sealed class ToolWindow : Window, IOwnedWindow
         }
     }
 
+    /// <summary>Asks the content, then closes on yes. Every close path ends here.</summary>
+    public async Task<bool> TryCloseAsync()
+    {
+        if (_asking)
+        {
+            return false;
+        }
+
+        if (!await Ask().ConfigureAwait(true))
+        {
+            return false;
+        }
+
+        _approved = true;
+        Close();
+        return true;
+    }
+
     protected override void OnClosed(EventArgs e)
     {
         base.OnClosed(e);
         _main.Detach(this);
+    }
+
+    private Task<bool> Ask()
+    {
+        if (View is not ICloseGuard guard)
+        {
+            return Task.FromResult(true);
+        }
+
+        _asking = true;
+        return AskGuard(guard);
+    }
+
+    private async Task<bool> AskGuard(ICloseGuard guard)
+    {
+        try
+        {
+            return await guard.CanCloseAsync().ConfigureAwait(true);
+        }
+        finally
+        {
+            _asking = false;
+        }
+    }
+
+    private void OnToolClosing(object? sender, WindowClosingEventArgs e)
+    {
+        if (_approved)
+        {
+            Remember();
+            return;
+        }
+
+        if (_asking)
+        {
+            e.Cancel = true;
+            return;
+        }
+
+        var ask = Ask();
+        if (ask.IsCompleted)
+        {
+            e.Cancel = !ask.Result;
+            if (ask.Result)
+            {
+                Remember();
+            }
+
+            return;
+        }
+
+        e.Cancel = true;
+        _ = CloseWhenApproved(ask, e.CloseReason == WindowCloseReason.OwnerWindowClosing);
+    }
+
+    /// <summary>
+    /// Closes on yes. When the owner's close started this, it resumes: Avalonia asks every owned
+    /// window before the owner's own handler runs, so the answer arrives after that attempt ended.
+    /// </summary>
+    private async Task CloseWhenApproved(Task<bool> ask, bool resumeOwner)
+    {
+        if (!await ask.ConfigureAwait(true))
+        {
+            return;
+        }
+
+        _approved = true;
+        Close();
+        if (resumeOwner)
+        {
+            _main.Close();
+        }
     }
 
     private void Remember()

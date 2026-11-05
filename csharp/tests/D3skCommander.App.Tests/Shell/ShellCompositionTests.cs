@@ -27,6 +27,7 @@ using D3skCommander.App.Features.Update;
 using D3skCommander.App.Shell;
 using D3skCommander.App.Smoke;
 using D3skCommander.App.Startup;
+using D3skCommander.App.Tests.ToolWindows;
 using D3skCommander.App.ToolWindows;
 using D3skCommander.Core.Commands;
 using D3skCommander.Core.Localization;
@@ -118,6 +119,49 @@ public class ShellCompositionTests
         host.Window.Dispatch(CommandId.Quit);
         Assert.True(toolClosedWhenTheMainWindowCloses);
         Assert.False(host.Window.IsVisible);
+    }
+
+    [AvaloniaFact]
+    public async Task ARefusingWindowStopsQuitAndTheMainWindowsCloseButton()
+    {
+        using var host = ShellHost.Open(Language.En);
+        var tools = host.Provider.GetRequiredService<IToolWindowHost>();
+        var kind = ToolKind.Define("refuser", "tool.log.title", 480, 320);
+        var guard = new GuardWidget();
+        tools.Register(kind, () => guard);
+        var other = tools.Open(ToolKind.Log);
+        var refusing = tools.Open(kind);
+
+        host.Window.Dispatch(CommandId.Quit);
+        guard.Answer(false);
+        await Settle();
+        Assert.True(host.Window.IsVisible);
+        Assert.True(refusing.IsVisible);
+
+        host.Window.Close();
+        guard.Answer(false);
+        await Settle();
+        Assert.True(host.Window.IsVisible);
+        Assert.True(refusing.IsVisible);
+        Assert.True(other.IsVisible);
+        Assert.Equal(2, guard.Asked);
+
+        host.Window.Close();
+        guard.Answer(true);
+        for (var i = 0; i < 100 && host.Window.IsVisible; i++)
+        {
+            await Settle();
+        }
+
+        Assert.False(host.Window.IsVisible, "the main window closes once the refusing window agrees");
+        Assert.False(refusing.IsVisible);
+        Assert.False(other.IsVisible);
+    }
+
+    private static async Task Settle()
+    {
+        await Task.Delay(10, TestContext.Current.CancellationToken);
+        Avalonia.Threading.Dispatcher.UIThread.RunJobs();
     }
 
     private sealed class StartupProbe : IShellModule
