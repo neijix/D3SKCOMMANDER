@@ -1,5 +1,6 @@
 using D3skCommander.Core.Common;
 using D3skCommander.Core.FileSystem;
+using D3skCommander.Core.Providers;
 
 namespace D3skCommander.Core.Panels;
 
@@ -12,7 +13,7 @@ public sealed partial class Tab
     public async Task<bool> GoAsync(Location location, bool showHidden, CancellationToken cancellationToken = default)
     {
         ArgumentNullException.ThrowIfNull(location);
-        var listed = await ReadListingAsync(location.Path, showHidden, cancellationToken).ConfigureAwait(false);
+        var listed = await ReadListingAsync(location, showHidden, cancellationToken).ConfigureAwait(false);
         if (!listed.IsSuccess)
         {
             Error = listed.Error ?? OperationError.NotFound(location.Path);
@@ -39,7 +40,7 @@ public sealed partial class Tab
 
     public Location? ParentLocation() => Location.Parent();
 
-    /// <summary>Where Enter on <paramref name="entry"/> leads. A file is not an archive here, so it leads nowhere.</summary>
+    /// <summary>Where Enter on <paramref name="entry"/> leads. An archive file opens as a folder. Any other file leads nowhere.</summary>
     public Location? EnterLocation(Entry entry)
     {
         ArgumentNullException.ThrowIfNull(entry);
@@ -50,6 +51,11 @@ public sealed partial class Tab
 
         if (!entry.IsDirectory)
         {
+            if (ArchiveFileSystemProvider.IsArchiveFile(entry.Path))
+            {
+                return new Location(entry.Path);
+            }
+
             return null;
         }
 
@@ -75,7 +81,7 @@ public sealed partial class Tab
         }
 
         var next = from[^1];
-        var listed = await ReadListingAsync(next.Path, showHidden, cancellationToken).ConfigureAwait(false);
+        var listed = await ReadListingAsync(next, showHidden, cancellationToken).ConfigureAwait(false);
         if (!listed.IsSuccess)
         {
             Error = listed.Error ?? OperationError.NotFound(next.Path);

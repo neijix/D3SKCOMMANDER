@@ -29,9 +29,12 @@ internal static class ArchiveZip
         CancellationToken cancellationToken)
     {
         var clamped = Math.Clamp(level, 0, 9);
-        var options = new ZipWriterOptions(clamped == 0 ? CompressionType.None : CompressionType.Deflate)
+        // SharpCompress 0.50.8 writes a directory's local header with the writer's method and the
+        // central header as Store. A Deflate writer makes 7z reject the zip. None keeps the two
+        // headers in agreement; each file still sets its own method in Write.
+        var options = new ZipWriterOptions(CompressionType.None)
         {
-            CompressionLevel = clamped,
+            CompressionLevel = 0,
         };
         using var stream = File.Create(path);
         using var writer = new ZipWriter(stream, options);

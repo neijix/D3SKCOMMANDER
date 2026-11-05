@@ -1,0 +1,22 @@
+{
+  "tools.one_per_file": {
+    "en": "One file per file",
+    "fr": "Un fichier par fichier"
+  },
+  "tools.select_checksum": {
+    "en": "Select a checksum file (.sfv, .md5, .sha, .sha256).",
+    "fr": "Sélectionnez un fichier de sommes (.sfv, .md5, .sha, .sha256)."
+  },
+  "tools.differs": {
+    "en": "checksum differs",
+    "fr": "somme différente"
+  },
+  "tools.missing": {
+    "en": "missing",
+    "fr": "absent"
+  },
+  "tools.problems": {
+    "en": "problem(s)",
+    "fr": "problème(s)"
+  }
+}

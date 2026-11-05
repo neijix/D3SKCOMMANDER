@@ -5,13 +5,15 @@ using Xunit;
 
 namespace D3skCommander.Core.Tests.Providers;
 
-/// <summary>The one provider contract. This row runs it on Local, writable and read-only.</summary>
+/// <summary>The one provider contract. Local (writable and read-only), Archive and List each run it.</summary>
 public partial class ProviderContractTests
 {
     public static IEnumerable<object[]> Cases()
     {
         yield return [new LocalCase(readOnly: false)];
         yield return [new LocalCase(readOnly: true)];
+        yield return [new ArchiveCase()];
+        yield return [new ListCase()];
     }
 
     [Theory]

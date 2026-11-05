@@ -35,6 +35,17 @@ internal static class HandledCommands
         CommandId.NextTab,
         CommandId.Refresh,
         CommandId.SwitchPanel,
+        CommandId.Catalog,
+        CommandId.MultiRename,
+        CommandId.CompareFiles,
+        CommandId.ComparePanels,
+        CommandId.Split,
+        CommandId.Combine,
+        CommandId.ChecksumCreate,
+        CommandId.ChecksumVerify,
+        CommandId.AddTime,
+        CommandId.ReDate,
+        CommandId.Touch,
     ];
 
     public static bool Handles(CommandId command) => Enabled.Contains(command);

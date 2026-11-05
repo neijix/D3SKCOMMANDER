@@ -1,3 +1,4 @@
+using D3skCommander.Core.Archives;
 using D3skCommander.Core.Common;
 using D3skCommander.Core.FileSystem;
 using D3skCommander.Core.Panels;
@@ -180,12 +181,87 @@ public class PanelTests
         Assert.Single(panel.Tabs);
     }
 
+    [Fact]
+    public async Task BrowseZipLikeAFolder()
+    {
+        using var dir = new TempFolder();
+        var docs = Path.Combine(dir.Path, "docs");
+        Directory.CreateDirectory(Path.Combine(docs, "nested"));
+        File.WriteAllText(Path.Combine(dir.Path, "note.txt"), "note");
+        File.WriteAllText(Path.Combine(docs, "readme.txt"), "hello");
+        File.WriteAllText(Path.Combine(docs, "nested", "deep.txt"), "deep");
+        var zip = Path.Combine(dir.Path, "bundle.zip");
+        var stop = TestContext.Current.CancellationToken;
+        var created = ArchiveIo.Create(zip, ArchiveKind.Zip, [docs], 0, null, stop);
+        Assert.True(created.IsSuccess, created.Error?.Message);
+        var tab = await Open(dir.Path);
+        Assert.Null(tab.EnterLocation(AtEntry(tab, "note.txt")));
+        var into = tab.EnterLocation(AtEntry(tab, "bundle.zip"));
+        Assert.NotNull(into);
+        Assert.True(await tab.GoAsync(into, showHidden: false, stop));
+        Assert.Equal(zip, tab.Location.Path);
+        Assert.Equal(["..", "docs"], Names(tab));
+
+        var deeper = tab.EnterLocation(AtEntry(tab, "docs"));
+        Assert.NotNull(deeper);
+        Assert.True(await tab.GoAsync(deeper, showHidden: false, stop));
+        Assert.Equal(["..", "nested", "readme.txt"], Names(tab));
+        Assert.Null(tab.EnterLocation(AtEntry(tab, "readme.txt")));
+
+        var up = tab.ParentLocation();
+        Assert.NotNull(up);
+        Assert.True(await tab.GoAsync(up, showHidden: false, stop));
+        Assert.Equal("docs", tab.Current?.Name);
+
+        up = tab.ParentLocation();
+        Assert.NotNull(up);
+        Assert.True(await tab.GoAsync(up, showHidden: false, stop));
+        Assert.Equal(dir.Path, tab.Location.Path);
+        Assert.Equal("bundle.zip", tab.Current?.Name);
+    }
+
+    [Fact]
+    public async Task ListLocationIsAVirtualFolder()
+    {
+        using var dir = new TempFolder();
+        File.WriteAllText(Path.Combine(dir.Path, "a.txt"), "a");
+        File.WriteAllText(Path.Combine(dir.Path, "b.txt"), "b");
+        var only = LocalFileSystem.ReadEntry(Path.Combine(dir.Path, "a.txt"));
+        Assert.True(only.IsSuccess, only.Error?.Message);
+        var list = new ListFileSystemProvider(dir.Path, [only.Value]);
+        var tab = new Tab(new Location(dir.Path, list), SortOrder.NameAscending, new LocalFileSystemProvider());
+        await tab.ReloadAsync(showHidden: false, TestContext.Current.CancellationToken);
+        Assert.Null(tab.Error);
+        Assert.Contains("a.txt", Names(tab));
+        Assert.DoesNotContain("b.txt", Names(tab));
+    }
+
     private static async Task<Tab> Open(string directory)
     {
         var tab = new Tab(new Location(directory), SortOrder.NameAscending, new LocalFileSystemProvider());
         await tab.ReloadAsync(showHidden: false, TestContext.Current.CancellationToken);
         Assert.Null(tab.Error);
         return tab;
+    }
+
+    private static Entry AtEntry(Tab tab, string name)
+    {
+        foreach (var entry in tab.VisibleEntries)
+        {
+            if (entry.Name == name)
+            {
+                return entry;
+            }
+        }
+
+        throw new InvalidOperationException("Missing row " + name);
+    }
+
+    private static List<string> Names(Tab tab)
+    {
+        var names = tab.VisibleEntries.Select(entry => entry.Name).ToList();
+        names.Sort(StringComparer.Ordinal);
+        return names;
     }
 
     private static int At(Tab tab, string name)

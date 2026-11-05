@@ -18,3 +18,21 @@ public sealed class LocalCase : IProviderCase
 
     public override string ToString() => ReadOnly ? "Local read-only" : "Local";
 }
+
+public sealed class ArchiveCase : IProviderCase
+{
+    public bool ReadOnly => true;
+
+    public ProviderFixture Open() => new ArchiveProviderFixture();
+
+    public override string ToString() => "Archive";
+}
+
+public sealed class ListCase : IProviderCase
+{
+    public bool ReadOnly => false;
+
+    public ProviderFixture Open() => new ListProviderFixture();
+
+    public override string ToString() => "List";
+}

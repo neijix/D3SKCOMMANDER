@@ -1,0 +1,171 @@
+{
+  "rename.name": {
+    "en": "Name mask",
+    "fr": "Masque du nom"
+  },
+  "rename.extension": {
+    "en": "Extension mask",
+    "fr": "Masque de l'extension"
+  },
+  "rename.search": {
+    "en": "Search",
+    "fr": "Rechercher"
+  },
+  "rename.replace": {
+    "en": "Replace",
+    "fr": "Remplacer"
+  },
+  "rename.regex": {
+    "en": "Regex",
+    "fr": "Regex"
+  },
+  "rename.case_sensitive": {
+    "en": "Case sensitive",
+    "fr": "Respecter la casse"
+  },
+  "rename.case": {
+    "en": "Case",
+    "fr": "Casse"
+  },
+  "rename.case.unchanged": {
+    "en": "Unchanged",
+    "fr": "Inchangé"
+  },
+  "rename.case.lower": {
+    "en": "lower case",
+    "fr": "minuscules"
+  },
+  "rename.case.upper": {
+    "en": "UPPER CASE",
+    "fr": "MAJUSCULES"
+  },
+  "rename.case.first": {
+    "en": "First letter upper",
+    "fr": "Première lettre en majuscule"
+  },
+  "rename.case.title": {
+    "en": "Title Case",
+    "fr": "Chaque Mot En Majuscule"
+  },
+  "rename.counter": {
+    "en": "Counter",
+    "fr": "Compteur"
+  },
+  "rename.counter.start": {
+    "en": "start",
+    "fr": "début"
+  },
+  "rename.counter.step": {
+    "en": "step",
+    "fr": "pas"
+  },
+  "rename.counter.digits": {
+    "en": "digits",
+    "fr": "chiffres"
+  },
+  "rename.col.old": {
+    "en": "Old name",
+    "fr": "Ancien nom"
+  },
+  "rename.col.new": {
+    "en": "New name",
+    "fr": "Nouveau nom"
+  },
+  "rename.undo": {
+    "en": "Undo",
+    "fr": "Annuler"
+  },
+  "rename.renamed": {
+    "en": "{n} renamed",
+    "fr": "{n} renommé(s)"
+  },
+  "rename.restored": {
+    "en": "{n} restored",
+    "fr": "{n} restauré(s)"
+  },
+  "rename.tok.n": { "en": "[N]", "fr": "[N]" },
+  "rename.hint.n": {
+    "en": "File name without extension",
+    "fr": "Nom sans extension"
+  },
+  "rename.tok.e": { "en": "[E]", "fr": "[E]" },
+  "rename.hint.e": {
+    "en": "Extension",
+    "fr": "Extension"
+  },
+  "rename.tok.n13": { "en": "[N1-3]", "fr": "[N1-3]" },
+  "rename.hint.n13": {
+    "en": "Characters 1 to 3 of the name",
+    "fr": "Caractères 1 à 3 du nom"
+  },
+  "rename.tok.n2": { "en": "[N2-]", "fr": "[N2-]" },
+  "rename.hint.n2": {
+    "en": "Name from character 2 on",
+    "fr": "Nom à partir du caractère 2"
+  },
+  "rename.tok.e12": { "en": "[E1-2]", "fr": "[E1-2]" },
+  "rename.hint.e12": {
+    "en": "Characters 1 to 2 of the extension",
+    "fr": "Caractères 1 à 2 de l'extension"
+  },
+  "rename.tok.c": { "en": "[C]", "fr": "[C]" },
+  "rename.hint.c": {
+    "en": "Counter (see start, step, digits)",
+    "fr": "Compteur (voir début, pas, chiffres)"
+  },
+  "rename.tok.c113": { "en": "[C1+1:3]", "fr": "[C1+1:3]" },
+  "rename.hint.c113": {
+    "en": "Counter with its own start+step:digits",
+    "fr": "Compteur début+pas:chiffres"
+  },
+  "rename.tok.p": { "en": "[P]", "fr": "[P]" },
+  "rename.hint.p": {
+    "en": "Parent folder name",
+    "fr": "Nom du dossier parent"
+  },
+  "rename.tok.g": { "en": "[G]", "fr": "[G]" },
+  "rename.hint.g": {
+    "en": "Grandparent folder name",
+    "fr": "Nom du dossier grand-parent"
+  },
+  "rename.tok.ymd": { "en": "[YMD]", "fr": "[YMD]" },
+  "rename.hint.ymd": {
+    "en": "Modification date YYYYMMDD",
+    "fr": "Date de modification AAAAMMJJ"
+  },
+  "rename.tok.hms": { "en": "[hms]", "fr": "[hms]" },
+  "rename.hint.hms": {
+    "en": "Modification time HHMMSS",
+    "fr": "Heure de modification HHMMSS"
+  },
+  "rename.tok.y": { "en": "[Y]", "fr": "[Y]" },
+  "rename.hint.y": {
+    "en": "Year",
+    "fr": "Année"
+  },
+  "rename.tok.mo": { "en": "[M]", "fr": "[M]" },
+  "rename.hint.mo": {
+    "en": "Month",
+    "fr": "Mois"
+  },
+  "rename.tok.d": { "en": "[D]", "fr": "[D]" },
+  "rename.hint.d": {
+    "en": "Day",
+    "fr": "Jour"
+  },
+  "rename.tok.h": { "en": "[h]", "fr": "[h]" },
+  "rename.hint.h": {
+    "en": "Hour",
+    "fr": "Heure"
+  },
+  "rename.tok.mi": { "en": "[m]", "fr": "[m]" },
+  "rename.hint.mi": {
+    "en": "Minute",
+    "fr": "Minute"
+  },
+  "rename.tok.s": { "en": "[s]", "fr": "[s]" },
+  "rename.hint.s": {
+    "en": "Second",
+    "fr": "Seconde"
+  }
+}

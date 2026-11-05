@@ -1,0 +1,82 @@
+{
+  "compare.swap": {
+    "en": "Swap",
+    "fr": "Échanger"
+  },
+  "compare.compare": {
+    "en": "Compare",
+    "fr": "Comparer"
+  },
+  "compare.previous": {
+    "en": "Previous",
+    "fr": "Précédent"
+  },
+  "compare.next": {
+    "en": "Next",
+    "fr": "Suivant"
+  },
+  "compare.blocks": {
+    "en": "{n} difference(s)",
+    "fr": "{n} différence(s)"
+  },
+  "compare.ignore_case": {
+    "en": "Ignore case",
+    "fr": "Ignorer la casse"
+  },
+  "compare.ignore_whitespace": {
+    "en": "Ignore whitespace",
+    "fr": "Ignorer les espaces"
+  },
+  "compare.view": {
+    "en": "Compare view",
+    "fr": "Vue comparaison"
+  },
+  "compare.recompare": {
+    "en": "Recompare",
+    "fr": "Recomparer"
+  },
+  "compare.save_left": {
+    "en": "Save left",
+    "fr": "Enregistrer à gauche"
+  },
+  "compare.save_right": {
+    "en": "Save right",
+    "fr": "Enregistrer à droite"
+  },
+  "compare.working": {
+    "en": "Comparing…",
+    "fr": "Comparaison…"
+  },
+  "compare.identical": {
+    "en": "The files are identical.",
+    "fr": "Les fichiers sont identiques."
+  },
+  "compare.binary_at": {
+    "en": "Binary files differ; first difference at offset {n} ({hex})",
+    "fr": "Fichiers binaires différents ; première différence à l'offset {n} ({hex})"
+  },
+  "compare.left": {
+    "en": "Left",
+    "fr": "Gauche"
+  },
+  "compare.right": {
+    "en": "Right",
+    "fr": "Droite"
+  },
+  "compare.status.saved": {
+    "en": "Saved {path}",
+    "fr": "Enregistré {path}"
+  },
+  "compare.status.too_large": {
+    "en": "{path}: too large to edit (over 4 MiB)",
+    "fr": "{path} : trop gros pour être édité (plus de 4 Mio)"
+  },
+  "compare.status.error": {
+    "en": "Error: {detail}",
+    "fr": "Erreur : {detail}"
+  },
+  "compare.panels.counts": {
+    "en": "{left} ← → {right}",
+    "fr": "{left} ← → {right}"
+  }
+}

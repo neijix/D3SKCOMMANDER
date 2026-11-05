@@ -7,11 +7,13 @@ namespace D3skCommander.Core.Panels;
 
 /// <summary>
 /// One panel tab: folder, listing, cursor, filter, sort and history.
-/// Listing comes from <see cref="IFileSystemProvider"/>; nothing here draws.
+/// Listing comes from <see cref="IFileSystemProvider"/>; an archive path uses the archive provider.
+/// Nothing here draws.
 /// </summary>
 public sealed partial class Tab
 {
     private readonly IFileSystemProvider _provider;
+    private readonly ArchiveFileSystemProvider _archives = new();
     private readonly TimeProvider _clock;
     private readonly List<Entry> _entries = [];
     private readonly List<int> _visible = [];
@@ -86,7 +88,7 @@ public sealed partial class Tab
     public async Task ReloadAsync(bool showHidden, CancellationToken cancellationToken = default)
     {
         var keep = Current?.Path;
-        var listed = await ReadListingAsync(Location.Path, showHidden, cancellationToken).ConfigureAwait(false);
+        var listed = await ReadListingAsync(Location, showHidden, cancellationToken).ConfigureAwait(false);
         if (!listed.IsSuccess)
         {
             Error = listed.Error ?? OperationError.NotFound(Location.Path);
@@ -187,22 +189,38 @@ public sealed partial class Tab
     }
 
     private async Task<FileResult<List<Entry>>> ReadListingAsync(
-        string path,
+        Location location,
         bool showHidden,
         CancellationToken cancellationToken)
     {
         var entries = new List<Entry>();
-        await foreach (var item in _provider.ListAsync(path, showHidden, cancellationToken).ConfigureAwait(false))
+        var provider = ProviderFor(location);
+        await foreach (var item in provider.ListAsync(location.Path, showHidden, cancellationToken).ConfigureAwait(false))
         {
             if (!item.IsSuccess)
             {
-                return FileResult<List<Entry>>.Fail(item.Error ?? OperationError.NotFound(path));
+                return FileResult<List<Entry>>.Fail(item.Error ?? OperationError.NotFound(location.Path));
             }
 
             entries.Add(item.Value);
         }
 
         return FileResult<List<Entry>>.Ok(entries);
+    }
+
+    private IFileSystemProvider ProviderFor(Location location)
+    {
+        if (location.Provider is not null)
+        {
+            return location.Provider;
+        }
+
+        if (ArchiveFileSystemProvider.IsArchivePath(location.Path))
+        {
+            return _archives;
+        }
+
+        return _provider;
     }
 
     private void ReplaceEntries(List<Entry> listed)

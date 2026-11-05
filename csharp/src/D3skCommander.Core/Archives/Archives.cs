@@ -66,7 +66,7 @@ public static class ArchiveIo
 
         if (kind == ArchiveKind.External)
         {
-            return ArchiveExternal.Extract(archive);
+            return ArchiveExternal.Extract(archive, entries, destination, progress, cancellationToken);
         }
 
         try

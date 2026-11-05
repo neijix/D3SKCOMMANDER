@@ -1,25 +1,53 @@
+using D3skCommander.Core.Providers;
+
 namespace D3skCommander.Core.Panels;
 
 /// <summary>
-/// The folder a tab is showing. Archive and search-result locations are a later row;
-/// this one does not browse archives.
+/// The folder a tab is showing. A path inside an archive file is that archive.
+/// <see cref="Provider"/>, when set, is a virtual folder (search results or a branch view)
+/// and wins over the tab's usual provider.
 /// </summary>
 public sealed class Location : IEquatable<Location>
 {
-    public Location(string path)
+    public Location(string path, IFileSystemProvider? provider = null)
     {
         ArgumentException.ThrowIfNullOrEmpty(path);
         Path = path;
+        Provider = provider;
     }
 
     public string Path { get; }
 
-    public bool Equals(Location? other) =>
-        other is not null && string.Equals(Path, other.Path, StringComparison.Ordinal);
+    /// <summary>The provider that lists this folder, when it is not the tab's usual one.</summary>
+    public IFileSystemProvider? Provider { get; }
+
+    public bool Equals(Location? other)
+    {
+        if (other is null)
+        {
+            return false;
+        }
+
+        if (!string.Equals(Path, other.Path, StringComparison.Ordinal))
+        {
+            return false;
+        }
+
+        return ReferenceEquals(Provider, other.Provider);
+    }
 
     public override bool Equals(object? obj) => Equals(obj as Location);
 
-    public override int GetHashCode() => Path.GetHashCode(StringComparison.Ordinal);
+    public override int GetHashCode()
+    {
+        var hash = Path.GetHashCode(StringComparison.Ordinal);
+        if (Provider is null)
+        {
+            return hash;
+        }
+
+        return HashCode.Combine(hash, Provider);
+    }
 
     public override string ToString() => Path;
 

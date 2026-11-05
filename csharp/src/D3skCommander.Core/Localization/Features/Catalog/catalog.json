@@ -1,0 +1,34 @@
+{
+  "catalog.root": {
+    "en": "Folder to catalog",
+    "fr": "Dossier à cataloguer"
+  },
+  "catalog.create": {
+    "en": "Create catalog",
+    "fr": "Créer le catalogue"
+  },
+  "catalog.find": {
+    "en": "Find",
+    "fr": "Rechercher"
+  },
+  "catalog.search": {
+    "en": "Search",
+    "fr": "Chercher"
+  },
+  "catalog.open": {
+    "en": "Open",
+    "fr": "Ouvrir"
+  },
+  "catalog.shown": {
+    "en": "{0} files",
+    "fr": "{0} fichiers"
+  },
+  "catalog.opened": {
+    "en": "Opened",
+    "fr": "Ouvert"
+  },
+  "catalog.not_catalog": {
+    "en": "This file is not a disk catalog.",
+    "fr": "Ce fichier n'est pas un catalogue de disque."
+  }
+}
