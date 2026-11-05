@@ -25,6 +25,7 @@
     <Style Selector="ListBoxItem">
       <Setter Property="Padding" Value="0"/>
       <Setter Property="MinHeight" Value="22"/>
+      <Setter Property="MinWidth" Value="0"/>
       <Setter Property="HorizontalContentAlignment" Value="Stretch"/>
       <Setter Property="Background" Value="Transparent"/>
     </Style>
@@ -38,6 +39,14 @@
   <DockPanel>
     <Grid x:Name="Header" DockPanel.Dock="Top" Height="24"/>
     <ListBox x:Name="Rows" Padding="0" Focusable="False" SelectionMode="Single">
+      <ListBox.ItemsPanel>
+        <ItemsPanelTemplate>
+          <VirtualizingStackPanel/>
+        </ItemsPanelTemplate>
+      </ListBox.ItemsPanel>
+    </ListBox>
+    <ListBox x:Name="Tiles" Padding="0" Focusable="False" SelectionMode="Single" IsVisible="False"
+             ScrollViewer.HorizontalScrollBarVisibility="Disabled">
       <ListBox.ItemsPanel>
         <ItemsPanelTemplate>
           <VirtualizingStackPanel/>

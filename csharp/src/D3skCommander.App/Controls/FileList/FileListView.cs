@@ -1,8 +1,9 @@
 namespace D3skCommander.App.Controls.FileList;
 
-/// <summary>Full table or brief names. Thumbnails land with the later view work.</summary>
+/// <summary>Full table, brief names, or tiles with thumbnails (the name under the picture).</summary>
 public enum FileListView
 {
     Full,
     Brief,
+    Thumbs,
 }

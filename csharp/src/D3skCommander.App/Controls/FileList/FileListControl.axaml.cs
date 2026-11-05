@@ -37,6 +37,7 @@ public sealed partial class FileListControl : UserControl
         Rows.ItemTemplate = new FuncDataTemplate<FileListRow>((_, _) => new FileListRowView(), true);
         AddHandler(KeyDownEvent, OnKeyDown, RoutingStrategies.Tunnel);
         Rows.AddHandler(PointerPressedEvent, OnPointerPressed, RoutingStrategies.Tunnel);
+        StartThumbs();
         _list.TableChanged += OnTableChanged;
         _list.CursorRevealed += OnCursorRevealed;
         ShowTable();
@@ -128,16 +129,34 @@ public sealed partial class FileListControl : UserControl
 
     private void ShowTable()
     {
+        if (_list.ThumbsActive)
+        {
+            ShowTiles();
+            return;
+        }
+
+        Tiles.IsVisible = false;
+        Tiles.ItemsSource = null;
+        Header.IsVisible = true;
+        Rows.IsVisible = true;
         BuildHeader();
         Rows.ItemsSource = _list.Items;
     }
 
     private void OnCursorRevealed(object? sender, int index)
     {
-        if (index >= 0 && index < _list.Items.Count)
+        if (index < 0 || index >= _list.Items.Count)
         {
-            Rows.ScrollIntoView(index);
+            return;
         }
+
+        if (_list.ThumbsActive)
+        {
+            Tiles.ScrollIntoView(index / _list.ThumbColumns);
+            return;
+        }
+
+        Rows.ScrollIntoView(index);
     }
 
     private void BuildHeader()
@@ -154,7 +173,7 @@ public sealed partial class FileListControl : UserControl
                 Tag = columns[i].HeaderKey,
                 FontWeight = FontWeight.SemiBold,
                 VerticalAlignment = VerticalAlignment.Center,
-                Margin = new Thickness(4, 0),
+                Margin = new Thickness(i == 0 && _list.ShowsIcons ? FileListLayout.IconLeft + FileListLayout.IconSize + 4 : 4, 0, 4, 0),
                 TextTrimming = TextTrimming.CharacterEllipsis,
             };
             Grid.SetColumn(block, i);
@@ -193,6 +212,12 @@ public sealed partial class FileListControl : UserControl
 
     private int IndexOf(Visual? source)
     {
+        var tile = source?.FindAncestorOfType<FileListTileView>(true);
+        if (tile is not null)
+        {
+            return tile.Index;
+        }
+
         var item = source?.FindAncestorOfType<ListBoxItem>(true);
         return item is null ? -1 : Rows.IndexFromContainer(item);
     }
@@ -217,7 +242,7 @@ public sealed partial class FileListControl : UserControl
     public void HandleKey(KeyEventArgs e)
     {
         ArgumentNullException.ThrowIfNull(e);
-        if (e.Handled || MapKey(e.Key) is not FileListKey key || AcceptKey?.Invoke(e) == false)
+        if (e.Handled || MapKey(e.Key, _list.ThumbsActive) is not FileListKey key || AcceptKey?.Invoke(e) == false)
         {
             return;
         }
@@ -252,18 +277,31 @@ public sealed partial class FileListControl : UserControl
 
     private void OnKeyDown(object? sender, KeyEventArgs e) => HandleKey(e);
 
-    private static FileListKey? MapKey(Key key) => key switch
+    private static FileListKey? MapKey(Key key, bool tiles)
     {
-        Key.PageDown => FileListKey.PageDown,
-        Key.PageUp => FileListKey.PageUp,
-        Key.Down => FileListKey.Down,
-        Key.Up => FileListKey.Up,
-        Key.End => FileListKey.End,
-        Key.Home => FileListKey.Home,
-        Key.Insert => FileListKey.Insert,
-        Key.Space => FileListKey.Space,
-        Key.Enter => FileListKey.Enter,
-        Key.Escape => FileListKey.Escape,
-        _ => null,
-    };
+        if (tiles && key == Key.Left)
+        {
+            return FileListKey.Left;
+        }
+
+        if (tiles && key == Key.Right)
+        {
+            return FileListKey.Right;
+        }
+
+        switch (key)
+        {
+            case Key.PageDown: return FileListKey.PageDown;
+            case Key.PageUp: return FileListKey.PageUp;
+            case Key.Down: return FileListKey.Down;
+            case Key.Up: return FileListKey.Up;
+            case Key.End: return FileListKey.End;
+            case Key.Home: return FileListKey.Home;
+            case Key.Insert: return FileListKey.Insert;
+            case Key.Space: return FileListKey.Space;
+            case Key.Enter: return FileListKey.Enter;
+            case Key.Escape: return FileListKey.Escape;
+            default: return null;
+        }
+    }
 }

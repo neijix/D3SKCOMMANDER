@@ -21,6 +21,7 @@ public sealed partial class FileList : IShellWidget
     private int _activated = -1;
     private readonly Dictionary<int, float> _rowTops = new();
     private bool _custom;
+    private int _thumbColumns = 4;
 
     public FileList()
         : this(Localizer.Load())
@@ -65,6 +66,19 @@ public sealed partial class FileList : IShellWidget
         get => _shown;
         set => ChangeColumns(value);
     }
+
+    /// <summary>Tiles per row in the thumbnail view (the control sets it from its width).</summary>
+    internal int ThumbColumns
+    {
+        get => _thumbColumns;
+        set => _thumbColumns = Math.Max(1, value);
+    }
+
+    /// <summary>The tile layout is on: thumbnail view over entries (custom tables stay tables).</summary>
+    internal bool ThumbsActive => _view == FileListView.Thumbs && !_custom;
+
+    /// <summary>Panel entries carry a file-kind icon before the name; custom tables do not.</summary>
+    internal bool ShowsIcons => !_custom;
 
     public double ViewportHeight { get; set; } = 360;
 

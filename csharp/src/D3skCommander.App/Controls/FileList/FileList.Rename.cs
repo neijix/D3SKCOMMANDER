@@ -6,7 +6,7 @@ public sealed partial class FileList
 {
     public bool BeginRename()
     {
-        if (_cursorIndex < 0 || _cursorIndex >= _rowList.Count)
+        if (_cursorIndex < 0 || _cursorIndex >= _rowList.Count || ThumbsActive)
         {
             return false;
         }

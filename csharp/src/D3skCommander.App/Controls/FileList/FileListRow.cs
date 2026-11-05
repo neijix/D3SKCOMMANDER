@@ -1,5 +1,6 @@
 using System.ComponentModel;
 using System.Runtime.CompilerServices;
+using D3skCommander.Core.FileKinds;
 using D3skCommander.Core.FileSystem;
 
 namespace D3skCommander.App.Controls.FileList;
@@ -31,6 +32,7 @@ public sealed class FileListRow : INotifyPropertyChanged
         CanRename = canRename;
         IsDirectory = isDirectory;
         Source = source;
+        Kind = source is Entry entry ? FileKindClassifier.Of(entry) : null;
     }
 
     public event PropertyChangedEventHandler? PropertyChanged;
@@ -51,6 +53,9 @@ public sealed class FileListRow : INotifyPropertyChanged
     public bool IsDirectory { get; }
 
     public object? Source { get; }
+
+    /// <summary>What the icon shows; null for a row that is not a file entry (no icon).</summary>
+    public FileKind? Kind { get; }
 
     public bool IsParent => Source is Entry entry && entry.IsParent;
 

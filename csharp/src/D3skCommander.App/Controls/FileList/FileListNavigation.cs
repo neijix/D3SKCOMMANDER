@@ -16,6 +16,8 @@ public enum FileListKey
     PageUp,
     Down,
     Up,
+    Left,
+    Right,
     End,
     Home,
     Insert,

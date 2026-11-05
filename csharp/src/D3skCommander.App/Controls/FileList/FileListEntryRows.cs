@@ -14,7 +14,7 @@ public static class FileListEntryRows
     public static IReadOnlyList<FileListColumn> Columns(FileListView view, FileListColumnFlags shown)
     {
         var columns = new List<FileListColumn> { new("name", 1, true) };
-        if (view == FileListView.Brief)
+        if (view != FileListView.Full)
         {
             return columns;
         }
@@ -105,7 +105,7 @@ public static class FileListEntryRows
             return text.Get("filelist.parent");
         }
 
-        if (view == FileListView.Brief || entry.IsDirectory || !shown.HasFlag(FileListColumnFlags.Extension))
+        if (view != FileListView.Full || entry.IsDirectory || !shown.HasFlag(FileListColumnFlags.Extension))
         {
             return entry.Name;
         }

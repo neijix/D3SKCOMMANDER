@@ -70,9 +70,17 @@ public sealed partial class FileList
         }
         else if (key == FileListKey.Down)
         {
-            Move(1, shift);
+            Move(ThumbsActive ? _thumbColumns : 1, shift);
         }
         else if (key == FileListKey.Up)
+        {
+            Move(ThumbsActive ? -_thumbColumns : -1, shift);
+        }
+        else if (key == FileListKey.Right && ThumbsActive)
+        {
+            Move(1, shift);
+        }
+        else if (key == FileListKey.Left && ThumbsActive)
         {
             Move(-1, shift);
         }

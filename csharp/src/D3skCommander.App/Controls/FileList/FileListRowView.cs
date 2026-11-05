@@ -8,6 +8,7 @@ using Avalonia.Layout;
 using Avalonia.Media;
 using Avalonia.Threading;
 using Avalonia.VisualTree;
+using D3skCommander.App.Icons;
 
 namespace D3skCommander.App.Controls.FileList;
 
@@ -19,6 +20,7 @@ public sealed class FileListRowView : Grid
     private readonly List<TextBlock> _blocks = [];
     private FileListRow? _row;
     private TextBox? _editor;
+    private FileKindIconControl? _icon;
     private string? _signature;
 
     public FileListRowView()
@@ -39,6 +41,9 @@ public sealed class FileListRowView : Grid
 
         return cells;
     }
+
+    /// <summary>The key of the icon left of the name (<c>folder</c>, <c>image</c>, ...), or null when the row has none.</summary>
+    internal string? IconKey => _icon is not null && _icon.IsVisible ? _icon.IconKey : null;
 
     internal TextBox? Editor => _editor is { IsVisible: true } ? _editor : null;
 
@@ -142,6 +147,7 @@ public sealed class FileListRowView : Grid
         ColumnDefinitions.Clear();
         _blocks.Clear();
         _editor = null;
+        _icon = null;
         for (var i = 0; i < columns.Count; i++)
         {
             AddCell(columns[i], i);
@@ -162,8 +168,22 @@ public sealed class FileListRowView : Grid
         _blocks.Add(block);
         if (index == 0)
         {
+            AddIcon();
             AddEditor();
         }
+    }
+
+    private void AddIcon()
+    {
+        _icon = new FileKindIconControl(FileListLayout.IconSize)
+        {
+            IsVisible = false,
+            HorizontalAlignment = HorizontalAlignment.Left,
+            VerticalAlignment = VerticalAlignment.Center,
+            Margin = new Thickness(FileListLayout.IconLeft, 0, 0, 0),
+        };
+        Grid.SetColumn(_icon, 0);
+        Children.Add(_icon);
     }
 
     private void AddEditor()
@@ -172,7 +192,7 @@ public sealed class FileListRowView : Grid
         {
             IsVisible = false,
             MinHeight = 18,
-            Margin = new Thickness(2, 0),
+            Margin = new Thickness(FileListLayout.IconLeft + FileListLayout.IconSize + 2, 0, 2, 0),
             Padding = new Thickness(2, 0),
             VerticalAlignment = VerticalAlignment.Center,
         };
@@ -201,9 +221,23 @@ public sealed class FileListRowView : Grid
             _blocks[i].Text = i < _row.Cells.Count ? _row.Cells[i] : "";
         }
 
+        ApplyIcon();
         ApplyFlags();
         ApplyEditor(false);
         ToolTip.SetTip(this, _row.Key.Length == 0 ? null : _row.Key);
+    }
+
+    private void ApplyIcon()
+    {
+        if (_icon is null || _row is null || _blocks.Count == 0)
+        {
+            return;
+        }
+
+        _icon.Kind = _row.Kind;
+        _icon.IsVisible = _row.Kind is not null;
+        var left = _row.Kind is null ? 4 : FileListLayout.IconLeft + FileListLayout.IconSize + 4;
+        _blocks[0].Margin = new Thickness(left, 0, 4, 0);
     }
 
     private void ApplyFlags()
