@@ -18,6 +18,8 @@ internal sealed class ShellHost : IDisposable
         Window.Show();
     }
 
+    public ServiceProvider Provider => _provider;
+
     public ILocalizer Localizer { get; }
 
     public MainWindow Window { get; }

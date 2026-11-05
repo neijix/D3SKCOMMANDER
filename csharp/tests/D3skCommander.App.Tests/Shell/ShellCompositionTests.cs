@@ -97,6 +97,36 @@ public class ShellCompositionTests
         Assert.False(host.Window.IsVisible);
     }
 
+    [AvaloniaFact]
+    public void StartupActionsRunOnceAfterTheWindowOpens()
+    {
+        var probe = new StartupProbe();
+        using var host = ShellHost.Open(Language.En, services => services.AddSingleton<IShellModule>(probe));
+        Assert.Equal(1, probe.Runs);
+        Assert.True(host.Window.IsVisible);
+        host.Window.Close();
+        Assert.Equal(1, probe.Runs);
+    }
+
+    [AvaloniaFact]
+    public void QuitClosesTheOwnedWindowsBeforeTheMainWindow()
+    {
+        using var host = ShellHost.Open(Language.En);
+        var tool = host.Provider.GetRequiredService<IToolWindowHost>().Open(ToolKind.Log);
+        var toolClosedWhenTheMainWindowCloses = false;
+        host.Window.Closing += (_, _) => toolClosedWhenTheMainWindowCloses = !tool.IsVisible && host.Window.IsVisible;
+        host.Window.Dispatch(CommandId.Quit);
+        Assert.True(toolClosedWhenTheMainWindowCloses);
+        Assert.False(host.Window.IsVisible);
+    }
+
+    private sealed class StartupProbe : IShellModule
+    {
+        public int Runs { get; private set; }
+
+        public void Contribute(IShellContributions shell) => shell.OnStartup(() => Runs++);
+    }
+
     private sealed class DispatchProbe : IShellModule
     {
         public int Copies { get; private set; }

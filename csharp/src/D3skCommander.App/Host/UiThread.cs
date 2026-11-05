@@ -1,23 +1,14 @@
-using System.Collections.Concurrent;
+using Avalonia.Threading;
 
 namespace D3skCommander.App.Host;
 
 /// <summary>
-/// The GLFW thread. Timers and dialogs from a background thread wait here.
-/// When no thread is installed (unit tests), the caller is the UI thread.
+/// The Avalonia UI thread. Timers and dialogs from a background thread wait here; on the UI
+/// thread itself the action runs at once.
 /// </summary>
 public static class UiThread
 {
-    private static readonly ConcurrentQueue<Action> Queue = new();
-    private static Thread? _ui;
-
-    public static void Install(Thread thread)
-    {
-        ArgumentNullException.ThrowIfNull(thread);
-        _ui = thread;
-    }
-
-    public static bool CheckAccess() => _ui is null || ReferenceEquals(_ui, Thread.CurrentThread);
+    public static bool CheckAccess() => Dispatcher.UIThread.CheckAccess();
 
     public static void Post(Action action)
     {
@@ -28,7 +19,7 @@ public static class UiThread
             return;
         }
 
-        Queue.Enqueue(action);
+        Dispatcher.UIThread.Post(action);
     }
 
     public static void Invoke(Action action)
@@ -40,35 +31,6 @@ public static class UiThread
             return;
         }
 
-        Exception? error = null;
-        using var done = new ManualResetEventSlim(false);
-        Queue.Enqueue(() =>
-        {
-            try
-            {
-                action();
-            }
-            catch (Exception ex)
-            {
-                error = ex;
-            }
-            finally
-            {
-                done.Set();
-            }
-        });
-        done.Wait();
-        if (error is not null)
-        {
-            System.Runtime.ExceptionServices.ExceptionDispatchInfo.Capture(error).Throw();
-        }
-    }
-
-    public static void Drain()
-    {
-        while (Queue.TryDequeue(out var action))
-        {
-            action();
-        }
+        Dispatcher.UIThread.Invoke(action);
     }
 }

@@ -5,12 +5,18 @@ using Hexa.NET.ImGui;
 
 namespace D3skCommander.App.Shell;
 
-/// <summary>The commander window. ImGui draws it; the lists below are what that draw reads.</summary>
+/// <summary>The commander window: the shell members and lifecycle. The Avalonia plumbing is in MainWindow.axaml.cs.</summary>
 public sealed partial class MainWindow
 {
     private readonly ShellContributions _shell;
     private readonly ILocalizer _localizer;
     private readonly List<IOwnedWindow> _owned = [];
+
+    /// <summary>For the XAML loader and the previewer: an empty shell.</summary>
+    public MainWindow()
+        : this(new ShellContributions(), [], Localizer.Load())
+    {
+    }
 
     public MainWindow(ShellContributions shell, IEnumerable<IShellModule> modules, ILocalizer localizer)
     {
@@ -20,8 +26,7 @@ public sealed partial class MainWindow
         _shell = shell;
         _localizer = localizer;
         shell.ApplyModules(modules);
-        shell.Handle(CommandId.Quit, Close);
-        Title = localizer.Get("shell.window_title");
+        shell.Handle(CommandId.Quit, () => Close());
         StatusText = localizer.Get("st.ready");
         LeftPanel = new ShellSlot(localizer.Get("shell.panel.left"));
         RightPanel = new ShellSlot(localizer.Get("shell.panel.right"));
@@ -32,17 +37,15 @@ public sealed partial class MainWindow
         MenuBarTrailing = BuildWidgets(shell.MenuBarTrailing);
         LeftPanel.Content = BuildOne(shell.LeftPanel);
         RightPanel.Content = BuildOne(shell.RightPanel);
-        Bounds = new WindowBounds(1100, 700);
+        StartSize = new WindowSize(1100, 700);
         Screen = new DesktopScreen(new ScreenRect(0, 0, 1920, 1080), 1);
+        Build();
     }
-
-    public string Title { get; }
 
     public string StatusText { get; }
 
-    public bool IsVisible { get; private set; }
-
-    public WindowBounds Bounds { get; }
+    /// <summary>The size the window opens at; <c>Bounds</c> is the laid-out rectangle.</summary>
+    public WindowSize StartSize { get; }
 
     public DesktopScreen Screen { get; }
 
@@ -60,37 +63,25 @@ public sealed partial class MainWindow
 
     public IReadOnlyList<IShellWidget> MenuBarTrailing { get; }
 
-    public IReadOnlyList<IOwnedWindow> OwnedWindows => _owned;
+    public new IReadOnlyList<IOwnedWindow> OwnedWindows => _owned;
 
     public bool Dispatch(CommandId command) => _shell.Dispatch(command);
 
-    public void Show()
+    /// <summary>The window opened: the owners list, the smoke notification, then the startup actions once.</summary>
+    private void HandleOpened()
     {
-        if (IsVisible)
-        {
-            return;
-        }
-
-        IsVisible = true;
         ToolWindowOwners.Opened(this);
         SmokeSession.NotifyOpened(this);
         _shell.RunStartup();
     }
 
-    public void Close()
+    /// <summary>The window is closing: the owned windows first.</summary>
+    private void CloseOwnedWindows()
     {
-        if (!IsVisible)
-        {
-            return;
-        }
-
         foreach (var owned in _owned.ToArray())
         {
             owned.Close();
         }
-
-        IsVisible = false;
-        ToolWindowOwners.Closed(this);
     }
 
     public void KeyPress(GestureKey key, GestureModifiers modifiers)
@@ -166,4 +157,4 @@ public sealed partial class MainWindow
 }
 
 /// <summary>The main window's client size in device-independent pixels.</summary>
-public readonly record struct WindowBounds(double Width, double Height);
+public readonly record struct WindowSize(double Width, double Height);

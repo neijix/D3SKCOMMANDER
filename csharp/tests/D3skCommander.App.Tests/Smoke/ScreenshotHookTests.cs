@@ -1,4 +1,8 @@
+using System.Runtime.InteropServices;
+using Avalonia;
+using Avalonia.Controls;
 using Avalonia.Headless.XUnit;
+using Avalonia.Media.Imaging;
 using D3skCommander.App;
 using D3skCommander.App.Shell;
 using D3skCommander.App.Smoke;
@@ -103,6 +107,67 @@ public class ScreenshotHookTests
         Assert.DoesNotContain("screenshot saved:", error.ToString(), StringComparison.Ordinal);
     }
 
+    [AvaloniaFact]
+    public void TheScreenshotIsNotOneSolidColour()
+    {
+        var path = NewPngPath();
+        var clock = new FakeTimeProvider();
+        using var hook = Hook.Show(clock, new StringWriter(), (SmokeModule.ScreenshotVariable, path));
+        hook.RequireWindow();
+        clock.Advance(SmokeModule.ShotDelay);
+        AssertPng(path, 1100, 700);
+        Assert.True(Colours(path) > 3, "the PNG is one solid colour");
+    }
+
+    [AvaloniaFact]
+    public void AfterACommandThatOpensAWindowTheShotIsThatWindow()
+    {
+        var path = NewPngPath();
+        var clock = new FakeTimeProvider();
+        var probe = new CommandProbe();
+        using var hook = Hook.Show(
+            clock,
+            new StringWriter(),
+            probe,
+            (SmokeModule.ScreenshotVariable, path),
+            (SmokeModule.CommandVariable, "Keys"));
+        var main = hook.RequireWindow();
+        probe.Opens = () =>
+        {
+            var dialog = new Window { Width = 420, Height = 260, Title = "dialog" };
+            dialog.Show(main);
+            return dialog;
+        };
+        clock.Advance(SmokeModule.ShotDelay);
+        AssertPng(path, 420, 260);
+        Assert.False(main.IsVisible);
+    }
+
+    private static int Colours(string path)
+    {
+        using var bitmap = new Bitmap(path);
+        var size = bitmap.PixelSize;
+        var stride = size.Width * 4;
+        var pixels = new byte[stride * size.Height];
+        var pin = GCHandle.Alloc(pixels, GCHandleType.Pinned);
+        try
+        {
+            bitmap.CopyPixels(new PixelRect(size), pin.AddrOfPinnedObject(), pixels.Length, stride);
+        }
+        finally
+        {
+            pin.Free();
+        }
+
+        var seen = new HashSet<int>();
+        for (var i = 0; i < pixels.Length; i += 4)
+        {
+            seen.Add(BitConverter.ToInt32(pixels, i));
+        }
+
+        return seen.Count;
+    }
+
     private static string NewPngPath() =>
         Path.Combine(Path.GetTempPath(), "d3sk-shot-" + Guid.NewGuid().ToString("N") + ".png");
 
@@ -127,7 +192,13 @@ public class ScreenshotHookTests
     {
         public int Runs { get; private set; }
 
-        public void Contribute(IShellContributions shell) => shell.Handle(CommandId.Keys, () => Runs++);
+        public Func<Window>? Opens { get; set; }
+
+        public void Contribute(IShellContributions shell) => shell.Handle(CommandId.Keys, () =>
+        {
+            Runs++;
+            Opens?.Invoke();
+        });
     }
 
     private sealed class Hook : IDisposable

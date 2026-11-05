@@ -1,57 +1,136 @@
-using D3skCommander.App.Shell;
+using System.Runtime.InteropServices;
+using Avalonia;
+using Avalonia.Controls;
+using Avalonia.Media.Imaging;
+using Avalonia.Platform;
 
 namespace D3skCommander.App.Smoke;
 
-/// <summary>Writes the framebuffer, or a solid frame of the window size, as a PNG.</summary>
+/// <summary>Renders one window to a PNG at its pixel size. Without a platform encoder the pixels are encoded here.</summary>
 internal static class SmokeShot
 {
-    public static void Save(MainWindow window, string path)
+    public static void Save(Window window, string path)
     {
         ArgumentNullException.ThrowIfNull(window);
         ArgumentNullException.ThrowIfNull(path);
+        window.UpdateLayout();
+        var size = SizeOf(window);
+        using var bitmap = new RenderTargetBitmap(size, new Vector(96 * Scale(window), 96 * Scale(window)));
+        bitmap.Render(window);
         var directory = Path.GetDirectoryName(path);
         if (!string.IsNullOrEmpty(directory))
         {
             Directory.CreateDirectory(directory);
         }
 
-        var width = Pixels(window.Bounds.Width);
-        var height = Pixels(window.Bounds.Height);
-        var captured = Framebuffer.Read?.Invoke();
-        if (captured is { } frame && frame.Width > 0 && frame.Height > 0)
+        TryPlatformSave(bitmap, path);
+        if (IsPng(path))
         {
-            width = frame.Width;
-            height = frame.Height;
-            PngWriter.Write(path, width, height, frame.Rgba, width * 4);
             return;
         }
 
-        var stride = width * 4;
-        var pixels = new byte[stride * height];
-        for (var i = 0; i < pixels.Length; i += 4)
-        {
-            pixels[i] = 32;
-            pixels[i + 1] = 32;
-            pixels[i + 2] = 36;
-            pixels[i + 3] = 255;
-        }
-
-        PngWriter.Write(path, width, height, pixels, stride);
+        WritePixels(bitmap, path);
     }
 
-    private static int Pixels(double dips)
+    private static void TryPlatformSave(Bitmap bitmap, string path)
+    {
+        try
+        {
+            bitmap.Save(path, PngBitmapEncoderOptions.Default);
+        }
+        catch (NotSupportedException)
+        {
+        }
+        catch (NotImplementedException)
+        {
+        }
+        catch (InvalidOperationException)
+        {
+        }
+    }
+
+    private static void WritePixels(Bitmap bitmap, string path)
+    {
+        var size = bitmap.PixelSize;
+        var stride = size.Width * 4;
+        var pixels = new byte[stride * size.Height];
+        var pin = GCHandle.Alloc(pixels, GCHandleType.Pinned);
+        try
+        {
+            bitmap.CopyPixels(new PixelRect(0, 0, size.Width, size.Height), pin.AddrOfPinnedObject(), pixels.Length, stride);
+        }
+        finally
+        {
+            pin.Free();
+        }
+
+        if (bitmap.Format == PixelFormats.Bgra8888)
+        {
+            for (var i = 0; i < pixels.Length; i += 4)
+            {
+                (pixels[i], pixels[i + 2]) = (pixels[i + 2], pixels[i]);
+            }
+        }
+
+        PngWriter.Write(path, size.Width, size.Height, pixels, stride);
+    }
+
+    private static double Scale(Window window)
+    {
+        var scale = window.RenderScaling;
+        return double.IsNaN(scale) || scale <= 0 ? 1 : scale;
+    }
+
+    private static PixelSize SizeOf(Window window)
+    {
+        var scale = Scale(window);
+        var width = Pixels(window.Bounds.Width, scale);
+        var height = Pixels(window.Bounds.Height, scale);
+        if (width == 0)
+        {
+            width = Pixels(window.Width, scale);
+        }
+
+        if (height == 0)
+        {
+            height = Pixels(window.Height, scale);
+        }
+
+        return new PixelSize(Math.Max(width, 1), Math.Max(height, 1));
+    }
+
+    private static int Pixels(double dips, double scale)
     {
         if (double.IsNaN(dips) || dips <= 0)
         {
-            return 1;
+            return 0;
         }
 
-        var pixels = Math.Ceiling(dips);
-        if (pixels >= int.MaxValue)
+        var pixels = dips * scale;
+        return pixels >= int.MaxValue ? int.MaxValue : (int)Math.Ceiling(pixels);
+    }
+
+    private static bool IsPng(string path)
+    {
+        if (!File.Exists(path))
         {
-            return int.MaxValue;
+            return false;
         }
 
-        return (int)pixels;
+        try
+        {
+            using var stream = File.OpenRead(path);
+            var magic = new byte[8];
+            if (stream.Read(magic, 0, magic.Length) != magic.Length)
+            {
+                return false;
+            }
+
+            return magic[0] == 137 && magic[1] == 80 && magic[2] == 78 && magic[3] == 71;
+        }
+        catch (IOException)
+        {
+            return false;
+        }
     }
 }

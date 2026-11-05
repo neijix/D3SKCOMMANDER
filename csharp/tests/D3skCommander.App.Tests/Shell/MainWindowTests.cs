@@ -1,5 +1,7 @@
+using Avalonia;
 using Avalonia.Headless.XUnit;
-using D3skCommander.App.Host;
+using Avalonia.Media.Imaging;
+using D3skCommander.App.Shell;
 using D3skCommander.Core.Localization;
 using Xunit;
 
@@ -17,12 +19,17 @@ public class MainWindowTests
         Assert.Equal("Ready", host.Window.StatusText);
         Assert.NotNull(host.Window.LeftPanel);
         Assert.NotNull(host.Window.RightPanel);
+        Assert.Equal(new WindowSize(1100, 700), host.Window.StartSize);
+        Assert.Equal(new Size(1100, 700), host.Window.ClientSize);
     }
 
     [AvaloniaFact]
-    public void TheShellDrawsOneImGuiFrame()
+    public void TheShellRendersOneHeadlessFrame()
     {
         using var host = ShellHost.Open(Language.En);
-        ImGuiProbe.Draw(host.Window.Draw);
+        host.Window.UpdateLayout();
+        using var bitmap = new RenderTargetBitmap(new PixelSize(1100, 700));
+        bitmap.Render(host.Window);
+        Assert.Equal(new PixelSize(1100, 700), bitmap.PixelSize);
     }
 }

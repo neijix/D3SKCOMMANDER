@@ -13,5 +13,6 @@ public static class TestApp
 {
     public static AppBuilder BuildAvaloniaApp() =>
         AppBuilder.Configure(() => new App(Program.BuildProvider()))
-            .UseHeadless(new AvaloniaHeadlessPlatformOptions());
+            .UseSkia()
+            .UseHeadless(new AvaloniaHeadlessPlatformOptions { UseHeadlessDrawing = false });
 }

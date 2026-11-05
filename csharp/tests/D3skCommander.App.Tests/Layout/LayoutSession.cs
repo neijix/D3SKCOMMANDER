@@ -66,7 +66,7 @@ internal sealed class LayoutSession : IDisposable
         try
         {
             WriteSample(directory);
-            await session.Panels.OpenAsync(directory, directory, cancellationToken).ConfigureAwait(false);
+            await session.Panels.OpenAsync(directory, directory, cancellationToken);
             session.Window.Show();
             return session;
         }
@@ -150,7 +150,7 @@ internal sealed class LayoutSession : IDisposable
                 throw new TimeoutException("The panel did not update.");
             }
 
-            await Task.Delay(20, cancellationToken).ConfigureAwait(false);
+            await Task.Delay(20, cancellationToken);
         }
     }
 

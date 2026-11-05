@@ -1,0 +1,25 @@
+<Window xmlns="https://github.com/avaloniaui"
+        xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+        xmlns:shell="using:D3skCommander.App.Shell"
+        x:Class="D3skCommander.App.Shell.MainWindow"
+        x:DataType="shell:MainWindow"
+        Width="1100" Height="700">
+  <DockPanel Background="{DynamicResource SystemRegionBrush}">
+    <Grid DockPanel.Dock="Top">
+      <Menu x:Name="MainMenu" HorizontalAlignment="Left"/>
+      <Menu x:Name="TrailingMenu" HorizontalAlignment="Right"/>
+    </Grid>
+    <UniformGrid x:Name="FunctionKeyBar" DockPanel.Dock="Bottom" Rows="1" Margin="4,2"/>
+    <TextBlock x:Name="StatusLine" DockPanel.Dock="Bottom" Margin="8,2" Text="{Binding StatusText}"/>
+    <StackPanel x:Name="UnderHost" DockPanel.Dock="Bottom"/>
+    <StackPanel x:Name="BesideHost" DockPanel.Dock="Right" Width="180" IsVisible="False"/>
+    <Grid ColumnDefinitions="*,*">
+      <Border Grid.Column="0" Margin="4" BorderThickness="1" BorderBrush="{DynamicResource SystemControlForegroundBaseLowBrush}">
+        <ContentControl x:Name="LeftSlot"/>
+      </Border>
+      <Border Grid.Column="1" Margin="4" BorderThickness="1" BorderBrush="{DynamicResource SystemControlForegroundBaseLowBrush}">
+        <ContentControl x:Name="RightSlot"/>
+      </Border>
+    </Grid>
+  </DockPanel>
+</Window>

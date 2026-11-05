@@ -1,3 +1,4 @@
+using Avalonia.Controls;
 using D3skCommander.App.Host;
 using D3skCommander.App.Shell;
 using D3skCommander.Core.Commands;
@@ -146,13 +147,38 @@ internal sealed class SmokeSession : IDisposable
 
         try
         {
-            SmokeShot.Save(_window, _path);
+            SmokeShot.Save(Target(_window), _path);
             Report("smoke.screenshot.saved", _path);
         }
         catch (Exception ex) when (IsCaptureFailure(ex))
         {
             Report("smoke.screenshot.failed", ex.Message);
         }
+    }
+
+    /// <summary>
+    /// The window the shot shows: after a command, the newest visible window it opened (an owned
+    /// tool window or a modal dialog), else the main window.
+    /// </summary>
+    private static Window Target(MainWindow main)
+    {
+        for (var i = main.OwnedWindows.Count - 1; i >= 0; i--)
+        {
+            if (main.OwnedWindows[i] is Window { IsVisible: true } owned)
+            {
+                return owned;
+            }
+        }
+
+        foreach (var dialog in ((Window)main).OwnedWindows.Reverse())
+        {
+            if (dialog.IsVisible)
+            {
+                return dialog;
+            }
+        }
+
+        return main;
     }
 
     private void Report(string key, string value) =>
