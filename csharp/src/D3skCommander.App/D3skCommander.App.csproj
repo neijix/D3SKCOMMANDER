@@ -31,6 +31,9 @@
     <PackageReference Include="Microsoft.Extensions.DependencyInjection" />
   </ItemGroup>
   <ItemGroup>
+    <InternalsVisibleTo Include="D3skCommander.App.Tests" />
+  </ItemGroup>
+  <ItemGroup>
     <ProjectReference Include="../D3skCommander.Core/D3skCommander.Core.csproj" />
   </ItemGroup>
 </Project>

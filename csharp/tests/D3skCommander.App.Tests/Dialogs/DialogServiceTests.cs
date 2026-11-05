@@ -180,6 +180,22 @@ public class DialogServiceTests
     }
 
     [AvaloniaFact]
+    public async Task AShowThatReturnsAFaultedTaskFaultsTheCaller()
+    {
+        using var host = ShellHost.Open(Language.En);
+        var surface = new WindowDialogSurface(new FixedOwner(host.Window), host.Localizer, new FakeFolderPicker())
+        {
+            ShowWindow = (_, _) => Task.FromException(new InvalidOperationException("boom")),
+        };
+        var pending = surface.ShowAsync(DialogRequest.ForMessage("Title", "Text"), TestContext.Current.CancellationToken);
+        var finished = await Task.WhenAny(pending, Task.Delay(TimeSpan.FromSeconds(2), TestContext.Current.CancellationToken));
+
+        Assert.Same(pending, finished);
+        var error = await Assert.ThrowsAsync<InvalidOperationException>(() => pending);
+        Assert.Equal("boom", error.Message);
+    }
+
+    [AvaloniaFact]
     public async Task EnterAcceptsWhenAllowedAndEscapeCancels()
     {
         using var host = ShellHost.Open(Language.En);

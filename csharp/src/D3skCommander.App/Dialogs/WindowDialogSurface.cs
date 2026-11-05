@@ -21,6 +21,9 @@ public sealed class WindowDialogSurface : IDialogSurface
         _folders = folders;
     }
 
+    /// <summary>How the window is shown; tests replace it to simulate a show that faults.</summary>
+    internal Func<Window, Window, Task> ShowWindow { get; set; } = static (window, owner) => window.ShowDialog(owner);
+
     public Task<DialogResult> ShowAsync(DialogRequest request, CancellationToken cancellationToken)
     {
         ArgumentNullException.ThrowIfNull(request);
@@ -49,7 +52,7 @@ public sealed class WindowDialogSurface : IDialogSurface
                 registration.Dispose();
                 done.TrySetResult(window.Result ?? DialogResult.Cancel());
             };
-            var shown = window.ShowDialog(owner);
+            var shown = ShowWindow(window, owner);
             _ = shown.ContinueWith(
                 task =>
                 {
