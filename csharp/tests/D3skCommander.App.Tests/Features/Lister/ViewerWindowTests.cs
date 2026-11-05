@@ -48,6 +48,20 @@ public class ViewerWindowTests
     }
 
     [AvaloniaFact]
+    public async Task AFindStartedInTheF3WindowIsListedByTheJobService()
+    {
+        using var rig = await Rig.Open(("a.txt", "alpha\nbeta\n"));
+        rig.Select("a.txt");
+        var tool = await rig.ViewAsync();
+        var model = Assert.IsType<ViewerViewModel>(tool.View);
+
+        model.FindText = "beta";
+        Assert.True(await model.FindAsync(true));
+
+        Assert.Equal("Searching a.txt", Assert.Single(rig.Jobs.Jobs).Title);
+    }
+
+    [AvaloniaFact]
     public async Task F3OnAnotherFileReusesTheWindow()
     {
         using var rig = await Rig.Open(("a.txt", "first\n"), ("b.txt", "second\n"));
@@ -89,7 +103,7 @@ public class ViewerWindowTests
         using var dir = new TempDir();
         var path = Path.Combine(dir.Path, "names.dbf");
         File.WriteAllBytes(path, DbfSample.NameFile());
-        var model = new ViewerViewModel(English());
+        var model = new ViewerViewModel(English(), new JobService());
 
         await model.OpenAsync(path);
 
@@ -141,7 +155,7 @@ public class ViewerWindowTests
         var size = ViewerLimits.MaxRead + (64L * 1024 * 1024);
         MakeSparse(path, size);
 
-        var model = new ViewerViewModel(English());
+        var model = new ViewerViewModel(English(), new JobService());
         await model.OpenAsync(path);
 
         Assert.True(model.IsHex);
@@ -206,7 +220,7 @@ public class ViewerWindowTests
         }
 
         File.WriteAllText(path, builder.ToString());
-        var model = new ViewerViewModel(English());
+        var model = new ViewerViewModel(English(), new JobService());
         model.SetColumns(10000);
         await model.OpenAsync(path);
 
@@ -230,7 +244,7 @@ public class ViewerWindowTests
     {
         using var dir = new TempDir();
         var path = Path.Combine(dir.Path, "gone.txt");
-        var model = new ViewerViewModel(French());
+        var model = new ViewerViewModel(French(), new JobService());
 
         await model.OpenAsync(path);
 
@@ -282,9 +296,9 @@ public class ViewerWindowTests
             Assert.NotEqual(key, fr.Get(key));
         }
 
-        Assert.Equal("Wrap", new ViewerViewModel(en).WrapLabel);
-        Assert.Equal("Retour à la ligne", new ViewerViewModel(fr).WrapLabel);
-        Assert.Equal("Suivant", new ViewerViewModel(fr).NextLabel);
+        Assert.Equal("Wrap", new ViewerViewModel(en, new JobService()).WrapLabel);
+        Assert.Equal("Retour à la ligne", new ViewerViewModel(fr, new JobService()).WrapLabel);
+        Assert.Equal("Suivant", new ViewerViewModel(fr, new JobService()).NextLabel);
     }
 
     private static void MakeSparse(string path, long length, params (long Offset, string Text)[] texts)
@@ -314,7 +328,8 @@ public class ViewerWindowTests
             _app = app;
             Dialogs = dialogs;
             Text = app.Localizer;
-            Commands = new ViewerCommands(workspace, app.Tools, dialogs, Text);
+            Jobs = new JobService();
+            Commands = new ViewerCommands(workspace, app.Tools, dialogs, Text, Jobs);
             Commands.Bind(new ShellContributions());
         }
 
@@ -325,6 +340,8 @@ public class ViewerWindowTests
         public FakeDialogService Dialogs { get; }
 
         public ILocalizer Text { get; }
+
+        public JobService Jobs { get; }
 
         public ViewerCommands Commands { get; }
 

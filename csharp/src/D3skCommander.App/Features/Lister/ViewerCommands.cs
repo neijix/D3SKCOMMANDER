@@ -3,6 +3,7 @@ using D3skCommander.App.Features.Panels;
 using D3skCommander.App.Shell;
 using D3skCommander.App.ToolWindows;
 using D3skCommander.Core.Commands;
+using D3skCommander.Core.Jobs;
 using D3skCommander.Core.Localization;
 
 namespace D3skCommander.App.Features.Lister;
@@ -17,24 +18,27 @@ public sealed class ViewerCommands
     private readonly IToolWindowHost _tools;
     private readonly IDialogService _dialogs;
     private readonly ILocalizer _text;
+    private readonly IJobService _jobs;
 
-    public ViewerCommands(IPanelWorkspace panels, IToolWindowHost tools, IDialogService dialogs, ILocalizer text)
+    public ViewerCommands(IPanelWorkspace panels, IToolWindowHost tools, IDialogService dialogs, ILocalizer text, IJobService jobs)
     {
         ArgumentNullException.ThrowIfNull(panels);
         ArgumentNullException.ThrowIfNull(tools);
         ArgumentNullException.ThrowIfNull(dialogs);
         ArgumentNullException.ThrowIfNull(text);
+        ArgumentNullException.ThrowIfNull(jobs);
         _panels = panels;
         _tools = tools;
         _dialogs = dialogs;
         _text = text;
+        _jobs = jobs;
     }
 
     public void Bind(IShellContributions shell)
     {
         ArgumentNullException.ThrowIfNull(shell);
         shell.Handle(CommandId.View, () => _ = ViewAsync());
-        _tools.Register(ToolKind.Lister, () => new ViewerViewModel(_text));
+        _tools.Register(ToolKind.Lister, () => new ViewerViewModel(_text, _jobs));
     }
 
     /// <summary>Opens the window, then loads the file; the task ends when the file is shown.</summary>

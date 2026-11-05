@@ -56,12 +56,6 @@ public sealed class ViewerViewModel : ObservableObject, IShellWidget
     private string _findText = "";
     private string _filter = "";
 
-    /// <summary>A viewer whose find job runs on a private job service (not in the operations bar).</summary>
-    public ViewerViewModel(ILocalizer text)
-        : this(text, new JobService(), FileViewer.Open)
-    {
-    }
-
     public ViewerViewModel(ILocalizer text, IJobService jobs)
         : this(text, jobs, FileViewer.Open)
     {
