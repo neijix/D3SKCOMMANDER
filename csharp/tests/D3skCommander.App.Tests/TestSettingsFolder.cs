@@ -1,11 +1,13 @@
 using System.Runtime.CompilerServices;
+using D3skCommander.App.Features.Update;
 using D3skCommander.Core.SettingsLocation;
 
 namespace D3skCommander.App.Tests;
 
 /// <summary>
 /// Every App test (and every program a test starts) uses a throw-away settings folder,
-/// never the user's: <c>D3SK_CONFIG_DIR</c> is set before the first test runs.
+/// never the user's: <c>D3SK_CONFIG_DIR</c> is set before the first test runs. The start-up
+/// update check is off too (<c>D3SK_NO_UPDATE_CHECK</c>): no test reaches the network.
 /// </summary>
 internal static class TestSettingsFolder
 {
@@ -18,6 +20,7 @@ internal static class TestSettingsFolder
     {
         Directory.CreateDirectory(Path);
         Environment.SetEnvironmentVariable(SettingsPlaces.ConfigDirVariable, Path);
+        Environment.SetEnvironmentVariable(UpdateCommands.DisableVariable, "1");
     }
 #pragma warning restore CA2255
 }
