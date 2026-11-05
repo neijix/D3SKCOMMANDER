@@ -1,0 +1,66 @@
+{
+  "editor.opening": {
+    "en": "Opening {name}...",
+    "fr": "Ouverture de {name}..."
+  },
+  "editor.new_name": {
+    "en": "Name of the file to create:",
+    "fr": "Nom du fichier à créer :"
+  },
+  "editor.dirty": {
+    "en": "Modified",
+    "fr": "Modifié"
+  },
+  "editor.bom": {
+    "en": "BOM",
+    "fr": "BOM"
+  },
+  "editor.lossy": {
+    "en": "Invalid UTF-8 was replaced: saving keeps the replacement characters.",
+    "fr": "Du UTF-8 invalide a été remplacé : l'enregistrement conserve les caractères de remplacement."
+  },
+  "editor.saved": {
+    "en": "Saved",
+    "fr": "Enregistré"
+  },
+  "editor.save_failed": {
+    "en": "Not saved",
+    "fr": "Non enregistré"
+  },
+  "editor.not_found": {
+    "en": "Not found",
+    "fr": "Introuvable"
+  },
+  "editor.replaced": {
+    "en": "{n} replaced",
+    "fr": "{n} remplacé(s)"
+  },
+  "editor.find": {
+    "en": "Find",
+    "fr": "Rechercher"
+  },
+  "editor.replace": {
+    "en": "Replace with",
+    "fr": "Remplacer par"
+  },
+  "editor.find_next": {
+    "en": "Next",
+    "fr": "Suivant"
+  },
+  "editor.replace_one": {
+    "en": "Replace",
+    "fr": "Remplacer"
+  },
+  "editor.replace_all": {
+    "en": "Replace all",
+    "fr": "Tout remplacer"
+  },
+  "editor.match_case": {
+    "en": "Match case",
+    "fr": "Respecter la casse"
+  },
+  "editor.save": {
+    "en": "Save",
+    "fr": "Enregistrer"
+  }
+}

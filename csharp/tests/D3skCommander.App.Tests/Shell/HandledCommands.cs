@@ -47,6 +47,8 @@ internal static class HandledCommands
         CommandId.ReDate,
         CommandId.Touch,
         CommandId.View,
+        CommandId.Edit,
+        CommandId.EditNew,
     ];
 
     public static bool Handles(CommandId command) => Enabled.Contains(command);
