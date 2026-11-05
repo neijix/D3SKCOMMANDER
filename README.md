@@ -78,6 +78,7 @@ dependency; `src/D3skCommander.App` is the Avalonia window layer; each has its t
 ### Packages
 
 ```sh
+./release.sh                            # all of them at once, as a release builds them (below)
 csharp/packaging/publish.sh win-x64     # dist/d3skcommander-<version>-windows-x86_64.zip
 csharp/packaging/publish.sh linux-x64   # dist/d3skcommander-<version>-linux-x86_64.tar.gz
 csharp/packaging/publish.sh osx-arm64   # dist/d3skcommander-<version>-macos-aarch64.tar.gz
@@ -88,6 +89,11 @@ Each archive is a self-contained build: one executable with Avalonia's native Sk
 libraries beside it, plus a `.sha256` file. Any of them builds from any OS. The setup needs NSIS 3
 (`makensis`) and packs the Windows publish; it builds that publish first when the folder is
 not already there. The version is in `csharp/Directory.Build.props`.
+
+`./release.sh` builds locally what a release publishes, and uploads nothing. It runs the gate
+(`csharp/check.sh`), then the three archives and the Windows setup, and writes `dist/SHA256SUMS`.
+Without NSIS it skips the setup with a warning. Options: `--no-check` skips the gate,
+`--no-setup` skips the setup.
 
 Pushing a tag `v<version>` (that version) runs `.github/workflows/release.yml`, which runs the
 gate, builds the three archives and the Windows setup, and publishes the release.

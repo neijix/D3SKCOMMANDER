@@ -36,6 +36,9 @@ dotnet publish csharp/src/D3skCommander.App/D3skCommander.App.csproj \
   -p:PublishSingleFile=true -p:IncludeNativeLibrariesForSelfExtract=false \
   -p:DebugType=none -p:GenerateDocumentationFile=false \
   -o "$OUT"
+# DebugType=none only covers our own code: SkiaSharp and HarfBuzzSharp ship native symbol files
+# (~100 MB of .pdb on Windows) that users never need.
+find "$OUT" -name '*.pdb' -delete
 cp LICENSE "$OUT/"
 
 cd "$ROOT/dist"
