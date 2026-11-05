@@ -1,0 +1,78 @@
+{
+  "update.current": {
+    "en": "Installed version",
+    "fr": "Version installée"
+  },
+  "update.latest": {
+    "en": "Latest version",
+    "fr": "Dernière version"
+  },
+  "update.checking": {
+    "en": "Checking for updates…",
+    "fr": "Recherche de mises à jour…"
+  },
+  "update.up_to_date": {
+    "en": "You are up to date.",
+    "fr": "Vous êtes à jour."
+  },
+  "update.available": {
+    "en": "Version {version} is available.",
+    "fr": "La version {version} est disponible."
+  },
+  "update.check_failed": {
+    "en": "Could not check for updates (no published release, no network, or the repository is private).",
+    "fr": "Impossible de chercher des mises à jour (aucune version publiée, pas de réseau, ou dépôt privé)."
+  },
+  "update.check_again": {
+    "en": "Check again",
+    "fr": "Vérifier à nouveau"
+  },
+  "update.install": {
+    "en": "Download and install",
+    "fr": "Télécharger et installer"
+  },
+  "update.cancel": {
+    "en": "Cancel download",
+    "fr": "Annuler le téléchargement"
+  },
+  "update.job": {
+    "en": "Download update",
+    "fr": "Téléchargement de la mise à jour"
+  },
+  "update.downloading": {
+    "en": "Downloading {name}…",
+    "fr": "Téléchargement de {name}…"
+  },
+  "update.installing": {
+    "en": "Installing…",
+    "fr": "Installation…"
+  },
+  "update.restarting": {
+    "en": "Restarting…",
+    "fr": "Redémarrage…"
+  },
+  "update.failed": {
+    "en": "The update failed.",
+    "fr": "La mise à jour a échoué."
+  },
+  "update.cancelled": {
+    "en": "Download cancelled.",
+    "fr": "Téléchargement annulé."
+  },
+  "update.no_package": {
+    "en": "This release has no package for this installation.",
+    "fr": "Cette version n'a pas de paquet pour cette installation."
+  },
+  "update.source_build": {
+    "en": "Built from source: update with git pull, then rebuild.",
+    "fr": "Compilé depuis les sources : mettez à jour avec git pull, puis recompilez."
+  },
+  "update.notes": {
+    "en": "Release notes",
+    "fr": "Notes de version"
+  },
+  "update.menu_item": {
+    "en": "Update to {version}",
+    "fr": "Mettre à jour vers {version}"
+  }
+}

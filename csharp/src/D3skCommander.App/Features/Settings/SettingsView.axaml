@@ -1,0 +1,62 @@
+<UserControl xmlns="https://github.com/avaloniaui"
+             xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+             xmlns:s="using:D3skCommander.App.Features.Settings"
+             x:Class="D3skCommander.App.Features.Settings.SettingsView"
+             x:DataType="s:SettingsViewModel">
+  <Grid RowDefinitions="*,Auto" Margin="10" RowSpacing="8">
+    <ScrollViewer>
+      <StackPanel Spacing="4" Margin="0,0,10,0">
+        <Grid ColumnDefinitions="Auto,*,Auto,120" ColumnSpacing="8">
+          <TextBlock Grid.Column="0" VerticalAlignment="Center" Text="{Binding Labels.Language}"/>
+          <ComboBox x:Name="LanguageBox" Grid.Column="1" HorizontalAlignment="Stretch" ItemsSource="{Binding Languages}" SelectedIndex="{Binding LanguageIndex, Mode=TwoWay}"/>
+          <TextBlock Grid.Column="2" VerticalAlignment="Center" Text="{Binding Labels.FontSize}"/>
+          <NumericUpDown x:Name="FontBox" Grid.Column="3" Minimum="8" Maximum="40" Increment="1" FormatString="0" Value="{Binding FontSize, Mode=TwoWay}"/>
+        </Grid>
+        <Grid ColumnDefinitions="*,*" RowDefinitions="Auto,Auto,Auto">
+          <CheckBox x:Name="HiddenBox" Grid.Row="0" Grid.Column="0" Content="{Binding Labels.ShowHidden}" IsChecked="{Binding ShowHidden, Mode=TwoWay}"/>
+          <CheckBox x:Name="TrashBox" Grid.Row="1" Grid.Column="0" Content="{Binding Labels.UseTrash}" IsChecked="{Binding UseTrash, Mode=TwoWay}"/>
+          <CheckBox x:Name="ConfirmBox" Grid.Row="2" Grid.Column="0" Content="{Binding Labels.ConfirmDelete}" IsChecked="{Binding ConfirmDelete, Mode=TwoWay}"/>
+          <CheckBox x:Name="LogBox" Grid.Row="0" Grid.Column="1" Content="{Binding Labels.LogOperations}" IsChecked="{Binding LogOperations, Mode=TwoWay}"/>
+          <CheckBox x:Name="UpdatesBox" Grid.Row="1" Grid.Column="1" Grid.RowSpan="2" VerticalAlignment="Top" Content="{Binding Labels.CheckUpdates}" IsChecked="{Binding CheckUpdates, Mode=TwoWay}"/>
+        </Grid>
+        <TextBlock Text="{Binding Labels.Editor}"/>
+        <TextBox x:Name="EditorBox" Text="{Binding Editor, Mode=TwoWay}"/>
+        <TextBlock Text="{Binding Labels.Terminal}"/>
+        <TextBox x:Name="TerminalBox" Text="{Binding Terminal, Mode=TwoWay}"/>
+        <StackPanel Orientation="Horizontal" Spacing="12">
+          <TextBlock VerticalAlignment="Center" Text="{Binding Labels.Columns}"/>
+          <CheckBox x:Name="ExtensionBox" Content="{Binding Labels.Extension}" IsChecked="{Binding ShowExtension, Mode=TwoWay}"/>
+          <CheckBox x:Name="SizeBox" Content="{Binding Labels.Size}" IsChecked="{Binding ShowSize, Mode=TwoWay}"/>
+          <CheckBox x:Name="DateBox" Content="{Binding Labels.Date}" IsChecked="{Binding ShowDate, Mode=TwoWay}"/>
+          <CheckBox x:Name="AttributesBox" Content="{Binding Labels.Attributes}" IsChecked="{Binding ShowAttributes, Mode=TwoWay}"/>
+        </StackPanel>
+        <TextBlock Text="{Binding Labels.UserCommands}"/>
+        <Grid ColumnDefinitions="*,Auto" ColumnSpacing="8">
+          <ListBox x:Name="CommandList" Grid.Column="0" Height="80" ItemsSource="{Binding Commands}" SelectedItem="{Binding SelectedCommand, Mode=TwoWay}">
+            <ListBox.ItemTemplate>
+              <DataTemplate x:DataType="s:UserCommandRow">
+                <TextBlock Text="{Binding Display}"/>
+              </DataTemplate>
+            </ListBox.ItemTemplate>
+          </ListBox>
+          <StackPanel Grid.Column="1" Spacing="4">
+            <Button x:Name="AddButton" Content="{Binding Labels.Add}" Command="{Binding AddCommandCommand}"/>
+            <Button x:Name="EditButton" Content="{Binding Labels.Edit}" Command="{Binding EditCommandCommand}"/>
+            <Button x:Name="RemoveButton" Content="{Binding Labels.Remove}" Command="{Binding RemoveCommandCommand}"/>
+          </StackPanel>
+        </Grid>
+        <Grid ColumnDefinitions="Auto,*,Auto" ColumnSpacing="8">
+          <TextBlock Grid.Column="0" VerticalAlignment="Center" Text="{Binding Labels.Folder}"/>
+          <TextBlock x:Name="FolderLabel" Grid.Column="1" VerticalAlignment="Center" TextTrimming="CharacterEllipsis" Text="{Binding FolderText}"/>
+          <Button x:Name="FolderButton" Grid.Column="2" Content="{Binding Labels.ChangeFolder}" Command="{Binding ChangeFolderCommand}"/>
+        </Grid>
+      </StackPanel>
+    </ScrollViewer>
+    <Grid Grid.Row="1" ColumnDefinitions="*,Auto,Auto,Auto" ColumnSpacing="8">
+      <TextBlock x:Name="NoteText" Grid.Column="0" VerticalAlignment="Center" TextWrapping="Wrap" Text="{Binding Note}"/>
+      <Button x:Name="OkButton" Grid.Column="1" Content="{Binding Labels.Ok}" Command="{Binding OkCommand}"/>
+      <Button x:Name="ApplyButton" Grid.Column="2" Content="{Binding Labels.Apply}" Command="{Binding ApplyCommand}"/>
+      <Button x:Name="CloseButton" Grid.Column="3" Content="{Binding Labels.Close}" Command="{Binding CloseCommand}"/>
+    </Grid>
+  </Grid>
+</UserControl>

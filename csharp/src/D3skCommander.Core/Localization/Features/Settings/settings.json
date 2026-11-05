@@ -1,0 +1,86 @@
+{
+  "settings.language_en": {
+    "en": "English",
+    "fr": "English"
+  },
+  "settings.language_fr": {
+    "en": "Français",
+    "fr": "Français"
+  },
+  "settings.hidden": {
+    "en": "Show hidden files",
+    "fr": "Afficher les fichiers cachés"
+  },
+  "settings.user_commands": {
+    "en": "User commands (%s = the selected files)",
+    "fr": "Commandes utilisateur (%s = les fichiers sélectionnés)"
+  },
+  "settings.add": {
+    "en": "Add…",
+    "fr": "Ajouter…"
+  },
+  "settings.edit": {
+    "en": "Edit…",
+    "fr": "Modifier…"
+  },
+  "settings.remove": {
+    "en": "Remove",
+    "fr": "Supprimer"
+  },
+  "settings.cmd_title": {
+    "en": "User command",
+    "fr": "Commande utilisateur"
+  },
+  "settings.cmd_name": {
+    "en": "Name",
+    "fr": "Nom"
+  },
+  "settings.cmd_command": {
+    "en": "Command",
+    "fr": "Commande"
+  },
+  "settings.once": {
+    "en": "Run once per file",
+    "fr": "Une fois par fichier"
+  },
+  "settings.folder": {
+    "en": "Settings folder",
+    "fr": "Dossier des réglages"
+  },
+  "settings.folder_change": {
+    "en": "Change…",
+    "fr": "Changer…"
+  },
+  "settings.folder_current": {
+    "en": "Current folder: {path}",
+    "fr": "Dossier actuel : {path}"
+  },
+  "settings.folder_prompt": {
+    "en": "Your preferences, passwords and log move to this folder (settings already there are kept).",
+    "fr": "Vos préférences, mots de passe et journal vont dans ce dossier (des réglages déjà présents sont gardés)."
+  },
+  "settings.folder_first": {
+    "en": "Where should d3skcommander keep your preferences? You can change it later in Configuration > Settings folder.",
+    "fr": "Où d3skcommander doit-il garder vos préférences ? Vous pourrez le changer dans Configuration > Dossier des réglages."
+  },
+  "settings.folder_env": {
+    "en": "D3SK_CONFIG_DIR is set: it decides the settings folder.",
+    "fr": "D3SK_CONFIG_DIR est défini : il décide du dossier des réglages."
+  },
+  "settings.folder_moved": {
+    "en": "Settings folder set to {path}. It applies after you restart.",
+    "fr": "Dossier des réglages : {path}. Il sera utilisé au prochain démarrage."
+  },
+  "settings.folder_failed": {
+    "en": "The settings folder could not be changed.",
+    "fr": "Le dossier des réglages n'a pas pu être changé."
+  },
+  "settings.restart_language": {
+    "en": "The language of the menus applies after you restart.",
+    "fr": "La langue des menus s'applique au prochain démarrage."
+  },
+  "settings.saved": {
+    "en": "Settings saved.",
+    "fr": "Réglages enregistrés."
+  }
+}
