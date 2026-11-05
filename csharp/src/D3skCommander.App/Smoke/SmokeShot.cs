@@ -23,6 +23,7 @@ internal static class SmokeShot
             Directory.CreateDirectory(directory);
         }
 
+        File.Delete(path);
         TryPlatformSave(bitmap, path);
         if (IsPng(path))
         {

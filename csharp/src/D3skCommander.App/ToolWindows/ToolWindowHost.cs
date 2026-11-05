@@ -37,6 +37,7 @@ public sealed class ToolWindowHost : IToolWindowHost
         ArgumentNullException.ThrowIfNull(kind);
         if (_open.TryGetValue(kind.Id, out var existing) && existing.IsVisible)
         {
+            existing.Activate();
             return existing;
         }
 

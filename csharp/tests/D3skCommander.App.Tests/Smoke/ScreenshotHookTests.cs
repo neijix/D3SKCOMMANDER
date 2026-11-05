@@ -143,6 +143,23 @@ public class ScreenshotHookTests
         Assert.False(main.IsVisible);
     }
 
+    [AvaloniaFact]
+    public void AStalePngFromAnEarlierRunIsNeverKept()
+    {
+        var path = NewPngPath();
+        byte[] stale = [137, 80, 78, 71, 13, 10, 26, 10, 0, 0, 0, 13, 73, 72, 68, 82, 0, 0, 0, 1, 0, 0, 0, 1];
+        File.WriteAllBytes(path, stale);
+        var clock = new FakeTimeProvider();
+        using var hook = Hook.Show(clock, new StringWriter(), (SmokeModule.ScreenshotVariable, path));
+        var window = hook.RequireWindow();
+        var width = Pixels(window.Bounds.Width);
+        var height = Pixels(window.Bounds.Height);
+
+        clock.Advance(SmokeModule.ShotDelay);
+
+        AssertPng(path, width, height);
+    }
+
     private static int Colours(string path)
     {
         using var bitmap = new Bitmap(path);

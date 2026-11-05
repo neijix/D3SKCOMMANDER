@@ -150,6 +150,36 @@ public class DialogServiceTests
     }
 
     [AvaloniaFact]
+    public async Task ATokenCancelledBeforeTheDialogOpensCompletesCancelledWithoutShowingIt()
+    {
+        using var host = ShellHost.Open(Language.En);
+        var surface = new WindowDialogSurface(new FixedOwner(host.Window), host.Localizer, new FakeFolderPicker());
+        using var source = new CancellationTokenSource();
+        await source.CancelAsync();
+
+        var pending = surface.ShowAsync(DialogRequest.ForConfirm("Delete", "Sure?"), source.Token);
+        var finished = await Task.WhenAny(pending, Task.Delay(TimeSpan.FromSeconds(2), TestContext.Current.CancellationToken));
+
+        Assert.Same(pending, finished);
+        Assert.False((await pending).Accepted);
+        Assert.Empty(Dialogs(host.Window));
+    }
+
+    [AvaloniaFact]
+    public async Task ADialogThatCannotBeShownFaultsTheCallerInsteadOfHangingIt()
+    {
+        using var host = ShellHost.Open(Language.En);
+        var owner = host.Window;
+        owner.Close();
+        var surface = new WindowDialogSurface(new FixedOwner(owner), host.Localizer, new FakeFolderPicker());
+        var pending = surface.ShowAsync(DialogRequest.ForMessage("Title", "Text"), TestContext.Current.CancellationToken);
+        var finished = await Task.WhenAny(pending, Task.Delay(TimeSpan.FromSeconds(2), TestContext.Current.CancellationToken));
+
+        Assert.Same(pending, finished);
+        await Assert.ThrowsAnyAsync<Exception>(() => pending);
+    }
+
+    [AvaloniaFact]
     public async Task EnterAcceptsWhenAllowedAndEscapeCancels()
     {
         using var host = ShellHost.Open(Language.En);

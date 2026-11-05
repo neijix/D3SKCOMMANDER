@@ -8,10 +8,6 @@ internal static class ToolWindowOwners
 {
     private static readonly List<WeakReference<MainWindow>> Open = [];
 
-    public static void Listen()
-    {
-    }
-
     public static void Opened(MainWindow window)
     {
         ArgumentNullException.ThrowIfNull(window);

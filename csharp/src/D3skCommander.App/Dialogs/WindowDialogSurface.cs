@@ -31,21 +31,38 @@ public sealed class WindowDialogSurface : IDialogSurface
 
     private void Open(DialogRequest request, CancellationToken cancellationToken, TaskCompletionSource<DialogResult> done)
     {
+        if (cancellationToken.IsCancellationRequested)
+        {
+            done.TrySetResult(DialogResult.Cancel());
+            return;
+        }
+
+        CancellationTokenRegistration registration = default;
         try
         {
             var owner = _owner.Current ?? throw new InvalidOperationException("A dialog needs the main window as its owner.");
             var model = DialogWindowModel.Create(request, _localizer, _folders);
             var window = new DialogWindow(model);
-            var registration = cancellationToken.Register(() => UiThread.Post(() => CloseIfOpen(window)));
+            registration = cancellationToken.Register(() => UiThread.Post(() => CloseIfOpen(window)));
             window.Closed += (_, _) =>
             {
                 registration.Dispose();
                 done.TrySetResult(window.Result ?? DialogResult.Cancel());
             };
-            _ = window.ShowDialog(owner);
+            var shown = window.ShowDialog(owner);
+            _ = shown.ContinueWith(
+                task =>
+                {
+                    registration.Dispose();
+                    done.TrySetException(task.Exception!.GetBaseException());
+                },
+                CancellationToken.None,
+                TaskContinuationOptions.OnlyOnFaulted,
+                TaskScheduler.Default);
         }
         catch (Exception ex)
         {
+            registration.Dispose();
             done.TrySetException(ex);
         }
     }

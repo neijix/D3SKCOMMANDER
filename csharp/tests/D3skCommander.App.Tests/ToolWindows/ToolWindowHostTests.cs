@@ -27,6 +27,23 @@ public class ToolWindowHostTests
     }
 
     [AvaloniaFact]
+    public void OpeningAnOpenToolActivatesItAgain()
+    {
+        using var app = ToolWindowApp.Open();
+        var first = app.Tools.Open(ToolKind.Search);
+        var other = app.Tools.Open(ToolKind.Passwords);
+        Avalonia.Threading.Dispatcher.UIThread.RunJobs();
+        var activated = 0;
+        first.Activated += (_, _) => activated++;
+
+        var again = app.Tools.Open(ToolKind.Search);
+
+        Assert.Same(first, again);
+        Avalonia.Threading.Dispatcher.UIThread.RunJobs();
+        Assert.Equal(1, activated);
+    }
+
+    [AvaloniaFact]
     public void ARegisteredStubOpensAsItsOwnWindow()
     {
         using var app = ToolWindowApp.Open();
@@ -154,9 +171,9 @@ public class ToolWindowHostTests
         Assert.True(app.Window.IsVisible);
         Assert.Contains(tool, app.Window.OwnedWindows);
 
-        _ = tool.TryCloseAsync();
+        var closing = tool.TryCloseAsync();
         guard.Answer(true);
-        await Task.Yield();
+        await closing;
         Assert.False(tool.IsVisible);
     }
 }

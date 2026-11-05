@@ -28,16 +28,6 @@ public static class GestureMap
         return new Gesture(ToGestureModifiers(modifiers), gestureKey.Value);
     }
 
-    public static KeyGesture? ToKeyGesture(Gesture? gesture)
-    {
-        if (gesture is null)
-        {
-            return null;
-        }
-
-        return ToKeyGesture(gesture.Value);
-    }
-
     public static KeyGesture ToKeyGesture(Gesture gesture)
     {
         if (!ToKey.TryGetValue(gesture.Key, out var key))

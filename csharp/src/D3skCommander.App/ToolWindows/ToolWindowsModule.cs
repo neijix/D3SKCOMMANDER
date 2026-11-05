@@ -8,7 +8,6 @@ public sealed class ToolWindowsModule
     public static void Register(IServiceCollection services)
     {
         ArgumentNullException.ThrowIfNull(services);
-        ToolWindowOwners.Listen();
         services.AddSingleton<ToolWindowsModule>();
         services.AddSingleton<SessionToolWindowGeometry>();
         services.AddSingleton<IToolWindowGeometry>(provider => provider.GetRequiredService<SessionToolWindowGeometry>());
