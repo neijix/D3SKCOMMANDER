@@ -1,0 +1,22 @@
+<UserControl xmlns="https://github.com/avaloniaui"
+             xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+             xmlns:l="using:D3skCommander.App.Features.Log"
+             x:Class="D3skCommander.App.Features.Log.LogView"
+             x:DataType="l:LogViewModel">
+  <Grid Margin="12" RowDefinitions="Auto,*,Auto" RowSpacing="8">
+    <TextBlock x:Name="NoticeText" Grid.Row="0" Text="{Binding Notice}" IsVisible="{Binding HasNotice}"
+               TextWrapping="Wrap" Foreground="DarkOrange"/>
+    <ListBox x:Name="LineList" Grid.Row="1" ItemsSource="{Binding Lines}">
+      <ListBox.ItemTemplate>
+        <DataTemplate x:DataType="x:String">
+          <TextBlock Text="{Binding}" FontFamily="monospace"/>
+        </DataTemplate>
+      </ListBox.ItemTemplate>
+    </ListBox>
+    <Grid Grid.Row="2" ColumnDefinitions="*,Auto,Auto" ColumnSpacing="8">
+      <TextBlock x:Name="SummaryText" Grid.Column="0" Text="{Binding Summary}" VerticalAlignment="Center"/>
+      <Button x:Name="RefreshButton" Grid.Column="1"/>
+      <Button x:Name="ClearButton" Grid.Column="2"/>
+    </Grid>
+  </Grid>
+</UserControl>

@@ -1,0 +1,22 @@
+{
+  "log.refresh": {
+    "en": "Refresh",
+    "fr": "Actualiser"
+  },
+  "log.clear_view": {
+    "en": "Clear view",
+    "fr": "Vider l'affichage"
+  },
+  "log.off": {
+    "en": "Operation logging is off, so nothing new is recorded. Turn on \"Log operations\" in Settings (F9).",
+    "fr": "Le journal des opérations est désactivé : rien de nouveau n'est enregistré. Activez « Journaliser les opérations » dans les options (F9)."
+  },
+  "log.empty": {
+    "en": "No operations recorded yet.",
+    "fr": "Aucune opération enregistrée pour le moment."
+  },
+  "log.count": {
+    "en": "{0} lines",
+    "fr": "{0} lignes"
+  }
+}

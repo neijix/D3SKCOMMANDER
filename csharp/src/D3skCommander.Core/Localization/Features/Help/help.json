@@ -1,0 +1,46 @@
+{
+  "help.keys.command": {
+    "en": "Command",
+    "fr": "Commande"
+  },
+  "help.keys.shortcut": {
+    "en": "Shortcut",
+    "fr": "Raccourci"
+  },
+  "help.keys.filter": {
+    "en": "Filter commands or shortcuts",
+    "fr": "Filtrer les commandes ou les raccourcis"
+  },
+  "help.keys.none": {
+    "en": "No shortcut",
+    "fr": "Aucun raccourci"
+  },
+  "help.about.name": {
+    "en": "D3skCommander",
+    "fr": "D3skCommander"
+  },
+  "help.about.tagline": {
+    "en": "A two-panel file manager for Linux, macOS and Windows.",
+    "fr": "Un gestionnaire de fichiers à deux panneaux pour Linux, macOS et Windows."
+  },
+  "help.about.version": {
+    "en": "Version {0}",
+    "fr": "Version {0}"
+  },
+  "help.about.repository": {
+    "en": "Repository: {0}",
+    "fr": "Dépôt : {0}"
+  },
+  "help.about.license": {
+    "en": "Released under the MIT license.",
+    "fr": "Publié sous licence MIT."
+  },
+  "help.about.runtime": {
+    "en": "Runtime: {0}",
+    "fr": "Environnement d'exécution : {0}"
+  },
+  "help.about.avalonia": {
+    "en": "Avalonia: {0}",
+    "fr": "Avalonia : {0}"
+  }
+}

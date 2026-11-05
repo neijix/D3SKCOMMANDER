@@ -1,0 +1,30 @@
+<Window xmlns="https://github.com/avaloniaui"
+        xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+        xmlns:h="using:D3skCommander.App.Features.Help"
+        x:Class="D3skCommander.App.Features.Help.KeysWindow"
+        x:DataType="h:KeysModel"
+        WindowStartupLocation="CenterOwner"
+        Width="560"
+        Height="560"
+        MinWidth="360"
+        MinHeight="280"
+        ShowInTaskbar="False">
+  <Grid Margin="12" RowDefinitions="Auto,Auto,*,Auto" RowSpacing="8">
+    <TextBox x:Name="FilterBox" Grid.Row="0" Text="{Binding Filter, Mode=TwoWay}"/>
+    <Grid Grid.Row="1" ColumnDefinitions="*,200" Margin="8,0">
+      <TextBlock x:Name="CommandHeader" Grid.Column="0" FontWeight="SemiBold"/>
+      <TextBlock x:Name="ShortcutHeader" Grid.Column="1" FontWeight="SemiBold"/>
+    </Grid>
+    <ListBox x:Name="RowList" Grid.Row="2" ItemsSource="{Binding Rows}">
+      <ListBox.ItemTemplate>
+        <DataTemplate x:DataType="h:KeyRow">
+          <Grid ColumnDefinitions="*,200">
+            <TextBlock Grid.Column="0" Text="{Binding Label}" TextTrimming="CharacterEllipsis"/>
+            <TextBlock Grid.Column="1" Text="{Binding Shortcuts}" FontFamily="monospace" TextTrimming="CharacterEllipsis"/>
+          </Grid>
+        </DataTemplate>
+      </ListBox.ItemTemplate>
+    </ListBox>
+    <Button x:Name="CloseButton" Grid.Row="3" HorizontalAlignment="Right" MinWidth="80"/>
+  </Grid>
+</Window>
