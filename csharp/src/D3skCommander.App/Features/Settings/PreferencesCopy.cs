@@ -22,6 +22,7 @@ public static class PreferencesCopy
             TreeWidthRight = source.TreeWidthRight,
             FavoriteTabsMode = source.FavoriteTabsMode,
             Toolbar = [.. source.Toolbar],
+            Associations = [.. source.Associations],
             UseTrash = source.UseTrash,
             ConfirmDelete = source.ConfirmDelete,
             ConfirmTrashFallback = source.ConfirmTrashFallback,

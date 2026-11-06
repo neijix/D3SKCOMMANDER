@@ -1,5 +1,7 @@
+using D3skCommander.App.Features.Associations;
 using D3skCommander.App.Features.Panels;
 using D3skCommander.App.Shell;
+using D3skCommander.Core.Associations;
 using D3skCommander.Core.Commands;
 using D3skCommander.Core.Launch;
 using Microsoft.Extensions.DependencyInjection;
@@ -12,12 +14,15 @@ public sealed class LaunchModule : IShellModule
     private readonly LaunchCommands _commands;
     private readonly CommandLineBarWidget _bar;
     private readonly IPanelWorkspace _panels;
+    private readonly IFileAssociations _associations;
 
-    public LaunchModule(LaunchCommands commands, CommandLineBarWidget bar, IPanelWorkspace panels)
+    public LaunchModule(LaunchCommands commands, CommandLineBarWidget bar, IPanelWorkspace panels, IFileAssociations associations)
     {
         ArgumentNullException.ThrowIfNull(commands);
         ArgumentNullException.ThrowIfNull(bar);
         ArgumentNullException.ThrowIfNull(panels);
+        ArgumentNullException.ThrowIfNull(associations);
+        _associations = associations;
         _commands = commands;
         _bar = bar;
         _panels = panels;
@@ -43,8 +48,16 @@ public sealed class LaunchModule : IShellModule
         shell.AppendDynamicItems("menu.tools", _commands.UserCommandItems);
         if (_panels is PanelWorkspace workspace)
         {
-            // Enter on a file the panel cannot enter opens it with its default application.
-            workspace.OpenFile = path => _commands.OpenDefault(path);
+            // Enter on a file opens it with the program of a matching association, else with its default application.
+            workspace.OpenFile = path =>
+            {
+                if (_associations.TryStart(AssociationKind.Open, path) is null)
+                {
+                    _commands.OpenDefault(path);
+                }
+            };
+            workspace.HasOpenAssociation = path => _associations.Has(AssociationKind.Open, path);
+            workspace.FileMenu = _associations.MenuFor;
         }
     }
 }

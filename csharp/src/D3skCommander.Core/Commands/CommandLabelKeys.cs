@@ -108,6 +108,7 @@ internal static class CommandLabelKeys
         "cmd.save_favorite_tabs",
         "cmd.restore_favorite_tabs_1",
         "cmd.manage_favorite_tabs",
+        "cmd.edit_file_associations",
     ];
 
     private static string[] Merge(string[] early, string[] late)

@@ -1,0 +1,98 @@
+{
+  "assoc.title": {
+    "en": "File associations",
+    "fr": "Associations de fichiers"
+  },
+  "assoc.add": {
+    "en": "Add rule",
+    "fr": "Ajouter une règle"
+  },
+  "assoc.remove": {
+    "en": "Remove rule",
+    "fr": "Supprimer la règle"
+  },
+  "assoc.up": {
+    "en": "Move up",
+    "fr": "Monter"
+  },
+  "assoc.down": {
+    "en": "Move down",
+    "fr": "Descendre"
+  },
+  "assoc.new_rule": {
+    "en": "New rule",
+    "fr": "Nouvelle règle"
+  },
+  "assoc.empty": {
+    "en": "No rule: Enter, F3 and F4 keep their built-in behavior.",
+    "fr": "Aucune règle : Entrée, F3 et F4 gardent leur comportement habituel."
+  },
+  "assoc.name": {
+    "en": "Name",
+    "fr": "Nom"
+  },
+  "assoc.masks": {
+    "en": "Masks (separated by ;)",
+    "fr": "Masques (séparés par ;)"
+  },
+  "assoc.action": {
+    "en": "Action",
+    "fr": "Action"
+  },
+  "assoc.program": {
+    "en": "Program",
+    "fr": "Programme"
+  },
+  "assoc.arguments": {
+    "en": "Arguments",
+    "fr": "Arguments"
+  },
+  "assoc.folder": {
+    "en": "Working folder",
+    "fr": "Dossier de travail"
+  },
+  "assoc.open": {
+    "en": "Open (Enter)",
+    "fr": "Ouvrir (Entrée)"
+  },
+  "assoc.view": {
+    "en": "View (F3)",
+    "fr": "Afficher (F3)"
+  },
+  "assoc.edit": {
+    "en": "Edit (F4)",
+    "fr": "Modifier (F4)"
+  },
+  "assoc.extras": {
+    "en": "Extra actions (context menu)",
+    "fr": "Actions supplémentaires (menu contextuel)"
+  },
+  "assoc.extra_add": {
+    "en": "Add action",
+    "fr": "Ajouter une action"
+  },
+  "assoc.extra_remove": {
+    "en": "Remove action",
+    "fr": "Supprimer l'action"
+  },
+  "assoc.extra_new": {
+    "en": "New action",
+    "fr": "Nouvelle action"
+  },
+  "assoc.hint": {
+    "en": "In arguments: %s the selection, %p the full path, %f the file name, %d its folder. With none, the full path is appended.",
+    "fr": "Dans les arguments : %s la sélection, %p le chemin complet, %f le nom du fichier, %d son dossier. Sans marqueur, le chemin complet est ajouté."
+  },
+  "assoc.open_with": {
+    "en": "Open with {program}",
+    "fr": "Ouvrir avec {program}"
+  },
+  "assoc.view_with": {
+    "en": "View with {program}",
+    "fr": "Afficher avec {program}"
+  },
+  "assoc.edit_with": {
+    "en": "Edit with {program}",
+    "fr": "Modifier avec {program}"
+  }
+}

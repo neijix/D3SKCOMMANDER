@@ -18,7 +18,18 @@ internal sealed class RecordingRunner : IProcessRunner
 {
     public List<ProcessRequest> Started { get; } = [];
 
-    public void Start(ProcessRequest request) => Started.Add(request);
+    /// <summary>When set, the next starts throw it (the program cannot be found).</summary>
+    public Exception? FailWith { get; set; }
+
+    public void Start(ProcessRequest request)
+    {
+        if (FailWith is not null)
+        {
+            throw FailWith;
+        }
+
+        Started.Add(request);
+    }
 }
 
 internal sealed class LaunchHarness : IDisposable

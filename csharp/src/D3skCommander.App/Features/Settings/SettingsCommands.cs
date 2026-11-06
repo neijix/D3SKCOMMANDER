@@ -65,6 +65,13 @@ public sealed class SettingsCommands
                 model.RequestFavorites();
             }
         });
+        shell.Handle(CommandId.EditFileAssociations, () =>
+        {
+            if (_tools.Open(ToolKind.Settings).View is SettingsViewModel model)
+            {
+                model.RequestAssociations();
+            }
+        });
         _tools.Register(ToolKind.Settings, CreateView);
     }
 

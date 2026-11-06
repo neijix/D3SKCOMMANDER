@@ -1,7 +1,9 @@
 using D3skCommander.App.Dialogs;
+using D3skCommander.App.Features.Associations;
 using D3skCommander.App.Features.Panels;
 using D3skCommander.App.Shell;
 using D3skCommander.App.ToolWindows;
+using D3skCommander.Core.Associations;
 using D3skCommander.Core.Commands;
 using D3skCommander.Core.Jobs;
 using D3skCommander.Core.Localization;
@@ -19,8 +21,9 @@ public sealed class ViewerCommands
     private readonly IDialogService _dialogs;
     private readonly ILocalizer _text;
     private readonly IJobService _jobs;
+    private readonly IFileAssociations? _associations;
 
-    public ViewerCommands(IPanelWorkspace panels, IToolWindowHost tools, IDialogService dialogs, ILocalizer text, IJobService jobs)
+    public ViewerCommands(IPanelWorkspace panels, IToolWindowHost tools, IDialogService dialogs, ILocalizer text, IJobService jobs, IFileAssociations? associations = null)
     {
         ArgumentNullException.ThrowIfNull(panels);
         ArgumentNullException.ThrowIfNull(tools);
@@ -32,6 +35,7 @@ public sealed class ViewerCommands
         _dialogs = dialogs;
         _text = text;
         _jobs = jobs;
+        _associations = associations;
     }
 
     public void Bind(IShellContributions shell)
@@ -54,6 +58,11 @@ public sealed class ViewerCommands
         if (path is null)
         {
             return _dialogs.ShowMessageAsync(_text.Get("cmd.view"), _text.Get("dlg.no_selection"));
+        }
+
+        if (_associations?.TryStart(AssociationKind.View, path) is { } started)
+        {
+            return started;
         }
 
         var window = _tools.Open(ToolKind.Lister);

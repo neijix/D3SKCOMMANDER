@@ -50,6 +50,9 @@ public sealed partial class FileListControl : UserControl
     /// <summary>A double-click landed on a row (the row index).</summary>
     public event EventHandler<int>? RowActivated;
 
+    /// <summary>A right-click landed on a row (the row index); the cursor is on it. Marks stay when the row is marked.</summary>
+    public event EventHandler<int>? RowContextRequested;
+
     /// <summary>A key the list handled (it may have moved the cursor or the marks).</summary>
     public event EventHandler<FileListKey>? KeyHandled;
 
@@ -167,13 +170,21 @@ public sealed partial class FileListControl : UserControl
     private void OnPointerPressed(object? sender, PointerPressedEventArgs e)
     {
         var point = e.GetCurrentPoint(this);
-        if (!point.Properties.IsLeftButtonPressed)
+        var index = IndexOf(e.Source as Visual);
+        if (point.Properties.IsRightButtonPressed && index >= 0)
         {
+            Focus();
+            if (!_list.IsRenaming)
+            {
+                _list.CursorIndex = index;
+                RowContextRequested?.Invoke(this, index);
+            }
+
+            e.Handled = true;
             return;
         }
 
-        var index = IndexOf(e.Source as Visual);
-        if (index < 0)
+        if (!point.Properties.IsLeftButtonPressed || index < 0)
         {
             return;
         }

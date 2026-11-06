@@ -1,7 +1,9 @@
 using D3skCommander.App.Dialogs;
+using D3skCommander.App.Features.Associations;
 using D3skCommander.App.Features.Panels;
 using D3skCommander.App.Shell;
 using D3skCommander.App.ToolWindows;
+using D3skCommander.Core.Associations;
 using D3skCommander.Core.Commands;
 using D3skCommander.Core.Common;
 using D3skCommander.Core.FileSystem;
@@ -13,12 +15,13 @@ namespace D3skCommander.App.Features.Editor;
 /// Edit (F4) opens the first file of the active panel's selection in the editor window; folders
 /// are skipped. EditNew (Shift+F4) asks for a name in the active folder. One window serves both.
 /// </summary>
-public sealed class EditorCommands(IPanelWorkspace panels, IToolWindowHost tools, IDialogService dialogs, ILocalizer text)
+public sealed class EditorCommands(IPanelWorkspace panels, IToolWindowHost tools, IDialogService dialogs, ILocalizer text, IFileAssociations? associations = null)
 {
     private readonly IPanelWorkspace _panels = panels ?? throw new ArgumentNullException(nameof(panels));
     private readonly IToolWindowHost _tools = tools ?? throw new ArgumentNullException(nameof(tools));
     private readonly IDialogService _dialogs = dialogs ?? throw new ArgumentNullException(nameof(dialogs));
     private readonly ILocalizer _text = text ?? throw new ArgumentNullException(nameof(text));
+    private readonly IFileAssociations? _associations = associations;
 
     public void Bind(IShellContributions shell)
     {
@@ -38,9 +41,12 @@ public sealed class EditorCommands(IPanelWorkspace panels, IToolWindowHost tools
         }
 
         var path = capture.Sources.FirstOrDefault(source => !Directory.Exists(source));
-        return path is null
-            ? _dialogs.ShowMessageAsync(_text.Get("cmd.edit"), _text.Get("dlg.no_selection"))
-            : OpenAsync(path);
+        if (path is null)
+        {
+            return _dialogs.ShowMessageAsync(_text.Get("cmd.edit"), _text.Get("dlg.no_selection"));
+        }
+
+        return _associations?.TryStart(AssociationKind.Edit, path) ?? OpenAsync(path);
     }
 
     public async Task EditNewAsync()

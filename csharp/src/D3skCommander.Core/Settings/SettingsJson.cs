@@ -1,6 +1,7 @@
 using System.Text.Encodings.Web;
 using System.Text.Json;
 using System.Text.Json.Serialization;
+using D3skCommander.Core.Associations;
 using D3skCommander.Core.Launch;
 using D3skCommander.Core.Panels;
 using D3skCommander.Core.Toolbar;
@@ -25,6 +26,7 @@ internal static class SettingsJson
         options.Converters.Add(new ColumnsConverter());
         options.Converters.Add(new UserCommandConverter());
         options.Converters.Add(new ToolbarJson());
+        options.Converters.Add(new AssociationsJson());
         return options;
     }
 

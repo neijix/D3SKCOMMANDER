@@ -5,8 +5,9 @@ namespace D3skCommander.Core.Launch;
 /// <summary>
 /// v0.1 <c>split_command_line</c> and <c>build_commands</c>.
 /// Words split on whitespace; double quotes group a word and are removed; <c>""</c> is an empty argument.
-/// <c>%s</c> in an argument (never in the program word) is replaced by each file, and that argument
-/// is repeated once per file. With no <c>%s</c>, the files are appended.
+/// A placeholder in an argument (never in the program word) is replaced by each file, and that argument
+/// is repeated once per file: <c>%s</c> and <c>%p</c> the full path, <c>%f</c> the file name, <c>%d</c> its folder.
+/// With no placeholder, the files are appended.
 /// </summary>
 public static class CommandBuilder
 {
@@ -84,7 +85,7 @@ public static class CommandBuilder
         for (var i = 1; i < words.Count; i++)
         {
             templates.Add(words[i]);
-            if (words[i].Contains("%s", StringComparison.Ordinal))
+            if (HasPlaceholder(words[i]))
             {
                 hasPlaceholder = true;
             }
@@ -111,11 +112,11 @@ public static class CommandBuilder
         var args = new List<string>();
         foreach (var word in templates)
         {
-            if (word.Contains("%s", StringComparison.Ordinal))
+            if (HasPlaceholder(word))
             {
                 foreach (var name in group)
                 {
-                    args.Add(word.Replace("%s", name, StringComparison.Ordinal));
+                    args.Add(ExpandPlaceholders(word, name));
                 }
             }
             else
@@ -134,6 +135,63 @@ public static class CommandBuilder
 
         return args;
     }
+
+    /// <summary>
+    /// The arguments of <paramref name="arguments"/> (split like a command line) for the files, with the
+    /// same placeholder rules as <see cref="Build"/>: no program word, and no placeholder appends every file.
+    /// </summary>
+    public static List<string> ExpandArguments(string arguments, IReadOnlyList<string> files)
+    {
+        ArgumentNullException.ThrowIfNull(arguments);
+        ArgumentNullException.ThrowIfNull(files);
+        var templates = Split(arguments).ToList();
+        return Expand(templates, files, templates.Any(HasPlaceholder));
+    }
+
+    /// <summary>Replaces <c>%s</c> and <c>%p</c> (full path), <c>%f</c> (file name) and <c>%d</c> (folder) in one pass, so text a file name contains is never expanded again.</summary>
+    public static string ExpandPlaceholders(string text, string file)
+    {
+        ArgumentNullException.ThrowIfNull(text);
+        ArgumentNullException.ThrowIfNull(file);
+        if (!HasPlaceholder(text))
+        {
+            return text;
+        }
+
+        var builder = new StringBuilder(text.Length + file.Length);
+        for (var i = 0; i < text.Length; i++)
+        {
+            if (text[i] == '%' && i + 1 < text.Length && IsPlaceholder(text[i + 1]))
+            {
+                builder.Append(text[++i] switch
+                {
+                    'f' => Path.GetFileName(file),
+                    'd' => Path.GetDirectoryName(file) ?? "",
+                    _ => file,
+                });
+                continue;
+            }
+
+            builder.Append(text[i]);
+        }
+
+        return builder.ToString();
+    }
+
+    private static bool HasPlaceholder(string word)
+    {
+        for (var i = 0; i + 1 < word.Length; i++)
+        {
+            if (word[i] == '%' && IsPlaceholder(word[i + 1]))
+            {
+                return true;
+            }
+        }
+
+        return false;
+    }
+
+    private static bool IsPlaceholder(char c) => c is 's' or 'p' or 'f' or 'd';
 
     private static void RequireMode(LaunchMode mode)
     {

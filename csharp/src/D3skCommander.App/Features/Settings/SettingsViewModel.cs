@@ -96,6 +96,7 @@ public sealed partial class SettingsViewModel : ObservableObject, IShellWidget
         _changeFolder = changeFolder;
         Labels = new SettingsLabels(text);
         ColumnSets = new ColumnSetsEditorModel(text, dialogs, settings.Preferences.Current.AllColumnSets());
+        Associations = new AssociationsEditorModel(text, settings.Preferences.Current.Associations);
         Favorites = new FavoriteTabsEditorModel(text, dialogs, settings.FavoriteTabs.Current, settings.Preferences.Current.FavoriteTabsMode);
         Load(settings.Preferences.Current);
         Toolbar = new ToolbarEditorModel(text, settings.Preferences.Current.Toolbar, UserCommandNames());
@@ -110,6 +111,14 @@ public sealed partial class SettingsViewModel : ObservableObject, IShellWidget
 
     /// <summary>The Columns section: the column sets and their columns.</summary>
     public ColumnSetsEditorModel ColumnSets { get; }
+
+    /// <summary>The File associations section: the rules that open, view and edit files with other programs.</summary>
+    public AssociationsEditorModel Associations { get; }
+
+    /// <summary>Raised when something asks the window to scroll the File associations section into view.</summary>
+    public event Action? AssociationsRequested;
+
+    public void RequestAssociations() => AssociationsRequested?.Invoke();
 
     /// <summary>The Favorite tabs section: saved tab sets and the restore mode.</summary>
     public FavoriteTabsEditorModel Favorites { get; }
@@ -164,6 +173,7 @@ public sealed partial class SettingsViewModel : ObservableObject, IShellWidget
         next.Terminal = Terminal.Trim();
         next.ColumnSets = [.. ColumnSets.Result()];
         next.Toolbar = [.. Toolbar.Result()];
+        next.Associations = [.. Associations.Result()];
         next.FavoriteTabsMode = Favorites.Mode;
         if (Favorites.Changed)
         {

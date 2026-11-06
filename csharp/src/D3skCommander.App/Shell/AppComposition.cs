@@ -1,5 +1,6 @@
 using D3skCommander.App.Dialogs;
 using D3skCommander.App.Features.Archives;
+using D3skCommander.App.Features.Associations;
 using D3skCommander.App.Features.Catalog;
 using D3skCommander.App.Features.Clipboard;
 using D3skCommander.App.Features.Compare;
@@ -43,6 +44,7 @@ public static class AppComposition
     {
         ArgumentNullException.ThrowIfNull(services);
         ArchivesModule.Register(services);
+        AssociationsModule.Register(services);
         CatalogModule.Register(services);
         ClipboardModule.Register(services);
         CompareModule.Register(services);

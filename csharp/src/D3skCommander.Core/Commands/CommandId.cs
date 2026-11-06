@@ -100,4 +100,5 @@ public enum CommandId
     SaveFavoriteTabs,
     RestoreFavoriteTabs1,
     ManageFavoriteTabs,
+    EditFileAssociations,
 }

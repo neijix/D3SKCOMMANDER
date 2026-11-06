@@ -1,0 +1,74 @@
+<UserControl xmlns="https://github.com/avaloniaui"
+             xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+             xmlns:s="using:D3skCommander.App.Features.Settings"
+             x:Class="D3skCommander.App.Features.Settings.AssociationsEditor"
+             x:DataType="s:AssociationsEditorModel">
+  <StackPanel Spacing="4">
+    <TextBlock FontWeight="SemiBold" Text="{Binding Title}"/>
+    <Grid ColumnDefinitions="*,Auto" ColumnSpacing="8">
+      <Panel Grid.Column="0">
+        <ListBox x:Name="AssociationList" Height="110" ItemsSource="{Binding Rows}" SelectedItem="{Binding SelectedRow, Mode=TwoWay}">
+          <ListBox.ItemTemplate>
+            <DataTemplate x:DataType="s:AssociationRuleRow">
+              <TextBlock Text="{Binding Display}"/>
+            </DataTemplate>
+          </ListBox.ItemTemplate>
+        </ListBox>
+        <TextBlock x:Name="AssociationEmpty" Foreground="Gray" Margin="10,8" TextWrapping="Wrap" IsHitTestVisible="False" IsVisible="{Binding IsEmpty}" Text="{Binding EmptyText}"/>
+      </Panel>
+      <StackPanel Grid.Column="1" Spacing="4">
+        <Button x:Name="AssociationAddButton" HorizontalAlignment="Stretch" Content="{Binding AddCaption}" Command="{Binding AddCommand}"/>
+        <Button x:Name="AssociationRemoveButton" HorizontalAlignment="Stretch" Content="{Binding RemoveCaption}" Command="{Binding RemoveCommand}"/>
+        <Button x:Name="AssociationUpButton" HorizontalAlignment="Stretch" Content="{Binding UpCaption}" Command="{Binding MoveUpCommand}"/>
+        <Button x:Name="AssociationDownButton" HorizontalAlignment="Stretch" Content="{Binding DownCaption}" Command="{Binding MoveDownCommand}"/>
+      </StackPanel>
+    </Grid>
+    <StackPanel x:Name="AssociationDetails" Spacing="4" Margin="0,4,0,0" IsVisible="{Binding SelectedRow, Converter={x:Static ObjectConverters.IsNotNull}}">
+      <Grid ColumnDefinitions="Auto,*" ColumnSpacing="8">
+        <TextBlock Grid.Column="0" Width="120" VerticalAlignment="Center" Text="{Binding NameCaption}"/>
+        <TextBox x:Name="AssociationNameBox" Grid.Column="1" Text="{Binding SelectedRow.Name, Mode=TwoWay}"/>
+      </Grid>
+      <Grid ColumnDefinitions="Auto,*" ColumnSpacing="8">
+        <TextBlock Grid.Column="0" Width="120" VerticalAlignment="Center" Text="{Binding MasksCaption}"/>
+        <TextBox x:Name="AssociationMasksBox" Grid.Column="1" Text="{Binding SelectedRow.Masks, Mode=TwoWay}"/>
+      </Grid>
+        <TextBlock Foreground="Gray" Text="{Binding OpenCaption}"/>
+        <Grid ColumnDefinitions="*,*" ColumnSpacing="8">
+          <TextBox x:Name="OpenProgramBox" Grid.Column="0" PlaceholderText="{Binding ProgramCaption}" Text="{Binding SelectedRow.Open.Program, Mode=TwoWay}"/>
+          <TextBox x:Name="OpenArgumentsBox" Grid.Column="1" PlaceholderText="{Binding ArgumentsCaption}" Text="{Binding SelectedRow.Open.Arguments, Mode=TwoWay}"/>
+        </Grid>
+        <TextBox x:Name="OpenFolderBox" PlaceholderText="{Binding FolderCaption}" Text="{Binding SelectedRow.Open.WorkingFolder, Mode=TwoWay}"/>
+        <TextBlock Foreground="Gray" Text="{Binding ViewCaption}"/>
+        <Grid ColumnDefinitions="*,*" ColumnSpacing="8">
+          <TextBox x:Name="ViewProgramBox" Grid.Column="0" PlaceholderText="{Binding ProgramCaption}" Text="{Binding SelectedRow.View.Program, Mode=TwoWay}"/>
+          <TextBox x:Name="ViewArgumentsBox" Grid.Column="1" PlaceholderText="{Binding ArgumentsCaption}" Text="{Binding SelectedRow.View.Arguments, Mode=TwoWay}"/>
+        </Grid>
+        <TextBox x:Name="ViewFolderBox" PlaceholderText="{Binding FolderCaption}" Text="{Binding SelectedRow.View.WorkingFolder, Mode=TwoWay}"/>
+        <TextBlock Foreground="Gray" Text="{Binding EditCaption}"/>
+        <Grid ColumnDefinitions="*,*" ColumnSpacing="8">
+          <TextBox x:Name="EditProgramBox" Grid.Column="0" PlaceholderText="{Binding ProgramCaption}" Text="{Binding SelectedRow.Edit.Program, Mode=TwoWay}"/>
+          <TextBox x:Name="EditArgumentsBox" Grid.Column="1" PlaceholderText="{Binding ArgumentsCaption}" Text="{Binding SelectedRow.Edit.Arguments, Mode=TwoWay}"/>
+        </Grid>
+        <TextBox x:Name="EditFolderBox" PlaceholderText="{Binding FolderCaption}" Text="{Binding SelectedRow.Edit.WorkingFolder, Mode=TwoWay}"/>
+      <TextBlock Foreground="Gray" Text="{Binding ExtrasCaption}"/>
+      <Grid ColumnDefinitions="*,Auto" ColumnSpacing="8">
+        <ListBox x:Name="ExtraList" Grid.Column="0" Height="90" ItemsSource="{Binding SelectedRow.Extras}" SelectedItem="{Binding SelectedRow.SelectedExtra, Mode=TwoWay}">
+          <ListBox.ItemTemplate>
+            <DataTemplate x:DataType="s:AssociationActionRow">
+              <Grid ColumnDefinitions="*,*,*" ColumnSpacing="4">
+                <TextBox Grid.Column="0" Text="{Binding Name, Mode=TwoWay}"/>
+                <TextBox Grid.Column="1" Text="{Binding Program, Mode=TwoWay}"/>
+                <TextBox Grid.Column="2" Text="{Binding Arguments, Mode=TwoWay}"/>
+              </Grid>
+            </DataTemplate>
+          </ListBox.ItemTemplate>
+        </ListBox>
+        <StackPanel Grid.Column="1" Spacing="4">
+          <Button x:Name="ExtraAddButton" HorizontalAlignment="Stretch" Content="{Binding AddExtraCaption}" Command="{Binding SelectedRow.AddExtraCommand}"/>
+          <Button x:Name="ExtraRemoveButton" HorizontalAlignment="Stretch" Content="{Binding RemoveExtraCaption}" Command="{Binding SelectedRow.RemoveExtraCommand}"/>
+        </StackPanel>
+      </Grid>
+      <TextBlock Foreground="Gray" TextWrapping="Wrap" Text="{Binding Hint}"/>
+    </StackPanel>
+  </StackPanel>
+</UserControl>

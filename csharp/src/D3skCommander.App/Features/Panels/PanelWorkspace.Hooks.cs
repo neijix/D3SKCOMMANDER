@@ -16,6 +16,12 @@ public sealed partial class PanelWorkspace : IInPlaceRename
     /// <summary>Opens a local file with its default application; set by the launch feature.</summary>
     public Action<string>? OpenFile { get; set; }
 
+    /// <summary>Whether an association opens the file, even one the panel would enter (an archive); set by the launch feature.</summary>
+    public Func<string, bool>? HasOpenAssociation { get; set; }
+
+    /// <summary>The context-menu entries for a local file (the associations' programs); set by the launch feature.</summary>
+    public Func<string, IReadOnlyList<ShellAction>>? FileMenu { get; set; }
+
     /// <summary>Raised with the active side when a rename starts; that side's pane opens its name editor.</summary>
     public event EventHandler<PanelSide>? RenameRequested;
 
@@ -59,12 +65,31 @@ public sealed partial class PanelWorkspace : IInPlaceRename
         }
 
         var entry = snap.Entries[snap.Cursor];
-        if (entry.IsDirectory || entry.IsParent || ArchiveFileSystemProvider.IsArchiveFile(entry.Path))
+        if (entry.IsDirectory || entry.IsParent)
+        {
+            return null;
+        }
+
+        if (ArchiveFileSystemProvider.IsArchiveFile(entry.Path) && HasOpenAssociation?.Invoke(entry.Path) != true)
         {
             return null;
         }
 
         return File.Exists(entry.Path) ? entry.Path : null;
+    }
+
+    /// <summary>The context-menu entries for the local file under the cursor of a side; empty for a folder, the parent entry or a remote entry.</summary>
+    public IReadOnlyList<ShellAction> FileMenuFor(PanelSide side)
+    {
+        var menu = FileMenu;
+        var snap = Read(side);
+        if (menu is null || snap.Cursor < 0 || snap.Cursor >= snap.Entries.Count)
+        {
+            return [];
+        }
+
+        var entry = snap.Entries[snap.Cursor];
+        return entry.IsDirectory || entry.IsParent || !File.Exists(entry.Path) ? [] : menu(entry.Path);
     }
 }
 

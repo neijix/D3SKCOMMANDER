@@ -27,6 +27,7 @@
         <TextBox x:Name="TerminalBox" Text="{Binding Terminal, Mode=TwoWay}"/>
         <s:ColumnSetsEditor x:Name="ColumnSetsSection" DataContext="{Binding ColumnSets}"/>
         <s:FavoriteTabsEditor x:Name="FavoritesSection" DataContext="{Binding Favorites}"/>
+        <s:AssociationsEditor x:Name="AssociationsSection" DataContext="{Binding Associations}"/>
         <s:ToolbarEditor x:Name="ToolbarSection" DataContext="{Binding Toolbar}"/>
         <TextBlock FontWeight="SemiBold" Text="{Binding Labels.IndexTitle}"/>
         <TextBlock Text="{Binding Labels.IndexRoots}"/>

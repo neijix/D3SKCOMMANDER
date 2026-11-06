@@ -56,7 +56,7 @@ internal static class MenuExpectations
 
         if (titleKey == "menu.config")
         {
-            return "Settings EditColumnSets CustomizeToolbar ManageFavoriteTabs SettingsFolder Log";
+            return "Settings EditColumnSets CustomizeToolbar ManageFavoriteTabs EditFileAssociations SettingsFolder Log";
         }
 
         if (titleKey == "menu.help")

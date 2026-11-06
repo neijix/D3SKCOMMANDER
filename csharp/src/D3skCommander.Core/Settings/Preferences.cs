@@ -1,3 +1,4 @@
+using D3skCommander.Core.Associations;
 using D3skCommander.Core.Index;
 using D3skCommander.Core.Launch;
 using D3skCommander.Core.Localization;
@@ -39,6 +40,7 @@ public sealed class Preferences
     private List<ColumnSet> _columnSets = [];
     private List<UserCommand> _userCommands = [];
     private List<ToolbarItem> _toolbar = ToolbarDefaults.Items();
+    private List<AssociationRule> _associations = [];
 
     /// <summary>v0.1 <c>Lang::from_env</c>: the saved language, otherwise the system language.</summary>
     public Language Language { get; set; } = Languages.Detect();
@@ -83,6 +85,13 @@ public sealed class Preferences
     {
         get => _toolbar;
         set => _toolbar = value is null ? ToolbarDefaults.Items() : ToolbarItems.Clean(value);
+    }
+
+    /// <summary>The file associations, first match wins. Empty: Enter, F3 and F4 keep their built-in behavior.</summary>
+    public List<AssociationRule> Associations
+    {
+        get => _associations;
+        set => _associations = value is null ? [] : [.. value.Where(rule => rule is not null)];
     }
 
     public bool UseTrash { get; set; } = true;

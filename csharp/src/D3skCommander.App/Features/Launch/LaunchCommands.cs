@@ -85,6 +85,22 @@ public sealed class LaunchCommands : IFileLauncher
     /// <summary>Starts the processes of a toolbar button; a failure is shown to the user.</summary>
     public LaunchResult Run(IReadOnlyList<ProcessRequest> requests) => Report(Launcher.Run(requests, _runner));
 
+    /// <summary>
+    /// Starts the processes on a worker thread (a slow program lookup never freezes the window); the
+    /// task ends once they started, and a failure was shown to the user.
+    /// </summary>
+    public async Task<LaunchResult> RunAsync(IReadOnlyList<ProcessRequest> requests)
+    {
+        ArgumentNullException.ThrowIfNull(requests);
+        var result = await Task.Run(() => Launcher.Run(requests, _runner)).ConfigureAwait(true);
+        if (result.Error is not null)
+        {
+            await ShowFailureAsync(result.Error).ConfigureAwait(true);
+        }
+
+        return result;
+    }
+
     /// <summary>What a toolbar button sees: the selected local files, the active folder (empty when no panel is open) and the user commands.</summary>
     public ToolbarContext ToolbarContext()
     {

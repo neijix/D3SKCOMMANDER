@@ -390,5 +390,9 @@
   "cmd.manage_favorite_tabs": {
     "en": "Manage favorite tabs…",
     "fr": "Gérer les onglets favoris…"
+  },
+  "cmd.edit_file_associations": {
+    "en": "File associations…",
+    "fr": "Associations de fichiers…"
   }
 }
