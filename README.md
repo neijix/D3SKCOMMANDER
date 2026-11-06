@@ -84,6 +84,7 @@ dependency; `src/D3skCommander.App` is the Avalonia window layer; each has its t
 
 ```sh
 ./release.sh                            # all of them at once, as a release builds them (below)
+                                        #   one click: release.bat (Windows), release.command (macOS, Linux)
 csharp/packaging/publish.sh win-x64     # dist/d3skcommander-<version>-windows-x86_64.zip
 csharp/packaging/publish.sh linux-x64   # dist/d3skcommander-<version>-linux-x86_64.tar.gz
 csharp/packaging/publish.sh osx-arm64   # dist/d3skcommander-<version>-macos-aarch64.tar.gz
@@ -99,6 +100,8 @@ not already there. The version is in `csharp/Directory.Build.props`.
 (`csharp/check.sh`), then the three archives and the Windows setup, and writes `dist/SHA256SUMS`.
 Without NSIS it skips the setup with a warning. Options: `--no-check` skips the gate,
 `--no-setup` skips the setup.
+
+To build them with a double-click, use `release.bat` on Windows or `release.command` on macOS. On Linux, run `release.command` from the file manager ("Run as a program") or a terminal. Both run `./release.sh` with the same options, open `dist/` when it worked and wait for a key before closing the window. `release.bat` needs Git for Windows, whose bash runs the script.
 
 Pushing a tag `v<version>` (that version) runs `.github/workflows/release.yml`, which runs the
 gate, builds the three archives and the Windows setup, and publishes the release.

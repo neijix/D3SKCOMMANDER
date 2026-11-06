@@ -11,6 +11,10 @@ on:
         description: Ignore the daily CI quota
         type: boolean
         default: false
+      release_smoke:
+        description: Also build the packages with the one-click release.bat / release.command (no gate, no setup)
+        type: boolean
+        default: false
 
 permissions:
   contents: read
@@ -59,3 +63,14 @@ jobs:
           dotnet-version: 10.0.x
       - run: csharp/check.sh
         shell: bash
+      # Opt-in: the one-click launchers build the archives as a double-click would.
+      - if: inputs.release_smoke && runner.os == 'Windows'
+        run: release.bat --no-check --no-setup
+        shell: cmd
+        env:
+          D3SK_UNATTENDED: "1"
+      - if: inputs.release_smoke && runner.os == 'macOS'
+        run: ./release.command --no-check --no-setup
+        shell: bash
+        env:
+          D3SK_UNATTENDED: "1"

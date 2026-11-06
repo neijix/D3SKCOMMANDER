@@ -43,7 +43,11 @@ cp LICENSE "$OUT/"
 
 cd "$ROOT/dist"
 if [ "$EXT" = zip ]; then
+  # Git Bash has no zip: Windows 10+ ships a bsdtar that writes one (-a picks it from .zip).
+  WINTAR=""
+  if [ -n "${SYSTEMROOT:-}" ] && command -v cygpath >/dev/null; then WINTAR="$(cygpath -u "$SYSTEMROOT")/System32/tar.exe"; fi
   if command -v zip >/dev/null; then zip -qr "$BASE.zip" "$BASE"
+  elif [ -n "$WINTAR" ] && [ -x "$WINTAR" ]; then "$WINTAR" -a -c -f "$BASE.zip" "$BASE"
   else python3 -c 'import shutil,sys; shutil.make_archive(sys.argv[1], "zip", ".", sys.argv[1])' "$BASE"; fi
 else
   tar -czf "$BASE.tar.gz" "$BASE"
