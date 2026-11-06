@@ -52,6 +52,7 @@ public sealed class SessionTab
 {
     private string _directory = "";
     private ColumnWidths _columnWidths = new();
+    private string _columnSet = ColumnSetCatalog.DefaultName;
 
     public string Directory
     {
@@ -62,6 +63,13 @@ public sealed class SessionTab
     public SortOrder Sort { get; set; } = SortOrder.NameAscending;
 
     public PanelViewMode ViewMode { get; set; } = PanelViewMode.Full;
+
+    /// <summary>Name of the column set the tab shows; an unknown name means "Default".</summary>
+    public string ColumnSet
+    {
+        get => _columnSet;
+        set => _columnSet = string.IsNullOrWhiteSpace(value) ? ColumnSetCatalog.DefaultName : value;
+    }
 
     public ColumnWidths ColumnWidths
     {

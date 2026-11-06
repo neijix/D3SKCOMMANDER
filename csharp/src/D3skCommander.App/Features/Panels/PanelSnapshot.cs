@@ -21,7 +21,8 @@ public sealed record PanelSnapshot(
     string? Filter = null,
     long Version = 0,
     ulong SelectedBytes = 0,
-    ulong TotalBytes = 0)
+    ulong TotalBytes = 0,
+    string ColumnSet = ColumnSetCatalog.DefaultName)
 {
     public static PanelSnapshot Empty { get; } = new(
         "",
@@ -76,7 +77,8 @@ public sealed record PanelSnapshot(
             tab.Filter,
             tab.Version,
             selectedBytes,
-            totalBytes);
+            totalBytes,
+            tab.ColumnSetName);
     }
 
     private static int CountSelectable(IReadOnlyList<Entry> entries)

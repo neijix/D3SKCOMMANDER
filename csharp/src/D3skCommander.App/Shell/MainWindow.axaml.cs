@@ -140,6 +140,12 @@ public sealed partial class MainWindow : Window
             foreach (var action in actions)
             {
                 var item = new MenuItem { Header = action.Header, Tag = action };
+                if (action.Checked)
+                {
+                    item.ToggleType = MenuItemToggleType.CheckBox;
+                    item.IsChecked = true;
+                }
+
                 item.Click += (_, _) => action.Invoke();
                 top.Items.Add(item);
             }

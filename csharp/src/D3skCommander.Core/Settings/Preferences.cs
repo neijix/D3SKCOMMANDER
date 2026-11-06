@@ -27,6 +27,7 @@ public sealed class Preferences
     private string _editor = "";
     private string _terminal = "";
     private Columns _columns = Columns.Default;
+    private List<ColumnSet> _columnSets = [];
     private List<UserCommand> _userCommands = [];
 
     /// <summary>v0.1 <c>Lang::from_env</c>: the saved language, otherwise the system language.</summary>
@@ -88,12 +89,25 @@ public sealed class Preferences
         set => _terminal = value ?? "";
     }
 
-    /// <summary>Which detail columns are shown. Widths live on the session.</summary>
+    /// <summary>
+    /// v0.1's four column flags. Kept so old files still load: they make the "Default" set until
+    /// <see cref="ColumnSets"/> stores one.
+    /// </summary>
     public Columns Columns
     {
         get => _columns;
         set => _columns = value ?? Columns.Default;
     }
+
+    /// <summary>The column sets the user changed or added. Read through <see cref="AllColumnSets"/>.</summary>
+    public List<ColumnSet> ColumnSets
+    {
+        get => _columnSets;
+        set => _columnSets = value ?? [];
+    }
+
+    /// <summary>"Default", "Details", then the user's sets; "Default" is built from <see cref="Columns"/> when not stored.</summary>
+    public IReadOnlyList<ColumnSet> AllColumnSets() => ColumnSetCatalog.Effective(_columnSets, _columns);
 
     public bool CheckUpdates { get; set; } = true;
 

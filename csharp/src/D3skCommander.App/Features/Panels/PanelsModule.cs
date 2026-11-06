@@ -53,7 +53,24 @@ public sealed class PanelsModule : IShellModule
         ArgumentNullException.ThrowIfNull(shell);
         _panels.Bind(shell);
         _commands.Bind(shell);
+        shell.AppendDynamicItems("menu.show", ColumnSetItems);
         shell.SetPanel(PanelSide.Left, () => new PanelPaneModel(PanelSide.Left, _panels, _text, _dialogs, shell.Dispatch, _drives));
         shell.SetPanel(PanelSide.Right, () => new PanelPaneModel(PanelSide.Right, _panels, _text, _dialogs, shell.Dispatch, _drives));
+    }
+
+    private IReadOnlyList<ShellAction> ColumnSetItems()
+    {
+        var current = _panels.ActiveColumnSetName;
+        var items = new List<ShellAction>();
+        foreach (var set in _panels.ColumnSets)
+        {
+            var name = set.Name;
+            items.Add(new ShellAction(
+                _text.Get("columnsets.menu") + ": " + name,
+                () => _panels.UseColumnSet(_panels.ActiveSide, name),
+                string.Equals(name, current, StringComparison.OrdinalIgnoreCase)));
+        }
+
+        return items;
     }
 }

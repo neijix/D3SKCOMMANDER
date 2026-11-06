@@ -1,4 +1,5 @@
 using System.Text;
+using D3skCommander.Core.FileKinds;
 
 namespace D3skCommander.Core.FileSystem;
 
@@ -9,6 +10,9 @@ public enum SortKey
     Size,
     Modified,
     Attributes,
+
+    /// <summary>File kind (folder, image, code, ...) then extension; decided from the name, so no file is read.</summary>
+    Kind,
 }
 
 /// <summary>Column and direction. The default is name, ascending.</summary>
@@ -200,7 +204,23 @@ public static partial class LocalFileSystem
                 return ThenName(string.CompareOrdinal(left.Attributes, right.Attributes), left, right);
             }
 
+            if (key == SortKey.Kind)
+            {
+                return CompareKind(left, right);
+            }
+
             throw new ArgumentOutOfRangeException(nameof(key), key, "Unknown sort key.");
+        }
+
+        private static int CompareKind(Entry left, Entry right)
+        {
+            var byKind = FileKindClassifier.Of(left).CompareTo(FileKindClassifier.Of(right));
+            if (byKind != 0)
+            {
+                return byKind;
+            }
+
+            return ThenName(CompareNatural(left.Extension, right.Extension), left, right);
         }
 
         private static int ThenName(int compared, Entry left, Entry right)

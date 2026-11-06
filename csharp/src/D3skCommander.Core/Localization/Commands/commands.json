@@ -350,5 +350,13 @@
   "cmd.select_all_but_first": {
     "en": "Select all but the first of each duplicate group",
     "fr": "Sélectionner tout sauf le premier de chaque groupe de doublons"
+  },
+  "cmd.next_column_set": {
+    "en": "Next column set",
+    "fr": "Jeu de colonnes suivant"
+  },
+  "cmd.edit_column_sets": {
+    "en": "Column sets…",
+    "fr": "Jeux de colonnes…"
   }
 }

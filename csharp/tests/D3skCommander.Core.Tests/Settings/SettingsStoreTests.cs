@@ -38,6 +38,7 @@ public class SettingsStoreTests
             Editor = "vi",
             Terminal = "xterm",
             Columns = new Columns(false, true, false, true),
+            ColumnSets = [new ColumnSet("Photos", [new ColumnSetColumn(ColumnId.Size, 90), new ColumnSetColumn(ColumnId.Created)])],
             CheckUpdates = false,
             UserCommands = [new UserCommand("Edit", "vi %s", true), new UserCommand("List", "ls", false)],
         };
@@ -346,6 +347,7 @@ public class SettingsStoreTests
         Assert.Equal("", preferences.Editor);
         Assert.Equal("", preferences.Terminal);
         Assert.Equal(Columns.Default, preferences.Columns);
+        Assert.Empty(preferences.ColumnSets);
         Assert.True(preferences.CheckUpdates);
         Assert.Empty(preferences.UserCommands);
     }
@@ -368,6 +370,13 @@ public class SettingsStoreTests
         Assert.Equal(expected.Editor, actual.Editor);
         Assert.Equal(expected.Terminal, actual.Terminal);
         Assert.Equal(expected.Columns, actual.Columns);
+        Assert.Equal(expected.ColumnSets.Count, actual.ColumnSets.Count);
+        for (var i = 0; i < expected.ColumnSets.Count; i++)
+        {
+            Assert.Equal(expected.ColumnSets[i].Name, actual.ColumnSets[i].Name);
+            Assert.Equal(expected.ColumnSets[i].Signature(), actual.ColumnSets[i].Signature());
+        }
+
         Assert.Equal(expected.CheckUpdates, actual.CheckUpdates);
         Assert.Equal(expected.UserCommands.Count, actual.UserCommands.Count);
         for (var i = 0; i < expected.UserCommands.Count; i++)

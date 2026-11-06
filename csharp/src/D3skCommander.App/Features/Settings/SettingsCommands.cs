@@ -44,6 +44,13 @@ public sealed class SettingsCommands
     {
         ArgumentNullException.ThrowIfNull(shell);
         shell.Handle(CommandId.Settings, () => _tools.Open(ToolKind.Settings));
+        shell.Handle(CommandId.EditColumnSets, () =>
+        {
+            if (_tools.Open(ToolKind.Settings).View is SettingsViewModel model)
+            {
+                model.RequestColumns();
+            }
+        });
         _tools.Register(ToolKind.Settings, CreateView);
     }
 

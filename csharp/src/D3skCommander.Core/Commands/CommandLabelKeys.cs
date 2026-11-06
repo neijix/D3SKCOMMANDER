@@ -98,6 +98,8 @@ internal static class CommandLabelKeys
         "cmd.select_all_but_first",
         "cmd.disk_usage",
         "cmd.quick_find",
+        "cmd.next_column_set",
+        "cmd.edit_column_sets",
     ];
 
     private static string[] Merge(string[] early, string[] late)

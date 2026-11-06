@@ -11,6 +11,7 @@ using D3skCommander.App.Shell;
 using D3skCommander.App.Tests.Dialogs;
 using D3skCommander.Core.Commands;
 using D3skCommander.Core.Localization;
+using D3skCommander.Core.Panels;
 using D3skCommander.Core.Providers;
 using Xunit;
 using TextCatalog = D3skCommander.Core.Localization.Localizer;
@@ -63,8 +64,10 @@ public class PanelPaneTests
     public async Task ANewListingShowsWithoutInputWithColumnsFittedToTheWidth()
     {
         using var rig = await Rig.Opened();
-        var wide = rig.Left.List.ShownColumns;
-        Assert.Equal(FileListColumnFlags.All, wide);
+        rig.Window.Width = 1600;
+        rig.Settle();
+        var wide = rig.Left.List.Layout.Select(c => c.Id).ToList();
+        Assert.Equal([ColumnId.Extension, ColumnId.Size, ColumnId.Modified, ColumnId.Attributes], wide);
 
         var other = Path.Combine(rig.Directory, "other");
         Directory.CreateDirectory(other);
@@ -76,8 +79,49 @@ public class PanelPaneTests
 
         rig.Window.Width = 330;
         rig.Settle();
-        Assert.NotEqual(FileListColumnFlags.All, rig.Left.List.ShownColumns);
-        Assert.True(rig.Left.List.ShownColumns.HasFlag(FileListColumnFlags.Size) || rig.Left.List.ShownColumns == FileListColumnFlags.None);
+        var narrow = rig.Left.List.Layout.Select(c => c.Id).ToList();
+        Assert.True(narrow.Count < wide.Count);
+        Assert.True(narrow.Contains(ColumnId.Size) || narrow.Count == 0);
+    }
+
+    [AvaloniaFact]
+    public async Task SwitchingTheColumnSetChangesTheColumnsOfThatPaneOnly()
+    {
+        using var rig = await Rig.Opened();
+        rig.Window.Width = 2600;
+        rig.Settle();
+        var before = rig.Right.List.Layout.Count;
+
+        rig.Workspace.UseColumnSet(PanelSide.Left, ColumnSetCatalog.DetailsName);
+        await rig.WaitUntil(() => rig.Left.List.Layout.Count > before);
+
+        Assert.Contains(ColumnId.Created, rig.Left.List.Layout.Select(c => c.Id));
+        Assert.Equal(before, rig.Right.List.Layout.Count);
+        Assert.Equal(rig.Left.List.Layout.Count, rig.Left.List.CurrentColumns.Count - 1);
+    }
+
+    [AvaloniaFact]
+    public async Task NextColumnSetCyclesTheActiveTabThroughTheSets()
+    {
+        using var rig = await Rig.Opened();
+        Assert.Equal(ColumnSetCatalog.DefaultName, rig.Workspace.ActiveColumnSetName);
+
+        rig.Workspace.NextColumnSet();
+        Assert.Equal(ColumnSetCatalog.DetailsName, rig.Workspace.ActiveColumnSetName);
+
+        rig.Workspace.NextColumnSet();
+        Assert.Equal(ColumnSetCatalog.DefaultName, rig.Workspace.ActiveColumnSetName);
+    }
+
+    [AvaloniaFact]
+    public async Task AResizedColumnKeepsItsWidthInTheCurrentSet()
+    {
+        using var rig = await Rig.Opened();
+
+        rig.Workspace.SaveColumnWidth(ColumnSetCatalog.DefaultName, ColumnId.Size, 140);
+        await rig.WaitUntil(() => rig.Left.List.Layout.First(c => c.Id == ColumnId.Size).Width == 140);
+
+        Assert.Equal(140, rig.Workspace.ColumnSets.First(s => s.Name == ColumnSetCatalog.DefaultName).Columns.First(c => c.Id == ColumnId.Size).Width);
     }
 
     [AvaloniaFact]

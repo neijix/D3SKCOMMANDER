@@ -90,6 +90,11 @@ public class MenuTests
         {
             foreach (var item in top.Items.OfType<MenuItem>())
             {
+                if (item.Tag is ShellAction)
+                {
+                    continue;
+                }
+
                 var command = Assert.IsType<CommandId>(item.Tag);
                 var gesture = CommandCatalog.PrimaryGesture(command);
                 var header = Assert.IsType<string>(item.Header);

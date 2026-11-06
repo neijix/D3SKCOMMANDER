@@ -109,6 +109,8 @@ internal static class MenuLayout
         CommandId.SortDate,
         CommandId.SortSize,
         null,
+        CommandId.NextColumnSet,
+        null,
         CommandId.NewTab,
         CommandId.CloseTab,
         CommandId.NextTab,
@@ -135,6 +137,7 @@ internal static class MenuLayout
     private static MenuDefinition Config() => Menu("menu.config",
     [
         CommandId.Settings,
+        CommandId.EditColumnSets,
         CommandId.SettingsFolder,
         CommandId.Log,
     ]);

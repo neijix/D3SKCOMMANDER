@@ -1,0 +1,138 @@
+{
+  "col.created": {
+    "en": "Created",
+    "fr": "Créé"
+  },
+  "col.accessed": {
+    "en": "Accessed",
+    "fr": "Consulté"
+  },
+  "col.owner": {
+    "en": "Owner",
+    "fr": "Propriétaire"
+  },
+  "col.group": {
+    "en": "Group",
+    "fr": "Groupe"
+  },
+  "col.kind": {
+    "en": "Type",
+    "fr": "Type"
+  },
+  "col.modified": {
+    "en": "Modified",
+    "fr": "Modifié"
+  },
+  "col.name": {
+    "en": "Name",
+    "fr": "Nom"
+  },
+  "kind.folder": {
+    "en": "Folder",
+    "fr": "Dossier"
+  },
+  "kind.link": {
+    "en": "Link",
+    "fr": "Lien"
+  },
+  "kind.archive": {
+    "en": "{ext} archive",
+    "fr": "Archive {ext}"
+  },
+  "kind.image": {
+    "en": "{ext} image",
+    "fr": "Image {ext}"
+  },
+  "kind.audio": {
+    "en": "{ext} audio",
+    "fr": "Audio {ext}"
+  },
+  "kind.video": {
+    "en": "{ext} video",
+    "fr": "Vidéo {ext}"
+  },
+  "kind.pdf": {
+    "en": "PDF document",
+    "fr": "Document PDF"
+  },
+  "kind.document": {
+    "en": "{ext} document",
+    "fr": "Document {ext}"
+  },
+  "kind.spreadsheet": {
+    "en": "{ext} spreadsheet",
+    "fr": "Tableur {ext}"
+  },
+  "kind.code": {
+    "en": "{ext} source",
+    "fr": "Source {ext}"
+  },
+  "kind.executable": {
+    "en": "{ext} program",
+    "fr": "Programme {ext}"
+  },
+  "kind.text": {
+    "en": "Text",
+    "fr": "Texte"
+  },
+  "kind.other": {
+    "en": "{ext} file",
+    "fr": "Fichier {ext}"
+  },
+  "kind.file": {
+    "en": "File",
+    "fr": "Fichier"
+  },
+  "columnsets.menu": {
+    "en": "Column set",
+    "fr": "Jeu de colonnes"
+  },
+  "columnsets.edit": {
+    "en": "Edit column sets…",
+    "fr": "Modifier les jeux de colonnes…"
+  },
+  "columnsets.title": {
+    "en": "Column sets",
+    "fr": "Jeux de colonnes"
+  },
+  "columnsets.new": {
+    "en": "New set",
+    "fr": "Nouveau jeu"
+  },
+  "columnsets.add": {
+    "en": "Add",
+    "fr": "Ajouter"
+  },
+  "columnsets.rename": {
+    "en": "Rename…",
+    "fr": "Renommer…"
+  },
+  "columnsets.delete": {
+    "en": "Delete",
+    "fr": "Supprimer"
+  },
+  "columnsets.up": {
+    "en": "Up",
+    "fr": "Haut"
+  },
+  "columnsets.down": {
+    "en": "Down",
+    "fr": "Bas"
+  },
+  "columnsets.width": {
+    "en": "Width (0 = auto)",
+    "fr": "Largeur (0 = auto)"
+  },
+  "columnsets.name_prompt": {
+    "en": "Name of the set",
+    "fr": "Nom du jeu"
+  },
+  "columnsets.columns": {
+    "en": "Columns of the set",
+    "fr": "Colonnes du jeu"
+  },
+  "columnsets.builtin": {
+    "en": "Built-in set: its columns can be changed, it cannot be deleted or renamed.",
+    "fr": "Jeu intégré : ses colonnes sont modifiables, il ne peut être ni supprimé ni renommé."
+  }
+}

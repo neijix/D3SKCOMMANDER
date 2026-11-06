@@ -43,6 +43,7 @@ public sealed partial class PanelPaneView : UserControl
         _files.KeyHandled += (_, _) => model.Sync();
         _files.EnterPressed += (_, _) => _ = model.OpenEntryAsync();
         _files.RowActivated += (_, _) => _ = model.OpenEntryAsync();
+        BindHeader(model, _files);
         ListHost.Content = _files;
         BuildBar(model);
         ShowDrives(model);

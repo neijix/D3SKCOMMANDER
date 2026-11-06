@@ -23,7 +23,7 @@ public sealed class ShellMenu
 }
 
 /// <summary>A menu item that is not a catalog command: a text the user chose and what it runs.</summary>
-public sealed record ShellAction(string Header, Action Invoke);
+public sealed record ShellAction(string Header, Action Invoke, bool Checked = false);
 
 public sealed class ShellMenuEntry
 {

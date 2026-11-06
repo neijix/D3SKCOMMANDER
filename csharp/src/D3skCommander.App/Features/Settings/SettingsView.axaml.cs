@@ -1,4 +1,5 @@
 using Avalonia.Controls;
+using Avalonia.Threading;
 
 namespace D3skCommander.App.Features.Settings;
 
@@ -16,5 +17,6 @@ public sealed partial class SettingsView : UserControl
         ArgumentNullException.ThrowIfNull(model);
         DataContext = model;
         model.CloseRequested += () => (TopLevel.GetTopLevel(this) as Window)?.Close();
+        model.ColumnsRequested += () => Dispatcher.UIThread.Post(() => this.FindControl<ColumnSetsEditor>("ColumnSetsSection")?.BringIntoView());
     }
 }

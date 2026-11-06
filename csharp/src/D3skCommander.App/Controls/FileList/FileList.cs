@@ -2,6 +2,7 @@ using System.Collections.Specialized;
 using D3skCommander.App.Shell;
 using D3skCommander.Core.FileSystem;
 using D3skCommander.Core.Localization;
+using D3skCommander.Core.Panels;
 
 namespace D3skCommander.App.Controls.FileList;
 
@@ -33,7 +34,7 @@ public sealed partial class FileList : IShellWidget
     {
         ArgumentNullException.ThrowIfNull(localizer);
         _localizer = localizer;
-        _columns = FileListEntryRows.Columns(View, ShownColumns).ToList();
+        _columns = FileListEntryRows.Columns(View, _layout).ToList();
     }
 
     public string? Name => "Rows";
@@ -54,7 +55,7 @@ public sealed partial class FileList : IShellWidget
     }
 
     private FileListView _view = FileListView.Full;
-    private FileListColumnFlags _shown = FileListColumnFlags.All;
+    private IReadOnlyList<ColumnSetColumn> _layout = FileListEntryRows.ClassicLayout;
 
     public FileListView View
     {
@@ -62,10 +63,11 @@ public sealed partial class FileList : IShellWidget
         set => ChangeView(value);
     }
 
-    public FileListColumnFlags ShownColumns
+    /// <summary>The optional columns of the full view, in order, with their widths (0 = automatic).</summary>
+    public IReadOnlyList<ColumnSetColumn> Layout
     {
-        get => _shown;
-        set => ChangeColumns(value);
+        get => _layout;
+        set => ChangeLayout(value);
     }
 
     /// <summary>Tiles per row in the thumbnail view (the control sets it from its width).</summary>
@@ -317,19 +319,22 @@ public sealed partial class FileList : IShellWidget
         }
     }
 
-    private void ChangeColumns(FileListColumnFlags shown)
+    private void ChangeLayout(IReadOnlyList<ColumnSetColumn> layout)
     {
-        if (_shown == shown)
+        ArgumentNullException.ThrowIfNull(layout);
+        if (_layout.Select(Sig).SequenceEqual(layout.Select(Sig)))
         {
             return;
         }
 
-        _shown = shown;
+        _layout = layout;
         if (!_custom)
         {
             RebuildFromEntries();
         }
     }
+
+    private static string Sig(ColumnSetColumn column) => $"{(int)column.Id}:{column.Width}";
 
     private void Watch(IEnumerable<Entry>? next)
     {
@@ -363,13 +368,13 @@ public sealed partial class FileList : IShellWidget
         var keep = CurrentKey();
         var previous = _cursorIndex;
         CloseEditor();
-        _columns = FileListEntryRows.Columns(View, ShownColumns).ToList();
+        _columns = FileListEntryRows.Columns(View, _layout).ToList();
         var built = _entries is IReadOnlyCollection<Entry> known ? new List<FileListRow>(known.Count) : [];
         if (_entries is not null)
         {
             foreach (var entry in _entries)
             {
-                built.Add(FileListEntryRows.Create(entry, View, _columns, ShownColumns, _localizer));
+                built.Add(FileListEntryRows.Create(entry, View, _columns, _localizer));
             }
         }
 

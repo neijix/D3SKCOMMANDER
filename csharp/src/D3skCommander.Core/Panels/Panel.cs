@@ -28,11 +28,12 @@ public sealed class Panel
         SortOrder sort,
         bool showHidden,
         IFileSystemProvider provider,
-        CancellationToken cancellationToken = default)
+        CancellationToken cancellationToken = default,
+        IReadOnlyList<string>? columnSets = null)
     {
         ArgumentNullException.ThrowIfNull(paths);
         ArgumentNullException.ThrowIfNull(provider);
-        var tabs = await OpenTabsAsync(paths, sort, showHidden, provider, cancellationToken).ConfigureAwait(false);
+        var tabs = await OpenTabsAsync(paths, sort, showHidden, provider, cancellationToken, columnSets).ConfigureAwait(false);
         if (tabs.Count == 0)
         {
             tabs.Add(await OpenTabAsync(LocalFileSystem.HomeDirectory(), sort, showHidden, provider, cancellationToken)
@@ -44,7 +45,7 @@ public sealed class Panel
 
     public async Task NewTabAsync(bool showHidden, CancellationToken cancellationToken = default)
     {
-        var tab = new Tab(Active.Location, Active.Sort, _provider);
+        var tab = new Tab(Active.Location, Active.Sort, _provider) { ColumnSetName = Active.ColumnSetName };
         await tab.ReloadAsync(showHidden, cancellationToken).ConfigureAwait(false);
         _tabs.Insert(ActiveTab + 1, tab);
         ActiveTab++;
@@ -54,7 +55,7 @@ public sealed class Panel
     public async Task NewTabAtAsync(Location location, bool showHidden, CancellationToken cancellationToken = default)
     {
         ArgumentNullException.ThrowIfNull(location);
-        var tab = new Tab(location, Active.Sort, _provider);
+        var tab = new Tab(location, Active.Sort, _provider) { ColumnSetName = Active.ColumnSetName };
         await tab.ReloadAsync(showHidden, cancellationToken).ConfigureAwait(false);
         if (tab.Error is not null)
         {
@@ -98,17 +99,24 @@ public sealed class Panel
         SortOrder sort,
         bool showHidden,
         IFileSystemProvider provider,
-        CancellationToken cancellationToken)
+        CancellationToken cancellationToken,
+        IReadOnlyList<string>? columnSets)
     {
         var tabs = new List<Tab>();
-        foreach (var path in paths)
+        for (var i = 0; i < paths.Count; i++)
         {
-            if (!Directory.Exists(path))
+            if (!Directory.Exists(paths[i]))
             {
                 continue;
             }
 
-            tabs.Add(await OpenTabAsync(path, sort, showHidden, provider, cancellationToken).ConfigureAwait(false));
+            var tab = await OpenTabAsync(paths[i], sort, showHidden, provider, cancellationToken).ConfigureAwait(false);
+            if (columnSets is not null && i < columnSets.Count && !string.IsNullOrWhiteSpace(columnSets[i]))
+            {
+                tab.ColumnSetName = columnSets[i];
+            }
+
+            tabs.Add(tab);
         }
 
         return tabs;

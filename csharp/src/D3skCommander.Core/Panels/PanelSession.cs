@@ -4,7 +4,12 @@ using D3skCommander.Core.Settings;
 namespace D3skCommander.Core.Panels;
 
 /// <summary>What a panel reopens at start: its tab folders, the active tab, the sort and the view.</summary>
-public sealed record PanelStart(IReadOnlyList<string> Paths, int Active, SortOrder Sort, PanelViewMode View);
+public sealed record PanelStart(
+    IReadOnlyList<string> Paths,
+    int Active,
+    SortOrder Sort,
+    PanelViewMode View,
+    IReadOnlyList<string>? ColumnSets = null);
 
 /// <summary>
 /// The panel part of the session: a panel's tabs saved on every change, and reopened at start.
@@ -17,6 +22,7 @@ public static class PanelSession
         ArgumentException.ThrowIfNullOrEmpty(home);
         ArgumentNullException.ThrowIfNull(exists);
         var paths = new List<string>();
+        var sets = new List<string>();
         var active = 0;
         SessionTab? activeTab = null;
         if (saved is not null)
@@ -36,6 +42,7 @@ public static class PanelSession
                 }
 
                 paths.Add(tab.Directory);
+                sets.Add(tab.ColumnSet);
             }
         }
 
@@ -44,7 +51,7 @@ public static class PanelSession
             return new PanelStart([home], 0, SortOrder.NameAscending, PanelViewMode.Full);
         }
 
-        return new PanelStart(paths, active, activeTab.Sort, activeTab.ViewMode);
+        return new PanelStart(paths, active, activeTab.Sort, activeTab.ViewMode, sets);
     }
 
     /// <summary>The panel's tabs as the session keeps them; every tab carries the panel's view.</summary>
@@ -54,7 +61,13 @@ public static class PanelSession
         var saved = new SessionPanel { ActiveIndex = panel.ActiveTab };
         foreach (var tab in panel.Tabs)
         {
-            saved.Tabs.Add(new SessionTab { Directory = tab.Location.Path, Sort = tab.Sort, ViewMode = view });
+            saved.Tabs.Add(new SessionTab
+            {
+                Directory = tab.Location.Path,
+                Sort = tab.Sort,
+                ViewMode = view,
+                ColumnSet = tab.ColumnSetName,
+            });
         }
 
         return saved;

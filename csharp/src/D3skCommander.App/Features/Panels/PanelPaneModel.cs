@@ -117,6 +117,7 @@ public sealed partial class PanelPaneModel : ObservableObject, IShellWidget
         else
         {
             PushSelection(snap);
+            ShowColumns();
         }
 
         PushFilter(snap);
@@ -243,11 +244,8 @@ public sealed partial class PanelPaneModel : ObservableObject, IShellWidget
             return;
         }
 
-        var flags = Flags(_panels.Columns.Fitting((float)_width, 8f));
-        if (List.ShownColumns != flags)
-        {
-            List.ShownColumns = flags;
-        }
+        var set = _panels.ColumnSetFor(_side).Fitting((float)_width, 8f);
+        List.Layout = set.Columns;
     }
 
     private void Refresh(PanelSnapshot snap)
@@ -325,31 +323,5 @@ public sealed partial class PanelPaneModel : ObservableObject, IShellWidget
         }
 
         _ = _dialogs.ShowMessageAsync(_text.Get("panels.folder"), message);
-    }
-
-    private static FileListColumnFlags Flags(Columns columns)
-    {
-        var flags = FileListColumnFlags.None;
-        if (columns.Extension)
-        {
-            flags |= FileListColumnFlags.Extension;
-        }
-
-        if (columns.Size)
-        {
-            flags |= FileListColumnFlags.Size;
-        }
-
-        if (columns.Date)
-        {
-            flags |= FileListColumnFlags.Date;
-        }
-
-        if (columns.Attributes)
-        {
-            flags |= FileListColumnFlags.Attributes;
-        }
-
-        return flags;
     }
 }

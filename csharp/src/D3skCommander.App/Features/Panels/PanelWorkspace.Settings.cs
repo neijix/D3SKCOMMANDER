@@ -4,9 +4,6 @@ namespace D3skCommander.App.Features.Panels;
 
 public sealed partial class PanelWorkspace
 {
-    /// <summary>The detail columns the preferences show (every column when there is no settings store).</summary>
-    public Columns Columns => _settings?.Preferences.Current.Columns ?? Columns.Default;
-
     /// <summary>The visited folders, latest first, as the session keeps them.</summary>
     public IReadOnlyList<string> History => _settings is null ? [] : [.. _settings.Session.Current.History];
 

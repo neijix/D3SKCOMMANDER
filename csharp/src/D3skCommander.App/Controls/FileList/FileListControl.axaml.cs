@@ -38,6 +38,7 @@ public sealed partial class FileListControl : UserControl
         AddHandler(KeyDownEvent, OnKeyDown, RoutingStrategies.Tunnel);
         Rows.AddHandler(PointerPressedEvent, OnPointerPressed, RoutingStrategies.Tunnel);
         StartThumbs();
+        InitHeaderMenu();
         _list.TableChanged += OnTableChanged;
         _list.CursorRevealed += OnCursorRevealed;
         ShowTable();
@@ -161,28 +162,6 @@ public sealed partial class FileListControl : UserControl
         }
 
         Rows.ScrollIntoView(index);
-    }
-
-    private void BuildHeader()
-    {
-        Header.Children.Clear();
-        Header.ColumnDefinitions.Clear();
-        var columns = _list.CurrentColumns;
-        for (var i = 0; i < columns.Count; i++)
-        {
-            Header.ColumnDefinitions.Add(FileListLayout.Definition(columns[i]));
-            var block = new TextBlock
-            {
-                Text = _list.HeaderText(columns[i].HeaderKey),
-                Tag = columns[i].HeaderKey,
-                FontWeight = FontWeight.SemiBold,
-                VerticalAlignment = VerticalAlignment.Center,
-                Margin = new Thickness(i == 0 && _list.ShowsIcons ? FileListLayout.IconLeft + FileListLayout.IconSize + 4 : 4, 0, 4, 0),
-                TextTrimming = TextTrimming.CharacterEllipsis,
-            };
-            Grid.SetColumn(block, i);
-            Header.Children.Add(block);
-        }
     }
 
     private void OnPointerPressed(object? sender, PointerPressedEventArgs e)

@@ -42,6 +42,7 @@ internal static class CommandBindings
         Add(list, GestureModifiers.Ctrl, GestureKey.F4, CommandId.SortExt);
         Add(list, GestureModifiers.Ctrl, GestureKey.F5, CommandId.SortDate);
         Add(list, GestureModifiers.Ctrl, GestureKey.F6, CommandId.SortSize);
+        Add(list, GestureModifiers.Ctrl, GestureKey.F7, CommandId.NextColumnSet);
         Add(list, GestureModifiers.Ctrl, GestureKey.A, CommandId.SelectAll);
         Add(list, GestureModifiers.Ctrl, GestureKey.B, CommandId.Branch);
         Add(list, GestureModifiers.Ctrl, GestureKey.C, CommandId.ClipCopy);

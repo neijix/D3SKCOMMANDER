@@ -47,6 +47,9 @@ public sealed partial class Tab
 
     public SortOrder Sort { get; private set; }
 
+    /// <summary>Name of the column set this tab shows (a session keeps it). Resolve it with <see cref="ColumnSetCatalog.Resolve"/>.</summary>
+    public string ColumnSetName { get; set; } = ColumnSetCatalog.DefaultName;
+
     /// <summary>Index into <see cref="VisibleEntries"/>.</summary>
     public int Cursor { get; private set; }
 

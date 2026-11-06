@@ -26,6 +26,7 @@ public static class PreferencesCopy
             Editor = source.Editor,
             Terminal = source.Terminal,
             Columns = source.Columns,
+            ColumnSets = [.. source.ColumnSets.Select(set => set.Clone())],
             CheckUpdates = source.CheckUpdates,
             UserCommands = [.. source.UserCommands],
         };

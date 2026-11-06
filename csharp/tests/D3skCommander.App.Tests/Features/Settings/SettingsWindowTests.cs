@@ -51,7 +51,7 @@ public class SettingsWindowTests
         stored.ShowHidden = true;
         stored.Editor = "kate";
         stored.Terminal = "xterm";
-        stored.Columns = new Columns(false, true, false, true);
+        stored.ColumnSets = [new ColumnSet("Mine", [new ColumnSetColumn(ColumnId.Size, 80)])];
         stored.UserCommands = [new UserCommand("Open", "xdg-open %s", true)];
         harness.Settings.Preferences.Save(stored);
 
@@ -64,11 +64,42 @@ public class SettingsWindowTests
         Assert.True(Find<CheckBox>(window, "HiddenBox").IsChecked);
         Assert.Equal("kate", Find<TextBox>(window, "EditorBox").Text);
         Assert.Equal("xterm", Find<TextBox>(window, "TerminalBox").Text);
-        Assert.False(Find<CheckBox>(window, "ExtensionBox").IsChecked);
-        Assert.True(Find<CheckBox>(window, "SizeBox").IsChecked);
+        Assert.Contains(model.ColumnSets.Sets, set => set.Name == "Mine");
+        Assert.NotNull(Find(window, "ColumnSetsSection"));
         Assert.Equal("Open — xdg-open %s", Assert.Single(model.Commands).Display);
         Assert.Contains("current", Find<TextBlock>(window, "FolderLabel").Text);
         window.Close();
+    }
+
+    [AvaloniaFact]
+    public void TheColumnsSectionAddsASetEditsItsColumnsAndApplySavesThem()
+    {
+        using var harness = new SettingsHarness();
+        var model = harness.NewView();
+        var editor = model.ColumnSets;
+        Assert.Equal([ColumnSetCatalog.DefaultName, ColumnSetCatalog.DetailsName], editor.Sets.Select(s => s.Name));
+
+        var made = editor.Add("Mine");
+        Assert.Same(made, editor.SelectedSet);
+        Assert.Equal(9, editor.Rows.Count);
+        editor.Rows.First(r => r.Id == ColumnId.Owner).IsShown = true;
+        editor.Rows.First(r => r.Id == ColumnId.Owner).Width = 120m;
+        editor.SelectedRow = editor.Rows.First(r => r.Id == ColumnId.Owner);
+        editor.MoveUp();
+        model.Apply();
+
+        var saved = harness.Settings.Preferences.Current.AllColumnSets().First(s => s.Name == "Mine");
+        Assert.Contains(saved.Columns, c => c.Id == ColumnId.Owner && c.Width == 120);
+        Assert.Equal(4, saved.Columns.Count);
+        Assert.Equal(3, harness.Settings.Preferences.Current.AllColumnSets().Count);
+
+        editor.SelectedSet = editor.Sets.First(s => s.Name == ColumnSetCatalog.DefaultName);
+        Assert.False(editor.IsCustomSelected);
+        editor.DeleteSet();
+        Assert.Equal(3, editor.Sets.Count);
+        editor.SelectedSet = editor.Sets.First(s => s.Name == "Mine");
+        editor.DeleteSet();
+        Assert.Equal(2, editor.Sets.Count);
     }
 
     [AvaloniaFact]

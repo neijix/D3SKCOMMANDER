@@ -82,4 +82,31 @@ public class PanelSessionTests
             Directory.Delete(root, true);
         }
     }
+
+    [Fact]
+    public void EachTabKeepsItsColumnSetThroughCaptureAndRestore()
+    {
+        var saved = new SessionPanel
+        {
+            ActiveIndex = 0,
+            Tabs =
+            [
+                new SessionTab { Directory = "/a", ColumnSet = "Details" },
+                new SessionTab { Directory = "/gone", ColumnSet = "Wide" },
+                new SessionTab { Directory = "/c", ColumnSet = "Photos" },
+            ],
+        };
+
+        var start = PanelSession.Restore(saved, "/home/me", path => path != "/gone");
+
+        Assert.Equal(["/a", "/c"], start.Paths);
+        Assert.Equal(["Details", "Photos"], start.ColumnSets);
+    }
+
+    [Fact]
+    public void ATabWithoutASavedSetShowsDefault()
+    {
+        Assert.Equal(ColumnSetCatalog.DefaultName, new SessionTab().ColumnSet);
+        Assert.Equal(ColumnSetCatalog.DefaultName, new SessionTab { ColumnSet = " " }.ColumnSet);
+    }
 }

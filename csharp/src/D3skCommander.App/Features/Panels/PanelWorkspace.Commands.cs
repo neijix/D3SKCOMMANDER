@@ -34,6 +34,7 @@ public sealed partial class PanelWorkspace
         shell.Handle(CommandId.SortExt, () => Run(() => SortAsync(SortKey.Extension)));
         shell.Handle(CommandId.SortDate, () => Run(() => SortAsync(SortKey.Modified)));
         shell.Handle(CommandId.SortSize, () => Run(() => SortAsync(SortKey.Size)));
+        shell.Handle(CommandId.NextColumnSet, NextColumnSet);
         shell.Handle(CommandId.SelectAll, SelectAll);
         shell.Handle(CommandId.SelectAllButFirst, SelectAllButFirst);
         shell.Handle(CommandId.UnselectAll, UnselectAll);

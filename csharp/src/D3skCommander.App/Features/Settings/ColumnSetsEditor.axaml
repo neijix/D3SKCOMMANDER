@@ -1,0 +1,43 @@
+<UserControl xmlns="https://github.com/avaloniaui"
+             xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+             xmlns:s="using:D3skCommander.App.Features.Settings"
+             xmlns:p="using:D3skCommander.Core.Panels"
+             x:Class="D3skCommander.App.Features.Settings.ColumnSetsEditor"
+             x:DataType="s:ColumnSetsEditorModel">
+  <StackPanel Spacing="4">
+    <TextBlock FontWeight="SemiBold" Text="{Binding Title}"/>
+    <Grid ColumnDefinitions="*,Auto" ColumnSpacing="8">
+      <ListBox x:Name="SetList" Grid.Column="0" Height="84" ItemsSource="{Binding Sets}" SelectedItem="{Binding SelectedSet, Mode=TwoWay}">
+        <ListBox.ItemTemplate>
+          <DataTemplate x:DataType="p:ColumnSet">
+            <TextBlock Text="{Binding Name}"/>
+          </DataTemplate>
+        </ListBox.ItemTemplate>
+      </ListBox>
+      <StackPanel Grid.Column="1" Spacing="4">
+        <Button x:Name="AddSetButton" HorizontalAlignment="Stretch" Content="{Binding AddCaption}" Command="{Binding AddSetCommand}"/>
+        <Button x:Name="RenameSetButton" HorizontalAlignment="Stretch" IsEnabled="{Binding IsCustomSelected}" Content="{Binding RenameCaption}" Command="{Binding RenameSetCommand}"/>
+        <Button x:Name="DeleteSetButton" HorizontalAlignment="Stretch" IsEnabled="{Binding IsCustomSelected}" Content="{Binding DeleteCaption}" Command="{Binding DeleteSetCommand}"/>
+      </StackPanel>
+    </Grid>
+    <TextBlock Text="{Binding ColumnsCaption}"/>
+    <Grid ColumnDefinitions="*,Auto" ColumnSpacing="8">
+      <ListBox x:Name="ColumnList" Grid.Column="0" Height="190" ItemsSource="{Binding Rows}" SelectedItem="{Binding SelectedRow, Mode=TwoWay}">
+        <ListBox.ItemTemplate>
+          <DataTemplate x:DataType="s:ColumnRow">
+            <Grid ColumnDefinitions="*,100" ColumnSpacing="8">
+              <CheckBox Grid.Column="0" Content="{Binding Label}" IsChecked="{Binding IsShown, Mode=TwoWay}"/>
+              <NumericUpDown Grid.Column="1" Minimum="0" Maximum="1000" Increment="10" FormatString="0" Value="{Binding Width, Mode=TwoWay}"/>
+            </Grid>
+          </DataTemplate>
+        </ListBox.ItemTemplate>
+      </ListBox>
+      <StackPanel Grid.Column="1" Spacing="4">
+        <Button x:Name="UpButton" HorizontalAlignment="Stretch" Content="{Binding UpCaption}" Command="{Binding MoveUpCommand}"/>
+        <Button x:Name="DownButton" HorizontalAlignment="Stretch" Content="{Binding DownCaption}" Command="{Binding MoveDownCommand}"/>
+        <TextBlock Foreground="Gray" Text="{Binding WidthCaption}"/>
+      </StackPanel>
+    </Grid>
+    <TextBlock Foreground="Gray" TextWrapping="Wrap" Text="{Binding BuiltInNote}"/>
+  </StackPanel>
+</UserControl>

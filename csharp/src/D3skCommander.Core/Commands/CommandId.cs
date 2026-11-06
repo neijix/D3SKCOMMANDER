@@ -90,4 +90,6 @@ public enum CommandId
     SelectAllButFirst,
     DiskUsage,
     QuickFind,
+    NextColumnSet,
+    EditColumnSets,
 }

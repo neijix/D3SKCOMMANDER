@@ -22,11 +22,6 @@ public sealed class SettingsLabels
         IndexHours = text.Get("quickfind.settings.hours");
         Editor = text.Get("editor");
         Terminal = text.Get("terminal");
-        Columns = text.Get("columns");
-        Extension = text.Get("ext");
-        Size = text.Get("size");
-        Date = text.Get("date");
-        Attributes = text.Get("attr");
         CheckUpdates = text.Get("check_updates");
         UserCommands = text.Get("settings.user_commands");
         Add = text.Get("settings.add");
@@ -68,16 +63,6 @@ public sealed class SettingsLabels
     public string Editor { get; }
 
     public string Terminal { get; }
-
-    public string Columns { get; }
-
-    public string Extension { get; }
-
-    public string Size { get; }
-
-    public string Date { get; }
-
-    public string Attributes { get; }
 
     public string CheckUpdates { get; }
 

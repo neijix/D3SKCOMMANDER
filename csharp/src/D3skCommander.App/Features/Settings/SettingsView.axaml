@@ -25,13 +25,7 @@
         <TextBox x:Name="EditorBox" Text="{Binding Editor, Mode=TwoWay}"/>
         <TextBlock Text="{Binding Labels.Terminal}"/>
         <TextBox x:Name="TerminalBox" Text="{Binding Terminal, Mode=TwoWay}"/>
-        <StackPanel Orientation="Horizontal" Spacing="12">
-          <TextBlock VerticalAlignment="Center" Text="{Binding Labels.Columns}"/>
-          <CheckBox x:Name="ExtensionBox" Content="{Binding Labels.Extension}" IsChecked="{Binding ShowExtension, Mode=TwoWay}"/>
-          <CheckBox x:Name="SizeBox" Content="{Binding Labels.Size}" IsChecked="{Binding ShowSize, Mode=TwoWay}"/>
-          <CheckBox x:Name="DateBox" Content="{Binding Labels.Date}" IsChecked="{Binding ShowDate, Mode=TwoWay}"/>
-          <CheckBox x:Name="AttributesBox" Content="{Binding Labels.Attributes}" IsChecked="{Binding ShowAttributes, Mode=TwoWay}"/>
-        </StackPanel>
+        <s:ColumnSetsEditor x:Name="ColumnSetsSection" DataContext="{Binding ColumnSets}"/>
         <TextBlock FontWeight="SemiBold" Text="{Binding Labels.IndexTitle}"/>
         <TextBlock Text="{Binding Labels.IndexRoots}"/>
         <TextBox x:Name="IndexRootsBox" Text="{Binding IndexRoots, Mode=TwoWay}"/>

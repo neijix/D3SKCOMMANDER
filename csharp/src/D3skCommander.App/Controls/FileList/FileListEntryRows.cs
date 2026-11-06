@@ -1,5 +1,6 @@
 using D3skCommander.Core.FileSystem;
 using D3skCommander.Core.Localization;
+using D3skCommander.Core.Panels;
 
 namespace D3skCommander.App.Controls.FileList;
 
@@ -11,7 +12,16 @@ public static class FileListEntryRows
     public const double DateWidth = 148;
     public const double AttributesWidth = 96;
 
-    public static IReadOnlyList<FileListColumn> Columns(FileListView view, FileListColumnFlags shown)
+    /// <summary>The columns every optional column set starts from: the four classic ones, auto width.</summary>
+    public static IReadOnlyList<ColumnSetColumn> ClassicLayout { get; } =
+    [
+        new(ColumnId.Extension),
+        new(ColumnId.Size),
+        new(ColumnId.Modified),
+        new(ColumnId.Attributes),
+    ];
+
+    public static IReadOnlyList<FileListColumn> Columns(FileListView view, IReadOnlyList<ColumnSetColumn> layout)
     {
         var columns = new List<FileListColumn> { new("name", 1, true) };
         if (view != FileListView.Full)
@@ -19,19 +29,20 @@ public static class FileListEntryRows
             return columns;
         }
 
-        AddOptional(columns, shown);
+        foreach (var column in layout)
+        {
+            var width = column.Width > 0 ? Math.Max(column.Width, ColumnInfo.MinWidth(column.Id)) : ColumnInfo.AutoWidth(column.Id);
+            columns.Add(new FileListColumn(ColumnInfo.HeaderKey(column.Id), width, false, column.Id));
+        }
+
         return columns;
     }
-
-    public static FileListRow Create(Entry entry, FileListView view, FileListColumnFlags shown, ILocalizer text) =>
-        Create(entry, view, Columns(view, shown), shown, text);
 
     /// <summary>The row for <paramref name="entry"/> under <paramref name="columns"/> (from <see cref="Columns"/>); its cells are formatted when first read.</summary>
     public static FileListRow Create(
         Entry entry,
         FileListView view,
         IReadOnlyList<FileListColumn> columns,
-        FileListColumnFlags shown,
         ILocalizer text)
     {
         ArgumentNullException.ThrowIfNull(entry);
@@ -40,7 +51,7 @@ public static class FileListEntryRows
         var parent = entry.IsParent;
         return new FileListRow(
             entry.Path,
-            () => Cells(entry, view, columns, shown, text),
+            () => Cells(entry, view, columns, text),
             parent ? text.Get("filelist.parent") : entry.Name,
             !parent,
             !parent,
@@ -52,79 +63,45 @@ public static class FileListEntryRows
         Entry entry,
         FileListView view,
         IReadOnlyList<FileListColumn> columns,
-        FileListColumnFlags shown,
         ILocalizer text)
     {
+        var showsExtension = columns.Any(column => column.Id == ColumnId.Extension);
         var cells = new string[columns.Count];
         for (var i = 0; i < columns.Count; i++)
         {
-            cells[i] = Cell(entry, columns[i].HeaderKey, view, shown, text);
+            cells[i] = Cell(entry, columns[i].HeaderKey, view, showsExtension, text);
         }
 
         return cells;
     }
 
-    private static void AddOptional(List<FileListColumn> columns, FileListColumnFlags shown)
+    private static string Cell(Entry entry, string key, FileListView view, bool showsExtension, ILocalizer text)
     {
-        if (shown.HasFlag(FileListColumnFlags.Extension))
+        var id = ColumnInfo.FromHeaderKey(key);
+        return id switch
         {
-            columns.Add(new FileListColumn("ext", ExtensionWidth));
-        }
-
-        if (shown.HasFlag(FileListColumnFlags.Size))
-        {
-            columns.Add(new FileListColumn("size", SizeWidth));
-        }
-
-        if (shown.HasFlag(FileListColumnFlags.Date))
-        {
-            columns.Add(new FileListColumn("date", DateWidth));
-        }
-
-        if (shown.HasFlag(FileListColumnFlags.Attributes))
-        {
-            columns.Add(new FileListColumn("attr", AttributesWidth));
-        }
+            ColumnId.Name => NameOf(entry, view, showsExtension, text),
+            ColumnId.Extension => ExtensionOf(entry),
+            ColumnId.Size => SizeOf(entry, text),
+            ColumnId.Modified => DateOf(entry),
+            ColumnId.Attributes => entry.Attributes,
+            ColumnId.Created => entry.IsParent ? "" : ColumnValues.Created(entry),
+            ColumnId.Accessed => entry.IsParent ? "" : ColumnValues.Accessed(entry),
+            ColumnId.Owner => entry.IsParent ? "" : ColumnValues.Owner(entry),
+            ColumnId.Group => entry.IsParent ? "" : ColumnValues.Group(entry),
+            ColumnId.Kind => ColumnValues.Kind(entry, text),
+            _ => "",
+        };
     }
 
-    private static string Cell(Entry entry, string key, FileListView view, FileListColumnFlags shown, ILocalizer text)
-    {
-        if (key == "name")
-        {
-            return NameOf(entry, view, shown, text);
-        }
-
-        if (key == "ext")
-        {
-            return ExtensionOf(entry);
-        }
-
-        if (key == "size")
-        {
-            return SizeOf(entry, text);
-        }
-
-        if (key == "date")
-        {
-            return DateOf(entry);
-        }
-
-        if (key == "attr")
-        {
-            return entry.Attributes;
-        }
-
-        return "";
-    }
-
-    private static string NameOf(Entry entry, FileListView view, FileListColumnFlags shown, ILocalizer text)
+    private static string NameOf(Entry entry, FileListView view, bool showsExtension, ILocalizer text)
     {
         if (entry.IsParent)
         {
             return text.Get("filelist.parent");
         }
 
-        if (view != FileListView.Full || entry.IsDirectory || !shown.HasFlag(FileListColumnFlags.Extension))
+        if (view != FileListView.Full || entry.IsDirectory || !showsExtension)
         {
             return entry.Name;
         }

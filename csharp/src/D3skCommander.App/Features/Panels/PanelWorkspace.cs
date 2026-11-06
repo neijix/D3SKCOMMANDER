@@ -342,7 +342,8 @@ public sealed partial class PanelWorkspace : IPanelWorkspace, IDisposable
                 start.Sort,
                 _showHidden,
                 _files,
-                cancellationToken).ConfigureAwait(false),
+                cancellationToken,
+                start.ColumnSets).ConfigureAwait(false),
             cancellationToken).ConfigureAwait(false);
 
     private bool TryEnter() => !_lifetime.IsCancellationRequested && _nav.Wait(0);

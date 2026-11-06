@@ -72,18 +72,6 @@ public sealed partial class SettingsViewModel : ObservableObject, IShellWidget
     private string _terminal = "";
 
     [ObservableProperty]
-    private bool _showExtension;
-
-    [ObservableProperty]
-    private bool _showSize;
-
-    [ObservableProperty]
-    private bool _showDate;
-
-    [ObservableProperty]
-    private bool _showAttributes;
-
-    [ObservableProperty]
     private UserCommandRow? _selectedCommand;
 
     [ObservableProperty]
@@ -107,6 +95,7 @@ public sealed partial class SettingsViewModel : ObservableObject, IShellWidget
         _dialogs = dialogs;
         _changeFolder = changeFolder;
         Labels = new SettingsLabels(text);
+        ColumnSets = new ColumnSetsEditorModel(text, dialogs, settings.Preferences.Current.AllColumnSets());
         Load(settings.Preferences.Current);
     }
 
@@ -115,6 +104,14 @@ public sealed partial class SettingsViewModel : ObservableObject, IShellWidget
     public SettingsLabels Labels { get; }
 
     public ObservableCollection<UserCommandRow> Commands { get; } = [];
+
+    /// <summary>The Columns section: the column sets and their columns.</summary>
+    public ColumnSetsEditorModel ColumnSets { get; }
+
+    /// <summary>Raised when something asks the window to scroll the Columns section into view.</summary>
+    public event Action? ColumnsRequested;
+
+    public void RequestColumns() => ColumnsRequested?.Invoke();
 
     public IReadOnlyList<string> Languages => [Labels.LanguageEnglish, Labels.LanguageFrench];
 
@@ -146,7 +143,7 @@ public sealed partial class SettingsViewModel : ObservableObject, IShellWidget
         next.IndexRefreshHours = (int)Math.Clamp(IndexRefreshHours ?? Preferences.DefaultIndexRefreshHours, 0, Preferences.MaxIndexRefreshHours);
         next.Editor = Editor.Trim();
         next.Terminal = Terminal.Trim();
-        next.Columns = new Columns(ShowExtension, ShowSize, ShowDate, ShowAttributes);
+        next.ColumnSets = [.. ColumnSets.Result()];
         next.UserCommands = Commands.Select(row => row.Command).ToList();
         _settings.Preferences.Save(next);
         _log.Enabled = next.LogOperations;
@@ -246,10 +243,6 @@ public sealed partial class SettingsViewModel : ObservableObject, IShellWidget
         IndexRefreshHours = current.IndexRefreshHours;
         Editor = current.Editor;
         Terminal = current.Terminal;
-        ShowExtension = current.Columns.Extension;
-        ShowSize = current.Columns.Size;
-        ShowDate = current.Columns.Date;
-        ShowAttributes = current.Columns.Attributes;
         foreach (var command in current.UserCommands)
         {
             Commands.Add(new UserCommandRow(command));
