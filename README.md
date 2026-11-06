@@ -28,6 +28,16 @@ What works today:
   usage bars, your usual folders, network shares and, on Linux, disks to mount or eject
   (`udisksctl`); Properties (Alt+Enter), and files dropped from the system copied into a panel;
 - quick view (Ctrl+Q) of the file under the cursor in the other panel;
+- column sets: named sets of columns (name, extension, size, modified, created, accessed,
+  attributes, owner, group, type) with their order and widths, chosen per tab from the header's
+  right-click menu or cycled with Ctrl+F7, and edited in Settings;
+- a toolbar under the menu that you fill in Settings (right-click it to customize): built-in
+  commands, your own commands or programs, with separators;
+- a folder tree beside each panel (Ctrl+Shift+T) that follows the panel's folder;
+- favorite tabs: both panels' tabs saved under a name (Ctrl+Alt+S) and reopened from
+  Show > Favorite tabs, replacing or adding to the open tabs;
+- file associations: per name mask, the programs that open, view (F3) or edit (F4) a file,
+  plus extra actions in the panel's right-click menu (Settings);
 - search (Alt+F7) with several masks, excluded files and folders, field history, saved
   templates, a duplicate finder, and results opened as a panel tab you can copy, move or delete
   from; quick find (Ctrl+Shift+F) filters a name index of your drives as you type;
@@ -147,6 +157,8 @@ The default keys of the first version are kept:
 | Ctrl+F1 / F2 / Ctrl+Shift+F1 | Brief / Full / Thumbnails | Ctrl+F3…F6 | Sort by name, ext, date, size |
 | Ctrl+G | Go to the file's folder | Space | Mark (a folder: measure it) |
 | + / - / * | Select / Unselect group / Invert | Ins | Mark |
+| Ctrl+F7 | Next column set | Ctrl+Shift+T | Folder tree |
+| Ctrl+Alt+S | Save favorite tabs | Ctrl+Alt+1 | Open the first favorite tabs |
 
 A command whose feature is not built yet shows in its menu, disabled.
 
