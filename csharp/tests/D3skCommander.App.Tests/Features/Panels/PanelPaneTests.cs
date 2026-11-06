@@ -39,7 +39,7 @@ public class PanelPaneTests
         Assert.Equal([CommandId.DrivesLeft, .. shared], rig.LeftView.BarButtons.Select(b => (CommandId)b.Tag!));
         Assert.Equal([CommandId.DrivesRight, .. shared], rig.RightView.BarButtons.Select(b => (CommandId)b.Tag!));
         Assert.All(rig.LeftView.BarButtons, b => Assert.True(b.Bounds.Width > 0));
-        Assert.Equal("Directory hotlist (Ctrl+D)", ToolTip.GetTip(rig.LeftView.BarButtons[2]));
+        Assert.Equal($"Directory hotlist ({(OperatingSystem.IsMacOS() ? "Cmd" : "Ctrl")}+D)", ToolTip.GetTip(rig.LeftView.BarButtons[2]));
         Assert.Equal(PanelSide.Left, rig.Workspace.ActiveSide);
 
         rig.ClickControl(rig.RightView.BarButtons[2]);
