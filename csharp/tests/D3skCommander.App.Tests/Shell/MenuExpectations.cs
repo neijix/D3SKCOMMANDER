@@ -36,7 +36,7 @@ internal static class MenuExpectations
 
         if (titleKey == "menu.commands")
         {
-            return "Search MultiRename CompareFiles Sync | DirSizes Branch QuickFilter | BrowseFolder Hotlist AddHotlist History GoToContainingFolder | Back Forward Parent Root Home | SameDir Swap Terminal";
+            return "Search MultiRename CompareFiles Sync | DirSizes DiskUsage Branch QuickFilter | BrowseFolder Hotlist AddHotlist History GoToContainingFolder | Back Forward Parent Root Home | SameDir Swap Terminal";
         }
 
         if (titleKey == "menu.net")

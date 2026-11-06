@@ -64,6 +64,7 @@ internal static class MenuLayout
         CommandId.Sync,
         null,
         CommandId.DirSizes,
+        CommandId.DiskUsage,
         CommandId.Branch,
         CommandId.QuickFilter,
         null,

@@ -4,6 +4,7 @@ using D3skCommander.App.Features.Catalog;
 using D3skCommander.App.Features.Clipboard;
 using D3skCommander.App.Features.Compare;
 using D3skCommander.App.Features.Crypt;
+using D3skCommander.App.Features.DiskUsage;
 using D3skCommander.App.Features.Drives;
 using D3skCommander.App.Features.Editor;
 using D3skCommander.App.Features.FileOps;
@@ -43,6 +44,7 @@ public static class AppComposition
         ClipboardModule.Register(services);
         CompareModule.Register(services);
         CryptModule.Register(services);
+        DiskUsageModule.Register(services);
         DrivesModule.Register(services);
         EditorModule.Register(services);
         FileOpsModule.Register(services);

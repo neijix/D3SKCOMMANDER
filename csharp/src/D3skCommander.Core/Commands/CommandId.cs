@@ -88,4 +88,5 @@ public enum CommandId
     ClipPaste,
     GoToContainingFolder,
     SelectAllButFirst,
+    DiskUsage,
 }

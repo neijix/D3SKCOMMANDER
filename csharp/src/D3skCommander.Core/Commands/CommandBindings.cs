@@ -28,6 +28,7 @@ internal static class CommandBindings
         Add(list, GestureModifiers.Alt, GestureKey.F5, CommandId.Pack);
         Add(list, GestureModifiers.Alt, GestureKey.F9, CommandId.Unpack);
         Add(list, GestureModifiers.Alt, GestureKey.F7, CommandId.Search);
+        Add(list, GestureModifiers.Shift | GestureModifiers.Alt, GestureKey.L, CommandId.DiskUsage);
         Add(list, GestureModifiers.Alt, GestureKey.F1, CommandId.DrivesLeft);
         Add(list, GestureModifiers.Alt, GestureKey.F2, CommandId.DrivesRight);
         Add(list, GestureModifiers.Alt, GestureKey.Enter, CommandId.Properties);

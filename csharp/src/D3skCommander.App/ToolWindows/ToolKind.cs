@@ -43,6 +43,8 @@ public sealed class ToolKind
 
     public static ToolKind Passwords { get; } = new("passwords", "tool.passwords.title", 460, 360);
 
+    public static ToolKind DiskUsage { get; } = new("diskusage", "tool.diskusage.title", 1000, 640);
+
     public static ToolKind Update { get; } = new("update", "tool.update.title", 460, 320);
 
     public static IReadOnlyList<ToolKind> All { get; } =
@@ -58,6 +60,7 @@ public sealed class ToolKind
         Compare,
         Passwords,
         Update,
+        DiskUsage,
     ];
 
     public static ToolKind Define(string id, string titleKey, int defaultWidth, int defaultHeight)

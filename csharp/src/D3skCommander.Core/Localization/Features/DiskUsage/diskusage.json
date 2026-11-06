@@ -1,0 +1,86 @@
+{
+  "diskusage.up": {
+    "en": "Up",
+    "fr": "Remonter"
+  },
+  "diskusage.rescan": {
+    "en": "Rescan",
+    "fr": "Réanalyser"
+  },
+  "diskusage.cancel": {
+    "en": "Cancel",
+    "fr": "Annuler"
+  },
+  "diskusage.show_in_panel": {
+    "en": "Show in panel",
+    "fr": "Afficher dans le panneau"
+  },
+  "diskusage.scanning": {
+    "en": "Scanning… {0} files",
+    "fr": "Analyse… {0} fichiers"
+  },
+  "diskusage.cancelled": {
+    "en": "Scan cancelled.",
+    "fr": "Analyse annulée."
+  },
+  "diskusage.failed": {
+    "en": "Cannot scan {0}",
+    "fr": "Analyse impossible : {0}"
+  },
+  "diskusage.not_local": {
+    "en": "Disk usage works on local folders only, not on FTP or inside an archive.",
+    "fr": "L'utilisation du disque ne fonctionne que sur les dossiers locaux, pas sur FTP ni dans une archive."
+  },
+  "diskusage.size": {
+    "en": "Size: {0}",
+    "fr": "Taille : {0}"
+  },
+  "diskusage.files": {
+    "en": "Files: {0}",
+    "fr": "Fichiers : {0}"
+  },
+  "diskusage.folders": {
+    "en": "Folders: {0}",
+    "fr": "Dossiers : {0}"
+  },
+  "diskusage.unreadable": {
+    "en": "Unreadable: {0}",
+    "fr": "Illisibles : {0}"
+  },
+  "diskusage.unreadable_mark": {
+    "en": "(unreadable)",
+    "fr": "(illisible)"
+  },
+  "diskusage.smaller_files": {
+    "en": "{0} smaller files",
+    "fr": "{0} fichiers plus petits"
+  },
+  "diskusage.other": {
+    "en": "Other ({0} items)",
+    "fr": "Autres ({0} éléments)"
+  },
+  "diskusage.col.name": {
+    "en": "Name",
+    "fr": "Nom"
+  },
+  "diskusage.col.size": {
+    "en": "Size",
+    "fr": "Taille"
+  },
+  "diskusage.col.share": {
+    "en": "%",
+    "fr": "%"
+  },
+  "diskusage.col.bar": {
+    "en": "Share",
+    "fr": "Part"
+  },
+  "diskusage.empty": {
+    "en": "Nothing in this folder.",
+    "fr": "Rien dans ce dossier."
+  },
+  "diskusage.tip": {
+    "en": "{0}\n{1} ({2})",
+    "fr": "{0}\n{1} ({2})"
+  }
+}

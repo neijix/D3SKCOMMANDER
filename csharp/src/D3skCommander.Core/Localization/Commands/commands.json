@@ -159,6 +159,10 @@
     "en": "Calculate folder sizes",
     "fr": "Taille des dossiers"
   },
+  "cmd.disk_usage": {
+    "en": "Disk usage…",
+    "fr": "Utilisation du disque…"
+  },
   "cmd.ftp": {
     "en": "FTP connect…",
     "fr": "Connexion FTP…"

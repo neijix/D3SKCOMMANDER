@@ -29,5 +29,16 @@ public interface IPanelWorkspace
         IReadOnlyList<int>? groups = null,
         CancellationToken cancellationToken = default) => Task.FromResult(false);
 
+    /// <summary>
+    /// Moves the active panel to the folder that holds <paramref name="path"/> and puts the cursor on it.
+    /// A workspace without tabs just goes to the folder.
+    /// </summary>
+    Task<bool> RevealAsync(string path, CancellationToken cancellationToken = default)
+    {
+        ArgumentException.ThrowIfNullOrEmpty(path);
+        var parent = Path.GetDirectoryName(Path.TrimEndingDirectorySeparator(path));
+        return GoAsync(ActiveSide, string.IsNullOrEmpty(parent) ? path : parent, cancellationToken);
+    }
+
     Task RefreshAsync(CancellationToken cancellationToken = default);
 }

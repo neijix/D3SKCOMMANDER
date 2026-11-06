@@ -19,6 +19,10 @@
     "en": "Settings",
     "fr": "Options"
   },
+  "tool.diskusage.title": {
+    "en": "Disk usage",
+    "fr": "Utilisation du disque"
+  },
   "tool.log.title": {
     "en": "Operation log",
     "fr": "Journal des opérations"
