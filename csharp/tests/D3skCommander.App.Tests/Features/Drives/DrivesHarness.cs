@@ -27,6 +27,8 @@ internal sealed class DrivesHarness : IDisposable
         Dialogs = dialogs;
         Text = text;
         var jobs = new JobService();
+        Devices = new FakeBlockDevices(Path.Combine(root, "media"));
+        Menu = new FakeMenu();
         Commands = new DrivesCommands(
             workspace,
             dialogs,
@@ -35,11 +37,17 @@ internal sealed class DrivesHarness : IDisposable
             new FixedDrives(),
             new FixedShares(),
             new FileOperationService(jobs, new OperationLog()),
-            new LocalFileSystemProvider());
+            new LocalFileSystemProvider(),
+            Devices,
+            Menu);
         Commands.Bind(Shell);
     }
 
     public PanelWorkspace Workspace { get; }
+
+    public FakeBlockDevices Devices { get; }
+
+    public FakeMenu Menu { get; }
 
     public FakeDialogService Dialogs { get; }
 

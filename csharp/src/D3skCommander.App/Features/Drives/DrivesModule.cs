@@ -1,4 +1,6 @@
+using D3skCommander.App.Dialogs;
 using D3skCommander.App.Shell;
+using D3skCommander.Core.Localization;
 using Microsoft.Extensions.DependencyInjection;
 
 namespace D3skCommander.App.Features.Drives;
@@ -18,6 +20,10 @@ public sealed class DrivesModule : IShellModule
     {
         ArgumentNullException.ThrowIfNull(services);
         services.AddSingleton<IDriveSource, OsDriveSource>();
+        services.AddSingleton<IBlockDeviceRunner, ProcessBlockDeviceRunner>();
+        services.AddSingleton<IDriveMenuPresenter>(provider => new FlyoutDriveMenuPresenter(
+            provider.GetRequiredService<IDialogOwner>(),
+            new DialogDriveMenuPresenter(provider.GetRequiredService<IDialogService>(), provider.GetRequiredService<ILocalizer>())));
         services.AddSingleton<DrivesCommands>();
         services.AddSingleton<DrivesModule>();
         services.AddSingleton<IShellModule>(provider => provider.GetRequiredService<DrivesModule>());

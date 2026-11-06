@@ -1,0 +1,125 @@
+{
+   "blockdevices": [
+      {
+         "name": "nvme0n1",
+         "path": "/dev/nvme0n1",
+         "size": 2000398934016,
+         "fstype": null,
+         "label": null,
+         "mountpoints": [],
+         "rm": false,
+         "hotplug": false,
+         "type": "disk",
+         "children": [
+            {
+               "name": "nvme0n1p1",
+               "path": "/dev/nvme0n1p1",
+               "size": 1127219200,
+               "fstype": "vfat",
+               "label": null,
+               "mountpoints": [
+                  "/boot/efi"
+               ],
+               "rm": false,
+               "hotplug": false,
+               "type": "part"
+            },
+            {
+               "name": "nvme0n1p2",
+               "path": "/dev/nvme0n1p2",
+               "size": 1999269527552,
+               "fstype": "ext4",
+               "label": null,
+               "mountpoints": [
+                  "/"
+               ],
+               "rm": false,
+               "hotplug": false,
+               "type": "part"
+            }
+         ]
+      },
+      {
+         "name": "loop0",
+         "path": "/dev/loop0",
+         "size": 4096,
+         "fstype": "squashfs",
+         "label": null,
+         "mountpoints": [
+            "/snap/bare/5"
+         ],
+         "rm": false,
+         "hotplug": false,
+         "type": "loop"
+      },
+      {
+         "name": "loop1",
+         "path": "/dev/loop1",
+         "size": 231735296,
+         "fstype": "squashfs",
+         "label": null,
+         "mountpoints": [
+            "/snap/brave/698"
+         ],
+         "rm": false,
+         "hotplug": false,
+         "type": "loop"
+      },
+      {
+         "name": "sdb",
+         "path": "/dev/sdb",
+         "size": 31914983424,
+         "fstype": null,
+         "label": null,
+         "mountpoints": [
+            null
+         ],
+         "rm": true,
+         "hotplug": true,
+         "type": "disk",
+         "children": [
+            {
+               "name": "sdb1",
+               "path": "/dev/sdb1",
+               "size": 31913934848,
+               "fstype": "exfat",
+               "label": "KEY32",
+               "mountpoints": [
+                  null
+               ],
+               "rm": true,
+               "hotplug": true,
+               "type": "part"
+            }
+         ]
+      },
+      {
+         "name": "sdc",
+         "path": "/dev/sdc",
+         "size": 1000204886016,
+         "fstype": null,
+         "label": null,
+         "mountpoints": [
+            null
+         ],
+         "rm": false,
+         "hotplug": true,
+         "type": "disk",
+         "children": [
+            {
+               "name": "sdc1",
+               "path": "/dev/sdc1",
+               "size": 1000203837440,
+               "fstype": "ntfs",
+               "label": "Backup",
+               "mountpoints": [
+                  "/media/neijix/Backup"
+               ],
+               "rm": false,
+               "hotplug": true,
+               "type": "part"
+            }
+         ]
+      }
+   ]
+}

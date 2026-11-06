@@ -1,0 +1,450 @@
+{
+   "blockdevices": [
+      {
+         "name": "loop0",
+         "path": "/dev/loop0",
+         "size": 4096,
+         "fstype": "squashfs",
+         "label": null,
+         "mountpoints": [
+             "/snap/bare/5"
+         ],
+         "rm": false,
+         "hotplug": false,
+         "type": "loop"
+      },{
+         "name": "loop1",
+         "path": "/dev/loop1",
+         "size": 231735296,
+         "fstype": "squashfs",
+         "label": null,
+         "mountpoints": [
+             "/snap/brave/698"
+         ],
+         "rm": false,
+         "hotplug": false,
+         "type": "loop"
+      },{
+         "name": "loop2",
+         "path": "/dev/loop2",
+         "size": 13852672,
+         "fstype": "squashfs",
+         "label": null,
+         "mountpoints": [
+             "/snap/canonical-livepatch/418"
+         ],
+         "rm": false,
+         "hotplug": false,
+         "type": "loop"
+      },{
+         "name": "loop4",
+         "path": "/dev/loop4",
+         "size": 58200064,
+         "fstype": "squashfs",
+         "label": null,
+         "mountpoints": [
+             "/snap/core18/3084"
+         ],
+         "rm": false,
+         "hotplug": false,
+         "type": "loop"
+      },{
+         "name": "loop5",
+         "path": "/dev/loop5",
+         "size": 213221376,
+         "fstype": "squashfs",
+         "label": null,
+         "mountpoints": [
+             "/snap/mesa-core22/504"
+         ],
+         "rm": false,
+         "hotplug": false,
+         "type": "loop"
+      },{
+         "name": "loop6",
+         "path": "/dev/loop6",
+         "size": 66883584,
+         "fstype": "squashfs",
+         "label": null,
+         "mountpoints": [
+             "/snap/core20/2922"
+         ],
+         "rm": false,
+         "hotplug": false,
+         "type": "loop"
+      },{
+         "name": "loop7",
+         "path": "/dev/loop7",
+         "size": 77619200,
+         "fstype": "squashfs",
+         "label": null,
+         "mountpoints": [
+             "/snap/core22/2987"
+         ],
+         "rm": false,
+         "hotplug": false,
+         "type": "loop"
+      },{
+         "name": "loop8",
+         "path": "/dev/loop8",
+         "size": 70049792,
+         "fstype": "squashfs",
+         "label": null,
+         "mountpoints": [
+             "/snap/core24/1643"
+         ],
+         "rm": false,
+         "hotplug": false,
+         "type": "loop"
+      },{
+         "name": "loop9",
+         "path": "/dev/loop9",
+         "size": 20930560,
+         "fstype": "squashfs",
+         "label": null,
+         "mountpoints": [
+             "/snap/desktop-security-center/151"
+         ],
+         "rm": false,
+         "hotplug": false,
+         "type": "loop"
+      },{
+         "name": "loop10",
+         "path": "/dev/loop10",
+         "size": 14929920,
+         "fstype": "squashfs",
+         "label": null,
+         "mountpoints": [
+             "/snap/desktop-security-center/206"
+         ],
+         "rm": false,
+         "hotplug": false,
+         "type": "loop"
+      },{
+         "name": "loop11",
+         "path": "/dev/loop11",
+         "size": 17301504,
+         "fstype": "squashfs",
+         "label": null,
+         "mountpoints": [
+             "/snap/firmware-updater/226"
+         ],
+         "rm": false,
+         "hotplug": false,
+         "type": "loop"
+      },{
+         "name": "loop12",
+         "path": "/dev/loop12",
+         "size": 297705472,
+         "fstype": "squashfs",
+         "label": null,
+         "mountpoints": [
+             "/snap/firefox/9113"
+         ],
+         "rm": false,
+         "hotplug": false,
+         "type": "loop"
+      },{
+         "name": "loop13",
+         "path": "/dev/loop13",
+         "size": 13320192,
+         "fstype": "squashfs",
+         "label": null,
+         "mountpoints": [
+             "/snap/firmware-updater/262"
+         ],
+         "rm": false,
+         "hotplug": false,
+         "type": "loop"
+      },{
+         "name": "loop14",
+         "path": "/dev/loop14",
+         "size": 557309952,
+         "fstype": "squashfs",
+         "label": null,
+         "mountpoints": [
+             "/snap/gnome-42-2204/263"
+         ],
+         "rm": false,
+         "hotplug": false,
+         "type": "loop"
+      },{
+         "name": "loop15",
+         "path": "/dev/loop15",
+         "size": 172830720,
+         "fstype": "squashfs",
+         "label": null,
+         "mountpoints": [
+             "/snap/gnome-3-28-1804/198"
+         ],
+         "rm": false,
+         "hotplug": false,
+         "type": "loop"
+      },{
+         "name": "loop16",
+         "path": "/dev/loop16",
+         "size": 70033408,
+         "fstype": "squashfs",
+         "label": null,
+         "mountpoints": [
+             "/snap/core24/2124"
+         ],
+         "rm": false,
+         "hotplug": false,
+         "type": "loop"
+      },{
+         "name": "loop17",
+         "path": "/dev/loop17",
+         "size": 297193472,
+         "fstype": "squashfs",
+         "label": null,
+         "mountpoints": [
+             "/snap/firefox/9137"
+         ],
+         "rm": false,
+         "hotplug": false,
+         "type": "loop"
+      },{
+         "name": "loop18",
+         "path": "/dev/loop18",
+         "size": 645951488,
+         "fstype": "squashfs",
+         "label": null,
+         "mountpoints": [
+             "/snap/gnome-46-2404/177"
+         ],
+         "rm": false,
+         "hotplug": false,
+         "type": "loop"
+      },{
+         "name": "loop19",
+         "path": "/dev/loop19",
+         "size": 644382720,
+         "fstype": "squashfs",
+         "label": null,
+         "mountpoints": [
+             "/snap/gnome-46-2404/164"
+         ],
+         "rm": false,
+         "hotplug": false,
+         "type": "loop"
+      },{
+         "name": "loop20",
+         "path": "/dev/loop20",
+         "size": 847872,
+         "fstype": "squashfs",
+         "label": null,
+         "mountpoints": [
+             "/snap/snapd-desktop-integration/391"
+         ],
+         "rm": false,
+         "hotplug": false,
+         "type": "loop"
+      },{
+         "name": "loop21",
+         "path": "/dev/loop21",
+         "size": 96141312,
+         "fstype": "squashfs",
+         "label": null,
+         "mountpoints": [
+             "/snap/gtk-common-themes/1535"
+         ],
+         "rm": false,
+         "hotplug": false,
+         "type": "loop"
+      },{
+         "name": "loop22",
+         "path": "/dev/loop22",
+         "size": 1581056,
+         "fstype": "squashfs",
+         "label": null,
+         "mountpoints": [
+             "/snap/hwctl/123"
+         ],
+         "rm": false,
+         "hotplug": false,
+         "type": "loop"
+      },{
+         "name": "loop23",
+         "path": "/dev/loop23",
+         "size": 1581056,
+         "fstype": "squashfs",
+         "label": null,
+         "mountpoints": [
+             "/snap/hwctl/131"
+         ],
+         "rm": false,
+         "hotplug": false,
+         "type": "loop"
+      },{
+         "name": "loop24",
+         "path": "/dev/loop24",
+         "size": 421507072,
+         "fstype": "squashfs",
+         "label": null,
+         "mountpoints": [
+             "/snap/mesa-2404/1839"
+         ],
+         "rm": false,
+         "hotplug": false,
+         "type": "loop"
+      },{
+         "name": "loop25",
+         "path": "/dev/loop25",
+         "size": 19746816,
+         "fstype": "squashfs",
+         "label": null,
+         "mountpoints": [
+             "/snap/prompting-client/222"
+         ],
+         "rm": false,
+         "hotplug": false,
+         "type": "loop"
+      },{
+         "name": "loop26",
+         "path": "/dev/loop26",
+         "size": 19296256,
+         "fstype": "squashfs",
+         "label": null,
+         "mountpoints": [
+             "/snap/prompting-client/228"
+         ],
+         "rm": false,
+         "hotplug": false,
+         "type": "loop"
+      },{
+         "name": "loop27",
+         "path": "/dev/loop27",
+         "size": 12382208,
+         "fstype": "squashfs",
+         "label": null,
+         "mountpoints": [
+             "/snap/snap-store/1390"
+         ],
+         "rm": false,
+         "hotplug": false,
+         "type": "loop"
+      },{
+         "name": "loop28",
+         "path": "/dev/loop28",
+         "size": 52535296,
+         "fstype": "squashfs",
+         "label": null,
+         "mountpoints": [
+             "/snap/snapd/27710"
+         ],
+         "rm": false,
+         "hotplug": false,
+         "type": "loop"
+      },{
+         "name": "loop29",
+         "path": "/dev/loop29",
+         "size": 46882816,
+         "fstype": "squashfs",
+         "label": null,
+         "mountpoints": [
+             "/snap/snapd/28254"
+         ],
+         "rm": false,
+         "hotplug": false,
+         "type": "loop"
+      },{
+         "name": "loop30",
+         "path": "/dev/loop30",
+         "size": 12161024,
+         "fstype": "squashfs",
+         "label": null,
+         "mountpoints": [
+             "/snap/snap-store/1468"
+         ],
+         "rm": false,
+         "hotplug": false,
+         "type": "loop"
+      },{
+         "name": "loop31",
+         "path": "/dev/loop31",
+         "size": 231989248,
+         "fstype": "squashfs",
+         "label": null,
+         "mountpoints": [
+             "/snap/brave/703"
+         ],
+         "rm": false,
+         "hotplug": false,
+         "type": "loop"
+      },{
+         "name": "loop32",
+         "path": "/dev/loop32",
+         "size": 569708544,
+         "fstype": "squashfs",
+         "label": null,
+         "mountpoints": [
+             "/snap/code/275"
+         ],
+         "rm": false,
+         "hotplug": false,
+         "type": "loop"
+      },{
+         "name": "loop33",
+         "path": "/dev/loop33",
+         "size": 286875648,
+         "fstype": "squashfs",
+         "label": null,
+         "mountpoints": [
+             "/snap/plex-desktop/88"
+         ],
+         "rm": false,
+         "hotplug": false,
+         "type": "loop"
+      },{
+         "name": "loop34",
+         "path": "/dev/loop34",
+         "size": 569606144,
+         "fstype": "squashfs",
+         "label": null,
+         "mountpoints": [
+             "/snap/code/276"
+         ],
+         "rm": false,
+         "hotplug": false,
+         "type": "loop"
+      },{
+         "name": "nvme0n1",
+         "path": "/dev/nvme0n1",
+         "size": 2000398934016,
+         "fstype": null,
+         "label": null,
+         "mountpoints": [],
+         "rm": false,
+         "hotplug": false,
+         "type": "disk",
+         "children": [
+            {
+               "name": "nvme0n1p1",
+               "path": "/dev/nvme0n1p1",
+               "size": 1127219200,
+               "fstype": "vfat",
+               "label": null,
+               "mountpoints": [
+                   "/boot/efi"
+               ],
+               "rm": false,
+               "hotplug": false,
+               "type": "part"
+            },{
+               "name": "nvme0n1p2",
+               "path": "/dev/nvme0n1p2",
+               "size": 1999269527552,
+               "fstype": "ext4",
+               "label": null,
+               "mountpoints": [
+                   "/"
+               ],
+               "rm": false,
+               "hotplug": false,
+               "type": "part"
+            }
+         ]
+      }
+   ]
+}

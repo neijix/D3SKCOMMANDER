@@ -23,6 +23,8 @@ public sealed partial class DrivesCommands
     private readonly INetDriveRunner _shares;
     private readonly FileOperationService _files;
     private readonly IFileSystemProvider _provider;
+    private readonly IBlockDeviceRunner _devices;
+    private readonly IDriveMenuPresenter _menu;
     private int _busy;
 
     public DrivesCommands(
@@ -33,7 +35,9 @@ public sealed partial class DrivesCommands
         IDriveSource drives,
         INetDriveRunner shares,
         FileOperationService files,
-        IFileSystemProvider provider)
+        IFileSystemProvider provider,
+        IBlockDeviceRunner devices,
+        IDriveMenuPresenter menu)
     {
         ArgumentNullException.ThrowIfNull(panels);
         ArgumentNullException.ThrowIfNull(dialogs);
@@ -43,6 +47,8 @@ public sealed partial class DrivesCommands
         ArgumentNullException.ThrowIfNull(shares);
         ArgumentNullException.ThrowIfNull(files);
         ArgumentNullException.ThrowIfNull(provider);
+        ArgumentNullException.ThrowIfNull(devices);
+        ArgumentNullException.ThrowIfNull(menu);
         _panels = panels;
         _dialogs = dialogs;
         _text = text;
@@ -51,6 +57,8 @@ public sealed partial class DrivesCommands
         _shares = shares;
         _files = files;
         _provider = provider;
+        _devices = devices;
+        _menu = menu;
     }
 
     public void Bind(IShellContributions shell)
@@ -65,61 +73,7 @@ public sealed partial class DrivesCommands
         }
     }
 
-    /// <summary>Lists the volumes and connected shares for <paramref name="side"/> and opens the one chosen.</summary>
-    public async Task ChooseDriveAsync(PanelSide side)
-    {
-        if (!Begin())
-        {
-            return;
-        }
-
-        try
-        {
-            var title = _text.Get(side == PanelSide.Left ? "cmd.drives_left" : "cmd.drives_right");
-            var places = await Task.Run(Places).ConfigureAwait(false);
-            if (places.Count == 0)
-            {
-                await _dialogs.ShowMessageAsync(title, _text.Get("drives.none")).ConfigureAwait(false);
-                return;
-            }
-
-            var labels = places.Select(place => place.Label).ToList();
-            var picked = await _dialogs.ChooseAsync(title, _text.Get("drives.choose"), labels).ConfigureAwait(false);
-            if (picked is not null && picked.Value >= 0 && picked.Value < places.Count)
-            {
-                await _panels.GoAsync(side, places[picked.Value].Path).ConfigureAwait(false);
-            }
-        }
-        finally
-        {
-            End();
-        }
-    }
-
-    private List<Place> Places()
-    {
-        var free = _text.Get("drives.free");
-        var places = new List<Place>();
-        foreach (var drive in _drives.Mounted())
-        {
-            places.Add(new Place(DriveList.Line(drive, free), drive.Path));
-        }
-
-        var network = _text.Get("drives.share");
-        foreach (var share in _shares.ListConnected())
-        {
-            if (!places.Exists(place => string.Equals(place.Path, share.Path, StringComparison.Ordinal)))
-            {
-                places.Add(new Place(share.Label + " (" + network + ")", share.Path));
-            }
-        }
-
-        return places;
-    }
-
     private bool Begin() => Interlocked.CompareExchange(ref _busy, 1, 0) == 0;
 
     private void End() => Interlocked.Exchange(ref _busy, 0);
-
-    private sealed record Place(string Label, string Path);
 }

@@ -1,5 +1,6 @@
 using Avalonia.Headless.XUnit;
 using D3skCommander.App.Dialogs;
+using D3skCommander.App.Features.Drives;
 using D3skCommander.App.Shell;
 using D3skCommander.Core.Commands;
 using Xunit;
@@ -9,15 +10,17 @@ namespace D3skCommander.App.Tests.Features.Drives;
 public class DriveListTests
 {
     [AvaloniaFact]
-    public async Task TheListShowsDrivesWithFreeSpaceAndConnectedShares()
+    public async Task TheMenuShowsDrivesWithFreeSpaceAndConnectedShares()
     {
         using var harness = await DrivesHarness.Open();
-        var pending = harness.Commands.ChooseDriveAsync(PanelSide.Left);
-        var shown = await harness.Dialogs.WaitShownAsync();
-        Assert.Equal([DrivesHarness.DriveRoot + " - 1.0 KB free", "smb://nas/media (network)"], shown.Choices);
-        harness.Dialogs.Answer(DialogResult.Cancel());
-        await pending;
+        await harness.Commands.ChooseDriveAsync(PanelSide.Left);
 
+        var texts = harness.Menu.Shown.Select(item => item.Text).ToList();
+        Assert.Contains(DrivesHarness.DriveRoot + " - 1.0 KB free", texts);
+        Assert.Contains("smb://nas/media (network)", texts);
+        var volume = harness.Menu.Shown.First(item => item.Kind == DriveMenuKind.Volume);
+        Assert.Equal(0.75, volume.UsedFraction);
+        Assert.True(volume.IsCurrent);
         Assert.Equal(harness.Left, harness.Workspace.Read(PanelSide.Left).Path);
     }
 
@@ -25,12 +28,42 @@ public class DriveListTests
     public async Task AChosenDriveOpensInTheRightPanel()
     {
         using var harness = await DrivesHarness.Open();
-        harness.Dialogs.Enqueue(DialogResult.Picked(0));
+        harness.Menu.Pick = DriveMenuKind.Volume;
         await harness.Commands.ChooseDriveAsync(PanelSide.Right);
 
         Assert.Equal(Path.GetPathRoot(harness.Right), harness.Workspace.Read(PanelSide.Right).Path);
         Assert.Equal(harness.Left, harness.Workspace.Read(PanelSide.Left).Path);
     }
+
+    [AvaloniaFact]
+    public async Task AnUnmountedDiskIsMountedThenOpened()
+    {
+        using var harness = await DrivesHarness.Open();
+        harness.Devices.Json = File.ReadAllText(Path.Combine(AppContext.BaseDirectory, "fixtures", "lsblk", "2.41.3", "with-usb.json"));
+        harness.Menu.Pick = DriveMenuKind.Unmounted;
+        await harness.Commands.ChooseDriveAsync(PanelSide.Left);
+
+        Assert.Contains(harness.Menu.Shown, item => item.Kind == DriveMenuKind.Unmounted && item.Text == "Mount KEY32 (29.7 GB)");
+        Assert.Equal(["mount /dev/sdb1"], harness.Devices.Calls);
+        Assert.Equal(harness.Media, harness.Workspace.Read(PanelSide.Left).Path);
+    }
+
+    [AvaloniaFact]
+    public async Task EjectUnmountsThenPowersOffAndLeavesTheVolume()
+    {
+        using var harness = await DrivesHarness.Open();
+        var mount = DrivesHarness.DriveRoot;
+        harness.Devices.Json = EjectableAt(mount);
+        harness.Menu.Pick = DriveMenuKind.Eject;
+        await harness.Commands.ChooseDriveAsync(PanelSide.Left);
+
+        Assert.Equal(["unmount /dev/sdb1", "poweroff /dev/sdb"], harness.Devices.Calls);
+        Assert.Equal(Environment.GetFolderPath(Environment.SpecialFolder.UserProfile), harness.Workspace.Read(PanelSide.Left).Path);
+    }
+
+    private static string EjectableAt(string mount) =>
+        "{\"blockdevices\":[{\"name\":\"sdb\",\"path\":\"/dev/sdb\",\"size\":100,\"fstype\":null,\"label\":null,\"mountpoints\":[null],\"rm\":true,\"hotplug\":true,\"type\":\"disk\","
+        + "\"children\":[{\"name\":\"sdb1\",\"path\":\"/dev/sdb1\",\"size\":90,\"fstype\":\"ext4\",\"label\":null,\"mountpoints\":[\"" + mount + "\"],\"rm\":true,\"hotplug\":true,\"type\":\"part\"}]}]}";
 
     [AvaloniaFact]
     public async Task TheKeyCommandsAreHandled()

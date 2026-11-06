@@ -102,5 +102,53 @@
   "drop.failed": {
     "en": "Some dropped files could not be copied:",
     "fr": "Certains fichiers déposés n'ont pas pu être copiés :"
+  },
+  "drives.mount": {
+    "en": "Mount",
+    "fr": "Monter"
+  },
+  "drives.eject": {
+    "en": "Eject",
+    "fr": "Éjecter"
+  },
+  "drives.mount_failed": {
+    "en": "Mount failed",
+    "fr": "Échec du montage"
+  },
+  "drives.eject_failed": {
+    "en": "Eject failed",
+    "fr": "Échec de l'éjection"
+  },
+  "drives.tool_failed": {
+    "en": "The disk tool did not answer.",
+    "fr": "L'outil de disque n'a pas répondu."
+  },
+  "places.home": {
+    "en": "Home",
+    "fr": "Accueil"
+  },
+  "places.desktop": {
+    "en": "Desktop",
+    "fr": "Bureau"
+  },
+  "places.documents": {
+    "en": "Documents",
+    "fr": "Documents"
+  },
+  "places.downloads": {
+    "en": "Downloads",
+    "fr": "Téléchargements"
+  },
+  "places.pictures": {
+    "en": "Pictures",
+    "fr": "Images"
+  },
+  "places.music": {
+    "en": "Music",
+    "fr": "Musique"
+  },
+  "places.videos": {
+    "en": "Videos",
+    "fr": "Vidéos"
   }
 }
