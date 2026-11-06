@@ -6,7 +6,7 @@
         Title="{Binding Title}"
         WindowStartupLocation="CenterOwner"
         Width="440"
-        Height="520"
+        MaxHeight="520"
         CanResize="False"
         ShowInTaskbar="False">
   <Window.Styles>

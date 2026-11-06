@@ -28,6 +28,7 @@ public class SettingsStoreTests
             ShowHidden = true,
             UseTrash = false,
             ConfirmDelete = false,
+            ConfirmTrashFallback = false,
             LogOperations = true,
             Editor = "vi",
             Terminal = "xterm",
@@ -330,6 +331,7 @@ public class SettingsStoreTests
         Assert.False(preferences.ShowHidden);
         Assert.True(preferences.UseTrash);
         Assert.True(preferences.ConfirmDelete);
+        Assert.True(preferences.ConfirmTrashFallback);
         Assert.False(preferences.LogOperations);
         Assert.Equal("", preferences.Editor);
         Assert.Equal("", preferences.Terminal);
@@ -346,6 +348,7 @@ public class SettingsStoreTests
         Assert.Equal(expected.ShowHidden, actual.ShowHidden);
         Assert.Equal(expected.UseTrash, actual.UseTrash);
         Assert.Equal(expected.ConfirmDelete, actual.ConfirmDelete);
+        Assert.Equal(expected.ConfirmTrashFallback, actual.ConfirmTrashFallback);
         Assert.Equal(expected.LogOperations, actual.LogOperations);
         Assert.Equal(expected.Editor, actual.Editor);
         Assert.Equal(expected.Terminal, actual.Terminal);

@@ -207,6 +207,10 @@
     "en": "Confirm deletion",
     "fr": "Confirmer la suppression"
   },
+  "confirm_trash_fallback": {
+    "en": "Ask before deleting permanently when the trash is unavailable",
+    "fr": "Demander avant de supprimer définitivement si la corbeille est indisponible"
+  },
   "log_ops": {
     "en": "Log file operations",
     "fr": "Journaliser les opérations"

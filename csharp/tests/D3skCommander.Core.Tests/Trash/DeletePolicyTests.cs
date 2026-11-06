@@ -87,6 +87,28 @@ public class DeletePolicyTests
     }
 
     [Fact]
+    public void DontAskAgainSkipsTheMissingTrashPrompt()
+    {
+        var settings = new DeleteSettings(UseTrash: true, ConfirmDelete: true, ConfirmTrashFallback: false);
+
+        var decision = DeletePolicy.OfferPermanent(settings);
+
+        Assert.Equal(DeleteMode.Permanent, decision.Mode);
+        Assert.False(decision.NeedsConfirmation);
+    }
+
+    [Theory]
+    [InlineData(0, TrashFallbackAnswer.Delete)]
+    [InlineData(1, TrashFallbackAnswer.DeleteAndStopAsking)]
+    [InlineData(null, TrashFallbackAnswer.Cancel)]
+    [InlineData(7, TrashFallbackAnswer.Cancel)]
+    public void TrashFallbackChoicesMapBack(int? choice, TrashFallbackAnswer expected)
+    {
+        Assert.Equal(2, TrashFallback.ChoiceKeys.Count);
+        Assert.Equal(expected, TrashFallback.Map(choice));
+    }
+
+    [Fact]
     public void OnlyDeleteCommandsAreDecided()
     {
         var error = Assert.Throws<ArgumentOutOfRangeException>(

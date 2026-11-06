@@ -1,3 +1,4 @@
+using D3skCommander.App.Features.Settings;
 using D3skCommander.Core.Commands;
 using D3skCommander.Core.Common;
 using D3skCommander.Core.FileOps;
@@ -113,12 +114,33 @@ public sealed partial class FileOpsCommands
             return;
         }
 
-        var offer = DeletePolicy.OfferPermanent(new DeleteSettings());
-        var message = _text.Get("fileops.trash_failed") + "\n" + Count(_text.Get(offer.PromptKey), unavailable.Count);
-        if (await _dialogs.ConfirmAsync(title, message).ConfigureAwait(false))
+        if (await ConfirmPermanentFallback(title, unavailable.Count).ConfigureAwait(false))
         {
             await Finish(_files.Delete(_provider, unavailable)).ConfigureAwait(false);
         }
+    }
+
+    /// <summary>The trash is unavailable: Delete, "Delete, don't ask again" (saved), or Cancel.</summary>
+    private async Task<bool> ConfirmPermanentFallback(string title, int count)
+    {
+        var preferences = _settings.Preferences.Current;
+        var offer = DeletePolicy.OfferPermanent(new DeleteSettings(ConfirmTrashFallback: preferences.ConfirmTrashFallback));
+        if (!offer.NeedsConfirmation)
+        {
+            return true;
+        }
+
+        var message = _text.Get(TrashFallback.MessageKey) + "\n" + Count(_text.Get(offer.PromptKey), count);
+        var choices = TrashFallback.ChoiceKeys.Select(key => _text.Get(key)).ToArray();
+        var answer = TrashFallback.Map(await _dialogs.ChooseAsync(title, message, choices).ConfigureAwait(false));
+        if (answer == TrashFallbackAnswer.DeleteAndStopAsking)
+        {
+            var next = PreferencesCopy.Of(_settings.Preferences.Current);
+            next.ConfirmTrashFallback = false;
+            _settings.Preferences.Save(next);
+        }
+
+        return answer != TrashFallbackAnswer.Cancel;
     }
 
     private ItemResult TrashOne(string path)

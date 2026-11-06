@@ -2,6 +2,7 @@ using Avalonia.Headless.XUnit;
 using D3skCommander.App.Features.FileOps;
 using D3skCommander.App.Features.Panels;
 using D3skCommander.App.Shell;
+using D3skCommander.App.Startup;
 using D3skCommander.Core.Commands;
 using D3skCommander.Core.Common;
 using D3skCommander.Core.FileOps;
@@ -86,10 +87,46 @@ public class DeleteRenameTests
     {
         var run = await Prepare(useTrash: true, confirm: false);
         run.Trash.Unavailable = true;
+        run.Dialogs.Answers.Enqueue(0);
         await run.Commands.DeleteAsync();
 
-        Assert.Contains("Cannot move to the trash", Assert.Single(run.Confirmed), StringComparison.Ordinal);
+        var (_, message, choices) = Assert.Single(run.Dialogs.Asked);
+        Assert.Contains("Cannot move to the trash", message, StringComparison.Ordinal);
+        Assert.Equal(["Delete", "Delete, don't ask again"], choices);
         Assert.False(File.Exists(Path.Combine(run.Folder, "a.txt")));
+        Assert.True(run.Settings.Preferences.Current.ConfirmTrashFallback);
+    }
+
+    [AvaloniaFact]
+    public async Task CancellingTheMissingTrashPromptKeepsTheFile()
+    {
+        var run = await Prepare(useTrash: true, confirm: false);
+        run.Trash.Unavailable = true;
+        run.Dialogs.Answers.Enqueue(null);
+        await run.Commands.DeleteAsync();
+
+        Assert.Single(run.Dialogs.Asked);
+        Assert.True(File.Exists(Path.Combine(run.Folder, "a.txt")));
+    }
+
+    [AvaloniaFact]
+    public async Task DontAskAgainDeletesAndStopsAskingNextTime()
+    {
+        var run = await Prepare(useTrash: true, confirm: false);
+        run.Trash.Unavailable = true;
+        run.Dialogs.Answers.Enqueue(1);
+        await run.Commands.DeleteAsync();
+
+        Assert.False(File.Exists(Path.Combine(run.Folder, "a.txt")));
+        Assert.False(run.Settings.Preferences.Current.ConfirmTrashFallback);
+
+        File.WriteAllText(Path.Combine(run.Folder, "b.txt"), "y");
+        await run.Workspace.RefreshAsync(TestContext.Current.CancellationToken);
+        run.Workspace.ApplySelection(PanelSide.Left, Harness.At(run.Workspace.Read(PanelSide.Left), "b.txt"), []);
+        await run.Commands.DeleteAsync();
+
+        Assert.Single(run.Dialogs.Asked);
+        Assert.False(File.Exists(Path.Combine(run.Folder, "b.txt")));
     }
 
     [AvaloniaFact]
@@ -139,9 +176,10 @@ public class DeleteRenameTests
         var dialogs = new FileOpsCommandTests.ScriptedDialogs { Confirm = true };
         var trash = new FileOpsCommandTests.FakeTrash();
         var workspace = await Harness.Workspace(root, root);
-        var commands = Harness.Commands(workspace, dialogs, null, Harness.Settings(useTrash, confirm), trash);
+        var settings = Harness.Settings(useTrash, confirm);
+        var commands = Harness.Commands(workspace, dialogs, null, settings, trash);
         workspace.ApplySelection(PanelSide.Left, Harness.At(workspace.Read(PanelSide.Left), "a.txt"), []);
-        return new Run(root, workspace, commands, dialogs, trash);
+        return new Run(root, workspace, commands, dialogs, trash, settings);
     }
 
     private sealed record Run(
@@ -149,7 +187,8 @@ public class DeleteRenameTests
         PanelWorkspace Workspace,
         FileOpsCommands Commands,
         FileOpsCommandTests.ScriptedDialogs Dialogs,
-        FileOpsCommandTests.FakeTrash Trash)
+        FileOpsCommandTests.FakeTrash Trash,
+        AppSettings Settings)
     {
         public IReadOnlyList<string> Confirmed => Dialogs.Confirmed;
     }

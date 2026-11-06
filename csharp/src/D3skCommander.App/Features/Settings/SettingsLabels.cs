@@ -13,6 +13,7 @@ public sealed class SettingsLabels
         ShowHidden = text.Get("settings.hidden");
         UseTrash = text.Get("use_trash");
         ConfirmDelete = text.Get("confirm_delete");
+        ConfirmTrashFallback = text.Get("confirm_trash_fallback");
         LogOperations = text.Get("log_ops");
         Editor = text.Get("editor");
         Terminal = text.Get("terminal");
@@ -44,6 +45,8 @@ public sealed class SettingsLabels
     public string UseTrash { get; }
 
     public string ConfirmDelete { get; }
+
+    public string ConfirmTrashFallback { get; }
 
     public string LogOperations { get; }
 

@@ -16,6 +16,7 @@ public static class PreferencesCopy
             ShowHidden = source.ShowHidden,
             UseTrash = source.UseTrash,
             ConfirmDelete = source.ConfirmDelete,
+            ConfirmTrashFallback = source.ConfirmTrashFallback,
             LogOperations = source.LogOperations,
             Editor = source.Editor,
             Terminal = source.Terminal,

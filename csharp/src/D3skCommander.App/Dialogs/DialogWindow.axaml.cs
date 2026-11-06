@@ -20,6 +20,16 @@ public partial class DialogWindow : Window
         model.Attach(CloseWith);
         DataContext = model;
         Title = model.Title;
+        // A form keeps the full height; a message, a question or a choice list is as tall as its text.
+        if (model.ShowForm)
+        {
+            Height = MaxHeight;
+        }
+        else
+        {
+            SizeToContent = SizeToContent.Height;
+        }
+
         AddHandler(KeyDownEvent, OnDialogKeyDown, RoutingStrategies.Tunnel);
     }
 

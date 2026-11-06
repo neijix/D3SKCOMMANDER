@@ -82,6 +82,8 @@ public class SettingsWindowTests
 
         model.ShowHidden = true;
         model.UseTrash = false;
+        Assert.True(model.ConfirmTrashFallback);
+        model.ConfirmTrashFallback = false;
         model.Editor = " code ";
         model.FontSize = 20;
         model.Apply();
@@ -89,6 +91,7 @@ public class SettingsWindowTests
         var now = harness.Settings.Preferences.Current;
         Assert.True(now.ShowHidden);
         Assert.False(now.UseTrash);
+        Assert.False(now.ConfirmTrashFallback);
         Assert.Equal("code", now.Editor);
         Assert.Equal(20f, now.FontSize);
         Assert.False(now.DarkMode);

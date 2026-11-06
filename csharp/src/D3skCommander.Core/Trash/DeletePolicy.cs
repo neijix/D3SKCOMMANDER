@@ -32,12 +32,13 @@ public static class DeletePolicy
     }
 
     /// <summary>
-    /// The OS has no trash. The dialog offers a permanent delete and always asks,
-    /// so a failed trash does not become a silent permanent delete when confirm is off.
+    /// The OS has no trash. The dialog offers a permanent delete and asks even when confirm is off,
+    /// so a failed trash does not become a silent permanent delete; only
+    /// <see cref="DeleteSettings.ConfirmTrashFallback"/> off (the user's "don't ask again") skips it.
     /// </summary>
     public static DeleteDecision OfferPermanent(DeleteSettings settings)
     {
         ArgumentNullException.ThrowIfNull(settings);
-        return new DeleteDecision(DeleteMode.Permanent, true, PermanentPromptKey);
+        return new DeleteDecision(DeleteMode.Permanent, settings.ConfirmTrashFallback, PermanentPromptKey);
     }
 }

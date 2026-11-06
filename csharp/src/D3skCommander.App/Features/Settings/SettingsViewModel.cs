@@ -45,6 +45,9 @@ public sealed partial class SettingsViewModel : ObservableObject, IShellWidget
     private bool _confirmDelete;
 
     [ObservableProperty]
+    private bool _confirmTrashFallback;
+
+    [ObservableProperty]
     private bool _logOperations;
 
     [ObservableProperty]
@@ -122,6 +125,7 @@ public sealed partial class SettingsViewModel : ObservableObject, IShellWidget
         next.ShowHidden = ShowHidden;
         next.UseTrash = UseTrash;
         next.ConfirmDelete = ConfirmDelete;
+        next.ConfirmTrashFallback = ConfirmTrashFallback;
         next.LogOperations = LogOperations;
         next.CheckUpdates = CheckUpdates;
         next.Editor = Editor.Trim();
@@ -217,6 +221,7 @@ public sealed partial class SettingsViewModel : ObservableObject, IShellWidget
         ShowHidden = current.ShowHidden;
         UseTrash = current.UseTrash;
         ConfirmDelete = current.ConfirmDelete;
+        ConfirmTrashFallback = current.ConfirmTrashFallback;
         LogOperations = current.LogOperations;
         CheckUpdates = current.CheckUpdates;
         Editor = current.Editor;

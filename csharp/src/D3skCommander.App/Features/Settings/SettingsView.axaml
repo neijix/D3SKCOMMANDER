@@ -12,10 +12,11 @@
           <TextBlock Grid.Column="2" VerticalAlignment="Center" Text="{Binding Labels.FontSize}"/>
           <NumericUpDown x:Name="FontBox" Grid.Column="3" Minimum="8" Maximum="40" Increment="1" FormatString="0" Value="{Binding FontSize, Mode=TwoWay}"/>
         </Grid>
-        <Grid ColumnDefinitions="*,*" RowDefinitions="Auto,Auto,Auto">
+        <Grid ColumnDefinitions="*,*" RowDefinitions="Auto,Auto,Auto,Auto">
           <CheckBox x:Name="HiddenBox" Grid.Row="0" Grid.Column="0" Content="{Binding Labels.ShowHidden}" IsChecked="{Binding ShowHidden, Mode=TwoWay}"/>
           <CheckBox x:Name="TrashBox" Grid.Row="1" Grid.Column="0" Content="{Binding Labels.UseTrash}" IsChecked="{Binding UseTrash, Mode=TwoWay}"/>
           <CheckBox x:Name="ConfirmBox" Grid.Row="2" Grid.Column="0" Content="{Binding Labels.ConfirmDelete}" IsChecked="{Binding ConfirmDelete, Mode=TwoWay}"/>
+          <CheckBox x:Name="TrashFallbackBox" Grid.Row="3" Grid.Column="0" Grid.ColumnSpan="2" Content="{Binding Labels.ConfirmTrashFallback}" IsChecked="{Binding ConfirmTrashFallback, Mode=TwoWay}"/>
           <CheckBox x:Name="LogBox" Grid.Row="0" Grid.Column="1" Content="{Binding Labels.LogOperations}" IsChecked="{Binding LogOperations, Mode=TwoWay}"/>
           <CheckBox x:Name="UpdatesBox" Grid.Row="1" Grid.Column="1" Grid.RowSpan="2" VerticalAlignment="Top" Content="{Binding Labels.CheckUpdates}" IsChecked="{Binding CheckUpdates, Mode=TwoWay}"/>
         </Grid>

@@ -34,6 +34,9 @@ public sealed class Preferences
 
     public bool ConfirmDelete { get; set; } = true;
 
+    /// <summary>Ask before deleting permanently when the trash is unavailable ("don't ask again" turns it off).</summary>
+    public bool ConfirmTrashFallback { get; set; } = true;
+
     public bool LogOperations { get; set; }
 
     /// <summary>External editor command. Empty uses the built-in editor.</summary>
