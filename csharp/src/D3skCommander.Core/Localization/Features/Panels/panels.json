@@ -3,6 +3,10 @@
     "en": "{0} / {1} selected",
     "fr": "{0} / {1} sélectionné(s)"
   },
+  "panels.free": {
+    "en": "{0} free",
+    "fr": "{0} libre"
+  },
   "panels.browse": {
     "en": "Browse",
     "fr": "Parcourir"

@@ -19,7 +19,9 @@ public sealed record PanelSnapshot(
     ErrorKind? Error,
     string? ErrorPath,
     string? Filter = null,
-    long Version = 0)
+    long Version = 0,
+    ulong SelectedBytes = 0,
+    ulong TotalBytes = 0)
 {
     public static PanelSnapshot Empty { get; } = new(
         "",
@@ -56,6 +58,8 @@ public sealed record PanelSnapshot(
             }
         }
 
+        var totalBytes = same ? previous!.TotalBytes : PanelTotals.SumBytes(entries);
+        var selectedBytes = marked.Count > 0 ? PanelTotals.MarkedBytes(entries, marked) : 0UL;
         var error = tab.Error;
         return new PanelSnapshot(
             tab.Location.Path,
@@ -70,7 +74,9 @@ public sealed record PanelSnapshot(
             error?.Kind,
             error?.Path ?? error?.Message,
             tab.Filter,
-            tab.Version);
+            tab.Version,
+            selectedBytes,
+            totalBytes);
     }
 
     private static int CountSelectable(IReadOnlyList<Entry> entries)

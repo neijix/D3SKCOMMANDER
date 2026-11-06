@@ -63,7 +63,7 @@ public class HugeFolderTests
             OnUiThread("select all", workspace.SelectAll);
             OnUiThread("the beat after select all", () => Beat(window, left));
             Assert.Equal(Count, left.List.MarkedCount);
-            Assert.Equal($"{Count} / {Count} selected", left.StatusText);
+            Assert.StartsWith($"{Count} / {Count} selected", left.StatusText, StringComparison.Ordinal);
             OnUiThread("invert", workspace.Invert);
             OnUiThread("the beat after invert", () => Beat(window, left));
             Assert.Equal(0, left.List.MarkedCount);

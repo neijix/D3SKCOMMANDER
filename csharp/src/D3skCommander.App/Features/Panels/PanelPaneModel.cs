@@ -50,6 +50,7 @@ public sealed partial class PanelPaneModel : ObservableObject, IShellWidget
         _dialogs = dialogs;
         List = new FileList(text);
         List.RenameCommitted += OnRenameCommitted;
+        List.DirectoryMarked += OnDirectoryMarked;
         _panels.RenameRequested += OnRenameRequested;
         InitOverlay();
         BrowseText = text.Get("panels.browse");
@@ -249,14 +250,16 @@ public sealed partial class PanelPaneModel : ObservableObject, IShellWidget
     private void Refresh(PanelSnapshot snap)
     {
         IsActive = _panels.ActiveSide == _side;
-        StatusText = _text.Get("panels.selected")
-            .Replace("{0}", snap.Selected.ToString(CultureInfo.InvariantCulture), StringComparison.Ordinal)
-            .Replace("{1}", snap.Selectable.ToString(CultureInfo.InvariantCulture), StringComparison.Ordinal);
+        StatusText = StatusOf(snap);
         if (!EditingPath && Path != snap.Path)
         {
             Path = snap.Path;
         }
     }
+
+    // Space marked a folder: its size is measured as a job (the row key is the folder path).
+    private void OnDirectoryMarked(object? sender, FileListRow row) =>
+        _panels.RequestFolderSize(_side, _panels.Read(_side).Path, row.Key);
 
     private void PushSelection(PanelSnapshot snap)
     {

@@ -19,6 +19,12 @@ public sealed partial class PanelWorkspace : IInPlaceRename
     /// <summary>Raised with the active side when a rename starts; that side's pane opens its name editor.</summary>
     public event EventHandler<PanelSide>? RenameRequested;
 
+    /// <summary>Raised when a pane asks for the size of a folder (Space on it); the panel commands measure it as a job.</summary>
+    public event EventHandler<FolderSizeRequest>? FolderSizeRequested;
+
+    public void RequestFolderSize(PanelSide side, string directory, string folder) =>
+        FolderSizeRequested?.Invoke(this, new FolderSizeRequest(side, directory, folder));
+
     public void Begin() => RenameRequested?.Invoke(this, _active);
 
     /// <summary>The pane's name editor committed: the file operations rename the entry.</summary>
@@ -54,3 +60,6 @@ public sealed partial class PanelWorkspace : IInPlaceRename
         return File.Exists(entry.Path) ? entry.Path : null;
     }
 }
+
+/// <summary>A folder whose size a pane wants, listed in <paramref name="Directory"/> on <paramref name="Side"/>.</summary>
+public sealed record FolderSizeRequest(PanelSide Side, string Directory, string Folder);

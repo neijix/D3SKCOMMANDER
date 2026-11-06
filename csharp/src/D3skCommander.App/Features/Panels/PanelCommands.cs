@@ -18,6 +18,7 @@ public sealed partial class PanelCommands
     private readonly IClipboardText _clipboard;
     private readonly Startup.AppSettings _settings;
     private readonly Core.Jobs.IJobService _jobs;
+    private readonly HashSet<string> _measuring = new(StringComparer.Ordinal);
 
     public PanelCommands(
         PanelWorkspace panels,
@@ -39,6 +40,7 @@ public sealed partial class PanelCommands
         _clipboard = clipboard;
         _settings = settings;
         _jobs = jobs;
+        _panels.FolderSizeRequested += OnFolderSizeRequested;
     }
 
     public void Bind(IShellContributions shell)
@@ -88,6 +90,45 @@ public sealed partial class PanelCommands
         }
 
         var (side, directory, folders) = targets.Value;
+        await MeasureAsync(side, directory, folders).ConfigureAwait(true);
+    }
+
+    // Space on a folder: one job per press, none while that folder is being measured; local folders only.
+    private void OnFolderSizeRequested(object? sender, FolderSizeRequest request)
+    {
+        if (!Directory.Exists(request.Folder))
+        {
+            return;
+        }
+
+        lock (_measuring)
+        {
+            if (!_measuring.Add(request.Folder))
+            {
+                return;
+            }
+        }
+
+        _ = MeasureThenReleaseAsync(request);
+    }
+
+    private async Task MeasureThenReleaseAsync(FolderSizeRequest request)
+    {
+        try
+        {
+            await MeasureAsync(request.Side, request.Directory, [request.Folder]).ConfigureAwait(true);
+        }
+        finally
+        {
+            lock (_measuring)
+            {
+                _measuring.Remove(request.Folder);
+            }
+        }
+    }
+
+    private async Task MeasureAsync(PanelSide side, string directory, IReadOnlyList<string> folders)
+    {
         var items = folders.Select(folder => new Core.Jobs.JobItem(folder)).ToList();
         var job = _jobs.Start(
             _text.Get("panels.dirsizes"),
