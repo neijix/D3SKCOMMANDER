@@ -301,26 +301,34 @@ public sealed partial class FileList
         }
     }
 
+    /// <summary>Marks exactly <paramref name="keys"/>; only the rows whose mark changes are touched.</summary>
     public void SetMarks(IReadOnlyList<string> keys)
     {
         ArgumentNullException.ThrowIfNull(keys);
-        ClearMarks();
+        var wanted = new HashSet<string>(StringComparer.Ordinal);
         foreach (var key in keys)
         {
             var index = IndexOfKey(key);
-            if (index < 0)
+            if (index >= 0 && _rowList[index].CanMark)
             {
-                continue;
+                wanted.Add(key);
             }
+        }
 
-            var row = _rowList[index];
-            if (!row.CanMark)
+        foreach (var key in _marks)
+        {
+            var index = IndexOfKey(key);
+            if (index >= 0 && !wanted.Contains(key))
             {
-                continue;
+                _rowList[index].IsMarked = false;
             }
+        }
 
-            _marks.Add(row.Key);
-            row.IsMarked = true;
+        _marks.Clear();
+        foreach (var key in wanted)
+        {
+            _marks.Add(key);
+            _rowList[IndexOfKey(key)].IsMarked = true;
         }
     }
 }

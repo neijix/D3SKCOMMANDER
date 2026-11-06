@@ -3,6 +3,10 @@ namespace D3skCommander.Core.FileSystem;
 /// <summary>One row of a panel. A link to a folder is both a link and a directory.</summary>
 public sealed class Entry
 {
+    private string _name;
+    private string? _stem;
+    private string? _extension;
+
     public Entry(
         string name,
         string path,
@@ -18,7 +22,7 @@ public sealed class Entry
         ArgumentNullException.ThrowIfNull(name);
         ArgumentNullException.ThrowIfNull(path);
         ArgumentNullException.ThrowIfNull(attributes);
-        Name = name;
+        _name = name;
         Path = path;
         IsDirectory = isDirectory;
         IsLink = isLink;
@@ -31,7 +35,16 @@ public sealed class Entry
     }
 
     /// <summary>Display name. In a branch listing this is the path relative to the listed folder.</summary>
-    public string Name { get; internal set; }
+    public string Name
+    {
+        get => _name;
+        internal set
+        {
+            _name = value;
+            _stem = null;
+            _extension = null;
+        }
+    }
 
     public string Path { get; }
 
@@ -54,8 +67,9 @@ public sealed class Entry
     public string Attributes { get; }
 
     /// <summary>Extension of a file; empty for folders, dot-files and names without a dot.</summary>
-    public string Extension => IsDirectory ? "" : LocalFileSystem.SplitExtension(Name).Extension;
+    /// <remarks>Kept after the first read: sorting by extension asks for it on every comparison.</remarks>
+    public string Extension => IsDirectory ? "" : _extension ??= LocalFileSystem.SplitExtension(_name).Extension;
 
     /// <summary>Name without its extension. Folders keep their full name.</summary>
-    public string Stem => IsDirectory ? Name : LocalFileSystem.SplitExtension(Name).Stem;
+    public string Stem => IsDirectory ? _name : _stem ??= LocalFileSystem.SplitExtension(_name).Stem;
 }

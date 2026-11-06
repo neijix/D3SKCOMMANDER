@@ -12,6 +12,7 @@ namespace D3skCommander.Core.Panels;
 /// </summary>
 public sealed partial class Tab
 {
+    private static long s_versions;
     private readonly IFileSystemProvider _provider;
     private readonly ArchiveFileSystemProvider _archives = new();
     private readonly TimeProvider _clock;
@@ -39,6 +40,7 @@ public sealed partial class Tab
         _provider = provider;
         _clock = clock;
         ScrollToCursor = true;
+        Version = NextVersion();
     }
 
     public Location Location { get; private set; }
@@ -55,6 +57,13 @@ public sealed partial class Tab
     public OperationError? Error { get; private set; }
 
     public bool ScrollToCursor { get; set; }
+
+    /// <summary>
+    /// Changes whenever the visible rows or one of their entries change (listing, sort, filter,
+    /// folder size) — never for the cursor or the marks. Unique across tabs, so an equal value
+    /// means the same rows: a view keeps its rows instead of rebuilding 100k of them.
+    /// </summary>
+    public long Version { get; private set; }
 
     public int SelectedCount => _selected.Count;
 
@@ -120,6 +129,7 @@ public sealed partial class Tab
             }
         }
 
+        Version = NextVersion();
         ClampCursor();
     }
 
@@ -313,6 +323,8 @@ public sealed partial class Tab
 
         return null;
     }
+
+    private static long NextVersion() => Interlocked.Increment(ref s_versions);
 
     private Entry? EntryAt(int index)
     {

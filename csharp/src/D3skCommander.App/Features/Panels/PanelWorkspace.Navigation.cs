@@ -149,17 +149,22 @@ public sealed partial class PanelWorkspace
         }
     }
 
-    public void Sort(SortKey key)
+    /// <summary>Sorts the active panel by <paramref name="key"/> (again: the other way) off the UI thread: 100k rows take a while.</summary>
+    public async Task SortAsync(SortKey key, CancellationToken cancellationToken = default)
     {
-        if (!TryEnter())
-        {
-            return;
-        }
-
+        using var linked = CancellationTokenSource.CreateLinkedTokenSource(_lifetime.Token, cancellationToken);
+        await _nav.WaitAsync(linked.Token).ConfigureAwait(false);
         try
         {
-            TabOf(_active)?.SetSort(key);
-            Publish(_active, announce: false);
+            var side = _active;
+            var tab = TabOf(side);
+            if (tab is null)
+            {
+                return;
+            }
+
+            await Task.Run(() => tab.SetSort(key), linked.Token).ConfigureAwait(false);
+            Publish(side, announce: false);
         }
         finally
         {

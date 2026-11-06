@@ -28,10 +28,10 @@ public sealed partial class PanelWorkspace
         shell.Handle(CommandId.ViewBrief, () => UseView(FileListView.Brief));
         shell.Handle(CommandId.ViewThumbs, () => UseView(FileListView.Thumbs));
         shell.Handle(CommandId.ToggleHidden, () => Run(() => ToggleHiddenAsync()));
-        shell.Handle(CommandId.SortName, () => Sort(SortKey.Name));
-        shell.Handle(CommandId.SortExt, () => Sort(SortKey.Extension));
-        shell.Handle(CommandId.SortDate, () => Sort(SortKey.Modified));
-        shell.Handle(CommandId.SortSize, () => Sort(SortKey.Size));
+        shell.Handle(CommandId.SortName, () => Run(() => SortAsync(SortKey.Name)));
+        shell.Handle(CommandId.SortExt, () => Run(() => SortAsync(SortKey.Extension)));
+        shell.Handle(CommandId.SortDate, () => Run(() => SortAsync(SortKey.Modified)));
+        shell.Handle(CommandId.SortSize, () => Run(() => SortAsync(SortKey.Size)));
         shell.Handle(CommandId.SelectAll, SelectAll);
         shell.Handle(CommandId.UnselectAll, UnselectAll);
         shell.Handle(CommandId.Invert, Invert);

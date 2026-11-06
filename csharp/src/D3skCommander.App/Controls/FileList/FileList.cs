@@ -11,6 +11,7 @@ public sealed partial class FileList : IShellWidget
     private readonly HashSet<string> _marks = new(StringComparer.Ordinal);
     private readonly object _rows = new();
     private List<FileListRow> _rowList = [];
+    private Dictionary<string, int>? _keyIndex;
     private List<FileListColumn> _columns = [];
     private IEnumerable<Entry>? _entries;
     private IEnumerable<Entry>? _watched;
@@ -263,6 +264,7 @@ public sealed partial class FileList : IShellWidget
         CloseEditor();
         _columns = columns.ToList();
         _rowList = rows.ToList();
+        _keyIndex = null;
         _marks.Clear();
         foreach (var row in _rowList)
         {
@@ -362,16 +364,17 @@ public sealed partial class FileList : IShellWidget
         var previous = _cursorIndex;
         CloseEditor();
         _columns = FileListEntryRows.Columns(View, ShownColumns).ToList();
-        var built = new List<FileListRow>();
+        var built = _entries is IReadOnlyCollection<Entry> known ? new List<FileListRow>(known.Count) : [];
         if (_entries is not null)
         {
             foreach (var entry in _entries)
             {
-                built.Add(FileListEntryRows.Create(entry, View, ShownColumns, _localizer));
+                built.Add(FileListEntryRows.Create(entry, View, _columns, ShownColumns, _localizer));
             }
         }
 
         _rowList = built;
+        _keyIndex = null;
         KeepMarks();
         var preferred = IndexOfKey(keep);
         Publish(preferred < 0 ? previous : preferred);
@@ -435,6 +438,7 @@ public sealed partial class FileList : IShellWidget
         return _rowList[_cursorIndex].Key;
     }
 
+    // The first row with that key, from an index built on first use after the rows change.
     private int IndexOfKey(string? key)
     {
         if (key is null)
@@ -442,15 +446,16 @@ public sealed partial class FileList : IShellWidget
             return -1;
         }
 
-        for (var i = 0; i < _rowList.Count; i++)
+        if (_keyIndex is null)
         {
-            if (_rowList[i].Key == key)
+            _keyIndex = new Dictionary<string, int>(_rowList.Count, StringComparer.Ordinal);
+            for (var i = 0; i < _rowList.Count; i++)
             {
-                return i;
+                _keyIndex.TryAdd(_rowList[i].Key, i);
             }
         }
 
-        return -1;
+        return _keyIndex.TryGetValue(key, out var index) ? index : -1;
     }
 
     private void ScrollTo(int index)

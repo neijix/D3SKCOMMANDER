@@ -8,6 +8,10 @@ namespace D3skCommander.App.Controls.FileList;
 /// <summary>One virtualized row. Panels pass an <see cref="Entry"/>; other tables pass their own cells.</summary>
 public sealed class FileListRow : INotifyPropertyChanged
 {
+    private Func<string[]>? _makeCells;
+    private string[]? _cells;
+    private FileKind? _kind;
+    private bool _kindKnown;
     private bool _isMarked;
     private bool _isCursor;
     private bool _isEditing;
@@ -20,26 +24,57 @@ public sealed class FileListRow : INotifyPropertyChanged
         bool canRename,
         bool isDirectory,
         object? source)
+        : this(key, editName, canMark, canRename, isDirectory, source)
+    {
+        ArgumentNullException.ThrowIfNull(cells);
+        _cells = cells.ToArray();
+    }
+
+    /// <summary>A row whose cells are made the first time it is drawn: a 100k-entry folder only formats what shows.</summary>
+    internal FileListRow(
+        string key,
+        Func<string[]> cells,
+        string editName,
+        bool canMark,
+        bool canRename,
+        bool isDirectory,
+        object? source)
+        : this(key, editName, canMark, canRename, isDirectory, source)
+    {
+        ArgumentNullException.ThrowIfNull(cells);
+        _makeCells = cells;
+    }
+
+    private FileListRow(string key, string editName, bool canMark, bool canRename, bool isDirectory, object? source)
     {
         ArgumentNullException.ThrowIfNull(key);
-        ArgumentNullException.ThrowIfNull(cells);
         ArgumentNullException.ThrowIfNull(editName);
         Key = key;
-        Cells = cells.ToArray();
         EditName = editName;
         EditBuffer = editName;
         CanMark = canMark;
         CanRename = canRename;
         IsDirectory = isDirectory;
         Source = source;
-        Kind = source is Entry entry ? FileKindClassifier.Of(entry) : null;
     }
 
     public event PropertyChangedEventHandler? PropertyChanged;
 
     public string Key { get; }
 
-    public IReadOnlyList<string> Cells { get; }
+    public IReadOnlyList<string> Cells
+    {
+        get
+        {
+            if (_cells is null)
+            {
+                _cells = _makeCells!();
+                _makeCells = null;
+            }
+
+            return _cells;
+        }
+    }
 
     public string EditName { get; }
 
@@ -55,7 +90,19 @@ public sealed class FileListRow : INotifyPropertyChanged
     public object? Source { get; }
 
     /// <summary>What the icon shows; null for a row that is not a file entry (no icon).</summary>
-    public FileKind? Kind { get; }
+    public FileKind? Kind
+    {
+        get
+        {
+            if (!_kindKnown)
+            {
+                _kind = Source is Entry entry ? FileKindClassifier.Of(entry) : null;
+                _kindKnown = true;
+            }
+
+            return _kind;
+        }
+    }
 
     public bool IsParent => Source is Entry entry && entry.IsParent;
 

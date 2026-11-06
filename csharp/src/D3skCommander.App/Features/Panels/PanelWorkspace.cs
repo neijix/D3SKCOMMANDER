@@ -391,7 +391,8 @@ public sealed partial class PanelWorkspace : IPanelWorkspace, IDisposable
 
         var token = side == PanelSide.Left ? _leftFailure : _rightFailure;
         var generation = side == PanelSide.Left ? ++_leftGeneration : ++_rightGeneration;
-        var snap = PanelSnapshot.Capture(tab, ViewOf(side), generation, token);
+        var previous = side == PanelSide.Left ? Volatile.Read(ref _leftSnap) : Volatile.Read(ref _rightSnap);
+        var snap = PanelSnapshot.Capture(tab, ViewOf(side), generation, token, previous);
         if (_inputError is not null && _inputSide == side)
         {
             snap = snap with { Error = _inputError.Kind, ErrorPath = _inputError.Path };

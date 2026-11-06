@@ -11,17 +11,17 @@ public static partial class LocalFileSystem
     public static FileResult<List<Entry>> ListDirectory(string directory, bool showHidden)
     {
         ArgumentException.ThrowIfNullOrEmpty(directory);
-        var children = ReadChildren(directory);
+        var children = ReadChildStatus(directory);
         if (!children.IsSuccess)
         {
             return FileResult<List<Entry>>.Fail(children.Error ?? OperationError.NotFound(directory));
         }
 
-        var entries = new List<Entry>();
+        var entries = new List<Entry>(children.Value.Count + 1);
         AddParent(directory, entries);
-        foreach (var child in children.Value)
+        foreach (var (path, info) in children.Value)
         {
-            var read = ReadEntry(child);
+            var read = ReadListed(path, info);
             if (!read.IsSuccess)
             {
                 continue;

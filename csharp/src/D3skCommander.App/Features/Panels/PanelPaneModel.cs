@@ -187,7 +187,12 @@ public sealed partial class PanelPaneModel : ObservableObject, IShellWidget
         }
 
         ShowColumns();
-        List.Entries = snap.Entries;
+        if (!ReferenceEquals(List.Entries, snap.Entries))
+        {
+            // A new list means new rows; the same list (only the cursor or the marks moved) keeps them.
+            List.Entries = snap.Entries;
+        }
+
         List.CursorIndex = snap.Cursor;
         List.SetMarks(snap.Marked);
         BindFilter(snap);
@@ -264,18 +269,17 @@ public sealed partial class PanelPaneModel : ObservableObject, IShellWidget
         _panels.ApplySelection(_side, List.CursorIndex, _marks);
     }
 
+    // Same count and every snapshot mark shown: the sets are equal. No copy: this runs every beat.
     private bool MarksDiffer(PanelSnapshot snap)
     {
-        List.CopyMarks(_marks);
-        if (_marks.Count != snap.Marked.Count)
+        if (List.MarkedCount != snap.Marked.Count)
         {
             return true;
         }
 
-        var known = new HashSet<string>(snap.Marked, StringComparer.Ordinal);
-        foreach (var mark in _marks)
+        foreach (var mark in snap.Marked)
         {
-            if (!known.Contains(mark))
+            if (!List.IsMarked(mark))
             {
                 return true;
             }

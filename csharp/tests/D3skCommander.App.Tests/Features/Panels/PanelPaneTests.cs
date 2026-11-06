@@ -160,6 +160,28 @@ public class PanelPaneTests
     }
 
     [AvaloniaFact]
+    public async Task ACursorMoveOrAMarkKeepsTheRowsAndASortBuildsNewOnes()
+    {
+        using var rig = await Rig.Opened();
+        rig.LeftView.Focus();
+        var rows = rig.Left.List.Items;
+
+        rig.Key(Key.Down);
+        rig.Click(rig.Left, rig.Index(PanelSide.Left, "b.txt"), RawInputModifiers.Control);
+        rig.Workspace.SelectAll();
+        rig.Left.Tick();
+
+        Assert.Same(rows, rig.Left.List.Items);
+        Assert.Equal(4, rig.Left.List.MarkedCount);
+
+        await rig.Workspace.SortAsync(Core.FileSystem.SortKey.Size, TestContext.Current.CancellationToken);
+        rig.Left.Tick();
+
+        Assert.NotSame(rows, rig.Left.List.Items);
+        Assert.Equal(4, rig.Left.List.MarkedCount);
+    }
+
+    [AvaloniaFact]
     public async Task TheStatusTextCountsTheMarksAndTheActiveSideIsTinted()
     {
         using var rig = await Rig.Opened();

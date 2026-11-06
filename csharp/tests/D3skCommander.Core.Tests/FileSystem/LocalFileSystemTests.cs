@@ -15,6 +15,49 @@ public class LocalFileSystemTests
     }
 
     [Fact]
+    public void NaturalOrderFoldsCaseBeyondAsciiAndNeverThrows()
+    {
+        var names = new List<string> { "😀", "été10", "b", "a1", "Été2", "a01" };
+        names.Sort(LocalFileSystem.CompareNatural);
+        Assert.Equal(new[] { "a01", "a1", "b", "Été2", "été10", "😀" }, names);
+        Assert.True(LocalFileSystem.CompareNatural("Été", "été") < 0);
+        Assert.True(LocalFileSystem.CompareNatural("a\uD800", "a") > 0);
+        Assert.Equal(0, LocalFileSystem.CompareNatural("file007", "file007"));
+    }
+
+    [Fact]
+    public void AListingReadsEachEntryAsAOnePathReadDoes()
+    {
+        using var dir = new TempFolder();
+        File.WriteAllText(Path.Combine(dir.Path, "a.txt"), "12345");
+        File.WriteAllText(Path.Combine(dir.Path, ".dot"), "");
+        Directory.CreateDirectory(Path.Combine(dir.Path, "dir"));
+        var readOnly = Path.Combine(dir.Path, "ro.txt");
+        File.WriteAllText(readOnly, "x");
+        MakeReadOnly(readOnly, true);
+        TryLink(Path.Combine(dir.Path, "to-file"), Path.Combine(dir.Path, "a.txt"));
+        TryLink(Path.Combine(dir.Path, "to-dir"), Path.Combine(dir.Path, "dir"));
+        TryLink(Path.Combine(dir.Path, "broken"), Path.Combine(dir.Path, "missing"));
+        try
+        {
+            var listed = ListOrFail(dir.Path, showHidden: true).Where(entry => !entry.IsParent).ToList();
+
+            Assert.Contains(listed, entry => entry.Name == "ro.txt" && entry.ReadOnly);
+            Assert.Contains(listed, entry => entry.Name == "a.txt" && entry.Size == 5);
+            foreach (var entry in listed)
+            {
+                var alone = LocalFileSystem.ReadEntry(entry.Path);
+                Assert.True(alone.IsSuccess, entry.Path);
+                Assert.Equal(Fields(alone.Value), Fields(entry));
+            }
+        }
+        finally
+        {
+            MakeReadOnly(readOnly, false);
+        }
+    }
+
+    [Fact]
     public void SplitExtHandlesDotFiles()
     {
         Assert.Equal(new ExtensionParts(".bashrc", ""), LocalFileSystem.SplitExtension(".bashrc"));
@@ -124,6 +167,32 @@ public class LocalFileSystemTests
         var listed = LocalFileSystem.ListDirectory(directory, showHidden);
         Assert.True(listed.IsSuccess, listed.Error?.Message);
         return listed.Value;
+    }
+
+    private static string Fields(Entry entry) =>
+        string.Join('|', entry.Name, entry.Path, entry.IsDirectory, entry.IsLink, entry.Size, entry.Modified, entry.Hidden, entry.ReadOnly, entry.Attributes);
+
+    private static void MakeReadOnly(string path, bool on)
+    {
+        if (OperatingSystem.IsWindows())
+        {
+            File.SetAttributes(path, on ? FileAttributes.ReadOnly : FileAttributes.Normal);
+            return;
+        }
+
+        File.SetUnixFileMode(path, on ? UnixFileMode.UserRead : UnixFileMode.UserRead | UnixFileMode.UserWrite);
+    }
+
+    // Windows makes links only for an administrator or in developer mode: then the links are left out.
+    private static void TryLink(string link, string target)
+    {
+        try
+        {
+            File.CreateSymbolicLink(link, target);
+        }
+        catch (Exception ex) when (ex is IOException or UnauthorizedAccessException)
+        {
+        }
     }
 
     private static List<string> Names(IEnumerable<Entry> entries) => entries.Select(entry => entry.Name).ToList();

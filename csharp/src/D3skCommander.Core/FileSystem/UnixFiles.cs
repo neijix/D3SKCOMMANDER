@@ -14,6 +14,9 @@ internal static class UnixFiles
 
     public static string Attributes(string path) => Format(File.GetUnixFileMode(path));
 
+    /// <summary>The mode an enumeration already read (no new system call).</summary>
+    public static UnixFileMode ModeOf(FileSystemInfo info) => info.UnixFileMode;
+
     public static string Format(UnixFileMode mode)
     {
         var bits = (int)mode;

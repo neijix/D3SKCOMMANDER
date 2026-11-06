@@ -82,6 +82,7 @@ public sealed partial class Tab
             if (string.Equals(_entries[i].Path, path, StringComparison.Ordinal))
             {
                 _entries[i] = WithKnownSize(_entries[i]);
+                Version = NextVersion();
             }
         }
     }

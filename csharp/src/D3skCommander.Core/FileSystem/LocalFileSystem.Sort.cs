@@ -20,6 +20,7 @@ public readonly record struct SortOrder(SortKey Key, bool Descending)
 public static partial class LocalFileSystem
 {
     /// <summary>Case-insensitive order where digit runs compare as numbers ("file2" &lt; "file10").</summary>
+    /// <remarks>Allocation-free: a 100k-row folder sorts in a few hundred thousand of these calls.</remarks>
     public static int CompareNatural(string left, string right)
     {
         ArgumentNullException.ThrowIfNull(left);
@@ -45,7 +46,7 @@ public static partial class LocalFileSystem
         entries.AddRange(sorted);
     }
 
-    // Null means the step only consumed equal numbers and the walk continues.
+    // Null means the step only consumed equal text and the walk continues.
     private static int? CompareStep(string left, string right, ref int i, ref int j)
     {
         var leftDone = i >= left.Length;
@@ -65,69 +66,64 @@ public static partial class LocalFileSystem
             return 1;
         }
 
-        var leftRune = Rune.GetRuneAt(left, i);
-        var rightRune = Rune.GetRuneAt(right, j);
-        if (IsAsciiDigit(leftRune) && IsAsciiDigit(rightRune))
+        var a = left[i];
+        var b = right[j];
+        if (char.IsAsciiDigit(a) && char.IsAsciiDigit(b))
         {
-            var leftNumber = TakeNumber(left, ref i);
-            var rightNumber = TakeNumber(right, ref j);
-            var compared = CompareNumbers(leftNumber, rightNumber);
+            var compared = CompareNumbers(TakeNumber(left, ref i), TakeNumber(right, ref j));
             return compared == 0 ? null : compared;
         }
 
-        var comparedChars = CompareLower(leftRune, rightRune);
-        if (comparedChars != 0)
+        if (char.IsAscii(a) && char.IsAscii(b))
         {
-            return comparedChars;
+            var byAscii = AsciiLower(a).CompareTo(AsciiLower(b));
+            i++;
+            j++;
+            return byAscii == 0 ? null : byAscii;
         }
 
-        i += leftRune.Utf16SequenceLength;
-        j += rightRune.Utf16SequenceLength;
-        return null;
+        return CompareRunes(left, right, ref i, ref j);
     }
 
-    private static int CompareNumbers(string left, string right)
+    // Lower-cased scalars compared as UTF-16, as an ordinal string compare would.
+    private static int? CompareRunes(string left, string right, ref int i, ref int j)
     {
-        var leftTrimmed = TrimZeros(left);
-        var rightTrimmed = TrimZeros(right);
+        Rune.DecodeFromUtf16(left.AsSpan(i), out var leftRune, out var leftUsed);
+        Rune.DecodeFromUtf16(right.AsSpan(j), out var rightRune, out var rightUsed);
+        Span<char> a = stackalloc char[2];
+        Span<char> b = stackalloc char[2];
+        var aLength = Rune.ToLowerInvariant(leftRune).EncodeToUtf16(a);
+        var bLength = Rune.ToLowerInvariant(rightRune).EncodeToUtf16(b);
+        var compared = ((ReadOnlySpan<char>)a[..aLength]).SequenceCompareTo(b[..bLength]);
+        i += leftUsed;
+        j += rightUsed;
+        return compared == 0 ? null : compared;
+    }
+
+    private static char AsciiLower(char c) => c is >= 'A' and <= 'Z' ? (char)(c + 32) : c;
+
+    private static int CompareNumbers(ReadOnlySpan<char> left, ReadOnlySpan<char> right)
+    {
+        var leftTrimmed = left.TrimStart('0');
+        var rightTrimmed = right.TrimStart('0');
         var byLength = leftTrimmed.Length.CompareTo(rightTrimmed.Length);
         if (byLength != 0)
         {
             return byLength;
         }
 
-        return string.CompareOrdinal(leftTrimmed, rightTrimmed);
+        return leftTrimmed.SequenceCompareTo(rightTrimmed);
     }
 
-    private static string TrimZeros(string digits)
-    {
-        var start = 0;
-        while (start < digits.Length && digits[start] == '0')
-        {
-            start++;
-        }
-
-        return digits[start..];
-    }
-
-    private static string TakeNumber(string text, ref int index)
+    private static ReadOnlySpan<char> TakeNumber(string text, ref int index)
     {
         var start = index;
-        while (index < text.Length && text[index] is >= '0' and <= '9')
+        while (index < text.Length && char.IsAsciiDigit(text[index]))
         {
             index++;
         }
 
-        return text[start..index];
-    }
-
-    private static bool IsAsciiDigit(Rune rune) => rune.Value is >= '0' and <= '9';
-
-    private static int CompareLower(Rune left, Rune right)
-    {
-        var a = left.ToString().ToLowerInvariant();
-        var b = right.ToString().ToLowerInvariant();
-        return string.CompareOrdinal(a, b);
+        return text.AsSpan(start, index - start);
     }
 
     private sealed class EntryOrder : IComparer<Entry>

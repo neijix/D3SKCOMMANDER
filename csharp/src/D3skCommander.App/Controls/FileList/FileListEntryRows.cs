@@ -23,26 +23,45 @@ public static class FileListEntryRows
         return columns;
     }
 
-    public static FileListRow Create(Entry entry, FileListView view, FileListColumnFlags shown, ILocalizer text)
+    public static FileListRow Create(Entry entry, FileListView view, FileListColumnFlags shown, ILocalizer text) =>
+        Create(entry, view, Columns(view, shown), shown, text);
+
+    /// <summary>The row for <paramref name="entry"/> under <paramref name="columns"/> (from <see cref="Columns"/>); its cells are formatted when first read.</summary>
+    public static FileListRow Create(
+        Entry entry,
+        FileListView view,
+        IReadOnlyList<FileListColumn> columns,
+        FileListColumnFlags shown,
+        ILocalizer text)
     {
         ArgumentNullException.ThrowIfNull(entry);
+        ArgumentNullException.ThrowIfNull(columns);
         ArgumentNullException.ThrowIfNull(text);
-        var columns = Columns(view, shown);
+        var parent = entry.IsParent;
+        return new FileListRow(
+            entry.Path,
+            () => Cells(entry, view, columns, shown, text),
+            parent ? text.Get("filelist.parent") : entry.Name,
+            !parent,
+            !parent,
+            entry.IsDirectory && !parent,
+            entry);
+    }
+
+    private static string[] Cells(
+        Entry entry,
+        FileListView view,
+        IReadOnlyList<FileListColumn> columns,
+        FileListColumnFlags shown,
+        ILocalizer text)
+    {
         var cells = new string[columns.Count];
         for (var i = 0; i < columns.Count; i++)
         {
             cells[i] = Cell(entry, columns[i].HeaderKey, view, shown, text);
         }
 
-        var parent = entry.IsParent;
-        return new FileListRow(
-            entry.Path,
-            cells,
-            parent ? text.Get("filelist.parent") : entry.Name,
-            !parent,
-            !parent,
-            entry.IsDirectory && !parent,
-            entry);
+        return cells;
     }
 
     private static void AddOptional(List<FileListColumn> columns, FileListColumnFlags shown)

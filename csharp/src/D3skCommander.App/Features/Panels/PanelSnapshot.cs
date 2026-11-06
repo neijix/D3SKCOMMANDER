@@ -18,7 +18,8 @@ public sealed record PanelSnapshot(
     int FailureToken,
     ErrorKind? Error,
     string? ErrorPath,
-    string? Filter = null)
+    string? Filter = null,
+    long Version = 0)
 {
     public static PanelSnapshot Empty { get; } = new(
         "",
@@ -33,24 +34,25 @@ public sealed record PanelSnapshot(
         null,
         null);
 
-    public static PanelSnapshot Capture(Tab tab, FileListView view, int generation, int failureToken)
+    /// <summary>
+    /// Reads <paramref name="tab"/>. When <paramref name="previous"/> shows the same rows
+    /// (<see cref="Tab.Version"/>), its entry list is kept: the same list tells the view not to rebuild.
+    /// </summary>
+    public static PanelSnapshot Capture(Tab tab, FileListView view, int generation, int failureToken, PanelSnapshot? previous = null)
     {
         ArgumentNullException.ThrowIfNull(tab);
-        var entries = new List<Entry>();
+        var same = previous is not null && previous.Version == tab.Version;
+        var entries = same ? previous!.Entries : [.. tab.VisibleEntries];
+        var selectable = same ? previous!.Selectable : CountSelectable(entries);
         var marked = new List<string>();
-        var selectable = 0;
-        foreach (var entry in tab.VisibleEntries)
+        if (tab.SelectedCount > 0)
         {
-            entries.Add(entry);
-            if (entry.IsParent)
+            foreach (var entry in entries)
             {
-                continue;
-            }
-
-            selectable++;
-            if (tab.IsSelected(entry.Path))
-            {
-                marked.Add(entry.Path);
+                if (!entry.IsParent && tab.IsSelected(entry.Path))
+                {
+                    marked.Add(entry.Path);
+                }
             }
         }
 
@@ -67,6 +69,21 @@ public sealed record PanelSnapshot(
             failureToken,
             error?.Kind,
             error?.Path ?? error?.Message,
-            tab.Filter);
+            tab.Filter,
+            tab.Version);
+    }
+
+    private static int CountSelectable(IReadOnlyList<Entry> entries)
+    {
+        var count = 0;
+        foreach (var entry in entries)
+        {
+            if (!entry.IsParent)
+            {
+                count++;
+            }
+        }
+
+        return count;
     }
 }
