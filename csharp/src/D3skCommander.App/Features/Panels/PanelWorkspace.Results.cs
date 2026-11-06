@@ -11,6 +11,7 @@ public sealed partial class PanelWorkspace
         string startFolder,
         string title,
         IReadOnlyList<string> paths,
+        IReadOnlyList<int>? groups = null,
         CancellationToken cancellationToken = default)
     {
         ArgumentNullException.ThrowIfNull(paths);
@@ -28,7 +29,7 @@ public sealed partial class PanelWorkspace
             var opened = await Task.Run(
                 async () =>
                 {
-                    var results = ListFileSystemProvider.Results(startFolder, title, paths);
+                    var results = ListFileSystemProvider.Results(startFolder, title, paths, groups);
                     var before = panel.Tabs.Count;
                     await panel.NewTabAtAsync(new Location(results.Directory, results), _showHidden, linked.Token)
                         .ConfigureAwait(false);

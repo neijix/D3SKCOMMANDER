@@ -53,6 +53,12 @@ public sealed class SearchQuery
 
     public bool Dirs { get; init; } = true;
 
+    /// <summary>
+    /// When set, the walk collects files only and the engine reports the duplicate groups instead of the
+    /// plain hits (<see cref="SearchHit.Group"/>).
+    /// </summary>
+    public DuplicateCriteria? Duplicates { get; init; }
+
     /// <summary>Look inside ZIP, TAR, TAR.GZ and 7Z files through the archive provider.</summary>
     public bool SearchArchives { get; init; }
 }

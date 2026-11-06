@@ -115,6 +115,28 @@ public sealed partial class Tab
         }
     }
 
+    /// <summary>
+    /// In a duplicates listing: marks every row except the first of each group (in the order shown), so a
+    /// delete removes the extra copies. Elsewhere it changes nothing.
+    /// </summary>
+    public void SelectAllButFirstOfGroups()
+    {
+        if (!VisibleEntries.Any(entry => entry.Group > 0))
+        {
+            return;
+        }
+
+        _selected.Clear();
+        var seen = new HashSet<int>();
+        foreach (var entry in VisibleEntries)
+        {
+            if (entry.Group > 0 && !entry.IsParent && !seen.Add(entry.Group))
+            {
+                _selected.Add(entry.Path);
+            }
+        }
+    }
+
     public bool IsSelected(string path)
     {
         ArgumentNullException.ThrowIfNull(path);

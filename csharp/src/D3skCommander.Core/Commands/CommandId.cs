@@ -87,4 +87,5 @@ public enum CommandId
     ClipCut,
     ClipPaste,
     GoToContainingFolder,
+    SelectAllButFirst,
 }

@@ -19,13 +19,14 @@ public interface IPanelWorkspace
 
     /// <summary>
     /// Opens the paths as a virtual folder in a new tab of <paramref name="side"/>, named <paramref name="title"/>
-    /// and left through ".." to <paramref name="startFolder"/>. A workspace without tabs answers false.
+    /// and left through ".." to <paramref name="startFolder"/>. <paramref name="groups"/> (parallel to the paths) keeps duplicate groups together. A workspace without tabs answers false.
     /// </summary>
     Task<bool> OpenResultsAsync(
         PanelSide side,
         string startFolder,
         string title,
         IReadOnlyList<string> paths,
+        IReadOnlyList<int>? groups = null,
         CancellationToken cancellationToken = default) => Task.FromResult(false);
 
     Task RefreshAsync(CancellationToken cancellationToken = default);

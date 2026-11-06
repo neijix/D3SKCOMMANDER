@@ -338,5 +338,9 @@
   "cmd.go_to_folder": {
     "en": "Go to the file's folder",
     "fr": "Aller au dossier du fichier"
+  },
+  "cmd.select_all_but_first": {
+    "en": "Select all but the first of each duplicate group",
+    "fr": "Sélectionner tout sauf le premier de chaque groupe de doublons"
   }
 }

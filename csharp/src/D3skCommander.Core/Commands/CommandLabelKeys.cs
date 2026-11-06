@@ -95,6 +95,7 @@ internal static class CommandLabelKeys
         "cmd.clip_cut",
         "cmd.clip_paste",
         "cmd.go_to_folder",
+        "cmd.select_all_but_first",
     ];
 
     private static string[] Merge(string[] early, string[] late)

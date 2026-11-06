@@ -51,6 +51,18 @@ public sealed class SearchForm
     /// <summary>Modified more than N days ago.</summary>
     public string OlderDays { get; set; } = "";
 
+    /// <summary>Group the files found by <see cref="DupName"/>, <see cref="DupSize"/> and/or <see cref="DupContent"/>.</summary>
+    public bool FindDuplicates { get; set; }
+
+    public bool DupName { get; set; }
+
+    public bool DupSize { get; set; } = true;
+
+    public bool DupContent { get; set; } = true;
+
+    /// <summary>Confirm equal hashes byte by byte.</summary>
+    public bool DupCompareBytes { get; set; }
+
     /// <summary>An independent copy, so a saved template never shares state with the live form.</summary>
     public SearchForm Clone() => (SearchForm)MemberwiseClone();
 }

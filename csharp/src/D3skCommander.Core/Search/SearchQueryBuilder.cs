@@ -12,6 +12,7 @@ public enum SearchFormProblem
     BadSize,
     SizeRange,
     BadDays,
+    NoDuplicateCriterion,
 }
 
 public readonly struct SearchQueryResult
@@ -54,7 +55,15 @@ public static class SearchQueryBuilder
             return SearchQueryResult.Fail(SearchFormProblem.NoFolder);
         }
 
-        if (!form.Files && !form.Dirs)
+        var duplicates = form.FindDuplicates
+            ? new DuplicateCriteria(form.DupName, form.DupSize, form.DupContent, form.DupCompareBytes)
+            : null;
+        if (duplicates is { IsValid: false })
+        {
+            return SearchQueryResult.Fail(SearchFormProblem.NoDuplicateCriterion);
+        }
+
+        if (duplicates is null && !form.Files && !form.Dirs)
         {
             return SearchQueryResult.Fail(SearchFormProblem.NoKind);
         }
@@ -104,9 +113,10 @@ public static class SearchQueryBuilder
             MaxSize = max,
             NewerThan = newer,
             OlderThan = older,
-            Files = form.Files,
-            Dirs = form.Dirs,
-            SearchArchives = form.InArchives,
+            Files = duplicates is not null || form.Files,
+            Dirs = duplicates is null && form.Dirs,
+            SearchArchives = duplicates is null && form.InArchives,
+            Duplicates = duplicates,
         });
     }
 

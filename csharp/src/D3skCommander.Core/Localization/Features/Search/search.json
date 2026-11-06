@@ -75,6 +75,42 @@
     "en": "Search: {0}",
     "fr": "Recherche : {0}"
   },
+  "search.duplicates": {
+    "en": "Find duplicates",
+    "fr": "Chercher les doublons"
+  },
+  "search.dup_name": {
+    "en": "Same name",
+    "fr": "Même nom"
+  },
+  "search.dup_size": {
+    "en": "Same size",
+    "fr": "Même taille"
+  },
+  "search.dup_content": {
+    "en": "Same content",
+    "fr": "Même contenu"
+  },
+  "search.dup_compare": {
+    "en": "Compare bytes (slower, certain)",
+    "fr": "Comparer les octets (plus lent, certain)"
+  },
+  "search.col.group": {
+    "en": "Group",
+    "fr": "Groupe"
+  },
+  "search.problem.no_duplicate": {
+    "en": "Tick at least one duplicate criterion: name, size or content",
+    "fr": "Cochez au moins un critère de doublon : nom, taille ou contenu"
+  },
+  "search.status.hashing": {
+    "en": "Hashing {done} / {total}",
+    "fr": "Calcul des empreintes {done} / {total}"
+  },
+  "search.status.done_duplicates": {
+    "en": "Done: {hits} files in {groups} groups, {skipped} unreadable",
+    "fr": "Terminé : {hits} fichiers dans {groups} groupes, {skipped} illisibles"
+  },
   "search.go": {
     "en": "Go to file",
     "fr": "Aller au fichier"

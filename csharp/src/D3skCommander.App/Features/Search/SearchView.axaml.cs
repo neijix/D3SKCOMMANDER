@@ -126,6 +126,11 @@ public sealed partial class SearchView : UserControl
         FeedButton.Content = text.Get("search.feed");
         ExcludeFilesLabel.Text = text.Get("search.exclude_files");
         ExcludeFoldersLabel.Text = text.Get("search.exclude_folders");
+        DuplicatesBox.Content = text.Get("search.duplicates");
+        DupNameBox.Content = text.Get("search.dup_name");
+        DupSizeBox.Content = text.Get("search.dup_size");
+        DupContentBox.Content = text.Get("search.dup_content");
+        DupCompareBox.Content = text.Get("search.dup_compare");
         LinksBox.Content = text.Get("search.follow_links");
         SaveTemplateButton.Content = text.Get("search.template.save");
         TemplatesButton.Content = text.Get("search.template.menu");

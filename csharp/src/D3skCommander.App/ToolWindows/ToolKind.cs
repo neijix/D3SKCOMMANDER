@@ -23,7 +23,7 @@ public sealed class ToolKind
 
     public int DefaultHeight { get; }
 
-    public static ToolKind Search { get; } = new("search", "tool.search.title", 820, 620);
+    public static ToolKind Search { get; } = new("search", "tool.search.title", 860, 800);
 
     public static ToolKind MultiRename { get; } = new("multirename", "tool.multirename.title", 760, 600);
 

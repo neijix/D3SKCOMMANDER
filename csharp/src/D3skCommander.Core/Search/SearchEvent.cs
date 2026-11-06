@@ -8,9 +8,10 @@ public enum SearchEventKind
     Scanned,
     Error,
     Done,
+    Hashing,
 }
 
-/// <summary>One matching entry. <see cref="Line"/> is the first matching line (1-based) of a content search.</summary>
+/// <summary>One matching entry. <see cref="Group"/> is the 1-based duplicate group, 0 outside a duplicates search. <see cref="Line"/> is the first matching line (1-based) of a content search.</summary>
 public sealed record SearchHit(
     string Path,
     string Name,
@@ -18,7 +19,8 @@ public sealed record SearchHit(
     ulong Size,
     DateTimeOffset? Modified,
     int? Line,
-    string? LineText);
+    string? LineText,
+    int Group = 0);
 
 /// <summary>One step of a running search. A search always ends with <see cref="SearchEventKind.Done"/>.</summary>
 public sealed class SearchEvent
@@ -44,6 +46,12 @@ public sealed class SearchEvent
 
     public bool Cancelled { get; private init; }
 
+    /// <summary>Files that could not be read while looking for duplicates (<see cref="SearchEventKind.Done"/>).</summary>
+    public int Skipped { get; private init; }
+
+    /// <summary>Files hashed so far (<see cref="SearchEventKind.Hashing"/>); <see cref="Count"/> holds the total.</summary>
+    public long Hashed { get; private init; }
+
     public static SearchEvent ForHit(SearchHit hit)
     {
         ArgumentNullException.ThrowIfNull(hit);
@@ -59,6 +67,9 @@ public sealed class SearchEvent
         return new SearchEvent(SearchEventKind.Error) { Error = error };
     }
 
-    public static SearchEvent ForDone(long hits, bool cancelled) =>
-        new(SearchEventKind.Done) { Hits = hits, Cancelled = cancelled };
+    public static SearchEvent ForDone(long hits, bool cancelled, int skipped = 0) =>
+        new(SearchEventKind.Done) { Hits = hits, Cancelled = cancelled, Skipped = skipped };
+
+    public static SearchEvent ForHashing(long hashed, long total) =>
+        new(SearchEventKind.Hashing) { Hashed = hashed, Count = total };
 }

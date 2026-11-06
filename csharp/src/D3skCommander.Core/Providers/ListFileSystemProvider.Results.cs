@@ -9,16 +9,24 @@ public sealed partial class ListFileSystemProvider
     /// so ".." leads back to the folder the search started in. Rows are named by their path relative to
     /// <paramref name="startFolder"/> (the full path outside it), which keeps two same-named hits apart.
     /// A path that cannot be read, such as a member of an archive, is left out. Every listing checks the paths again.
+    /// <paramref name="groups"/> (parallel to <paramref name="paths"/>, 1-based) marks duplicate groups: rows
+    /// of a group stay together and in group order (<see cref="Entry.Group"/>).
     /// </summary>
-    public static ListFileSystemProvider Results(string startFolder, string title, IEnumerable<string> paths)
+    public static ListFileSystemProvider Results(
+        string startFolder,
+        string title,
+        IEnumerable<string> paths,
+        IReadOnlyList<int>? groups = null)
     {
         ArgumentException.ThrowIfNullOrEmpty(startFolder);
         ArgumentException.ThrowIfNullOrEmpty(title);
         ArgumentNullException.ThrowIfNull(paths);
         var entries = new List<Entry>();
         var seen = new HashSet<string>(StringComparer.Ordinal);
+        var index = -1;
         foreach (var path in paths)
         {
+            index++;
             if (!seen.Add(path))
             {
                 continue;
@@ -28,6 +36,7 @@ public sealed partial class ListFileSystemProvider
             if (read.IsSuccess)
             {
                 read.Value.Name = ResultName(startFolder, path);
+                read.Value.Group = groups is not null && index < groups.Count ? groups[index] : 0;
                 entries.Add(read.Value);
             }
         }

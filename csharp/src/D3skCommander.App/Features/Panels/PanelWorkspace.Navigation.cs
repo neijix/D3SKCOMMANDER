@@ -176,6 +176,8 @@ public sealed partial class PanelWorkspace
 
     public void UnselectAll() => EditSelection(tab => tab.ClearSelection());
 
+    public void SelectAllButFirst() => EditSelection(tab => tab.SelectAllButFirstOfGroups());
+
     public void Invert() => EditSelection(tab => tab.InvertSelection());
 
     public async Task ToggleHiddenAsync(CancellationToken cancellationToken = default)

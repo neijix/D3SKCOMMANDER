@@ -131,6 +131,7 @@ public sealed partial class ListFileSystemProvider : FileSystemProvider
         if (live.IsSuccess)
         {
             live.Value.Name = entry.Name;
+            live.Value.Group = entry.Group;
             found.Add(live.Value);
         }
     }

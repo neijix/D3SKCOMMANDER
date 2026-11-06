@@ -1,4 +1,5 @@
 using D3skCommander.Core.FileSystem;
+using D3skCommander.Core.Panels;
 using D3skCommander.Core.Providers;
 using Xunit;
 
@@ -98,6 +99,32 @@ public class ListProviderTests
             Assert.Equal(two, left.Path);
             Assert.Equal(3UL, left.Size);
             Assert.Contains(again, entry => entry.IsParent && entry.Path == root);
+        }
+        finally
+        {
+            Directory.Delete(root, recursive: true);
+        }
+    }
+
+    [Fact]
+    public async Task ResultsKeepDuplicateGroupsTogetherAndSelectAllButFirstMarksTheExtraCopies()
+    {
+        var root = Directory.CreateTempSubdirectory("d3sk-results-").FullName;
+        try
+        {
+            var paths = new[] { "z1.txt", "a2.txt", "m1.txt", "b2.txt" }.Select(name => Path.Combine(root, name)).ToList();
+            foreach (var path in paths)
+            {
+                File.WriteAllText(path, "x");
+            }
+
+            var list = ListFileSystemProvider.Results(root, "Search: dup", paths, [1, 2, 2, 1]);
+            var tab = new Tab(new Location(list.Directory, list), SortOrder.NameAscending, list);
+            await tab.ReloadAsync(true, TestContext.Current.CancellationToken);
+
+            Assert.Equal(["b2.txt", "z1.txt", "a2.txt", "m1.txt"], tab.VisibleEntries.Where(e => !e.IsParent).Select(e => e.Name).ToList());
+            tab.SelectAllButFirstOfGroups();
+            Assert.Equal(["z1.txt", "m1.txt"], tab.Targets().Select(e => e.Name).ToList());
         }
         finally
         {

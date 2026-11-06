@@ -73,6 +73,11 @@ public sealed partial class SearchViewModel
         MaxSize = form.MaxSize;
         NewerDays = form.NewerDays;
         OlderDays = form.OlderDays;
+        FindDuplicates = form.FindDuplicates;
+        DupName = form.DupName;
+        DupSize = form.DupSize;
+        DupContent = form.DupContent;
+        DupCompareBytes = form.DupCompareBytes;
         return true;
     }
 

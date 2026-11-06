@@ -149,6 +149,11 @@ public static partial class LocalFileSystem
                 return BoolFirst(left.IsDirectory, right.IsDirectory);
             }
 
+            if (left.Group != right.Group && left.Group > 0 && right.Group > 0)
+            {
+                return left.Group.CompareTo(right.Group);
+            }
+
             // Descending flips the column, not the ".." / folder grouping above.
             var key = left.IsDirectory && _order.Key != SortKey.Modified ? SortKey.Name : _order.Key;
             var compared = CompareKey(left, right, key);

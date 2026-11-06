@@ -17,13 +17,25 @@ internal static class SearchRows
         new FileListColumn("search.col.match", 180),
     ];
 
-    public static FileListRow Row(SearchHit hit, ILocalizer text)
+    /// <summary>Duplicates: name, group number, folder, size, date. Rows come in group order.</summary>
+    public static IReadOnlyList<FileListColumn> DuplicateColumns { get; } =
+    [
+        new FileListColumn("name", 1, true),
+        new FileListColumn("search.col.group", 70),
+        new FileListColumn("search.col.folder", 200),
+        new FileListColumn("size", FileListEntryRows.SizeWidth),
+        new FileListColumn("date", FileListEntryRows.DateWidth),
+    ];
+
+    public static FileListRow Row(SearchHit hit, ILocalizer text, bool duplicates = false)
     {
         ArgumentNullException.ThrowIfNull(hit);
         ArgumentNullException.ThrowIfNull(text);
         var size = hit.IsDirectory ? text.Get("folder") : LocalFileSystem.FormatSize(hit.Size);
         var match = hit.Line is int line ? line + ": " + hit.LineText : "";
-        var cells = new[] { hit.Name, ParentOf(hit.Path), size, LocalFileSystem.FormatTime(hit.Modified), match };
+        var cells = duplicates
+            ? new[] { hit.Name, hit.Group.ToString(System.Globalization.CultureInfo.InvariantCulture), ParentOf(hit.Path), size, LocalFileSystem.FormatTime(hit.Modified) }
+            : new[] { hit.Name, ParentOf(hit.Path), size, LocalFileSystem.FormatTime(hit.Modified), match };
         return new FileListRow(hit.Path, cells, hit.Name, false, false, hit.IsDirectory, hit);
     }
 

@@ -1,10 +1,15 @@
 using D3skCommander.App.Dialogs;
 using D3skCommander.App.Features.Panels;
+using D3skCommander.App.Features.Search;
 using D3skCommander.App.Shell;
+using D3skCommander.App.Tests.Dialogs;
 using D3skCommander.App.ToolWindows;
 using D3skCommander.Core.Common;
 using D3skCommander.Core.FileSystem;
+using D3skCommander.Core.Jobs;
+using D3skCommander.Core.Localization;
 using D3skCommander.Core.Providers;
+using D3skCommander.Core.Search;
 
 namespace D3skCommander.App.Tests.Features.Search;
 
@@ -151,4 +156,18 @@ internal static class SearchMemoryFolder
         };
         return folder;
     }
+}
+
+internal static class SearchFakes
+{
+    /// <summary>A search model over the workspace, in English, with scratch history and template folders.</summary>
+    public static SearchViewModel Model(PanelWorkspace panels) => new(
+        Localizer.Load(settingsLanguage: Language.En, systemLanguage: Language.En),
+        new JobService(),
+        new SearchPicker(null),
+        panels,
+        new SearchEngine(),
+        new FakeDialogService(),
+        new SearchHistoryStore(SearchMemoryFolder.Fresh()),
+        new SearchTemplateStore(SearchMemoryFolder.Fresh()));
 }

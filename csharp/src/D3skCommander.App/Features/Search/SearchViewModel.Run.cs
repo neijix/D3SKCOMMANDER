@@ -20,6 +20,10 @@ public sealed partial class SearchViewModel
     private int _generation;
     private long _scanned;
     private bool _dirty;
+    private bool _duplicatesShown;
+    private long _hashed;
+    private long _hashTotal;
+    private int _skipped;
 
     /// <summary>The hits shown so far, in the order of the rows.</summary>
     public IReadOnlyList<SearchHit> Hits => _hits;
@@ -45,9 +49,13 @@ public sealed partial class SearchViewModel
         _hits.Clear();
         _errors.Clear();
         _scanned = 0;
+        _hashed = 0;
+        _hashTotal = 0;
+        _skipped = 0;
+        _duplicatesShown = result.Query.Duplicates is not null;
         ErrorsLine = "";
         HitCount = 0;
-        _results.ShowRows(SearchRows.Columns, []);
+        _results.ShowRows(_duplicatesShown ? SearchRows.DuplicateColumns : SearchRows.Columns, []);
         while (_events.TryDequeue(out _))
         {
         }
@@ -142,7 +150,8 @@ public sealed partial class SearchViewModel
 
         var title = _text.Get("search.tab_title").Replace("{0}", NameMask, StringComparison.Ordinal);
         var paths = _hits.Select(hit => hit.Path).ToList();
-        return await _panels.OpenResultsAsync(side, start, title, paths).ConfigureAwait(true);
+        var groups = _duplicatesShown ? _hits.Select(hit => hit.Group).ToList() : null;
+        return await _panels.OpenResultsAsync(side, start, title, paths, groups).ConfigureAwait(true);
     }
 
     private bool Take(SearchEvent step)
@@ -156,12 +165,18 @@ public sealed partial class SearchViewModel
         {
             _scanned = step.Count;
         }
+        else if (step.Kind == SearchEventKind.Hashing)
+        {
+            _hashed = step.Hashed;
+            _hashTotal = step.Count;
+        }
         else if (step.Kind == SearchEventKind.Error && step.Error is not null)
         {
             AddError(step.Error);
         }
         else if (step.Kind == SearchEventKind.Done)
         {
+            _skipped = step.Skipped;
             Finish(step.Cancelled);
             return true;
         }
@@ -185,7 +200,16 @@ public sealed partial class SearchViewModel
     {
         IsRunning = false;
         var key = cancelled ? "search.status.cancelled" : "search.status.done";
-        Status = _text.Get(key).Replace("{hits}", _hits.Count.ToString(CultureInfo.InvariantCulture), StringComparison.Ordinal);
+        if (_duplicatesShown && !cancelled)
+        {
+            key = "search.status.done_duplicates";
+        }
+
+        var groups = _hits.Count == 0 ? 0 : _hits.Max(hit => hit.Group);
+        Status = _text.Get(key)
+            .Replace("{hits}", _hits.Count.ToString(CultureInfo.InvariantCulture), StringComparison.Ordinal)
+            .Replace("{groups}", groups.ToString(CultureInfo.InvariantCulture), StringComparison.Ordinal)
+            .Replace("{skipped}", _skipped.ToString(CultureInfo.InvariantCulture), StringComparison.Ordinal);
         _dirty = true;
     }
 
@@ -196,10 +220,10 @@ public sealed partial class SearchViewModel
         var rows = new List<FileListRow>(_hits.Count);
         foreach (var hit in _hits)
         {
-            rows.Add(SearchRows.Row(hit, _text));
+            rows.Add(SearchRows.Row(hit, _text, _duplicatesShown));
         }
 
-        _results.ShowRows(SearchRows.Columns, rows);
+        _results.ShowRows(_duplicatesShown ? SearchRows.DuplicateColumns : SearchRows.Columns, rows);
         if (cursor > 0 && cursor < rows.Count)
         {
             _results.CursorIndex = cursor;
@@ -208,7 +232,20 @@ public sealed partial class SearchViewModel
         HitCount = _hits.Count;
     }
 
-    private void ShowRunning() =>
+    private void ShowRunning()
+    {
+        if (_hashTotal > 0)
+        {
+            Status = _text.Get("search.status.hashing")
+                .Replace("{done}", _hashed.ToString(CultureInfo.InvariantCulture), StringComparison.Ordinal)
+                .Replace("{total}", _hashTotal.ToString(CultureInfo.InvariantCulture), StringComparison.Ordinal);
+            return;
+        }
+
+        ShowScanning();
+    }
+
+    private void ShowScanning() =>
         Status = _text.Get("search.status.running")
             .Replace("{scanned}", _scanned.ToString(CultureInfo.InvariantCulture), StringComparison.Ordinal)
             .Replace("{hits}", _hits.Count.ToString(CultureInfo.InvariantCulture), StringComparison.Ordinal);
@@ -227,6 +264,10 @@ public sealed partial class SearchViewModel
         else if (result.Problem == SearchFormProblem.SizeRange)
         {
             key = "search.problem.size_range";
+        }
+        else if (result.Problem == SearchFormProblem.NoDuplicateCriterion)
+        {
+            key = "search.problem.no_duplicate";
         }
         else if (result.Problem == SearchFormProblem.BadDays)
         {

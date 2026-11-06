@@ -31,7 +31,7 @@ internal static class MenuExpectations
 
         if (titleKey == "menu.mark")
         {
-            return "SelectGroup UnselectGroup SelectAll UnselectAll Invert SelectSameExt | CopyNames CopyPaths | ComparePanels";
+            return "SelectGroup UnselectGroup SelectAll UnselectAll Invert SelectSameExt SelectAllButFirst | CopyNames CopyPaths | ComparePanels";
         }
 
         if (titleKey == "menu.commands")

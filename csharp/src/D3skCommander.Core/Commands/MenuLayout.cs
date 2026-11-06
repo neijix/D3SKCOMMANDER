@@ -48,6 +48,7 @@ internal static class MenuLayout
         CommandId.UnselectAll,
         CommandId.Invert,
         CommandId.SelectSameExt,
+        CommandId.SelectAllButFirst,
         null,
         CommandId.CopyNames,
         CommandId.CopyPaths,

@@ -46,6 +46,12 @@ public sealed class Entry
         }
     }
 
+    /// <summary>
+    /// Group number (1-based) of a row in a duplicates listing; 0 outside one. Rows of a group stay together
+    /// whatever the sort column.
+    /// </summary>
+    public int Group { get; internal set; }
+
     public string Path { get; }
 
     public bool IsDirectory { get; }

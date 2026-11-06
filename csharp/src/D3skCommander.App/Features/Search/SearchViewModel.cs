@@ -91,6 +91,21 @@ public sealed partial class SearchViewModel : ObservableObject, IShellWidget
     private string _olderDays = "";
 
     [ObservableProperty]
+    private bool _findDuplicates;
+
+    [ObservableProperty]
+    private bool _dupName;
+
+    [ObservableProperty]
+    private bool _dupSize = true;
+
+    [ObservableProperty]
+    private bool _dupContent = true;
+
+    [ObservableProperty]
+    private bool _dupCompareBytes;
+
+    [ObservableProperty]
     private string _status = "";
 
     [ObservableProperty]
@@ -213,5 +228,10 @@ public sealed partial class SearchViewModel : ObservableObject, IShellWidget
         MaxSize = MaxSize,
         NewerDays = NewerDays,
         OlderDays = OlderDays,
+        FindDuplicates = FindDuplicates,
+        DupName = DupName,
+        DupSize = DupSize,
+        DupContent = DupContent,
+        DupCompareBytes = DupCompareBytes,
     };
 }
