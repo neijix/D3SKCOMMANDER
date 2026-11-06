@@ -30,6 +30,7 @@ internal static class CommandBindings
         Add(list, GestureModifiers.Alt, GestureKey.F7, CommandId.Search);
         Add(list, GestureModifiers.Shift | GestureModifiers.Alt, GestureKey.L, CommandId.DiskUsage);
         Add(list, ctrlShift, GestureKey.F, CommandId.QuickFind);
+        Add(list, ctrlShift, GestureKey.T, CommandId.ToggleTree);
         Add(list, GestureModifiers.Alt, GestureKey.F1, CommandId.DrivesLeft);
         Add(list, GestureModifiers.Alt, GestureKey.F2, CommandId.DrivesRight);
         Add(list, GestureModifiers.Alt, GestureKey.Enter, CommandId.Properties);

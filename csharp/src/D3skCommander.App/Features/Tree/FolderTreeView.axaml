@@ -1,0 +1,33 @@
+<UserControl xmlns="https://github.com/avaloniaui"
+             xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+             xmlns:t="using:D3skCommander.App.Features.Tree"
+             xmlns:icons="using:D3skCommander.App.Icons"
+             x:Class="D3skCommander.App.Features.Tree.FolderTreeView"
+             x:DataType="t:FolderTreeModel">
+  <TreeView x:Name="Tree" ScrollViewer.HorizontalScrollBarVisibility="Disabled" ItemsSource="{Binding Roots}" SelectedItem="{Binding Selected, Mode=TwoWay}"
+            Padding="0,0,0,44" BorderThickness="1" BorderBrush="{DynamicResource SystemControlForegroundBaseLowBrush}">
+    <TreeView.Resources>
+      <x:Double x:Key="TreeViewItemIndent">10</x:Double>
+    </TreeView.Resources>
+    <TreeView.Styles>
+      <Style Selector="TreeViewItem" x:DataType="t:FolderTreeNode">
+        <Setter Property="IsExpanded" Value="{Binding IsExpanded, Mode=TwoWay}"/>
+        <Setter Property="MinHeight" Value="22"/>
+        <Setter Property="Padding" Value="0"/>
+      </Style>
+      <Style Selector="TextBlock.placeholder">
+        <Setter Property="Opacity" Value="0.55"/>
+        <Setter Property="FontStyle" Value="Italic"/>
+      </Style>
+    </TreeView.Styles>
+    <TreeView.ItemTemplate>
+      <TreeDataTemplate x:DataType="t:FolderTreeNode" ItemsSource="{Binding Children}">
+        <Grid ColumnDefinitions="Auto,*" ToolTip.Tip="{Binding Name}">
+          <icons:FileKindIconControl Kind="Folder" Margin="0,0,4,0" VerticalAlignment="Center" IsVisible="{Binding !IsPlaceholder}"/>
+          <TextBlock Grid.Column="1" VerticalAlignment="Center" TextTrimming="CharacterEllipsis" Text="{Binding Name}"
+                     Classes.placeholder="{Binding IsPlaceholder}"/>
+        </Grid>
+      </TreeDataTemplate>
+    </TreeView.ItemTemplate>
+  </TreeView>
+</UserControl>

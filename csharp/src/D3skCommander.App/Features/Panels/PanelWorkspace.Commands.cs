@@ -30,6 +30,12 @@ public sealed partial class PanelWorkspace
         shell.Handle(CommandId.ViewThumbs, () => UseView(FileListView.Thumbs));
         shell.Handle(CommandId.ToggleHidden, () => Run(() => ToggleHiddenAsync()));
         shell.Handle(CommandId.ToggleDriveBar, ToggleDriveBar);
+        shell.Handle(CommandId.ToggleTree, () => ToggleTree(_active));
+        shell.Handle(CommandId.ToggleTreeLeft, () => ToggleTree(PanelSide.Left));
+        shell.Handle(CommandId.ToggleTreeRight, () => ToggleTree(PanelSide.Right));
+        shell.Checked(CommandId.ToggleTree, () => ShowTree(_active));
+        shell.Checked(CommandId.ToggleTreeLeft, () => ShowTree(PanelSide.Left));
+        shell.Checked(CommandId.ToggleTreeRight, () => ShowTree(PanelSide.Right));
         shell.Handle(CommandId.SortName, () => Run(() => SortAsync(SortKey.Name)));
         shell.Handle(CommandId.SortExt, () => Run(() => SortAsync(SortKey.Extension)));
         shell.Handle(CommandId.SortDate, () => Run(() => SortAsync(SortKey.Modified)));

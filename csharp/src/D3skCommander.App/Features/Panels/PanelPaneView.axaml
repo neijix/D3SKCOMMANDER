@@ -45,9 +45,14 @@
              Text="{Binding FilterText, Mode=TwoWay}" PlaceholderText="{Binding FilterWatermark}"/>
     <TextBlock x:Name="StatusText" DockPanel.Dock="Bottom" Margin="4,2"
                Classes.active="{Binding IsActive}" Text="{Binding StatusText}"/>
-    <Grid>
-      <ContentControl x:Name="ListHost" IsVisible="{Binding !HasOverlay}"/>
-      <ContentControl x:Name="OverlayHost" IsVisible="{Binding HasOverlay}" Content="{Binding Overlay}"/>
+    <Grid x:Name="Body" ColumnDefinitions="0,Auto,*">
+      <ContentControl x:Name="TreeHost" Grid.Column="0" Margin="2,0,0,0" IsVisible="{Binding ShowTree}"/>
+      <GridSplitter x:Name="TreeSplitter" Grid.Column="1" Width="5" Background="Transparent" Focusable="False"
+                    ResizeDirection="Columns" IsVisible="{Binding ShowTree}"/>
+      <Grid x:Name="ListArea" Grid.Column="2">
+        <ContentControl x:Name="ListHost" IsVisible="{Binding !HasOverlay}"/>
+        <ContentControl x:Name="OverlayHost" IsVisible="{Binding HasOverlay}" Content="{Binding Overlay}"/>
+      </Grid>
     </Grid>
   </DockPanel>
 </UserControl>

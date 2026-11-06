@@ -37,6 +37,10 @@ public class SettingsStoreTests
             IndexRefreshHours = 6,
             ShowDriveBar = false,
             ShowToolbar = false,
+            ShowTreeLeft = true,
+            ShowTreeRight = true,
+            TreeWidthLeft = 300,
+            TreeWidthRight = 150,
             Toolbar = [ToolbarItem.ForCommand(D3skCommander.Core.Commands.CommandId.Copy, "copy", "Copy it"), ToolbarItem.Separator, ToolbarItem.ForProgram("/opt/my tool/run", "--x %s", "/tmp")],
             Editor = "vi",
             Terminal = "xterm",
@@ -348,6 +352,10 @@ public class SettingsStoreTests
         Assert.Equal(24, preferences.IndexRefreshHours);
         Assert.True(preferences.ShowDriveBar);
         Assert.True(preferences.ShowToolbar);
+        Assert.False(preferences.ShowTreeLeft);
+        Assert.False(preferences.ShowTreeRight);
+        Assert.Equal(220, preferences.TreeWidthLeft);
+        Assert.Equal(220, preferences.TreeWidthRight);
         Assert.Equal(ToolbarDefaults.Items(), preferences.Toolbar);
         Assert.Equal("", preferences.Editor);
         Assert.Equal("", preferences.Terminal);
@@ -373,6 +381,10 @@ public class SettingsStoreTests
         Assert.Equal(expected.IndexRefreshHours, actual.IndexRefreshHours);
         Assert.Equal(expected.ShowDriveBar, actual.ShowDriveBar);
         Assert.Equal(expected.ShowToolbar, actual.ShowToolbar);
+        Assert.Equal(expected.ShowTreeLeft, actual.ShowTreeLeft);
+        Assert.Equal(expected.ShowTreeRight, actual.ShowTreeRight);
+        Assert.Equal(expected.TreeWidthLeft, actual.TreeWidthLeft);
+        Assert.Equal(expected.TreeWidthRight, actual.TreeWidthRight);
         Assert.Equal(expected.Toolbar, actual.Toolbar);
         Assert.Equal(expected.Editor, actual.Editor);
         Assert.Equal(expected.Terminal, actual.Terminal);

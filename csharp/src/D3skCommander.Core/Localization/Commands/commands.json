@@ -366,5 +366,17 @@
   "cmd.customize_toolbar": {
     "en": "Customize toolbar…",
     "fr": "Personnaliser la barre d'outils…"
+  },
+  "cmd.toggle_tree": {
+    "en": "Folder tree (active panel)",
+    "fr": "Arborescence (panneau actif)"
+  },
+  "cmd.toggle_tree_left": {
+    "en": "Folder tree, left panel",
+    "fr": "Arborescence, panneau gauche"
+  },
+  "cmd.toggle_tree_right": {
+    "en": "Folder tree, right panel",
+    "fr": "Arborescence, panneau droit"
   }
 }

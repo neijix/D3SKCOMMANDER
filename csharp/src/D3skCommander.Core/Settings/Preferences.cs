@@ -22,6 +22,14 @@ public sealed class Preferences
 
     public const int MaxIndexRefreshHours = 24 * 365;
 
+    public const double DefaultTreeWidth = 220;
+
+    public const double MinTreeWidth = 80;
+
+    public const double MaxTreeWidth = 1200;
+
+    private double _treeWidthLeft = DefaultTreeWidth;
+    private double _treeWidthRight = DefaultTreeWidth;
     private string _indexRoots = "";
     private string _indexExcludes = IndexOptions.DefaultExcludes;
     private int _indexRefreshHours = DefaultIndexRefreshHours;
@@ -46,6 +54,26 @@ public sealed class Preferences
 
     /// <summary>The main toolbar between the menu bar and the panels.</summary>
     public bool ShowToolbar { get; set; } = true;
+
+    /// <summary>The folder tree beside the left panel's file list.</summary>
+    public bool ShowTreeLeft { get; set; }
+
+    /// <summary>The folder tree beside the right panel's file list.</summary>
+    public bool ShowTreeRight { get; set; }
+
+    /// <summary>Width of the left folder tree in device-independent pixels, kept between <see cref="MinTreeWidth"/> and <see cref="MaxTreeWidth"/>.</summary>
+    public double TreeWidthLeft
+    {
+        get => _treeWidthLeft;
+        set => _treeWidthLeft = ClampTree(value);
+    }
+
+    /// <summary>Width of the right folder tree in device-independent pixels.</summary>
+    public double TreeWidthRight
+    {
+        get => _treeWidthRight;
+        set => _treeWidthRight = ClampTree(value);
+    }
 
     /// <summary>The toolbar buttons and separators, in order. Starts as <see cref="ToolbarDefaults"/>; an empty list is a toolbar with no button.</summary>
     public List<ToolbarItem> Toolbar
@@ -122,6 +150,9 @@ public sealed class Preferences
     public IReadOnlyList<ColumnSet> AllColumnSets() => ColumnSetCatalog.Effective(_columnSets, _columns);
 
     public bool CheckUpdates { get; set; } = true;
+
+    private static double ClampTree(double value) =>
+        double.IsNaN(value) ? DefaultTreeWidth : Math.Clamp(value, MinTreeWidth, MaxTreeWidth);
 
     public List<UserCommand> UserCommands
     {

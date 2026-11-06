@@ -28,7 +28,7 @@ public sealed partial class PanelPaneView : UserControl
         FilterBox.KeyDown += OnFilterKey;
         EnableDrop();
         BrowseButton.Click += (_, _) => _ = Model?.BrowseAsync();
-        SizeChanged += (_, e) => Model?.Fit(e.NewSize.Width);
+        ListArea.SizeChanged += (_, e) => Model?.Fit(e.NewSize.Width);
     }
 
     public PanelPaneView(PanelPaneModel model)
@@ -47,6 +47,7 @@ public sealed partial class PanelPaneView : UserControl
         ListHost.Content = _files;
         BuildBar(model);
         ShowDrives(model);
+        BuildTree(model);
         model.FilterOpened += (_, _) => Dispatcher.UIThread.Post(() => FilterBox.Focus());
     }
 

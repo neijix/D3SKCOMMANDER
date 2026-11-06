@@ -102,6 +102,9 @@ internal static class CommandLabelKeys
         "cmd.edit_column_sets",
         "cmd.show_toolbar",
         "cmd.customize_toolbar",
+        "cmd.toggle_tree",
+        "cmd.toggle_tree_left",
+        "cmd.toggle_tree_right",
     ];
 
     private static string[] Merge(string[] early, string[] late)

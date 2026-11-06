@@ -94,4 +94,7 @@ public enum CommandId
     EditColumnSets,
     ShowToolbar,
     CustomizeToolbar,
+    ToggleTree,
+    ToggleTreeLeft,
+    ToggleTreeRight,
 }

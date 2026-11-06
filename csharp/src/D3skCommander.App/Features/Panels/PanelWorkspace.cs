@@ -53,6 +53,7 @@ public sealed partial class PanelWorkspace : IPanelWorkspace, IDisposable
         _settings = settings;
         _showHidden = settings?.Preferences.Current.ShowHidden ?? false;
         _showDriveBar = settings?.Preferences.Current.ShowDriveBar ?? true;
+        LoadTree(settings?.Preferences.Current);
     }
 
     public PanelSide ActiveSide => _active;

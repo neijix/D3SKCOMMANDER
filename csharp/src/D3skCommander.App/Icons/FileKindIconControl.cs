@@ -14,7 +14,12 @@ public sealed class FileKindIconControl : Control
 
     private FileKindIcon? _icon;
 
-    public FileKindIconControl(double size = 16)
+    public FileKindIconControl()
+        : this(16)
+    {
+    }
+
+    public FileKindIconControl(double size)
     {
         Width = size;
         Height = size;

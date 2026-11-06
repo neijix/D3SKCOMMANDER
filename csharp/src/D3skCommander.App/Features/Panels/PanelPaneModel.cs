@@ -58,6 +58,7 @@ public sealed partial class PanelPaneModel : ObservableObject, IShellWidget
         FilterWatermark = text.Get("panels.filter");
         InitBar(dispatch);
         InitDrives(drives, text);
+        InitTree(drives, text);
     }
 
     public string? Name => _side == PanelSide.Left ? "Left" : "Right";
@@ -122,6 +123,7 @@ public sealed partial class PanelPaneModel : ObservableObject, IShellWidget
 
         PushFilter(snap);
         TickDrives(snap.Path);
+        TickTree(snap);
         Refresh(_panels.Read(_side));
         ShowFailure(snap);
     }

@@ -1,0 +1,26 @@
+{
+  "tree.home": {
+    "en": "Home",
+    "fr": "Dossier personnel"
+  },
+  "tree.loading": {
+    "en": "…",
+    "fr": "…"
+  },
+  "tree.no_access": {
+    "en": "(no access)",
+    "fr": "(accès refusé)"
+  },
+  "tree.open_other": {
+    "en": "Open in the other panel",
+    "fr": "Ouvrir dans l'autre panneau"
+  },
+  "tree.refresh": {
+    "en": "Refresh node",
+    "fr": "Actualiser le nœud"
+  },
+  "tree.title": {
+    "en": "Folders",
+    "fr": "Dossiers"
+  }
+}
