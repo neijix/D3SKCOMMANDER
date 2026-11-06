@@ -5,6 +5,7 @@ using D3skCommander.App.Startup;
 using D3skCommander.Core.Common;
 using D3skCommander.Core.Launch;
 using D3skCommander.Core.Localization;
+using D3skCommander.Core.Toolbar;
 
 namespace D3skCommander.App.Features.Launch;
 
@@ -79,6 +80,19 @@ public sealed class LaunchCommands : IFileLauncher
 
         var files = LocalFiles(capture);
         return Report(Launcher.Launch(command, files, capture.ActiveDirectory, _runner));
+    }
+
+    /// <summary>Starts the processes of a toolbar button; a failure is shown to the user.</summary>
+    public LaunchResult Run(IReadOnlyList<ProcessRequest> requests) => Report(Launcher.Run(requests, _runner));
+
+    /// <summary>What a toolbar button sees: the selected local files, the active folder (empty when no panel is open) and the user commands.</summary>
+    public ToolbarContext ToolbarContext()
+    {
+        var capture = _panels.Capture();
+        return new ToolbarContext(
+            capture is null ? [] : LocalFiles(capture),
+            capture?.ActiveDirectory ?? "",
+            _settings.Preferences.Current.UserCommands);
     }
 
     public async Task OpenWithAsync()

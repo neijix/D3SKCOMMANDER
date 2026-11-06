@@ -1,0 +1,72 @@
+<UserControl xmlns="https://github.com/avaloniaui"
+             xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+             xmlns:s="using:D3skCommander.App.Features.Settings"
+             x:Class="D3skCommander.App.Features.Settings.ToolbarEditor"
+             x:DataType="s:ToolbarEditorModel">
+  <StackPanel Spacing="4">
+    <TextBlock FontWeight="SemiBold" Text="{Binding Title}"/>
+    <ListBox x:Name="ToolbarList" Height="170" ItemsSource="{Binding Rows}" SelectedItem="{Binding SelectedRow, Mode=TwoWay}">
+      <ListBox.ItemTemplate>
+        <DataTemplate x:DataType="s:ToolbarRow">
+          <StackPanel Orientation="Horizontal" Spacing="8">
+            <PathIcon Width="16" Height="16" Data="{Binding Glyph}" IsVisible="{Binding !IsSeparator}"/>
+            <TextBlock VerticalAlignment="Center" Text="{Binding Display}"/>
+          </StackPanel>
+        </DataTemplate>
+      </ListBox.ItemTemplate>
+    </ListBox>
+    <WrapPanel ItemSpacing="4" LineSpacing="4">
+      <Button x:Name="AddCommandButton" Content="{Binding AddCommandCaption}" Command="{Binding AddCommandButtonCommand}"/>
+      <Button x:Name="AddUserCommandButton" Content="{Binding AddUserCommandCaption}" Command="{Binding AddUserCommandButtonCommand}"/>
+      <Button x:Name="AddProgramButton" Content="{Binding AddProgramCaption}" Command="{Binding AddProgramButtonCommand}"/>
+      <Button x:Name="AddSeparatorButton" Content="{Binding AddSeparatorCaption}" Command="{Binding AddSeparatorButtonCommand}"/>
+    </WrapPanel>
+    <WrapPanel ItemSpacing="4" LineSpacing="4">
+      <Button x:Name="ToolbarUpButton" Content="{Binding UpCaption}" Command="{Binding MoveUpCommand}"/>
+      <Button x:Name="ToolbarDownButton" Content="{Binding DownCaption}" Command="{Binding MoveDownCommand}"/>
+      <Button x:Name="ToolbarRemoveButton" Content="{Binding RemoveCaption}" Command="{Binding RemoveCommand}"/>
+      <Button x:Name="ToolbarResetButton" Content="{Binding ResetCaption}" Command="{Binding ResetCommand}"/>
+    </WrapPanel>
+    <StackPanel x:Name="ToolbarDetails" Spacing="4" Margin="0,4,0,0" IsVisible="{Binding SelectedRow, Converter={x:Static ObjectConverters.IsNotNull}}">
+      <Grid ColumnDefinitions="Auto,*" ColumnSpacing="8" IsVisible="{Binding SelectedRow.IsCommand}">
+        <TextBlock Grid.Column="0" Width="120" VerticalAlignment="Center" Text="{Binding CommandCaption}"/>
+        <ComboBox x:Name="CommandBox" Grid.Column="1" HorizontalAlignment="Stretch" ItemsSource="{Binding Commands}" SelectedItem="{Binding SelectedRow.Command, Mode=TwoWay}"/>
+      </Grid>
+      <Grid ColumnDefinitions="Auto,*" ColumnSpacing="8" IsVisible="{Binding SelectedRow.IsUserCommand}">
+        <TextBlock Grid.Column="0" Width="120" VerticalAlignment="Center" Text="{Binding UserCommandCaption}"/>
+        <ComboBox x:Name="UserCommandBox" Grid.Column="1" HorizontalAlignment="Stretch" ItemsSource="{Binding UserCommandNames}" SelectedItem="{Binding SelectedRow.UserCommandName, Mode=TwoWay}"/>
+      </Grid>
+      <Grid ColumnDefinitions="Auto,*" ColumnSpacing="8" IsVisible="{Binding SelectedRow.IsProgram}">
+        <TextBlock Grid.Column="0" Width="120" VerticalAlignment="Center" Text="{Binding ProgramCaption}"/>
+        <TextBox x:Name="ProgramBox" Grid.Column="1" Text="{Binding SelectedRow.Program, Mode=TwoWay}"/>
+      </Grid>
+      <Grid ColumnDefinitions="Auto,*" ColumnSpacing="8" IsVisible="{Binding SelectedRow.IsProgram}">
+        <TextBlock Grid.Column="0" Width="120" VerticalAlignment="Center" Text="{Binding ArgumentsCaption}"/>
+        <TextBox x:Name="ArgumentsBox" Grid.Column="1" Text="{Binding SelectedRow.Arguments, Mode=TwoWay}"/>
+      </Grid>
+      <Grid ColumnDefinitions="Auto,*" ColumnSpacing="8" IsVisible="{Binding SelectedRow.IsProgram}">
+        <TextBlock Grid.Column="0" Width="120" VerticalAlignment="Center" Text="{Binding FolderCaption}"/>
+        <TextBox x:Name="WorkingFolderBox" Grid.Column="1" Text="{Binding SelectedRow.WorkingFolder, Mode=TwoWay}"/>
+      </Grid>
+      <Grid ColumnDefinitions="Auto,*,Auto" ColumnSpacing="8" IsVisible="{Binding !SelectedRow.IsSeparator}">
+        <TextBlock Grid.Column="0" Width="120" VerticalAlignment="Center" Text="{Binding IconCaption}"/>
+        <ComboBox x:Name="IconBox" Grid.Column="1" HorizontalAlignment="Stretch" ItemsSource="{Binding Icons}" SelectedItem="{Binding SelectedRow.Icon, Mode=TwoWay}">
+          <ComboBox.ItemTemplate>
+            <DataTemplate x:DataType="s:IconChoice">
+              <StackPanel Orientation="Horizontal" Spacing="8">
+                <PathIcon Width="16" Height="16" Data="{Binding Glyph}"/>
+                <TextBlock VerticalAlignment="Center" Text="{Binding Label}"/>
+              </StackPanel>
+            </DataTemplate>
+          </ComboBox.ItemTemplate>
+        </ComboBox>
+        <PathIcon x:Name="IconPreview" Grid.Column="2" Width="24" Height="24" Data="{Binding SelectedRow.Glyph}"/>
+      </Grid>
+      <Grid ColumnDefinitions="Auto,*" ColumnSpacing="8" IsVisible="{Binding !SelectedRow.IsSeparator}">
+        <TextBlock Grid.Column="0" Width="120" VerticalAlignment="Center" Text="{Binding TooltipCaption}"/>
+        <TextBox x:Name="TooltipBox" Grid.Column="1" Text="{Binding SelectedRow.Tooltip, Mode=TwoWay}"/>
+      </Grid>
+      <TextBlock Foreground="Gray" TextWrapping="Wrap" Text="{Binding Hint}"/>
+    </StackPanel>
+  </StackPanel>
+</UserControl>

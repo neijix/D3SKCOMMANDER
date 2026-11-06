@@ -10,6 +10,8 @@ public sealed class ShellContributions : IShellContributions
     private readonly Dictionary<string, List<Func<IReadOnlyList<ShellAction>>>> _dynamic = [];
     private readonly List<Func<IShellWidget>> _trailing = [];
     private readonly List<Action> _startup = [];
+    private readonly Dictionary<CommandId, Func<bool>> _checked = [];
+    private readonly List<Func<IShellWidget>> _toolbar = [];
     private readonly List<Func<IShellWidget>> _under = [];
     private readonly List<Func<IShellWidget>> _beside = [];
     private Func<IShellWidget>? _left;
@@ -22,6 +24,8 @@ public sealed class ShellContributions : IShellContributions
     public Func<IShellWidget>? LeftPanel => _left;
 
     public Func<IShellWidget>? RightPanel => _right;
+
+    public IReadOnlyList<Func<IShellWidget>> ToolbarWidgets => _toolbar;
 
     public IReadOnlyList<Func<IShellWidget>> UnderPanels => _under;
 
@@ -86,6 +90,16 @@ public sealed class ShellContributions : IShellContributions
         return true;
     }
 
+    public void Checked(CommandId command, Func<bool> isChecked)
+    {
+        ArgumentNullException.ThrowIfNull(isChecked);
+        _checked[command] = isChecked;
+    }
+
+    /// <summary>The check mark of a toggle command's menu item; null when the command is not a toggle.</summary>
+    public bool? CheckedState(CommandId command) =>
+        _checked.TryGetValue(command, out var isChecked) ? isChecked() : null;
+
     public void AppendMenuItem(string menuKey, CommandId command) => ExtrasFor(menuKey).Add(command);
 
     public void AppendMenuSeparator(string menuKey) => ExtrasFor(menuKey).Add(null);
@@ -145,7 +159,11 @@ public sealed class ShellContributions : IShellContributions
     public void AddRegion(ShellRegion region, Func<IShellWidget> build)
     {
         ArgumentNullException.ThrowIfNull(build);
-        if (region == ShellRegion.UnderPanels)
+        if (region == ShellRegion.Toolbar)
+        {
+            _toolbar.Add(build);
+        }
+        else if (region == ShellRegion.UnderPanels)
         {
             _under.Add(build);
         }

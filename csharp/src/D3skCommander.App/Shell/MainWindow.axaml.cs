@@ -31,6 +31,7 @@ public sealed partial class MainWindow : Window
             FunctionKeyBar.Children.Add(CreateFunctionButton(button));
         }
 
+        Fill(ToolbarHost, Toolbar);
         Fill(UnderHost, UnderPanels);
         Fill(BesideHost, BesidePanels);
         BesideHost.IsVisible = BesidePanels.Count > 0;
@@ -111,6 +112,7 @@ public sealed partial class MainWindow : Window
             top.Items.Add(CreateEntry(entry));
         }
 
+        top.SubmenuOpened += (_, _) => RefreshChecks(top);
         if (menu.DynamicItems.Count > 0)
         {
             var fixedCount = top.Items.Count;
@@ -174,9 +176,31 @@ public sealed partial class MainWindow : Window
         if (entry.Command is CommandId command)
         {
             item.Click += (_, _) => _shell.Dispatch(command);
+            ShowCheck(item, command);
         }
 
         return item;
+    }
+
+    /// <summary>A toggle command's item shows its state as a check mark.</summary>
+    private void ShowCheck(MenuItem item, CommandId command)
+    {
+        if (_shell.CheckedState(command) is bool state)
+        {
+            item.ToggleType = MenuItemToggleType.CheckBox;
+            item.IsChecked = state;
+        }
+    }
+
+    private void RefreshChecks(MenuItem top)
+    {
+        foreach (var item in top.Items.OfType<MenuItem>())
+        {
+            if (item.Tag is CommandId command)
+            {
+                ShowCheck(item, command);
+            }
+        }
     }
 
     private static Button CreateFunctionButton(FunctionButton key)

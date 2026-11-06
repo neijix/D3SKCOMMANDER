@@ -1,0 +1,174 @@
+{
+  "toolbar.title": {
+    "en": "Toolbar",
+    "fr": "Barre d'outils"
+  },
+  "toolbar.add_command": {
+    "en": "Add command",
+    "fr": "Ajouter une commande"
+  },
+  "toolbar.add_user": {
+    "en": "Add user command",
+    "fr": "Ajouter une commande utilisateur"
+  },
+  "toolbar.add_program": {
+    "en": "Add program",
+    "fr": "Ajouter un programme"
+  },
+  "toolbar.add_separator": {
+    "en": "Add separator",
+    "fr": "Ajouter un séparateur"
+  },
+  "toolbar.remove": {
+    "en": "Remove",
+    "fr": "Retirer"
+  },
+  "toolbar.up": {
+    "en": "Move up",
+    "fr": "Monter"
+  },
+  "toolbar.down": {
+    "en": "Move down",
+    "fr": "Descendre"
+  },
+  "toolbar.reset": {
+    "en": "Reset to defaults",
+    "fr": "Rétablir les valeurs par défaut"
+  },
+  "toolbar.command": {
+    "en": "Command",
+    "fr": "Commande"
+  },
+  "toolbar.user_command": {
+    "en": "User command",
+    "fr": "Commande utilisateur"
+  },
+  "toolbar.program": {
+    "en": "Program",
+    "fr": "Programme"
+  },
+  "toolbar.arguments": {
+    "en": "Arguments",
+    "fr": "Arguments"
+  },
+  "toolbar.folder": {
+    "en": "Working folder",
+    "fr": "Dossier de travail"
+  },
+  "toolbar.icon": {
+    "en": "Icon",
+    "fr": "Icône"
+  },
+  "toolbar.icon_default": {
+    "en": "Default",
+    "fr": "Par défaut"
+  },
+  "toolbar.tooltip": {
+    "en": "Tooltip",
+    "fr": "Info-bulle"
+  },
+  "toolbar.separator": {
+    "en": "Separator",
+    "fr": "Séparateur"
+  },
+  "toolbar.hint": {
+    "en": "%s stands for the selected files. A tooltip left empty shows the command and its key.",
+    "fr": "%s représente les fichiers sélectionnés. Une info-bulle laissée vide affiche la commande et sa touche."
+  },
+  "toolbar.icon.refresh": {
+    "en": "Refresh",
+    "fr": "Actualiser"
+  },
+  "toolbar.icon.copy": {
+    "en": "Copy",
+    "fr": "Copier"
+  },
+  "toolbar.icon.move": {
+    "en": "Move",
+    "fr": "Déplacer"
+  },
+  "toolbar.icon.new_folder": {
+    "en": "New folder",
+    "fr": "Nouveau dossier"
+  },
+  "toolbar.icon.delete": {
+    "en": "Delete",
+    "fr": "Supprimer"
+  },
+  "toolbar.icon.search": {
+    "en": "Search",
+    "fr": "Rechercher"
+  },
+  "toolbar.icon.quick_find": {
+    "en": "Quick find",
+    "fr": "Recherche rapide"
+  },
+  "toolbar.icon.disk_usage": {
+    "en": "Disk usage",
+    "fr": "Occupation du disque"
+  },
+  "toolbar.icon.compare": {
+    "en": "Compare",
+    "fr": "Comparer"
+  },
+  "toolbar.icon.sync": {
+    "en": "Synchronize",
+    "fr": "Synchroniser"
+  },
+  "toolbar.icon.settings": {
+    "en": "Settings",
+    "fr": "Réglages"
+  },
+  "toolbar.icon.view": {
+    "en": "View",
+    "fr": "Voir"
+  },
+  "toolbar.icon.edit": {
+    "en": "Edit",
+    "fr": "Éditer"
+  },
+  "toolbar.icon.parent": {
+    "en": "Parent folder",
+    "fr": "Dossier parent"
+  },
+  "toolbar.icon.home": {
+    "en": "Home",
+    "fr": "Dossier personnel"
+  },
+  "toolbar.icon.star": {
+    "en": "Star",
+    "fr": "Étoile"
+  },
+  "toolbar.icon.terminal": {
+    "en": "Terminal",
+    "fr": "Terminal"
+  },
+  "toolbar.icon.pack": {
+    "en": "Pack",
+    "fr": "Compresser"
+  },
+  "toolbar.icon.unpack": {
+    "en": "Unpack",
+    "fr": "Décompresser"
+  },
+  "toolbar.icon.properties": {
+    "en": "Properties",
+    "fr": "Propriétés"
+  },
+  "toolbar.icon.drive": {
+    "en": "Drive",
+    "fr": "Disque"
+  },
+  "toolbar.icon.bolt": {
+    "en": "Bolt",
+    "fr": "Éclair"
+  },
+  "toolbar.icon.program": {
+    "en": "Program",
+    "fr": "Programme"
+  },
+  "toolbar.icon.command": {
+    "en": "Command",
+    "fr": "Commande"
+  }
+}

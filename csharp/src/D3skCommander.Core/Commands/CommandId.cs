@@ -92,4 +92,6 @@ public enum CommandId
     QuickFind,
     NextColumnSet,
     EditColumnSets,
+    ShowToolbar,
+    CustomizeToolbar,
 }

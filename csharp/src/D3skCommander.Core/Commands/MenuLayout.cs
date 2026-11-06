@@ -103,6 +103,7 @@ internal static class MenuLayout
         CommandId.QuickView,
         CommandId.ToggleHidden,
         CommandId.ToggleDriveBar,
+        CommandId.ShowToolbar,
         null,
         CommandId.SortName,
         CommandId.SortExt,
@@ -138,6 +139,7 @@ internal static class MenuLayout
     [
         CommandId.Settings,
         CommandId.EditColumnSets,
+        CommandId.CustomizeToolbar,
         CommandId.SettingsFolder,
         CommandId.Log,
     ]);

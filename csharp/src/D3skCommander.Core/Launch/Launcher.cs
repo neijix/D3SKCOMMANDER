@@ -57,6 +57,26 @@ public static class Launcher
         return Launch(command.Command, files, command.Mode, workingDirectory, runner);
     }
 
+    /// <summary>Starts each request in turn; the first failure stops the rest and is the result.</summary>
+    public static LaunchResult Run(IReadOnlyList<ProcessRequest> requests, IProcessRunner runner)
+    {
+        ArgumentNullException.ThrowIfNull(requests);
+        ArgumentNullException.ThrowIfNull(runner);
+        var started = 0;
+        foreach (var request in requests)
+        {
+            var one = Start(request, runner, request is ProcessRequest.Argv argv ? argv.Program : null);
+            if (!one.IsSuccess)
+            {
+                return one;
+            }
+
+            started++;
+        }
+
+        return LaunchResult.Ok(started);
+    }
+
     public static LaunchResult OpenWithDefault(string path, IProcessRunner runner) =>
         OpenWithDefault(path, runner, LaunchPlatforms.Current);
 

@@ -51,6 +51,13 @@ public sealed class SettingsCommands
                 model.RequestColumns();
             }
         });
+        shell.Handle(CommandId.CustomizeToolbar, () =>
+        {
+            if (_tools.Open(ToolKind.Settings).View is SettingsViewModel model)
+            {
+                model.RequestToolbar();
+            }
+        });
         _tools.Register(ToolKind.Settings, CreateView);
     }
 

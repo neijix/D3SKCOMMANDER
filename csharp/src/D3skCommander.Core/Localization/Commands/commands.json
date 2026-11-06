@@ -358,5 +358,13 @@
   "cmd.edit_column_sets": {
     "en": "Column sets…",
     "fr": "Jeux de colonnes…"
+  },
+  "cmd.show_toolbar": {
+    "en": "Toolbar",
+    "fr": "Barre d'outils"
+  },
+  "cmd.customize_toolbar": {
+    "en": "Customize toolbar…",
+    "fr": "Personnaliser la barre d'outils…"
   }
 }

@@ -3,6 +3,7 @@ using System.Text.Json;
 using System.Text.Json.Serialization;
 using D3skCommander.Core.Launch;
 using D3skCommander.Core.Panels;
+using D3skCommander.Core.Toolbar;
 
 namespace D3skCommander.Core.Settings;
 
@@ -23,6 +24,7 @@ internal static class SettingsJson
         options.Converters.Add(new JsonStringEnumConverter(namingPolicy: null, allowIntegerValues: false));
         options.Converters.Add(new ColumnsConverter());
         options.Converters.Add(new UserCommandConverter());
+        options.Converters.Add(new ToolbarJson());
         return options;
     }
 

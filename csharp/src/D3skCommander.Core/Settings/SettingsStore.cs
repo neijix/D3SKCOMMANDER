@@ -50,6 +50,9 @@ public class SettingsStore<T> : IDisposable
 
     public T Current { get; private set; }
 
+    /// <summary>Raised on the saving thread each time <see cref="Save"/> stores a value, before it reaches the disk.</summary>
+    public event Action<T>? Saved;
+
     /// <summary>The unreadable-file error, once. The next call returns null.</summary>
     public OperationError? TakeLoadError()
     {
@@ -67,6 +70,7 @@ public class SettingsStore<T> : IDisposable
         ArgumentNullException.ThrowIfNull(value);
         Current = value;
         Schedule(Serialize(value));
+        Saved?.Invoke(value);
     }
 
     /// <summary>Writes a pending save immediately. <see cref="Dispose"/> does this too.</summary>

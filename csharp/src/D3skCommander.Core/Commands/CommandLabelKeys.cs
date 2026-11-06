@@ -100,6 +100,8 @@ internal static class CommandLabelKeys
         "cmd.quick_find",
         "cmd.next_column_set",
         "cmd.edit_column_sets",
+        "cmd.show_toolbar",
+        "cmd.customize_toolbar",
     ];
 
     private static string[] Merge(string[] early, string[] late)

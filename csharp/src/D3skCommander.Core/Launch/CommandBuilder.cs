@@ -61,6 +61,23 @@ public static class CommandBuilder
             return [];
         }
 
+        return BuildWords(words, files, mode);
+    }
+
+    /// <summary>
+    /// One command for <paramref name="command"/> with the same placeholder rules as <see cref="Build"/>,
+    /// also when no file is selected (the <c>%s</c> arguments then drop out). Empty when the command has no words.
+    /// </summary>
+    public static IReadOnlyList<LaunchCommand> BuildAnySelection(string command, IReadOnlyList<string> files)
+    {
+        ArgumentNullException.ThrowIfNull(command);
+        ArgumentNullException.ThrowIfNull(files);
+        var words = Split(command);
+        return words.Count == 0 ? [] : BuildWords(words, files, LaunchMode.AllAtOnce);
+    }
+
+    private static List<LaunchCommand> BuildWords(IReadOnlyList<string> words, IReadOnlyList<string> files, LaunchMode mode)
+    {
         var program = words[0];
         var templates = new List<string>(words.Count - 1);
         var hasPlaceholder = false;

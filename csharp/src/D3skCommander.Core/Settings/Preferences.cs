@@ -2,6 +2,7 @@ using D3skCommander.Core.Index;
 using D3skCommander.Core.Launch;
 using D3skCommander.Core.Localization;
 using D3skCommander.Core.Panels;
+using D3skCommander.Core.Toolbar;
 
 namespace D3skCommander.Core.Settings;
 
@@ -29,6 +30,7 @@ public sealed class Preferences
     private Columns _columns = Columns.Default;
     private List<ColumnSet> _columnSets = [];
     private List<UserCommand> _userCommands = [];
+    private List<ToolbarItem> _toolbar = ToolbarDefaults.Items();
 
     /// <summary>v0.1 <c>Lang::from_env</c>: the saved language, otherwise the system language.</summary>
     public Language Language { get; set; } = Languages.Detect();
@@ -41,6 +43,16 @@ public sealed class Preferences
 
     /// <summary>The row of drive buttons above each panel.</summary>
     public bool ShowDriveBar { get; set; } = true;
+
+    /// <summary>The main toolbar between the menu bar and the panels.</summary>
+    public bool ShowToolbar { get; set; } = true;
+
+    /// <summary>The toolbar buttons and separators, in order. Starts as <see cref="ToolbarDefaults"/>; an empty list is a toolbar with no button.</summary>
+    public List<ToolbarItem> Toolbar
+    {
+        get => _toolbar;
+        set => _toolbar = value is null ? ToolbarDefaults.Items() : ToolbarItems.Clean(value);
+    }
 
     public bool UseTrash { get; set; } = true;
 

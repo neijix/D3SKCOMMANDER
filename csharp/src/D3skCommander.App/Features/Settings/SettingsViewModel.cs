@@ -97,6 +97,8 @@ public sealed partial class SettingsViewModel : ObservableObject, IShellWidget
         Labels = new SettingsLabels(text);
         ColumnSets = new ColumnSetsEditorModel(text, dialogs, settings.Preferences.Current.AllColumnSets());
         Load(settings.Preferences.Current);
+        Toolbar = new ToolbarEditorModel(text, settings.Preferences.Current.Toolbar, UserCommandNames());
+        Commands.CollectionChanged += (_, _) => Toolbar.SetUserCommandNames(UserCommandNames());
     }
 
     public string? Name => "settings";
@@ -107,6 +109,14 @@ public sealed partial class SettingsViewModel : ObservableObject, IShellWidget
 
     /// <summary>The Columns section: the column sets and their columns.</summary>
     public ColumnSetsEditorModel ColumnSets { get; }
+
+    /// <summary>The Toolbar section: the buttons of the main toolbar.</summary>
+    public ToolbarEditorModel Toolbar { get; }
+
+    /// <summary>Raised when something asks the window to scroll the Toolbar section into view.</summary>
+    public event Action? ToolbarRequested;
+
+    public void RequestToolbar() => ToolbarRequested?.Invoke();
 
     /// <summary>Raised when something asks the window to scroll the Columns section into view.</summary>
     public event Action? ColumnsRequested;
@@ -144,6 +154,7 @@ public sealed partial class SettingsViewModel : ObservableObject, IShellWidget
         next.Editor = Editor.Trim();
         next.Terminal = Terminal.Trim();
         next.ColumnSets = [.. ColumnSets.Result()];
+        next.Toolbar = [.. Toolbar.Result()];
         next.UserCommands = Commands.Select(row => row.Command).ToList();
         _settings.Preferences.Save(next);
         _log.Enabled = next.LogOperations;
@@ -209,6 +220,8 @@ public sealed partial class SettingsViewModel : ObservableObject, IShellWidget
             Commands.Remove(row);
         }
     }
+
+    private IEnumerable<string> UserCommandNames() => Commands.Select(row => row.Command.Name);
 
     private async Task<UserCommand?> AskCommandAsync(UserCommand? current)
     {

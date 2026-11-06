@@ -22,6 +22,7 @@ using D3skCommander.App.Features.QuickView;
 using D3skCommander.App.Features.Search;
 using D3skCommander.App.Features.Settings;
 using D3skCommander.App.Features.Sync;
+using D3skCommander.App.Features.Toolbar;
 using D3skCommander.App.Features.Tools;
 using D3skCommander.App.Features.Update;
 using D3skCommander.App.Smoke;
@@ -63,6 +64,7 @@ public static class AppComposition
         SearchModule.Register(services);
         SettingsModule.Register(services);
         SyncModule.Register(services);
+        ToolbarModule.Register(services);
         ToolsModule.Register(services);
         UpdateModule.Register(services);
         DialogsModule.Register(services);

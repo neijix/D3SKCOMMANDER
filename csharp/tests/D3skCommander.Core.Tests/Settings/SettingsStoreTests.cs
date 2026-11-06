@@ -7,6 +7,7 @@ using D3skCommander.Core.Localization;
 using D3skCommander.Core.Panels;
 using D3skCommander.Core.Settings;
 using D3skCommander.Core.SettingsLocation;
+using D3skCommander.Core.Toolbar;
 using Microsoft.Extensions.Time.Testing;
 using Xunit;
 
@@ -35,6 +36,8 @@ public class SettingsStoreTests
             IndexExcludes = "*/tmp",
             IndexRefreshHours = 6,
             ShowDriveBar = false,
+            ShowToolbar = false,
+            Toolbar = [ToolbarItem.ForCommand(D3skCommander.Core.Commands.CommandId.Copy, "copy", "Copy it"), ToolbarItem.Separator, ToolbarItem.ForProgram("/opt/my tool/run", "--x %s", "/tmp")],
             Editor = "vi",
             Terminal = "xterm",
             Columns = new Columns(false, true, false, true),
@@ -344,6 +347,8 @@ public class SettingsStoreTests
         Assert.Equal(D3skCommander.Core.Index.IndexOptions.DefaultExcludes, preferences.IndexExcludes);
         Assert.Equal(24, preferences.IndexRefreshHours);
         Assert.True(preferences.ShowDriveBar);
+        Assert.True(preferences.ShowToolbar);
+        Assert.Equal(ToolbarDefaults.Items(), preferences.Toolbar);
         Assert.Equal("", preferences.Editor);
         Assert.Equal("", preferences.Terminal);
         Assert.Equal(Columns.Default, preferences.Columns);
@@ -367,6 +372,8 @@ public class SettingsStoreTests
         Assert.Equal(expected.IndexExcludes, actual.IndexExcludes);
         Assert.Equal(expected.IndexRefreshHours, actual.IndexRefreshHours);
         Assert.Equal(expected.ShowDriveBar, actual.ShowDriveBar);
+        Assert.Equal(expected.ShowToolbar, actual.ShowToolbar);
+        Assert.Equal(expected.Toolbar, actual.Toolbar);
         Assert.Equal(expected.Editor, actual.Editor);
         Assert.Equal(expected.Terminal, actual.Terminal);
         Assert.Equal(expected.Columns, actual.Columns);

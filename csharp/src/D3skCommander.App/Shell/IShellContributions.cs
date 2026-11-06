@@ -11,6 +11,9 @@ public interface IShellContributions
 
     bool Dispatch(CommandId command);
 
+    /// <summary>Gives a toggle command a check mark in its menu items, read each time a menu opens.</summary>
+    void Checked(CommandId command, Func<bool> isChecked);
+
     void AppendMenuItem(string menuKey, CommandId command);
 
     void AppendMenuSeparator(string menuKey);

@@ -1,3 +1,4 @@
+using Avalonia;
 using Avalonia.Controls;
 using Avalonia.Threading;
 
@@ -17,6 +18,23 @@ public sealed partial class SettingsView : UserControl
         ArgumentNullException.ThrowIfNull(model);
         DataContext = model;
         model.CloseRequested += () => (TopLevel.GetTopLevel(this) as Window)?.Close();
+        model.ToolbarRequested += () => Dispatcher.UIThread.Post(() => ScrollToTop(this.FindControl<ToolbarEditor>("ToolbarSection")), DispatcherPriority.Background);
         model.ColumnsRequested += () => Dispatcher.UIThread.Post(() => this.FindControl<ColumnSetsEditor>("ColumnSetsSection")?.BringIntoView());
+    }
+
+    /// <summary>Scrolls so the top of a section sits at the top of the window: a tall section shows from its title.</summary>
+    private void ScrollToTop(Control? section)
+    {
+        var scroller = this.FindControl<ScrollViewer>("SettingsScroll");
+        if (section is null || scroller is null)
+        {
+            return;
+        }
+
+        scroller.UpdateLayout();
+        if (section.TranslatePoint(default, scroller.Content as Visual ?? scroller) is Point top)
+        {
+            scroller.Offset = new Vector(0, top.Y);
+        }
     }
 }

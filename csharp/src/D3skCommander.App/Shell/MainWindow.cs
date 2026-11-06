@@ -33,6 +33,7 @@ public sealed partial class MainWindow
         LeftPanel = new ShellSlot(localizer.Get("shell.panel.left"));
         RightPanel = new ShellSlot(localizer.Get("shell.panel.right"));
         _model = new MainWindowModel(shell, localizer);
+        Toolbar = BuildWidgets(shell.ToolbarWidgets);
         UnderPanels = BuildWidgets(shell.UnderPanels);
         BesidePanels = BuildWidgets(shell.BesidePanels);
         MenuBarTrailing = BuildWidgets(shell.MenuBarTrailing);
@@ -57,6 +58,8 @@ public sealed partial class MainWindow
     public IReadOnlyList<ShellMenu> Menus => _model.Menus;
 
     public IReadOnlyList<FunctionButton> FunctionKeys => _model.FunctionKeys;
+
+    public IReadOnlyList<IShellWidget> Toolbar { get; }
 
     public IReadOnlyList<IShellWidget> UnderPanels { get; }
 

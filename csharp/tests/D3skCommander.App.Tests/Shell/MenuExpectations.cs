@@ -46,7 +46,7 @@ internal static class MenuExpectations
 
         if (titleKey == "menu.show")
         {
-            return "ViewFull ViewBrief ViewThumbs QuickView ToggleHidden ToggleDriveBar | SortName SortExt SortDate SortSize | NextColumnSet | NewTab CloseTab NextTab | Refresh";
+            return "ViewFull ViewBrief ViewThumbs QuickView ToggleHidden ToggleDriveBar ShowToolbar | SortName SortExt SortDate SortSize | NextColumnSet | NewTab CloseTab NextTab | Refresh";
         }
 
         if (titleKey == "menu.tools")
@@ -56,7 +56,7 @@ internal static class MenuExpectations
 
         if (titleKey == "menu.config")
         {
-            return "Settings EditColumnSets SettingsFolder Log";
+            return "Settings EditColumnSets CustomizeToolbar SettingsFolder Log";
         }
 
         if (titleKey == "menu.help")

@@ -15,6 +15,8 @@ public static class PreferencesCopy
             FontSize = source.FontSize,
             ShowHidden = source.ShowHidden,
             ShowDriveBar = source.ShowDriveBar,
+            ShowToolbar = source.ShowToolbar,
+            Toolbar = [.. source.Toolbar],
             UseTrash = source.UseTrash,
             ConfirmDelete = source.ConfirmDelete,
             ConfirmTrashFallback = source.ConfirmTrashFallback,

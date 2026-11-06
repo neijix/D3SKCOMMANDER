@@ -9,6 +9,7 @@
       <Menu x:Name="MainMenu" HorizontalAlignment="Left"/>
       <Menu x:Name="TrailingMenu" HorizontalAlignment="Right"/>
     </Grid>
+    <StackPanel x:Name="ToolbarHost" DockPanel.Dock="Top"/>
     <UniformGrid x:Name="FunctionKeyBar" DockPanel.Dock="Bottom" Rows="1" Margin="4,2"/>
     <TextBlock x:Name="StatusLine" DockPanel.Dock="Bottom" Margin="8,2" Text="{Binding StatusText}"/>
     <StackPanel x:Name="UnderHost" DockPanel.Dock="Bottom"/>
