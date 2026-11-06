@@ -20,6 +20,10 @@ public sealed partial class FtpConnection
         {
             return new Turn(null, OperationError.Cancelled());
         }
+        catch (ObjectDisposedException)
+        {
+            return new Turn(null, OperationError.Network("the connection is closed"));
+        }
 
         return new Turn(_gate, null);
     }
@@ -46,8 +50,16 @@ public sealed partial class FtpConnection
 
         public void Dispose()
         {
-            _held?.Release();
+            var held = _held;
             _held = null;
+            try
+            {
+                held?.Release();
+            }
+            catch (ObjectDisposedException)
+            {
+                // The connection was disposed while this turn ran: nobody waits for the gate any more.
+            }
         }
     }
 }

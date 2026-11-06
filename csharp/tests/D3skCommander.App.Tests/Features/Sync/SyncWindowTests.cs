@@ -219,7 +219,7 @@ public class SyncWindowTests
         public IJob Start(string title, Func<IJobProgress, CancellationToken, Task> work) =>
             _inner.Start(title, (progress, token) =>
             {
-                _gate.Wait();
+                Assert.True(_gate.Wait(TimeSpan.FromSeconds(30)), "the gated job was never opened");
                 return work(progress, token);
             });
 

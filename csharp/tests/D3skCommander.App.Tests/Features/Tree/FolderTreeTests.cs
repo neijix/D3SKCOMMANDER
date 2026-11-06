@@ -19,6 +19,7 @@ using D3skCommander.Core.FileSystem;
 using D3skCommander.Core.Localization;
 using D3skCommander.Core.Providers;
 using D3skCommander.Core.Settings;
+using D3skCommander.Core.Tree;
 using Microsoft.Extensions.DependencyInjection;
 using Xunit;
 using TextCatalog = D3skCommander.Core.Localization.Localizer;
@@ -82,9 +83,12 @@ public class FolderTreeTests
     [AvaloniaFact]
     public async Task APathUnderNoRootClearsTheSelection()
     {
+        var home = Environment.GetFolderPath(Environment.SpecialFolder.UserProfile);
+        var parent = FolderTree.RootFor(Path.GetTempPath(), [home]) is null ? Path.GetTempPath() : AppContext.BaseDirectory;
+        Assert.SkipWhen(FolderTree.RootFor(parent, [home]) is not null, "every writable folder is under the home folder, a tree root");
         using var rig = await Rig.Opened();
         await rig.WaitUntil(() => rig.Tree.Selected?.Path == rig.Root);
-        var elsewhere = Directory.CreateTempSubdirectory("d3sk-tree-away-").FullName;
+        var elsewhere = Directory.CreateDirectory(Path.Combine(parent, "d3sk-tree-away-" + Guid.NewGuid().ToString("N"))).FullName;
         try
         {
             await rig.Workspace.GoAsync(PanelSide.Left, elsewhere, TestContext.Current.CancellationToken);

@@ -12,8 +12,9 @@ public class PlaceholderTests
         var commands = CommandBuilder.Build("tool %p --name=%f --in=%d", ["/data/a b.txt", "/data/c.txt"], LaunchMode.OncePerFile);
 
         Assert.Equal(2, commands.Count);
-        Assert.Equal(["/data/a b.txt", "--name=a b.txt", "--in=/data"], commands[0].Arguments);
-        Assert.Equal(["/data/c.txt", "--name=c.txt", "--in=/data"], commands[1].Arguments);
+        var folder = Path.GetDirectoryName("/data/a b.txt");
+        Assert.Equal(["/data/a b.txt", "--name=a b.txt", "--in=" + folder], commands[0].Arguments);
+        Assert.Equal(["/data/c.txt", "--name=c.txt", "--in=" + folder], commands[1].Arguments);
     }
 
     [Fact]
@@ -29,7 +30,7 @@ public class PlaceholderTests
     {
         var command = Assert.Single(CommandBuilder.Build("tool --dir %d", ["/x/a"], LaunchMode.AllAtOnce));
 
-        Assert.Equal(["--dir", "/x"], command.Arguments);
+        Assert.Equal(["--dir", Path.GetDirectoryName("/x/a")!], command.Arguments);
     }
 
     [Fact]
@@ -52,7 +53,7 @@ public class PlaceholderTests
     [Fact]
     public void ExpandPlaceholdersWorksInOnePass()
     {
-        Assert.Equal("a.txt in /d (/d/a.txt) %q", CommandBuilder.ExpandPlaceholders("%f in %d (%p) %q", "/d/a.txt"));
+        Assert.Equal($"a.txt in {Path.GetDirectoryName("/d/a.txt")} (/d/a.txt) %q", CommandBuilder.ExpandPlaceholders("%f in %d (%p) %q", "/d/a.txt"));
         Assert.Equal("plain", CommandBuilder.ExpandPlaceholders("plain", "/d/a.txt"));
         Assert.Equal("%f", CommandBuilder.ExpandPlaceholders("%f", "/d/%f"));
     }

@@ -143,7 +143,7 @@ public class NameIndexSearchTests
         Assert.Equal(5_000_000, hit.Size);
         Assert.False(hit.IsFolder);
         Assert.Equal(new DateTimeOffset(2026, 11, 1, 12, 0, 0, TimeSpan.Zero), hit.Modified);
-        Assert.Equal("/", Run(_index, "type:folder data").Hits.Single(static h => h.Name == "/data").Folder);
+        Assert.Equal(Path.GetDirectoryName("/data"), Run(_index, "type:folder data").Hits.Single(static h => h.Name == "/data").Folder);
     }
 
     [Fact]

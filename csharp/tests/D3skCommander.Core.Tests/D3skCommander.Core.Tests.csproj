@@ -13,6 +13,9 @@
     <PackageReference Include="FubarDev.FtpServer.FileSystem.DotNet" />
   </ItemGroup>
   <ItemGroup>
+    <Content Include="xunit.runner.json" CopyToOutputDirectory="PreserveNewest" />
+  </ItemGroup>
+  <ItemGroup>
     <ProjectReference Include="../../src/D3skCommander.Core/D3skCommander.Core.csproj" />
   </ItemGroup>
   <ItemGroup>

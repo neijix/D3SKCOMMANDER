@@ -55,6 +55,8 @@ jobs:
         # macOS only while under the daily cap.
         os: ${{ fromJSON(needs.quota.outputs.macos == 'true' && '["macos-latest","windows-latest"]' || '["windows-latest"]') }}
     runs-on: ${{ matrix.os }}
+    # A hung test must end the job (its log then names the long-running test), not bill hours.
+    timeout-minutes: 30
     steps:
       - uses: actions/checkout@v7
       # The C# gate (csharp/check.sh), default tier (not --full).

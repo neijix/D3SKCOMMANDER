@@ -81,6 +81,13 @@ internal sealed class GatedStream : Stream
     private void Release()
     {
         var gate = Interlocked.Exchange(ref _gate, null);
-        gate?.Release();
+        try
+        {
+            gate?.Release();
+        }
+        catch (ObjectDisposedException)
+        {
+            // The connection was disposed while this stream was still open: nobody waits for the gate any more.
+        }
     }
 }

@@ -36,7 +36,18 @@ public sealed class FakeDialogSurface : IDialogSurface
         }
     }
 
-    public ValueTask<DialogRequest> WaitShownAsync() => _shown.Reader.ReadAsync();
+    public async ValueTask<DialogRequest> WaitShownAsync()
+    {
+        using var limit = new CancellationTokenSource(TimeSpan.FromSeconds(30));
+        try
+        {
+            return await _shown.Reader.ReadAsync(limit.Token);
+        }
+        catch (OperationCanceledException) when (limit.IsCancellationRequested)
+        {
+            throw new TimeoutException("No dialog was shown within 30 s.");
+        }
+    }
 
     public async Task<DialogResult> ShowAsync(DialogRequest request, CancellationToken cancellationToken)
     {

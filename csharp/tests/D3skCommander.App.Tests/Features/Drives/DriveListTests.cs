@@ -51,6 +51,7 @@ public class DriveListTests
     [AvaloniaFact]
     public async Task EjectUnmountsThenPowersOffAndLeavesTheVolume()
     {
+        Assert.SkipUnless(OperatingSystem.IsLinux(), "Eject unmounts block devices with udisks: Linux only");
         using var harness = await DrivesHarness.Open();
         var mount = DrivesHarness.DriveRoot;
         harness.Devices.Json = EjectableAt(mount);

@@ -23,20 +23,22 @@ public class UdisksAndPlacesTests
     public void PlacesFollowTheUserDirsFileAndSkipMissingFolders()
     {
         const string userDirs = "# comment\nXDG_DESKTOP_DIR=\"$HOME\"\nXDG_MUSIC_DIR=\"$HOME/Tunes\"\nXDG_DOWNLOAD_DIR=\"/data/dl\"\n";
-        var present = new HashSet<string> { "/h", "/h/Tunes", "/data/dl", "/h/Documents", "/h/Music" };
+        var documents = Path.Combine("/h", "Documents");
+        var present = new HashSet<string> { "/h", "/h/Tunes", "/data/dl", documents, Path.Combine("/h", "Music") };
 
         var places = UserPlaces.Standard("/h", userDirs, present.Contains);
 
         Assert.Equal(
-            [("places.home", "/h"), ("places.documents", "/h/Documents"), ("places.downloads", "/data/dl"), ("places.music", "/h/Tunes")],
+            [("places.home", "/h"), ("places.documents", documents), ("places.downloads", "/data/dl"), ("places.music", "/h/Tunes")],
             places.Select(p => (p.Key, p.Path)));
     }
 
     [Fact]
     public void WithoutAUserDirsFileThePlainNamesAreUsed()
     {
-        var places = UserPlaces.Standard("/h", null, path => path is "/h" or "/h/Downloads");
+        var downloads = Path.Combine("/h", "Downloads");
+        var places = UserPlaces.Standard("/h", null, path => path == "/h" || path == downloads);
 
-        Assert.Equal(["/h", "/h/Downloads"], places.Select(p => p.Path));
+        Assert.Equal(["/h", downloads], places.Select(p => p.Path));
     }
 }
