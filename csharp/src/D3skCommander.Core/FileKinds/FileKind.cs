@@ -39,8 +39,9 @@ public static class FileKindClassifier
 
     private static readonly string[] Image =
     [
-        "png", "jpg", "jpeg", "gif", "bmp", "webp", "ico", "tif", "tiff", "svg", "heic", "avif", "psd",
-        "raw", "cr2", "nef",
+        "png", "jpg", "jpeg", "jpe", "jfif", "gif", "bmp", "dib", "webp", "ico", "tif", "tiff", "svg", "heic",
+        "heif", "avif", "jxl", "jp2", "psd", "tga", "raw", "cr2", "cr3", "nef", "arw", "dng", "orf", "rw2",
+        "raf", "pef", "srw",
     ];
 
     private static readonly string[] Audio =

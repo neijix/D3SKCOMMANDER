@@ -54,5 +54,9 @@
   "lister.image_failed": {
     "en": "This image could not be decoded; showing its bytes.",
     "fr": "Cette image ne peut pas être décodée ; ses octets sont affichés."
+  },
+  "lister.image_unsupported": {
+    "en": "This picture format (HEIC, AVIF, camera RAW, PSD, SVG…) cannot be shown; showing its bytes.",
+    "fr": "Ce format d'image (HEIC, AVIF, RAW d'appareil photo, PSD, SVG…) ne peut pas être affiché ; ses octets sont affichés."
   }
 }

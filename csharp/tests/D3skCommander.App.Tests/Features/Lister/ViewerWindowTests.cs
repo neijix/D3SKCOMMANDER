@@ -440,6 +440,21 @@ public class ViewerWindowTests
     }
 
     [AvaloniaFact]
+    public async Task APictureFormatTheViewerCannotShowOpensInHexAndSaysWhy()
+    {
+        using var dir = new TempDir();
+        var path = Path.Combine(dir.Path, "phone.heic");
+        File.WriteAllBytes(path, [0, 0, 0, 24, (byte)'f', (byte)'t', (byte)'y', (byte)'p', (byte)'h', (byte)'e', (byte)'i', (byte)'c']);
+        var model = new ViewerViewModel(French(), new JobService());
+
+        await model.OpenAsync(path);
+
+        Assert.True(model.IsHex);
+        Assert.Null(model.Image);
+        Assert.Equal(French().Get("lister.image_unsupported"), model.Notice);
+    }
+
+    [AvaloniaFact]
     public async Task TheWindowOpensAtOnceWithTheNameAndABusyState()
     {
         using var dir = new TempDir();

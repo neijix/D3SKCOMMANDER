@@ -1,6 +1,8 @@
 using System.Globalization;
 using Avalonia.Media.Imaging;
 using Avalonia.Threading;
+using D3skCommander.App.Imaging;
+using D3skCommander.Core.Viewer;
 
 namespace D3skCommander.App.Icons;
 
@@ -13,8 +15,6 @@ public sealed class ThumbnailCache
 {
     public const int Capacity = 512;
 
-    private static readonly string[] Extensions = [".png", ".jpg", ".jpeg", ".gif", ".bmp", ".webp", ".ico"];
-
     private readonly Dictionary<string, LinkedListNode<Slot>> _map = new(StringComparer.Ordinal);
     private readonly LinkedList<Slot> _order = new();
     private readonly Dictionary<string, List<Action<Bitmap?>>> _pending = new(StringComparer.Ordinal);
@@ -23,21 +23,8 @@ public sealed class ThumbnailCache
 
     public int Count => _map.Count;
 
-    /// <summary>Whether a file name has an extension the tile view decodes.</summary>
-    public static bool CanThumbnail(string path)
-    {
-        ArgumentNullException.ThrowIfNull(path);
-        var extension = Path.GetExtension(path);
-        foreach (var candidate in Extensions)
-        {
-            if (extension.Equals(candidate, StringComparison.OrdinalIgnoreCase))
-            {
-                return true;
-            }
-        }
-
-        return false;
-    }
+    /// <summary>Whether a file name is a picture the tile view decodes (the viewer's list, TIFF included).</summary>
+    public static bool CanThumbnail(string path) => ViewerFiles.IsImage(path);
 
     public static string KeyOf(string path, DateTimeOffset? modified, int width) =>
         path + "|" + (modified?.UtcTicks ?? 0).ToString(CultureInfo.InvariantCulture) + "|"
@@ -86,19 +73,7 @@ public sealed class ThumbnailCache
         });
     }
 
-    private static Bitmap? Decode(string path, int width)
-    {
-        try
-        {
-            using var stream = File.OpenRead(path);
-            return Bitmap.DecodeToWidth(stream, width, BitmapInterpolationMode.MediumQuality);
-        }
-        catch (Exception exception) when (exception is IOException or UnauthorizedAccessException or ArgumentException
-            or InvalidOperationException or NotSupportedException)
-        {
-            return null;
-        }
-    }
+    private static Bitmap? Decode(string path, int width) => PictureDecoder.Decode(path, width);
 
     private void Finish(string key, Bitmap? bitmap)
     {

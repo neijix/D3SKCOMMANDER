@@ -1,17 +1,14 @@
 using System.Globalization;
-using System.Runtime.InteropServices;
-using Avalonia;
 using Avalonia.Media.Imaging;
-using Avalonia.Platform;
+using D3skCommander.App.Imaging;
 using D3skCommander.Core.FileSystem;
 using D3skCommander.Core.Viewer;
 
 namespace D3skCommander.App.Features.Lister;
 
 /// <summary>
-/// Image mode of the viewer: decodes a file with Avalonia's <see cref="Bitmap"/> (Skia), or a TIFF
-/// with Core's <see cref="TiffImage"/>. Core decides which files qualify (<c>ViewerFiles.IsImage</c>);
-/// the file is read, never written.
+/// Image mode of the viewer: decodes a file through <see cref="PictureDecoder"/>. Core decides which
+/// files qualify (<c>ViewerFiles.IsImage</c>, <c>PictureSignature</c>); the file is read, never written.
 /// </summary>
 public static class ViewerImage
 {
@@ -34,45 +31,8 @@ public static class ViewerImage
         return image;
     }
 
-    /// <summary>The decoded image, or null when the file is corrupt, truncated or unreadable.</summary>
-    public static Bitmap? Decode(string path)
-    {
-        if (ViewerFiles.IsTiff(path))
-        {
-            return TiffImage.Decode(path) is { } raster ? FromRaster(raster) : null;
-        }
-
-        try
-        {
-            using var stream = File.OpenRead(path);
-            return new Bitmap(stream);
-        }
-        catch (Exception exception) when (exception is IOException or UnauthorizedAccessException or ArgumentException
-            or InvalidOperationException or NotSupportedException)
-        {
-            return null;
-        }
-    }
-
-    /// <summary>A bitmap holding a copy of Core's decoded pixels (RGBA, premultiplied).</summary>
-    internal static Bitmap FromRaster(RasterImage raster)
-    {
-        var pinned = GCHandle.Alloc(raster.Rgba, GCHandleType.Pinned);
-        try
-        {
-            return new Bitmap(
-                PixelFormats.Rgba8888,
-                AlphaFormat.Premul,
-                pinned.AddrOfPinnedObject(),
-                new PixelSize(raster.Width, raster.Height),
-                new Vector(96, 96),
-                raster.Width * 4);
-        }
-        finally
-        {
-            pinned.Free();
-        }
-    }
+    /// <summary>The decoded image, upright, or null when the file does not decode (corrupt, truncated, unreadable).</summary>
+    public static Bitmap? Decode(string path) => PictureDecoder.Decode(path);
 
     /// <summary>The status line of an image: pixel size and file size.</summary>
     public static string Status(Bitmap image, ulong size) =>

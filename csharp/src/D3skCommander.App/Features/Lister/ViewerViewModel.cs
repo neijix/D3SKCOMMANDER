@@ -451,7 +451,8 @@ public sealed class ViewerViewModel : ObservableObject, IShellWidget
             return LoadImage(viewer);
         }
 
-        return Prepare(viewer, 0, false);
+        var loaded = Prepare(viewer, 0, false);
+        return ViewerFiles.IsUnsupportedPicture(path) ? loaded with { Notice = _text.Get("lister.image_unsupported") } : loaded;
     }
 
     /// <summary>Decodes an image file; one that does not decode opens as bytes, with a notice.</summary>

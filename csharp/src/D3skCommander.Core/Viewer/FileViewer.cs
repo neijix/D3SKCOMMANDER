@@ -174,7 +174,7 @@ public sealed partial class FileViewer
 
     private void Choose()
     {
-        if (ViewerFiles.IsImage(Path))
+        if (ViewerFiles.IsImage(Path) || PictureSignature.Of(Path) != PictureFormat.Unknown)
         {
             Use(ViewerMode.Image, [ViewerMode.Image, ViewerMode.Hex]);
             return;

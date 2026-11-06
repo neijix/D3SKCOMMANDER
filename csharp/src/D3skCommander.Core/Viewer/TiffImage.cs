@@ -10,7 +10,7 @@ public sealed record RasterImage(int Width, int Height, byte[] Rgba);
 
 /// <summary>
 /// Decodes the first page of a TIFF file with BitMiracle.LibTiff (managed, GUI-free), for the
-/// viewer's Image mode. The file is only read. A corrupt, truncated or oversized file gives null.
+/// viewer's Image mode, turned upright by its orientation tag. The file is only read. A corrupt, truncated or oversized file gives null.
 /// </summary>
 public static class TiffImage
 {
@@ -48,8 +48,12 @@ public static class TiffImage
             return null;
         }
 
+        // LibTiff only flips; asking for the stored orientation keeps the rows as stored, and
+        // PictureOrientation then applies all eight cases, the quarter turns included.
+        var orientation = tiff.GetField(TiffTag.ORIENTATION)?[0].ToInt() ?? PictureOrientation.Upright;
+        orientation = orientation is >= 1 and <= 8 ? orientation : PictureOrientation.Upright;
         var raster = new int[width * height];
-        if (!tiff.ReadRGBAImageOriented(width, height, raster, Orientation.TOPLEFT))
+        if (!tiff.ReadRGBAImageOriented(width, height, raster, (Orientation)orientation))
         {
             return null;
         }
@@ -64,7 +68,7 @@ public static class TiffImage
             rgba[(i * 4) + 3] = (byte)Tiff.GetA(pixel);
         }
 
-        return new RasterImage(width, height, rgba);
+        return PictureOrientation.Apply(new RasterImage(width, height, rgba), orientation);
     }
 
     // LibTiff reports malformed data with whatever its parser hits; none of these may reach the UI.
