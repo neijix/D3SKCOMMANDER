@@ -1,3 +1,4 @@
+using D3skCommander.Core.Index;
 using D3skCommander.Core.Launch;
 using D3skCommander.Core.Localization;
 using D3skCommander.Core.Panels;
@@ -16,6 +17,13 @@ public sealed class Preferences
     /// <summary>v0.1 <c>font_size</c>.</summary>
     public const float DefaultFontSize = 14f;
 
+    public const int DefaultIndexRefreshHours = 24;
+
+    public const int MaxIndexRefreshHours = 24 * 365;
+
+    private string _indexRoots = "";
+    private string _indexExcludes = IndexOptions.DefaultExcludes;
+    private int _indexRefreshHours = DefaultIndexRefreshHours;
     private string _editor = "";
     private string _terminal = "";
     private Columns _columns = Columns.Default;
@@ -44,6 +52,27 @@ public sealed class Preferences
 
     /// <summary>Measure the folders of a listing in the background so the size column fills in (off by default: it reads the disk).</summary>
     public bool AutoFolderSizes { get; set; }
+
+    /// <summary>Folders the quick-find index covers, separated by ';'. Empty means every mounted volume.</summary>
+    public string IndexRoots
+    {
+        get => _indexRoots;
+        set => _indexRoots = value ?? "";
+    }
+
+    /// <summary>Folders the quick-find index leaves out (names, masks or absolute paths), separated by ';'.</summary>
+    public string IndexExcludes
+    {
+        get => _indexExcludes;
+        set => _indexExcludes = value ?? "";
+    }
+
+    /// <summary>Rebuild the index at start when it is older than this many hours; 0 never refreshes it.</summary>
+    public int IndexRefreshHours
+    {
+        get => _indexRefreshHours;
+        set => _indexRefreshHours = Math.Clamp(value, 0, MaxIndexRefreshHours);
+    }
 
     /// <summary>External editor command. Empty uses the built-in editor.</summary>
     public string Editor

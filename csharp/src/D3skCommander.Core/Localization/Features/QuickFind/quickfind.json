@@ -1,0 +1,78 @@
+{
+  "quickfind.hint": {
+    "en": "Type part of a name. Filters: ext:pdf  size:>10M  folder:docs  type:folder",
+    "fr": "Tapez une partie du nom. Filtres : ext:pdf  size:>10M  folder:docs  type:folder"
+  },
+  "quickfind.col.name": {
+    "en": "Name",
+    "fr": "Nom"
+  },
+  "quickfind.col.folder": {
+    "en": "Folder",
+    "fr": "Dossier"
+  },
+  "quickfind.col.size": {
+    "en": "Size",
+    "fr": "Taille"
+  },
+  "quickfind.col.date": {
+    "en": "Modified",
+    "fr": "Modifié"
+  },
+  "quickfind.rebuild": {
+    "en": "Rebuild index",
+    "fr": "Reconstruire l'index"
+  },
+  "quickfind.cancel": {
+    "en": "Cancel",
+    "fr": "Annuler"
+  },
+  "quickfind.feed": {
+    "en": "Feed to panel",
+    "fr": "Envoyer au panneau"
+  },
+  "quickfind.building": {
+    "en": "Building the index… {0} entries",
+    "fr": "Construction de l'index… {0} entrées"
+  },
+  "quickfind.build_cancelled": {
+    "en": "Index build cancelled.",
+    "fr": "Construction de l'index annulée."
+  },
+  "quickfind.no_index": {
+    "en": "No index yet. Use Rebuild index.",
+    "fr": "Pas encore d'index. Utilisez Reconstruire l'index."
+  },
+  "quickfind.status": {
+    "en": "{0} of {1} matches · index from {2} · {3} entries",
+    "fr": "{0} sur {1} résultats · index du {2} · {3} entrées"
+  },
+  "quickfind.status_idle": {
+    "en": "Index from {0} · {1} entries",
+    "fr": "Index du {0} · {1} entrées"
+  },
+  "quickfind.gone": {
+    "en": "No longer exists: {0}",
+    "fr": "N'existe plus : {0}"
+  },
+  "quickfind.tab_title": {
+    "en": "Quick find: {0}",
+    "fr": "Recherche rapide : {0}"
+  },
+  "quickfind.settings.title": {
+    "en": "Quick find index",
+    "fr": "Index de la recherche rapide"
+  },
+  "quickfind.settings.roots": {
+    "en": "Folders to index, separated by ; (empty: every volume)",
+    "fr": "Dossiers à indexer, séparés par ; (vide : tous les volumes)"
+  },
+  "quickfind.settings.excludes": {
+    "en": "Excluded folders (names, masks or paths), separated by ;",
+    "fr": "Dossiers exclus (noms, masques ou chemins), séparés par ;"
+  },
+  "quickfind.settings.hours": {
+    "en": "Refresh the index every N hours (0: never)",
+    "fr": "Actualiser l'index toutes les N heures (0 : jamais)"
+  }
+}

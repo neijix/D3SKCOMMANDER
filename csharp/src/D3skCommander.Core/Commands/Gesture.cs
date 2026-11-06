@@ -31,6 +31,7 @@ public enum GestureKey
     B,
     C,
     D,
+    F,
     G,
     H,
     L,

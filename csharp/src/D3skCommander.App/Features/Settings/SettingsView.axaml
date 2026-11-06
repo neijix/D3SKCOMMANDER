@@ -32,6 +32,15 @@
           <CheckBox x:Name="DateBox" Content="{Binding Labels.Date}" IsChecked="{Binding ShowDate, Mode=TwoWay}"/>
           <CheckBox x:Name="AttributesBox" Content="{Binding Labels.Attributes}" IsChecked="{Binding ShowAttributes, Mode=TwoWay}"/>
         </StackPanel>
+        <TextBlock FontWeight="SemiBold" Text="{Binding Labels.IndexTitle}"/>
+        <TextBlock Text="{Binding Labels.IndexRoots}"/>
+        <TextBox x:Name="IndexRootsBox" Text="{Binding IndexRoots, Mode=TwoWay}"/>
+        <TextBlock Text="{Binding Labels.IndexExcludes}"/>
+        <TextBox x:Name="IndexExcludesBox" Text="{Binding IndexExcludes, Mode=TwoWay}"/>
+        <Grid ColumnDefinitions="Auto,120" ColumnSpacing="8">
+          <TextBlock Grid.Column="0" VerticalAlignment="Center" Text="{Binding Labels.IndexHours}"/>
+          <NumericUpDown x:Name="IndexHoursBox" Grid.Column="1" Minimum="0" Maximum="8760" Increment="1" FormatString="0" Value="{Binding IndexRefreshHours, Mode=TwoWay}"/>
+        </Grid>
         <TextBlock Text="{Binding Labels.UserCommands}"/>
         <Grid ColumnDefinitions="*,Auto" ColumnSpacing="8">
           <ListBox x:Name="CommandList" Grid.Column="0" Height="80" ItemsSource="{Binding Commands}" SelectedItem="{Binding SelectedCommand, Mode=TwoWay}">

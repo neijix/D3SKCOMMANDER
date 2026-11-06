@@ -117,6 +117,27 @@ public class SettingsWindowTests
     }
 
     [AvaloniaFact]
+    public void TheIndexSettingsAreSavedAndShownAgain()
+    {
+        using var harness = new SettingsHarness();
+        var model = harness.NewView();
+        Assert.Equal("", model.IndexRoots);
+        Assert.Equal(D3skCommander.Core.Index.IndexOptions.DefaultExcludes, model.IndexExcludes);
+        Assert.Equal(24, model.IndexRefreshHours);
+
+        model.IndexRoots = " /data;/home ";
+        model.IndexExcludes = "*/tmp";
+        model.IndexRefreshHours = 6;
+        model.Apply();
+
+        var saved = harness.Settings.Preferences.Current;
+        Assert.Equal("/data;/home", saved.IndexRoots);
+        Assert.Equal("*/tmp", saved.IndexExcludes);
+        Assert.Equal(6, saved.IndexRefreshHours);
+        Assert.Equal("6", harness.NewView().IndexRefreshHours?.ToString(System.Globalization.CultureInfo.InvariantCulture));
+    }
+
+    [AvaloniaFact]
     public void TheLogToggleIsLive()
     {
         using var harness = new SettingsHarness();

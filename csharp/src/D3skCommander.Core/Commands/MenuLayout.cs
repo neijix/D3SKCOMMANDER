@@ -59,6 +59,7 @@ internal static class MenuLayout
     private static MenuDefinition Commands() => Menu("menu.commands",
     [
         CommandId.Search,
+        CommandId.QuickFind,
         CommandId.MultiRename,
         CommandId.CompareFiles,
         CommandId.Sync,

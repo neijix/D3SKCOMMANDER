@@ -23,6 +23,10 @@
     "en": "Disk usage",
     "fr": "Utilisation du disque"
   },
+  "tool.quickfind.title": {
+    "en": "Quick find",
+    "fr": "Recherche rapide"
+  },
   "tool.log.title": {
     "en": "Operation log",
     "fr": "Journal des opérations"

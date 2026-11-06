@@ -31,6 +31,9 @@ public class SettingsStoreTests
             ConfirmTrashFallback = false,
             LogOperations = true,
             AutoFolderSizes = true,
+            IndexRoots = "/data;/home",
+            IndexExcludes = "*/tmp",
+            IndexRefreshHours = 6,
             ShowDriveBar = false,
             Editor = "vi",
             Terminal = "xterm",
@@ -336,6 +339,9 @@ public class SettingsStoreTests
         Assert.True(preferences.ConfirmTrashFallback);
         Assert.False(preferences.LogOperations);
         Assert.False(preferences.AutoFolderSizes);
+        Assert.Equal("", preferences.IndexRoots);
+        Assert.Equal(D3skCommander.Core.Index.IndexOptions.DefaultExcludes, preferences.IndexExcludes);
+        Assert.Equal(24, preferences.IndexRefreshHours);
         Assert.True(preferences.ShowDriveBar);
         Assert.Equal("", preferences.Editor);
         Assert.Equal("", preferences.Terminal);
@@ -355,6 +361,9 @@ public class SettingsStoreTests
         Assert.Equal(expected.ConfirmTrashFallback, actual.ConfirmTrashFallback);
         Assert.Equal(expected.LogOperations, actual.LogOperations);
         Assert.Equal(expected.AutoFolderSizes, actual.AutoFolderSizes);
+        Assert.Equal(expected.IndexRoots, actual.IndexRoots);
+        Assert.Equal(expected.IndexExcludes, actual.IndexExcludes);
+        Assert.Equal(expected.IndexRefreshHours, actual.IndexRefreshHours);
         Assert.Equal(expected.ShowDriveBar, actual.ShowDriveBar);
         Assert.Equal(expected.Editor, actual.Editor);
         Assert.Equal(expected.Terminal, actual.Terminal);

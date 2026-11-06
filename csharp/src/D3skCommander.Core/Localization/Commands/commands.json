@@ -163,6 +163,10 @@
     "en": "Disk usage…",
     "fr": "Utilisation du disque…"
   },
+  "cmd.quick_find": {
+    "en": "Quick find…",
+    "fr": "Recherche rapide…"
+  },
   "cmd.ftp": {
     "en": "FTP connect…",
     "fr": "Connexion FTP…"

@@ -89,4 +89,5 @@ public enum CommandId
     GoToContainingFolder,
     SelectAllButFirst,
     DiskUsage,
+    QuickFind,
 }

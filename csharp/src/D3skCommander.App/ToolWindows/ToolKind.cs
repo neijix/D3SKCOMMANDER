@@ -45,6 +45,8 @@ public sealed class ToolKind
 
     public static ToolKind DiskUsage { get; } = new("diskusage", "tool.diskusage.title", 1000, 640);
 
+    public static ToolKind QuickFind { get; } = new("quickfind", "tool.quickfind.title", 900, 600);
+
     public static ToolKind Update { get; } = new("update", "tool.update.title", 460, 320);
 
     public static IReadOnlyList<ToolKind> All { get; } =
@@ -61,6 +63,7 @@ public sealed class ToolKind
         Passwords,
         Update,
         DiskUsage,
+        QuickFind,
     ];
 
     public static ToolKind Define(string id, string titleKey, int defaultWidth, int defaultHeight)

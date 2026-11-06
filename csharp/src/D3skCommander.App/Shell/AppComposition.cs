@@ -17,6 +17,7 @@ using D3skCommander.App.Features.Log;
 using D3skCommander.App.Features.MultiRename;
 using D3skCommander.App.Features.NetDrives;
 using D3skCommander.App.Features.Panels;
+using D3skCommander.App.Features.QuickFind;
 using D3skCommander.App.Features.QuickView;
 using D3skCommander.App.Features.Search;
 using D3skCommander.App.Features.Settings;
@@ -57,6 +58,7 @@ public static class AppComposition
         MultiRenameModule.Register(services);
         NetDrivesModule.Register(services);
         PanelsModule.Register(services);
+        QuickFindModule.Register(services);
         QuickViewModule.Register(services);
         SearchModule.Register(services);
         SettingsModule.Register(services);

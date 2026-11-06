@@ -57,6 +57,15 @@ public sealed partial class SettingsViewModel : ObservableObject, IShellWidget
     private bool _checkUpdates;
 
     [ObservableProperty]
+    private string _indexRoots = "";
+
+    [ObservableProperty]
+    private string _indexExcludes = "";
+
+    [ObservableProperty]
+    private decimal? _indexRefreshHours;
+
+    [ObservableProperty]
     private string _editor = "";
 
     [ObservableProperty]
@@ -132,6 +141,9 @@ public sealed partial class SettingsViewModel : ObservableObject, IShellWidget
         next.LogOperations = LogOperations;
         next.AutoFolderSizes = AutoFolderSizes;
         next.CheckUpdates = CheckUpdates;
+        next.IndexRoots = IndexRoots.Trim();
+        next.IndexExcludes = IndexExcludes.Trim();
+        next.IndexRefreshHours = (int)Math.Clamp(IndexRefreshHours ?? Preferences.DefaultIndexRefreshHours, 0, Preferences.MaxIndexRefreshHours);
         next.Editor = Editor.Trim();
         next.Terminal = Terminal.Trim();
         next.Columns = new Columns(ShowExtension, ShowSize, ShowDate, ShowAttributes);
@@ -229,6 +241,9 @@ public sealed partial class SettingsViewModel : ObservableObject, IShellWidget
         LogOperations = current.LogOperations;
         AutoFolderSizes = current.AutoFolderSizes;
         CheckUpdates = current.CheckUpdates;
+        IndexRoots = current.IndexRoots;
+        IndexExcludes = current.IndexExcludes;
+        IndexRefreshHours = current.IndexRefreshHours;
         Editor = current.Editor;
         Terminal = current.Terminal;
         ShowExtension = current.Columns.Extension;

@@ -97,6 +97,7 @@ internal static class CommandLabelKeys
         "cmd.go_to_folder",
         "cmd.select_all_but_first",
         "cmd.disk_usage",
+        "cmd.quick_find",
     ];
 
     private static string[] Merge(string[] early, string[] late)

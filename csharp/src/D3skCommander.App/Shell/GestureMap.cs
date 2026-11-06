@@ -124,6 +124,7 @@ public static class GestureMap
         AddPair(Key.B, GestureKey.B);
         AddPair(Key.C, GestureKey.C);
         AddPair(Key.D, GestureKey.D);
+        AddPair(Key.F, GestureKey.F);
         AddPair(Key.G, GestureKey.G);
         AddPair(Key.H, GestureKey.H);
         AddPair(Key.L, GestureKey.L);

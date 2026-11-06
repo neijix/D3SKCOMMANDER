@@ -16,6 +16,10 @@ public sealed class SettingsLabels
         ConfirmTrashFallback = text.Get("confirm_trash_fallback");
         LogOperations = text.Get("log_ops");
         AutoFolderSizes = text.Get("auto_folder_sizes");
+        IndexTitle = text.Get("quickfind.settings.title");
+        IndexRoots = text.Get("quickfind.settings.roots");
+        IndexExcludes = text.Get("quickfind.settings.excludes");
+        IndexHours = text.Get("quickfind.settings.hours");
         Editor = text.Get("editor");
         Terminal = text.Get("terminal");
         Columns = text.Get("columns");
@@ -52,6 +56,14 @@ public sealed class SettingsLabels
     public string LogOperations { get; }
 
     public string AutoFolderSizes { get; }
+
+    public string IndexTitle { get; }
+
+    public string IndexRoots { get; }
+
+    public string IndexExcludes { get; }
+
+    public string IndexHours { get; }
 
     public string Editor { get; }
 
