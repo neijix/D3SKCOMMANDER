@@ -199,6 +199,10 @@
     "en": "Show hidden files",
     "fr": "Fichiers cachés"
   },
+  "cmd.drive_bar": {
+    "en": "Drive bar",
+    "fr": "Barre des disques"
+  },
   "cmd.branch": {
     "en": "Branch view (all files)",
     "fr": "Vue arborescente à plat"

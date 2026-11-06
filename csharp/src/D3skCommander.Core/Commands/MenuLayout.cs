@@ -98,6 +98,7 @@ internal static class MenuLayout
         CommandId.ViewThumbs,
         CommandId.QuickView,
         CommandId.ToggleHidden,
+        CommandId.ToggleDriveBar,
         null,
         CommandId.SortName,
         CommandId.SortExt,

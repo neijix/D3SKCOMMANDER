@@ -31,6 +31,7 @@ public class SettingsStoreTests
             ConfirmTrashFallback = false,
             LogOperations = true,
             AutoFolderSizes = true,
+            ShowDriveBar = false,
             Editor = "vi",
             Terminal = "xterm",
             Columns = new Columns(false, true, false, true),
@@ -335,6 +336,7 @@ public class SettingsStoreTests
         Assert.True(preferences.ConfirmTrashFallback);
         Assert.False(preferences.LogOperations);
         Assert.False(preferences.AutoFolderSizes);
+        Assert.True(preferences.ShowDriveBar);
         Assert.Equal("", preferences.Editor);
         Assert.Equal("", preferences.Terminal);
         Assert.Equal(Columns.Default, preferences.Columns);
@@ -353,6 +355,7 @@ public class SettingsStoreTests
         Assert.Equal(expected.ConfirmTrashFallback, actual.ConfirmTrashFallback);
         Assert.Equal(expected.LogOperations, actual.LogOperations);
         Assert.Equal(expected.AutoFolderSizes, actual.AutoFolderSizes);
+        Assert.Equal(expected.ShowDriveBar, actual.ShowDriveBar);
         Assert.Equal(expected.Editor, actual.Editor);
         Assert.Equal(expected.Terminal, actual.Terminal);
         Assert.Equal(expected.Columns, actual.Columns);

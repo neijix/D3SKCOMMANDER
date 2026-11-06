@@ -46,7 +46,7 @@ internal static class MenuExpectations
 
         if (titleKey == "menu.show")
         {
-            return "ViewFull ViewBrief ViewThumbs QuickView ToggleHidden | SortName SortExt SortDate SortSize | NewTab CloseTab NextTab | Refresh";
+            return "ViewFull ViewBrief ViewThumbs QuickView ToggleHidden ToggleDriveBar | SortName SortExt SortDate SortSize | NewTab CloseTab NextTab | Refresh";
         }
 
         if (titleKey == "menu.tools")

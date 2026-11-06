@@ -60,6 +60,7 @@ internal static class CommandLabelKeys
         "cmd.brief",
         "cmd.thumbnails",
         "cmd.hidden",
+        "cmd.drive_bar",
         "cmd.branch",
         "cmd.quick_filter",
         "cmd.refresh",

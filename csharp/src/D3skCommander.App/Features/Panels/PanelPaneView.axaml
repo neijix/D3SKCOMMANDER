@@ -11,11 +11,29 @@
       <Setter Property="VerticalAlignment" Value="Stretch"/>
       <Setter Property="Focusable" Value="False"/>
     </Style>
+    <Style Selector="Button.drive">
+      <Setter Property="Padding" Value="8,2"/>
+      <Setter Property="MinHeight" Value="22"/>
+      <Setter Property="Height" Value="22"/>
+      <Setter Property="Focusable" Value="False"/>
+      <Setter Property="FontSize" Value="12"/>
+    </Style>
+    <Style Selector="Button.drive.held, Button.drive.held:pointerover">
+      <Setter Property="Foreground" Value="White"/>
+    </Style>
+    <Style Selector="Button.drive.held /template/ ContentPresenter#PART_ContentPresenter, Button.drive.held:pointerover /template/ ContentPresenter#PART_ContentPresenter">
+      <Setter Property="Background" Value="#2F6FB5"/>
+    </Style>
     <Style Selector="TextBlock.active">
       <Setter Property="Foreground" Value="#A6D1FF"/>
     </Style>
   </UserControl.Styles>
   <DockPanel>
+    <ScrollViewer x:Name="DriveScroll" DockPanel.Dock="Top" Margin="2,2,2,0" Height="26"
+                  HorizontalScrollBarVisibility="Hidden" VerticalScrollBarVisibility="Disabled"
+                  IsVisible="{Binding ShowDriveBar}">
+      <StackPanel x:Name="DriveStrip" Orientation="Horizontal" Spacing="2"/>
+    </ScrollViewer>
     <Grid DockPanel.Dock="Top" ColumnDefinitions="*,Auto" Margin="2">
       <DockPanel>
         <controls:PriorityStrip x:Name="Bar" DockPanel.Dock="Left" Spacing="2" Reserve="100" Margin="0,0,4,0"/>

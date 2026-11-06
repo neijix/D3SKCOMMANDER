@@ -3,6 +3,7 @@ using Avalonia.Controls;
 using CommunityToolkit.Mvvm.ComponentModel;
 using D3skCommander.App.Controls.FileList;
 using D3skCommander.App.Dialogs;
+using D3skCommander.App.Features.Drives;
 using D3skCommander.App.Shell;
 using D3skCommander.Core.Commands;
 using D3skCommander.Core.Common;
@@ -39,7 +40,7 @@ public sealed partial class PanelPaneModel : ObservableObject, IShellWidget
     private string _filterText = "";
     private bool _binding;
 
-    public PanelPaneModel(PanelSide side, PanelWorkspace panels, ILocalizer text, IDialogService dialogs, Func<CommandId, bool>? dispatch = null)
+    public PanelPaneModel(PanelSide side, PanelWorkspace panels, ILocalizer text, IDialogService dialogs, Func<CommandId, bool>? dispatch = null, IDriveSource? drives = null)
     {
         ArgumentNullException.ThrowIfNull(panels);
         ArgumentNullException.ThrowIfNull(text);
@@ -56,6 +57,7 @@ public sealed partial class PanelPaneModel : ObservableObject, IShellWidget
         BrowseText = text.Get("panels.browse");
         FilterWatermark = text.Get("panels.filter");
         InitBar(dispatch);
+        InitDrives(drives, text);
     }
 
     public string? Name => _side == PanelSide.Left ? "Left" : "Right";
@@ -118,6 +120,7 @@ public sealed partial class PanelPaneModel : ObservableObject, IShellWidget
         }
 
         PushFilter(snap);
+        TickDrives(snap.Path);
         Refresh(_panels.Read(_side));
         ShowFailure(snap);
     }

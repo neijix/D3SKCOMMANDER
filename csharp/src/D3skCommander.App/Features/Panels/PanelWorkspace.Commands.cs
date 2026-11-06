@@ -28,6 +28,7 @@ public sealed partial class PanelWorkspace
         shell.Handle(CommandId.ViewBrief, () => UseView(FileListView.Brief));
         shell.Handle(CommandId.ViewThumbs, () => UseView(FileListView.Thumbs));
         shell.Handle(CommandId.ToggleHidden, () => Run(() => ToggleHiddenAsync()));
+        shell.Handle(CommandId.ToggleDriveBar, ToggleDriveBar);
         shell.Handle(CommandId.SortName, () => Run(() => SortAsync(SortKey.Name)));
         shell.Handle(CommandId.SortExt, () => Run(() => SortAsync(SortKey.Extension)));
         shell.Handle(CommandId.SortDate, () => Run(() => SortAsync(SortKey.Modified)));

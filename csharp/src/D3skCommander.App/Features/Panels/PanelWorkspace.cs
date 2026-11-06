@@ -52,6 +52,7 @@ public sealed partial class PanelWorkspace : IPanelWorkspace, IDisposable
         _clock = clock ?? TimeProvider.System;
         _settings = settings;
         _showHidden = settings?.Preferences.Current.ShowHidden ?? false;
+        _showDriveBar = settings?.Preferences.Current.ShowDriveBar ?? true;
     }
 
     public PanelSide ActiveSide => _active;

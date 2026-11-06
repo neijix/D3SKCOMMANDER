@@ -45,6 +45,7 @@ public sealed partial class PanelPaneView : UserControl
         _files.RowActivated += (_, _) => _ = model.OpenEntryAsync();
         ListHost.Content = _files;
         BuildBar(model);
+        ShowDrives(model);
         model.FilterOpened += (_, _) => Dispatcher.UIThread.Post(() => FilterBox.Focus());
     }
 

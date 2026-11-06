@@ -52,6 +52,7 @@ public enum CommandId
     ViewBrief,
     ViewThumbs,
     ToggleHidden,
+    ToggleDriveBar,
     Branch,
     QuickFilter,
     Refresh,

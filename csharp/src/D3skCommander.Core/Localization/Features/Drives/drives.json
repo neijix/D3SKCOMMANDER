@@ -7,6 +7,10 @@
     "en": "free",
     "fr": "libres"
   },
+  "drives.free_of": {
+    "en": "{0} free of {1}",
+    "fr": "{0} libres sur {1}"
+  },
   "drives.none": {
     "en": "No drive found.",
     "fr": "Aucun lecteur trouvé."

@@ -30,6 +30,9 @@ public sealed class Preferences
 
     public bool ShowHidden { get; set; }
 
+    /// <summary>The row of drive buttons above each panel.</summary>
+    public bool ShowDriveBar { get; set; } = true;
+
     public bool UseTrash { get; set; } = true;
 
     public bool ConfirmDelete { get; set; } = true;

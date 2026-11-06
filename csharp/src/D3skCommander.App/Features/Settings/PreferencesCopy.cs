@@ -14,6 +14,7 @@ public static class PreferencesCopy
             DarkMode = source.DarkMode,
             FontSize = source.FontSize,
             ShowHidden = source.ShowHidden,
+            ShowDriveBar = source.ShowDriveBar,
             UseTrash = source.UseTrash,
             ConfirmDelete = source.ConfirmDelete,
             ConfirmTrashFallback = source.ConfirmTrashFallback,
