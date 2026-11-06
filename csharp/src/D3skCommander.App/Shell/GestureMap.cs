@@ -161,6 +161,8 @@ public static class GestureMap
         FromKey.TryAdd(Key.Add, GestureKey.Plus);
         FromKey.TryAdd(Key.Subtract, GestureKey.Minus);
         FromKey.TryAdd(Key.OemMinus, GestureKey.Minus);
+        AddPair(Key.D1, GestureKey.D1);
+        FromKey.TryAdd(Key.NumPad1, GestureKey.D1);
         AddPair(Key.OemBackslash, GestureKey.Backslash);
         FromKey.TryAdd(Key.OemPipe, GestureKey.Backslash);
     }

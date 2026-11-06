@@ -1,4 +1,5 @@
 using D3skCommander.Core.Common;
+using D3skCommander.Core.Panels;
 using D3skCommander.Core.Search;
 using D3skCommander.Core.Settings;
 using D3skCommander.Core.SettingsLocation;
@@ -6,7 +7,7 @@ using D3skCommander.Core.SettingsLocation;
 namespace D3skCommander.App.Startup;
 
 /// <summary>
-/// The settings folder this run uses and its stores (preferences, session, hotlist, search history and templates).
+/// The settings folder this run uses and its stores (preferences, session, hotlist, search history and templates, favorite tabs).
 /// Every feature reads and saves its settings here; the stores debounce their own writes.
 /// </summary>
 public sealed class AppSettings : IDisposable
@@ -21,6 +22,7 @@ public sealed class AppSettings : IDisposable
         Hotlist = new HotlistStore(folder.Dir);
         SearchHistory = new SearchHistoryStore(folder.Dir);
         SearchTemplates = new SearchTemplateStore(folder.Dir);
+        FavoriteTabs = new FavoriteTabsStore(folder.Dir);
     }
 
     public SettingsFolder Folder { get; }
@@ -37,6 +39,8 @@ public sealed class AppSettings : IDisposable
 
     public SearchTemplateStore SearchTemplates { get; }
 
+    public FavoriteTabsStore FavoriteTabs { get; }
+
     /// <summary>The settings folder of this process (<see cref="SettingsDirectory.Resolve"/> on the current places).</summary>
     public static AppSettings ForThisProcess() => new(SettingsDirectory.Resolve(SettingsPlaces.Current()));
 
@@ -49,6 +53,7 @@ public sealed class AppSettings : IDisposable
         Add(errors, Hotlist.TakeLoadError());
         Add(errors, SearchHistory.TakeLoadError());
         Add(errors, SearchTemplates.TakeLoadError());
+        Add(errors, FavoriteTabs.TakeLoadError());
         return errors;
     }
 
@@ -60,6 +65,7 @@ public sealed class AppSettings : IDisposable
         Hotlist.Flush();
         SearchHistory.Flush();
         SearchTemplates.Flush();
+        FavoriteTabs.Flush();
     }
 
     public void Dispose()
@@ -69,6 +75,7 @@ public sealed class AppSettings : IDisposable
         Hotlist.Dispose();
         SearchHistory.Dispose();
         SearchTemplates.Dispose();
+        FavoriteTabs.Dispose();
     }
 
     private static void Add(List<OperationError> errors, OperationError? error)

@@ -378,5 +378,17 @@
   "cmd.toggle_tree_right": {
     "en": "Folder tree, right panel",
     "fr": "Arborescence, panneau droit"
+  },
+  "cmd.save_favorite_tabs": {
+    "en": "Save current tabs as favorites…",
+    "fr": "Enregistrer les onglets actuels en favoris…"
+  },
+  "cmd.restore_favorite_tabs_1": {
+    "en": "Open the first favorite tabs",
+    "fr": "Ouvrir les premiers onglets favoris"
+  },
+  "cmd.manage_favorite_tabs": {
+    "en": "Manage favorite tabs…",
+    "fr": "Gérer les onglets favoris…"
   }
 }

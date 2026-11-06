@@ -22,8 +22,14 @@ public sealed class ShellMenu
     public IReadOnlyList<Func<IReadOnlyList<ShellAction>>> DynamicItems { get; }
 }
 
-/// <summary>A menu item that is not a catalog command: a text the user chose and what it runs.</summary>
-public sealed record ShellAction(string Header, Action Invoke, bool Checked = false);
+/// <summary>A menu item that is not a catalog command: a text the user chose and what it runs, or (with <c>Children</c>) a submenu.</summary>
+public sealed record ShellAction(string Header, Action Invoke, bool Checked = false, IReadOnlyList<ShellAction>? Children = null)
+{
+    /// <summary>A rule between the items of a submenu.</summary>
+    public static ShellAction Rule { get; } = new("", static () => { });
+
+    public bool IsRule => ReferenceEquals(this, Rule);
+}
 
 public sealed class ShellMenuEntry
 {

@@ -7,6 +7,7 @@ using D3skCommander.App.Features.Crypt;
 using D3skCommander.App.Features.DiskUsage;
 using D3skCommander.App.Features.Drives;
 using D3skCommander.App.Features.Editor;
+using D3skCommander.App.Features.Favorites;
 using D3skCommander.App.Features.FileOps;
 using D3skCommander.App.Features.Ftp;
 using D3skCommander.App.Features.Help;
@@ -49,6 +50,7 @@ public static class AppComposition
         DiskUsageModule.Register(services);
         DrivesModule.Register(services);
         EditorModule.Register(services);
+        FavoriteTabsModule.Register(services);
         FileOpsModule.Register(services);
         FtpModule.Register(services);
         HelpModule.Register(services);

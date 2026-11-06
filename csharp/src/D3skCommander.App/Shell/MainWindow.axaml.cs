@@ -141,17 +141,37 @@ public sealed partial class MainWindow : Window
 
             foreach (var action in actions)
             {
-                var item = new MenuItem { Header = action.Header, Tag = action };
-                if (action.Checked)
-                {
-                    item.ToggleType = MenuItemToggleType.CheckBox;
-                    item.IsChecked = true;
-                }
-
-                item.Click += (_, _) => action.Invoke();
-                top.Items.Add(item);
+                top.Items.Add(CreateAction(action));
             }
         }
+    }
+
+    private static Control CreateAction(ShellAction action)
+    {
+        if (action.IsRule)
+        {
+            return new Separator();
+        }
+
+        var item = new MenuItem { Header = action.Header, Tag = action };
+        if (action.Checked)
+        {
+            item.ToggleType = MenuItemToggleType.CheckBox;
+            item.IsChecked = true;
+        }
+
+        if (action.Children is not null)
+        {
+            foreach (var child in action.Children)
+            {
+                item.Items.Add(CreateAction(child));
+            }
+
+            return item;
+        }
+
+        item.Click += (_, _) => action.Invoke();
+        return item;
     }
 
     private Control CreateEntry(ShellMenuEntry entry)

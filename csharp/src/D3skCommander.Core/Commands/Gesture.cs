@@ -53,6 +53,7 @@ public enum GestureKey
     Minus,
     Backspace,
     Escape,
+    D1,
 }
 
 /// <summary>One chord. Extra Shift or Alt still matches a less specific pattern, as egui's logical match does.</summary>
@@ -143,6 +144,11 @@ public readonly record struct Gesture(GestureModifiers Modifiers, GestureKey Key
         if (key == GestureKey.Backslash)
         {
             return "\\";
+        }
+
+        if (key == GestureKey.D1)
+        {
+            return "1";
         }
 
         return key.ToString();

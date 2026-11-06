@@ -1,0 +1,70 @@
+{
+  "favorites.title": {
+    "en": "Favorite tabs",
+    "fr": "Onglets favoris"
+  },
+  "favorites.menu": {
+    "en": "Favorite tabs",
+    "fr": "Onglets favoris"
+  },
+  "favorites.save_item": {
+    "en": "Save current tabs…",
+    "fr": "Enregistrer les onglets actuels…"
+  },
+  "favorites.manage_item": {
+    "en": "Manage favorite tabs…",
+    "fr": "Gérer les onglets favoris…"
+  },
+  "favorites.name_prompt": {
+    "en": "Name for the current tabs of both panels",
+    "fr": "Nom des onglets actuels des deux panneaux"
+  },
+  "favorites.overwrite": {
+    "en": "A set called \"{name}\" already exists. Replace it with the current tabs?",
+    "fr": "Un ensemble nommé \"{name}\" existe déjà. Le remplacer par les onglets actuels ?"
+  },
+  "favorites.none": {
+    "en": "No favorite tabs are saved yet. Save the current tabs from the Show menu.",
+    "fr": "Aucun onglet favori n'est enregistré. Enregistrez les onglets actuels depuis le menu Affichage."
+  },
+  "favorites.rename": {
+    "en": "Rename…",
+    "fr": "Renommer…"
+  },
+  "favorites.rename_prompt": {
+    "en": "New name",
+    "fr": "Nouveau nom"
+  },
+  "favorites.delete": {
+    "en": "Delete",
+    "fr": "Supprimer"
+  },
+  "favorites.up": {
+    "en": "Move up",
+    "fr": "Monter"
+  },
+  "favorites.down": {
+    "en": "Move down",
+    "fr": "Descendre"
+  },
+  "favorites.empty": {
+    "en": "No favorite tabs saved yet.",
+    "fr": "Aucun onglet favori enregistré."
+  },
+  "favorites.summary": {
+    "en": "tabs: left {left}, right {right}",
+    "fr": "onglets : gauche {left}, droite {right}"
+  },
+  "favorites.mode": {
+    "en": "When opening favorite tabs",
+    "fr": "À l'ouverture d'onglets favoris"
+  },
+  "favorites.mode_replace": {
+    "en": "Replace the open tabs",
+    "fr": "Remplacer les onglets ouverts"
+  },
+  "favorites.mode_add": {
+    "en": "Add after the open tabs",
+    "fr": "Ajouter après les onglets ouverts"
+  }
+}

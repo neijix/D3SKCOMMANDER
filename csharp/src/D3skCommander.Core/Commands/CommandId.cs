@@ -97,4 +97,7 @@ public enum CommandId
     ToggleTree,
     ToggleTreeLeft,
     ToggleTreeRight,
+    SaveFavoriteTabs,
+    RestoreFavoriteTabs1,
+    ManageFavoriteTabs,
 }

@@ -96,6 +96,7 @@ public sealed partial class SettingsViewModel : ObservableObject, IShellWidget
         _changeFolder = changeFolder;
         Labels = new SettingsLabels(text);
         ColumnSets = new ColumnSetsEditorModel(text, dialogs, settings.Preferences.Current.AllColumnSets());
+        Favorites = new FavoriteTabsEditorModel(text, dialogs, settings.FavoriteTabs.Current, settings.Preferences.Current.FavoriteTabsMode);
         Load(settings.Preferences.Current);
         Toolbar = new ToolbarEditorModel(text, settings.Preferences.Current.Toolbar, UserCommandNames());
         Commands.CollectionChanged += (_, _) => Toolbar.SetUserCommandNames(UserCommandNames());
@@ -109,6 +110,14 @@ public sealed partial class SettingsViewModel : ObservableObject, IShellWidget
 
     /// <summary>The Columns section: the column sets and their columns.</summary>
     public ColumnSetsEditorModel ColumnSets { get; }
+
+    /// <summary>The Favorite tabs section: saved tab sets and the restore mode.</summary>
+    public FavoriteTabsEditorModel Favorites { get; }
+
+    /// <summary>Raised when something asks the window to scroll the Favorite tabs section into view.</summary>
+    public event Action? FavoritesRequested;
+
+    public void RequestFavorites() => FavoritesRequested?.Invoke();
 
     /// <summary>The Toolbar section: the buttons of the main toolbar.</summary>
     public ToolbarEditorModel Toolbar { get; }
@@ -155,6 +164,12 @@ public sealed partial class SettingsViewModel : ObservableObject, IShellWidget
         next.Terminal = Terminal.Trim();
         next.ColumnSets = [.. ColumnSets.Result()];
         next.Toolbar = [.. Toolbar.Result()];
+        next.FavoriteTabsMode = Favorites.Mode;
+        if (Favorites.Changed)
+        {
+            _settings.FavoriteTabs.Save(Favorites.Result());
+        }
+
         next.UserCommands = Commands.Select(row => row.Command).ToList();
         _settings.Preferences.Save(next);
         _log.Enabled = next.LogOperations;

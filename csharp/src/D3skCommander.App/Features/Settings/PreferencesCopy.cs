@@ -20,6 +20,7 @@ public static class PreferencesCopy
             ShowTreeRight = source.ShowTreeRight,
             TreeWidthLeft = source.TreeWidthLeft,
             TreeWidthRight = source.TreeWidthRight,
+            FavoriteTabsMode = source.FavoriteTabsMode,
             Toolbar = [.. source.Toolbar],
             UseTrash = source.UseTrash,
             ConfirmDelete = source.ConfirmDelete,

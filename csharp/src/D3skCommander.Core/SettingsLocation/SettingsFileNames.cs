@@ -17,6 +17,8 @@ public static class SettingsFileNames
 
     public const string SearchTemplates = "search-templates.json";
 
+    public const string FavoriteTabs = "favorite-tabs.json";
+
     public const string Sites = "sites.json";
 
     public const string Vault = "vault.d3enc";
@@ -38,6 +40,7 @@ public static class SettingsFileNames
         Hotlist,
         SearchHistory,
         SearchTemplates,
+        FavoriteTabs,
         Sites,
         Vault,
         OperationsLog,

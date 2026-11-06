@@ -105,6 +105,9 @@ internal static class CommandLabelKeys
         "cmd.toggle_tree",
         "cmd.toggle_tree_left",
         "cmd.toggle_tree_right",
+        "cmd.save_favorite_tabs",
+        "cmd.restore_favorite_tabs_1",
+        "cmd.manage_favorite_tabs",
     ];
 
     private static string[] Merge(string[] early, string[] late)

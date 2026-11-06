@@ -19,6 +19,7 @@ public sealed partial class SettingsView : UserControl
         DataContext = model;
         model.CloseRequested += () => (TopLevel.GetTopLevel(this) as Window)?.Close();
         model.ToolbarRequested += () => Dispatcher.UIThread.Post(() => ScrollToTop(this.FindControl<ToolbarEditor>("ToolbarSection")), DispatcherPriority.Background);
+        model.FavoritesRequested += () => Dispatcher.UIThread.Post(() => ScrollToTop(this.FindControl<FavoriteTabsEditor>("FavoritesSection")), DispatcherPriority.Background);
         model.ColumnsRequested += () => Dispatcher.UIThread.Post(() => this.FindControl<ColumnSetsEditor>("ColumnSetsSection")?.BringIntoView());
     }
 

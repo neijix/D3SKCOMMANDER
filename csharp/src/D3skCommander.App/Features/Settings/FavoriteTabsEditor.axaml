@@ -1,0 +1,31 @@
+<UserControl xmlns="https://github.com/avaloniaui"
+             xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+             xmlns:s="using:D3skCommander.App.Features.Settings"
+             x:Class="D3skCommander.App.Features.Settings.FavoriteTabsEditor"
+             x:DataType="s:FavoriteTabsEditorModel">
+  <StackPanel Spacing="4">
+    <TextBlock FontWeight="SemiBold" Text="{Binding Title}"/>
+    <Grid ColumnDefinitions="Auto,*" ColumnSpacing="8">
+      <TextBlock Grid.Column="0" VerticalAlignment="Center" Text="{Binding ModeCaption}"/>
+      <ComboBox x:Name="FavoriteModeBox" Grid.Column="1" HorizontalAlignment="Stretch" ItemsSource="{Binding Modes}" SelectedIndex="{Binding ModeIndex, Mode=TwoWay}"/>
+    </Grid>
+    <Grid ColumnDefinitions="*,Auto" ColumnSpacing="8">
+      <Panel Grid.Column="0">
+        <ListBox x:Name="FavoriteList" Height="110" ItemsSource="{Binding Rows}" SelectedItem="{Binding SelectedRow, Mode=TwoWay}">
+          <ListBox.ItemTemplate>
+            <DataTemplate x:DataType="s:FavoriteRow">
+              <TextBlock Text="{Binding Display}"/>
+            </DataTemplate>
+          </ListBox.ItemTemplate>
+        </ListBox>
+        <TextBlock x:Name="FavoriteEmpty" Foreground="Gray" Margin="10,8" IsHitTestVisible="False" IsVisible="{Binding IsEmpty}" Text="{Binding EmptyText}"/>
+      </Panel>
+      <StackPanel Grid.Column="1" Spacing="4">
+        <Button x:Name="FavoriteRenameButton" HorizontalAlignment="Stretch" Content="{Binding RenameCaption}" Command="{Binding RenameCommand}"/>
+        <Button x:Name="FavoriteDeleteButton" HorizontalAlignment="Stretch" Content="{Binding DeleteCaption}" Command="{Binding DeleteCommand}"/>
+        <Button x:Name="FavoriteUpButton" HorizontalAlignment="Stretch" Content="{Binding UpCaption}" Command="{Binding MoveUpCommand}"/>
+        <Button x:Name="FavoriteDownButton" HorizontalAlignment="Stretch" Content="{Binding DownCaption}" Command="{Binding MoveDownCommand}"/>
+      </StackPanel>
+    </Grid>
+  </StackPanel>
+</UserControl>

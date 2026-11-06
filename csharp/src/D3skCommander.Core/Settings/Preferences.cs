@@ -55,6 +55,9 @@ public sealed class Preferences
     /// <summary>The main toolbar between the menu bar and the panels.</summary>
     public bool ShowToolbar { get; set; } = true;
 
+    /// <summary>What choosing a favorite set of tabs does with the open tabs.</summary>
+    public FavoriteRestoreMode FavoriteTabsMode { get; set; } = FavoriteRestoreMode.Replace;
+
     /// <summary>The folder tree beside the left panel's file list.</summary>
     public bool ShowTreeLeft { get; set; }
 

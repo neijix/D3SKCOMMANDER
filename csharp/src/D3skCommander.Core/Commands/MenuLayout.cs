@@ -143,6 +143,7 @@ internal static class MenuLayout
         CommandId.Settings,
         CommandId.EditColumnSets,
         CommandId.CustomizeToolbar,
+        CommandId.ManageFavoriteTabs,
         CommandId.SettingsFolder,
         CommandId.Log,
     ]);

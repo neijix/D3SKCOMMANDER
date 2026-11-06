@@ -58,6 +58,13 @@ public sealed class SettingsCommands
                 model.RequestToolbar();
             }
         });
+        shell.Handle(CommandId.ManageFavoriteTabs, () =>
+        {
+            if (_tools.Open(ToolKind.Settings).View is SettingsViewModel model)
+            {
+                model.RequestFavorites();
+            }
+        });
         _tools.Register(ToolKind.Settings, CreateView);
     }
 

@@ -43,6 +43,36 @@ public sealed class Panel
         return new Panel(tabs, Clamp(active, tabs.Count), provider);
     }
 
+    /// <summary>A panel holding exactly <paramref name="tabs"/> (at least one), tab <paramref name="active"/> current.</summary>
+    public static async Task<Panel> OpenStartsAsync(
+        IReadOnlyList<FavoriteTabStart> tabs,
+        int active,
+        bool showHidden,
+        IFileSystemProvider provider,
+        CancellationToken cancellationToken = default)
+    {
+        ArgumentNullException.ThrowIfNull(tabs);
+        ArgumentNullException.ThrowIfNull(provider);
+        ArgumentOutOfRangeException.ThrowIfZero(tabs.Count);
+        var opened = await OpenStartTabsAsync(tabs, showHidden, provider, cancellationToken).ConfigureAwait(false);
+        return new Panel(opened, Clamp(active, opened.Count), provider);
+    }
+
+    /// <summary>Appends <paramref name="tabs"/> after the open ones; a non-negative <paramref name="active"/> (index in the result) becomes the current tab.</summary>
+    public async Task AddStartsAsync(
+        IReadOnlyList<FavoriteTabStart> tabs,
+        int active,
+        bool showHidden,
+        CancellationToken cancellationToken = default)
+    {
+        ArgumentNullException.ThrowIfNull(tabs);
+        _tabs.AddRange(await OpenStartTabsAsync(tabs, showHidden, _provider, cancellationToken).ConfigureAwait(false));
+        if (active >= 0)
+        {
+            ActiveTab = Clamp(active, _tabs.Count);
+        }
+    }
+
     public async Task NewTabAsync(bool showHidden, CancellationToken cancellationToken = default)
     {
         var tab = new Tab(Active.Location, Active.Sort, _provider) { ColumnSetName = Active.ColumnSetName };
@@ -116,6 +146,23 @@ public sealed class Panel
                 tab.ColumnSetName = columnSets[i];
             }
 
+            tabs.Add(tab);
+        }
+
+        return tabs;
+    }
+
+    private static async Task<List<Tab>> OpenStartTabsAsync(
+        IReadOnlyList<FavoriteTabStart> starts,
+        bool showHidden,
+        IFileSystemProvider provider,
+        CancellationToken cancellationToken)
+    {
+        var tabs = new List<Tab>(starts.Count);
+        foreach (var start in starts)
+        {
+            var tab = new Tab(new Location(start.Path), start.Sort, provider) { ColumnSetName = start.ColumnSet };
+            await tab.ReloadAsync(showHidden, cancellationToken).ConfigureAwait(false);
             tabs.Add(tab);
         }
 
