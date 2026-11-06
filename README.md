@@ -138,7 +138,8 @@ The default keys of the first version are kept:
 | Ctrl+M | Multi-rename | Ctrl+N | FTP |
 | Ctrl+U | Swap panels | Ctrl+H | Hidden files |
 | Ctrl+F1 / F2 / Ctrl+Shift+F1 | Brief / Full / Thumbnails | Ctrl+F3…F6 | Sort by name, ext, date, size |
-| + / - / * | Select / Unselect group / Invert | Ins / Space | Mark |
+| Ctrl+G | Go to the file's folder | Space | Mark (a folder: measure it) |
+| + / - / * | Select / Unselect group / Invert | Ins | Mark |
 
 A command whose feature is not built yet shows in its menu, disabled.
 

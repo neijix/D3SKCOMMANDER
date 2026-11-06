@@ -69,6 +69,42 @@ public class ListProviderTests
         Assert.Contains(".hidden", all);
     }
 
+    [Fact]
+    public async Task ResultsListSameNamedFilesFromTwoFoldersAndDropADeletedOne()
+    {
+        var root = Directory.CreateTempSubdirectory("d3sk-results-").FullName;
+        try
+        {
+            var one = Path.Combine(root, "one", "a.txt");
+            var two = Path.Combine(root, "two", "a.txt");
+            Directory.CreateDirectory(Path.GetDirectoryName(one)!);
+            Directory.CreateDirectory(Path.GetDirectoryName(two)!);
+            File.WriteAllText(one, "1");
+            File.WriteAllText(two, "22");
+            var list = ListFileSystemProvider.Results(root, "Search: a*", [one, two, one, Path.Combine(root, "gone.txt")]);
+            Assert.Equal(root, Path.GetDirectoryName(list.Directory));
+            var names = await Names(list, list.Directory);
+            Assert.Equal([Path.Combine("one", "a.txt"), Path.Combine("two", "a.txt")], names);
+
+            File.Delete(one);
+            File.WriteAllText(two, "333");
+            var again = new List<Entry>();
+            await foreach (var item in list.ListAsync(list.Directory, true, CancellationToken.None))
+            {
+                again.Add(item.Value);
+            }
+
+            var left = Assert.Single(again, entry => !entry.IsParent);
+            Assert.Equal(two, left.Path);
+            Assert.Equal(3UL, left.Size);
+            Assert.Contains(again, entry => entry.IsParent && entry.Path == root);
+        }
+        finally
+        {
+            Directory.Delete(root, recursive: true);
+        }
+    }
+
     private static async Task<List<string>> Names(IFileSystemProvider provider, string directory, bool showHidden = true)
     {
         var names = new List<string>();

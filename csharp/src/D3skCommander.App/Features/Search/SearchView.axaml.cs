@@ -123,6 +123,7 @@ public sealed partial class SearchView : UserControl
         StartButton.Content = text.Get("start");
         CancelButton.Content = text.Get("cancel");
         GoButton.Content = text.Get("search.go");
+        FeedButton.Content = text.Get("search.feed");
         ExcludeFilesLabel.Text = text.Get("search.exclude_files");
         ExcludeFoldersLabel.Text = text.Get("search.exclude_folders");
         LinksBox.Content = text.Get("search.follow_links");

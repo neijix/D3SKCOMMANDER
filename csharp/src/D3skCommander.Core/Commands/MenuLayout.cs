@@ -70,6 +70,7 @@ internal static class MenuLayout
         CommandId.Hotlist,
         CommandId.AddHotlist,
         CommandId.History,
+        CommandId.GoToContainingFolder,
         null,
         CommandId.Back,
         CommandId.Forward,

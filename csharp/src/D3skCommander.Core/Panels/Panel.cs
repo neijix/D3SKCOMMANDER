@@ -50,6 +50,21 @@ public sealed class Panel
         ActiveTab++;
     }
 
+    /// <summary>Opens <paramref name="location"/> (a virtual folder such as search results) in a new tab next to the active one.</summary>
+    public async Task NewTabAtAsync(Location location, bool showHidden, CancellationToken cancellationToken = default)
+    {
+        ArgumentNullException.ThrowIfNull(location);
+        var tab = new Tab(location, Active.Sort, _provider);
+        await tab.ReloadAsync(showHidden, cancellationToken).ConfigureAwait(false);
+        if (tab.Error is not null)
+        {
+            return;
+        }
+
+        _tabs.Insert(ActiveTab + 1, tab);
+        ActiveTab++;
+    }
+
     public void CloseTab()
     {
         if (_tabs.Count <= 1)

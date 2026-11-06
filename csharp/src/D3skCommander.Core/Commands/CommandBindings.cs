@@ -44,6 +44,7 @@ internal static class CommandBindings
         Add(list, GestureModifiers.Ctrl, GestureKey.B, CommandId.Branch);
         Add(list, GestureModifiers.Ctrl, GestureKey.C, CommandId.ClipCopy);
         Add(list, GestureModifiers.Ctrl, GestureKey.D, CommandId.Hotlist);
+        Add(list, GestureModifiers.Ctrl, GestureKey.G, CommandId.GoToContainingFolder);
         Add(list, GestureModifiers.Ctrl, GestureKey.H, CommandId.ToggleHidden);
         Add(list, GestureModifiers.Ctrl, GestureKey.L, CommandId.DirSizes);
         Add(list, GestureModifiers.Ctrl, GestureKey.M, CommandId.MultiRename);

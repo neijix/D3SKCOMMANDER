@@ -59,6 +59,7 @@
       <Button x:Name="StartButton" MinWidth="88" Command="{Binding StartCommand}"/>
       <Button x:Name="CancelButton" MinWidth="88" Command="{Binding CancelCommand}"/>
       <Button x:Name="GoButton" Command="{Binding GoToFileCommand}"/>
+      <Button x:Name="FeedButton" Command="{Binding FeedCommand}"/>
       <Button x:Name="SaveTemplateButton" Command="{Binding SaveTemplateCommand}"/>
       <Button x:Name="TemplatesButton"/>
       <TextBlock x:Name="StatusLine" VerticalAlignment="Center" Text="{Binding Status}"/>

@@ -86,4 +86,5 @@ public enum CommandId
     ClipCopy,
     ClipCut,
     ClipPaste,
+    GoToContainingFolder,
 }

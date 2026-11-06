@@ -17,5 +17,16 @@ public interface IPanelWorkspace
 
     Task<bool> GoAsync(PanelSide side, string path, CancellationToken cancellationToken = default);
 
+    /// <summary>
+    /// Opens the paths as a virtual folder in a new tab of <paramref name="side"/>, named <paramref name="title"/>
+    /// and left through ".." to <paramref name="startFolder"/>. A workspace without tabs answers false.
+    /// </summary>
+    Task<bool> OpenResultsAsync(
+        PanelSide side,
+        string startFolder,
+        string title,
+        IReadOnlyList<string> paths,
+        CancellationToken cancellationToken = default) => Task.FromResult(false);
+
     Task RefreshAsync(CancellationToken cancellationToken = default);
 }

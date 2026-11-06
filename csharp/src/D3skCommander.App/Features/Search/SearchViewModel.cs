@@ -137,6 +137,7 @@ public sealed partial class SearchViewModel : ObservableObject, IShellWidget
         SaveTemplateCommand = new AsyncRelayCommand(SaveTemplateAsync);
         RefreshHistory();
         GoToFileCommand = new AsyncRelayCommand(() => GoToCursorAsync(), () => HitCount > 0);
+        FeedCommand = new AsyncRelayCommand(() => FeedToPanelAsync(), () => HitCount > 0);
     }
 
     public string? Name => "Search";
@@ -151,6 +152,9 @@ public sealed partial class SearchViewModel : ObservableObject, IShellWidget
     public IAsyncRelayCommand BrowseCommand { get; }
 
     public IAsyncRelayCommand GoToFileCommand { get; }
+
+    /// <summary>Opens the hits as a tab of the active panel.</summary>
+    public IAsyncRelayCommand FeedCommand { get; }
 
     public IAsyncRelayCommand SaveTemplateCommand { get; }
 
@@ -170,7 +174,11 @@ public sealed partial class SearchViewModel : ObservableObject, IShellWidget
 
     partial void OnIsRunningChanged(bool value) => CancelCommand.NotifyCanExecuteChanged();
 
-    partial void OnHitCountChanged(int value) => GoToFileCommand.NotifyCanExecuteChanged();
+    partial void OnHitCountChanged(int value)
+    {
+        GoToFileCommand.NotifyCanExecuteChanged();
+        FeedCommand.NotifyCanExecuteChanged();
+    }
 
     private async Task BrowseAsync()
     {

@@ -32,6 +32,13 @@ public sealed partial class PanelWorkspace : IInPlaceRename
     {
         ArgumentException.ThrowIfNullOrEmpty(path);
         ArgumentException.ThrowIfNullOrEmpty(name);
+        // A search tab names its rows by relative path; an edit that keeps it must not become a move.
+        name = Path.GetFileName(name);
+        if (name.Length == 0)
+        {
+            return;
+        }
+
         var commit = Commit;
         if (commit is not null)
         {

@@ -19,6 +19,7 @@ public sealed partial class PanelWorkspace
         shell.Handle(CommandId.Root, () => Run(() => RootAsync()));
         shell.Handle(CommandId.Refresh, () => Run(() => RefreshAsync()));
         shell.Handle(CommandId.BrowseFolder, () => Run(() => BrowseAsync(_active)));
+        shell.Handle(CommandId.GoToContainingFolder, () => Run(() => GoToContainingFolderAsync()));
         shell.Handle(CommandId.NewTab, () => Run(() => NewTabAsync()));
         shell.Handle(CommandId.CloseTab, CloseTab);
         shell.Handle(CommandId.NextTab, NextTab);

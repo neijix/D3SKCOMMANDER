@@ -17,9 +17,15 @@ public sealed partial class ListFileSystemProvider : FileSystemProvider
     private readonly string _directory;
     private readonly Entry[] _entries;
     private readonly LocalFileSystemProvider _local = new();
+    private readonly bool _recheck;
 
-    public ListFileSystemProvider(string directory, IReadOnlyList<Entry> entries)
+    /// <param name="recheck">
+    /// Look each path up again on every listing: a path that is gone drops out and the others show
+    /// their current size and date (search results). A branch view keeps its snapshot.
+    /// </param>
+    public ListFileSystemProvider(string directory, IReadOnlyList<Entry> entries, bool recheck = false)
     {
+        _recheck = recheck;
         ArgumentException.ThrowIfNullOrEmpty(directory);
         ArgumentNullException.ThrowIfNull(entries);
         _directory = directory;
@@ -106,11 +112,27 @@ public sealed partial class ListFileSystemProvider : FileSystemProvider
 
             if (showHidden || !entry.Hidden)
             {
-                found.Add(entry);
+                AddCurrent(found, entry);
             }
         }
 
         return found;
+    }
+
+    private void AddCurrent(List<Entry> found, Entry entry)
+    {
+        if (!_recheck)
+        {
+            found.Add(entry);
+            return;
+        }
+
+        var live = LocalFileSystem.ReadEntry(entry.Path);
+        if (live.IsSuccess)
+        {
+            live.Value.Name = entry.Name;
+            found.Add(live.Value);
+        }
     }
 
     private void AddParent(List<Entry> found)

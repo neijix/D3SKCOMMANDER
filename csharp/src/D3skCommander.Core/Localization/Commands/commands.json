@@ -334,5 +334,9 @@
   "cmd.clip_paste": {
     "en": "Paste files here",
     "fr": "Coller les fichiers ici"
+  },
+  "cmd.go_to_folder": {
+    "en": "Go to the file's folder",
+    "fr": "Aller au dossier du fichier"
   }
 }

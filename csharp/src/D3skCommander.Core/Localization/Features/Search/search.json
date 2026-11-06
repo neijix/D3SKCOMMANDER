@@ -67,6 +67,14 @@
     "en": "Not changed for (days)",
     "fr": "Non modifié depuis (jours)"
   },
+  "search.feed": {
+    "en": "Feed to panel",
+    "fr": "Envoyer au panneau"
+  },
+  "search.tab_title": {
+    "en": "Search: {0}",
+    "fr": "Recherche : {0}"
+  },
   "search.go": {
     "en": "Go to file",
     "fr": "Aller au fichier"

@@ -277,6 +277,21 @@ public sealed partial class Tab
         return mask.Matches(entry.Name);
     }
 
+    /// <summary>Puts the cursor on the row with this path. False when no visible row has it.</summary>
+    public bool CursorToPath(string path)
+    {
+        ArgumentNullException.ThrowIfNull(path);
+        var index = FindVisible(entry => !entry.IsParent && string.Equals(entry.Path, path, StringComparison.Ordinal));
+        if (index is null)
+        {
+            return false;
+        }
+
+        Cursor = index.Value;
+        ScrollToCursor = true;
+        return true;
+    }
+
     private void SelectPath(string path)
     {
         var index = FindVisible(entry => string.Equals(entry.Path, path, StringComparison.Ordinal));

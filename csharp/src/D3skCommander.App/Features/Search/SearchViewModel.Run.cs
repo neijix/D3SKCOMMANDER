@@ -121,6 +121,30 @@ public sealed partial class SearchViewModel
         return _panels.GoAsync(_panels.ActiveSide, folder);
     }
 
+    /// <summary>
+    /// Opens the hits so far as a new tab of the active panel, named "Search: mask". ".." leaves it for
+    /// the first search folder (or the panel's folder). The window stays open.
+    /// </summary>
+    public async Task<bool> FeedToPanelAsync()
+    {
+        if (_hits.Count == 0)
+        {
+            return false;
+        }
+
+        var side = _panels.ActiveSide;
+        var roots = SearchQueryBuilder.SplitRoots(Roots);
+        var start = roots.Count > 0 ? roots[0] : _panels.Read(side).Path;
+        if (start.Length == 0)
+        {
+            return false;
+        }
+
+        var title = _text.Get("search.tab_title").Replace("{0}", NameMask, StringComparison.Ordinal);
+        var paths = _hits.Select(hit => hit.Path).ToList();
+        return await _panels.OpenResultsAsync(side, start, title, paths).ConfigureAwait(true);
+    }
+
     private bool Take(SearchEvent step)
     {
         if (step.Kind == SearchEventKind.Hit && step.Hit is not null)
