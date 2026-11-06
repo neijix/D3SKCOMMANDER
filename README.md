@@ -16,16 +16,22 @@ What works today:
 - both panels list a local folder, with a path bar, a folder chooser, keyboard navigation,
   tabs, history, the hotlist, sorting, the full, brief and thumbnail views, folder and
   file-type icons, and the last session (tabs, folders, sort, view) reopened at start;
-- selection by pattern, quick filter, branch view, folder sizes, names and paths copied to the
-  clipboard;
+- selection by pattern, quick filter, branch view, names and paths copied to the clipboard;
+- folder sizes: Space or Ctrl+L measures a folder, an optional setting measures every folder in
+  the background, and the panel status shows marked and total bytes and the free space;
+- disk usage (Shift+Alt+L): a folder's children by size with a ring chart you click to descend;
 - copy, move, new folder, rename in place, delete and permanent delete (F5–F8) run as background
   jobs, with a progress line, a conflict dialog and a failure report;
 - Enter on a file opens it with its default application; Open with, a terminal here, the
   command line under the panels, and your own commands (Settings) in the Tools menu;
-- the drive lists (Alt+F1, Alt+F2), Properties (Alt+Enter), and files dropped from the system
-  copied into a panel;
+- a drive bar above each panel (Show menu to hide it) and a drive menu (Alt+F1, Alt+F2) with
+  usage bars, your usual folders, network shares and, on Linux, disks to mount or eject
+  (`udisksctl`); Properties (Alt+Enter), and files dropped from the system copied into a panel;
 - quick view (Ctrl+Q) of the file under the cursor in the other panel;
-- search, synchronize folders, compare, multi-rename, split and join, checksums, file times,
+- search (Alt+F7) with several masks, excluded files and folders, field history, saved
+  templates, a duplicate finder, and results opened as a panel tab you can copy, move or delete
+  from; quick find (Ctrl+Shift+F) filters a name index of your drives as you type;
+- synchronize folders, compare, multi-rename, split and join, checksums, file times,
   archives (pack, unpack, browse), encryption and the password vault, FTP and FTPS sites,
   network drives, the catalog, the operations log, the settings window (F9) and update checks;
 - an English or French interface;
@@ -135,6 +141,7 @@ The default keys of the first version are kept:
 | Ctrl+T / Ctrl+W | New / Close tab | Ctrl+Tab | Next tab |
 | Ctrl+Q | Quick view | Ctrl+S | Quick filter |
 | Ctrl+B | Branch view | Ctrl+L | Folder sizes |
+| Shift+Alt+L | Disk usage | Ctrl+Shift+F | Quick find |
 | Ctrl+M | Multi-rename | Ctrl+N | FTP |
 | Ctrl+U | Swap panels | Ctrl+H | Hidden files |
 | Ctrl+F1 / F2 / Ctrl+Shift+F1 | Brief / Full / Thumbnails | Ctrl+F3…F6 | Sort by name, ext, date, size |
