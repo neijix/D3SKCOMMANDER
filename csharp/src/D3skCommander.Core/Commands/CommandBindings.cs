@@ -42,6 +42,7 @@ internal static class CommandBindings
         Add(list, GestureModifiers.Ctrl, GestureKey.F6, CommandId.SortSize);
         Add(list, GestureModifiers.Ctrl, GestureKey.A, CommandId.SelectAll);
         Add(list, GestureModifiers.Ctrl, GestureKey.B, CommandId.Branch);
+        Add(list, GestureModifiers.Ctrl, GestureKey.C, CommandId.ClipCopy);
         Add(list, GestureModifiers.Ctrl, GestureKey.D, CommandId.Hotlist);
         Add(list, GestureModifiers.Ctrl, GestureKey.H, CommandId.ToggleHidden);
         Add(list, GestureModifiers.Ctrl, GestureKey.L, CommandId.DirSizes);
@@ -52,7 +53,9 @@ internal static class CommandBindings
         Add(list, GestureModifiers.Ctrl, GestureKey.S, CommandId.QuickFilter);
         Add(list, GestureModifiers.Ctrl, GestureKey.T, CommandId.NewTab);
         Add(list, GestureModifiers.Ctrl, GestureKey.U, CommandId.Swap);
+        Add(list, GestureModifiers.Ctrl, GestureKey.V, CommandId.ClipPaste);
         Add(list, GestureModifiers.Ctrl, GestureKey.W, CommandId.CloseTab);
+        Add(list, GestureModifiers.Ctrl, GestureKey.X, CommandId.ClipCut);
         Add(list, GestureModifiers.Ctrl, GestureKey.Tab, CommandId.NextTab);
         Add(list, GestureModifiers.Ctrl, GestureKey.Backslash, CommandId.Root);
         Add(list, GestureModifiers.Ctrl, GestureKey.PageUp, CommandId.Parent);

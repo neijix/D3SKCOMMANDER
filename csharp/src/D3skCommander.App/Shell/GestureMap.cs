@@ -122,6 +122,7 @@ public static class GestureMap
     {
         AddPair(Key.A, GestureKey.A);
         AddPair(Key.B, GestureKey.B);
+        AddPair(Key.C, GestureKey.C);
         AddPair(Key.D, GestureKey.D);
         AddPair(Key.H, GestureKey.H);
         AddPair(Key.L, GestureKey.L);
@@ -132,7 +133,9 @@ public static class GestureMap
         AddPair(Key.S, GestureKey.S);
         AddPair(Key.T, GestureKey.T);
         AddPair(Key.U, GestureKey.U);
+        AddPair(Key.V, GestureKey.V);
         AddPair(Key.W, GestureKey.W);
+        AddPair(Key.X, GestureKey.X);
     }
 
     private static void AddNavigation()

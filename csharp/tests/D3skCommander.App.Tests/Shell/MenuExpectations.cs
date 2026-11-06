@@ -26,7 +26,7 @@ internal static class MenuExpectations
     {
         if (titleKey == "menu.files")
         {
-            return "View Edit EditNew Copy Move RenameInPlace MkDir Delete DeletePermanent | Pack Unpack BackupZip | Properties OpenWith | Quit";
+            return "View Edit EditNew Copy Move ClipCopy ClipCut ClipPaste RenameInPlace MkDir Delete DeletePermanent | Pack Unpack BackupZip | Properties OpenWith | Quit";
         }
 
         if (titleKey == "menu.mark")

@@ -57,6 +57,9 @@ public sealed partial class FileOpsCommands
         ArgumentNullException.ThrowIfNull(shell);
         shell.Handle(CommandId.Copy, () => _ = CopyAsync());
         shell.Handle(CommandId.Move, () => _ = MoveAsync());
+        shell.Handle(CommandId.ClipCopy, () => _ = ClipAsync(cut: false));
+        shell.Handle(CommandId.ClipCut, () => _ = ClipAsync(cut: true));
+        shell.Handle(CommandId.ClipPaste, () => _ = PasteAsync());
         shell.Handle(CommandId.MkDir, () => _ = NewFolderAsync());
         shell.Handle(CommandId.Delete, () => _ = DeleteAsync());
         shell.Handle(CommandId.DeletePermanent, () => _ = DeleteAsync(CommandId.DeletePermanent));

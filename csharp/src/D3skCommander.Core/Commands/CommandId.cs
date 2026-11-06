@@ -82,4 +82,7 @@ public enum CommandId
     SwitchPanel,
     DrivesLeft,
     DrivesRight,
+    ClipCopy,
+    ClipCut,
+    ClipPaste,
 }

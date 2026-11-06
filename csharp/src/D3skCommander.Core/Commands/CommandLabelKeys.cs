@@ -90,6 +90,9 @@ internal static class CommandLabelKeys
         "cmd.switch_panel",
         "cmd.drives_left",
         "cmd.drives_right",
+        "cmd.clip_copy",
+        "cmd.clip_cut",
+        "cmd.clip_paste",
     ];
 
     private static string[] Merge(string[] early, string[] late)

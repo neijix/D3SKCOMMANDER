@@ -318,5 +318,17 @@
   "cmd.keys": {
     "en": "Keyboard shortcuts",
     "fr": "Raccourcis clavier"
+  },
+  "cmd.clip_copy": {
+    "en": "Copy files to clipboard",
+    "fr": "Copier les fichiers"
+  },
+  "cmd.clip_cut": {
+    "en": "Cut files to clipboard",
+    "fr": "Couper les fichiers"
+  },
+  "cmd.clip_paste": {
+    "en": "Paste files here",
+    "fr": "Coller les fichiers ici"
   }
 }

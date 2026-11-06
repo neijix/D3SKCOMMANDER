@@ -12,7 +12,7 @@ public class CommandRegistryTests
         Assert.Equal(CommandId.Sync, CommandCatalog.FromName("sync"));
         Assert.Equal(CommandId.Sync, CommandCatalog.FromName("  SYNC  "));
         Assert.Null(CommandCatalog.FromName("Nope"));
-        Assert.Equal(79, CommandCatalog.All.Count);
+        Assert.Equal(82, CommandCatalog.All.Count);
         var seen = new HashSet<string>(StringComparer.Ordinal);
         foreach (var command in CommandCatalog.All)
         {
@@ -43,7 +43,7 @@ public class CommandRegistryTests
             seen[key] = command;
         }
 
-        Assert.Equal(79, seen.Count);
+        Assert.Equal(82, seen.Count);
         Assert.Equal("View file", localizer.Get(CommandCatalog.LabelKey(CommandId.View), Language.En));
         Assert.Equal("Quitter", localizer.Get(CommandCatalog.LabelKey(CommandId.Quit), Language.Fr));
         AssertEarlyKeys();
@@ -59,7 +59,7 @@ public class CommandRegistryTests
             Assert.True(seen.Add(binding.Gesture), $"duplicate shortcut {binding.Gesture}");
         }
 
-        Assert.Equal(55, seen.Count);
+        Assert.Equal(58, seen.Count);
     }
 
     [Fact]
