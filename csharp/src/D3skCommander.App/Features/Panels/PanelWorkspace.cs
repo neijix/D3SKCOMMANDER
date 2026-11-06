@@ -408,6 +408,7 @@ public sealed partial class PanelWorkspace : IPanelWorkspace, IDisposable
         }
 
         SaveSession();
+        UpdateAutoSizes(side, tab, snap);
     }
 
     /// <summary>Shows <paramref name="error"/> on <paramref name="side"/>: its localized kind and path, never the raw exception text.</summary>

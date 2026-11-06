@@ -104,6 +104,19 @@ public class SettingsWindowTests
     }
 
     [AvaloniaFact]
+    public void TheAutoFolderSizesToggleIsSaved()
+    {
+        using var harness = new SettingsHarness();
+        var model = harness.NewView();
+        Assert.False(harness.Settings.Preferences.Current.AutoFolderSizes);
+
+        model.AutoFolderSizes = true;
+        model.Apply();
+
+        Assert.True(harness.Settings.Preferences.Current.AutoFolderSizes);
+    }
+
+    [AvaloniaFact]
     public void TheLogToggleIsLive()
     {
         using var harness = new SettingsHarness();

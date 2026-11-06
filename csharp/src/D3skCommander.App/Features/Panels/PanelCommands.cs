@@ -135,10 +135,12 @@ public sealed partial class PanelCommands
             items,
             async (item, progress, cancellationToken) =>
             {
+                var stamp = Directory.GetLastWriteTimeUtc(item.Name);
                 var size = await Task.Run(
                     () => Core.FileSystem.LocalFileSystem.DirectorySize(item.Name, cancellationToken),
                     cancellationToken).ConfigureAwait(false);
                 cancellationToken.ThrowIfCancellationRequested();
+                _panels.SizeCache.Set(item.Name, stamp, size.Bytes);
                 await _panels.ApplyFolderSizeAsync(side, directory, item.Name, size.Bytes, cancellationToken).ConfigureAwait(false);
                 return Core.Jobs.ItemResult.Success;
             });

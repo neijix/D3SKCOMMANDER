@@ -15,6 +15,7 @@ public sealed class SettingsLabels
         ConfirmDelete = text.Get("confirm_delete");
         ConfirmTrashFallback = text.Get("confirm_trash_fallback");
         LogOperations = text.Get("log_ops");
+        AutoFolderSizes = text.Get("auto_folder_sizes");
         Editor = text.Get("editor");
         Terminal = text.Get("terminal");
         Columns = text.Get("columns");
@@ -49,6 +50,8 @@ public sealed class SettingsLabels
     public string ConfirmTrashFallback { get; }
 
     public string LogOperations { get; }
+
+    public string AutoFolderSizes { get; }
 
     public string Editor { get; }
 

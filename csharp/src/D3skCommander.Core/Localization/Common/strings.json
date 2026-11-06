@@ -215,6 +215,10 @@
     "en": "Log file operations",
     "fr": "Journaliser les opérations"
   },
+  "auto_folder_sizes": {
+    "en": "Measure folder sizes automatically",
+    "fr": "Mesurer automatiquement la taille des dossiers"
+  },
   "editor": {
     "en": "External editor (empty = built-in)",
     "fr": "Éditeur externe (vide = intégré)"

@@ -51,6 +51,9 @@ public sealed partial class SettingsViewModel : ObservableObject, IShellWidget
     private bool _logOperations;
 
     [ObservableProperty]
+    private bool _autoFolderSizes;
+
+    [ObservableProperty]
     private bool _checkUpdates;
 
     [ObservableProperty]
@@ -127,6 +130,7 @@ public sealed partial class SettingsViewModel : ObservableObject, IShellWidget
         next.ConfirmDelete = ConfirmDelete;
         next.ConfirmTrashFallback = ConfirmTrashFallback;
         next.LogOperations = LogOperations;
+        next.AutoFolderSizes = AutoFolderSizes;
         next.CheckUpdates = CheckUpdates;
         next.Editor = Editor.Trim();
         next.Terminal = Terminal.Trim();
@@ -223,6 +227,7 @@ public sealed partial class SettingsViewModel : ObservableObject, IShellWidget
         ConfirmDelete = current.ConfirmDelete;
         ConfirmTrashFallback = current.ConfirmTrashFallback;
         LogOperations = current.LogOperations;
+        AutoFolderSizes = current.AutoFolderSizes;
         CheckUpdates = current.CheckUpdates;
         Editor = current.Editor;
         Terminal = current.Terminal;

@@ -34,6 +34,28 @@ public class PanelSizesStatusTests
     }
 
     [AvaloniaFact]
+    public async Task WithAutoFolderSizesOnAFolderSizeAppearsWithoutAKeyPress()
+    {
+        using var rig = await Rig.Open(autoSizes: true);
+
+        await rig.WaitUntil(() => rig.Workspace.Read(PanelSide.Left).Entries.Single(e => e.Name == "sub").Size == 3000UL);
+
+        Assert.Equal(3000UL, rig.Workspace.SizeCache.Get(Path.Combine(rig.Work, "sub"), Directory.GetLastWriteTimeUtc(Path.Combine(rig.Work, "sub"))));
+    }
+
+    [AvaloniaFact]
+    public async Task WithAutoFolderSizesOffNothingIsMeasured()
+    {
+        using var rig = await Rig.Open();
+
+        await Task.Delay(500, TestContext.Current.CancellationToken);
+        await rig.Workspace.RefreshAsync(TestContext.Current.CancellationToken);
+
+        Assert.Equal(0UL, rig.Workspace.Read(PanelSide.Left).Entries.Single(e => e.Name == "sub").Size);
+        Assert.Equal(0, rig.Workspace.SizeCache.Count);
+    }
+
+    [AvaloniaFact]
     public async Task SpaceOnTheParentRowMeasuresNothing()
     {
         using var rig = await Rig.Open();
@@ -84,7 +106,7 @@ public class PanelSizesStatusTests
 
         public PanelPaneModel Pane { get; }
 
-        public static async Task<Rig> Open()
+        public static async Task<Rig> Open(bool autoSizes = false)
         {
             var token = TestContext.Current.CancellationToken;
             var root = Directory.CreateTempSubdirectory("d3sk-psize-").FullName;
@@ -93,6 +115,13 @@ public class PanelSizesStatusTests
             var sub = Directory.CreateDirectory(Path.Combine(work, "sub")).FullName;
             await File.WriteAllBytesAsync(Path.Combine(sub, "big.bin"), new byte[3000], token);
             var settings = new AppSettings(new SettingsFolder(Path.Combine(root, "cfg"), SettingsSource.Env));
+            if (autoSizes)
+            {
+                var preferences = settings.Preferences.Current;
+                preferences.AutoFolderSizes = true;
+                settings.Preferences.Save(preferences);
+            }
+
             var text = Localizer.Load(settingsLanguage: Language.En, systemLanguage: Language.En);
             var dialogs = new FakeDialogService();
             var workspace = new PanelWorkspace(new LocalFileSystemProvider(), new Picker(), null, settings);

@@ -39,6 +39,9 @@ public sealed class Preferences
 
     public bool LogOperations { get; set; }
 
+    /// <summary>Measure the folders of a listing in the background so the size column fills in (off by default: it reads the disk).</summary>
+    public bool AutoFolderSizes { get; set; }
+
     /// <summary>External editor command. Empty uses the built-in editor.</summary>
     public string Editor
     {

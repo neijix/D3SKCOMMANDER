@@ -18,6 +18,7 @@ public static class PreferencesCopy
             ConfirmDelete = source.ConfirmDelete,
             ConfirmTrashFallback = source.ConfirmTrashFallback,
             LogOperations = source.LogOperations,
+            AutoFolderSizes = source.AutoFolderSizes,
             Editor = source.Editor,
             Terminal = source.Terminal,
             Columns = source.Columns,
