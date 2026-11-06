@@ -9,6 +9,7 @@ using D3skCommander.App.Dialogs;
 using D3skCommander.App.Features.Panels;
 using D3skCommander.App.Shell;
 using D3skCommander.App.Tests.Dialogs;
+using D3skCommander.Core.Commands;
 using D3skCommander.Core.Localization;
 using D3skCommander.Core.Providers;
 using Xunit;
@@ -28,6 +29,23 @@ public class PanelPaneTests
         await rig.WaitUntil(() => rig.Workspace.Read(PanelSide.Left).Path.Length > 0);
 
         Assert.Equal(Core.FileSystem.LocalFileSystem.HomeDirectory(), rig.Workspace.Read(PanelSide.Left).Path);
+    }
+
+    [AvaloniaFact]
+    public async Task EachPaneHasTheBarButtonsAndAClickRunsThemOnThatSide()
+    {
+        using var rig = await Rig.Opened();
+        CommandId[] shared = [CommandId.Parent, CommandId.Hotlist, CommandId.History, CommandId.NetConnect, CommandId.Ftp];
+        Assert.Equal([CommandId.DrivesLeft, .. shared], rig.LeftView.BarButtons.Select(b => (CommandId)b.Tag!));
+        Assert.Equal([CommandId.DrivesRight, .. shared], rig.RightView.BarButtons.Select(b => (CommandId)b.Tag!));
+        Assert.All(rig.LeftView.BarButtons, b => Assert.True(b.Bounds.Width > 0));
+        Assert.Equal("Directory hotlist (Ctrl+D)", ToolTip.GetTip(rig.LeftView.BarButtons[2]));
+        Assert.Equal(PanelSide.Left, rig.Workspace.ActiveSide);
+
+        rig.ClickControl(rig.RightView.BarButtons[2]);
+        rig.ClickControl(rig.RightView.BarButtons[5]);
+
+        Assert.Equal([(CommandId.Hotlist, PanelSide.Right), (CommandId.Ftp, PanelSide.Right)], rig.Dispatched);
     }
 
     [AvaloniaFact]
@@ -233,8 +251,8 @@ public class PanelPaneTests
             var text = TextCatalog.Load(Language.En, Language.En);
             Dialogs = new FakeDialogService();
             Workspace = new PanelWorkspace(new LocalFileSystemProvider(), new Picker());
-            Left = new PanelPaneModel(PanelSide.Left, Workspace, text, Dialogs);
-            Right = new PanelPaneModel(PanelSide.Right, Workspace, text, Dialogs);
+            Left = new PanelPaneModel(PanelSide.Left, Workspace, text, Dialogs, Record);
+            Right = new PanelPaneModel(PanelSide.Right, Workspace, text, Dialogs, Record);
             LeftView = (PanelPaneView)Left.CreateContent();
             RightView = (PanelPaneView)Right.CreateContent();
             var grid = new Grid { ColumnDefinitions = new ColumnDefinitions("*,*") };
@@ -245,6 +263,9 @@ public class PanelPaneTests
         }
 
         public string Directory { get; }
+
+        /// <summary>Commands the panes sent to the shell, with the side active when each was sent.</summary>
+        public List<(CommandId Command, PanelSide Active)> Dispatched { get; } = [];
 
         public FakeDialogService Dialogs { get; }
 
@@ -304,6 +325,16 @@ public class PanelPaneTests
             throw new InvalidOperationException("Missing " + name);
         }
 
+        public void ClickControl(Control control)
+        {
+            var at = control.TranslatePoint(new Point(control.Bounds.Width / 2, control.Bounds.Height / 2), _window)
+                ?? throw new InvalidOperationException("The control is not in the window.");
+            _window.MouseMove(at);
+            _window.MouseDown(at, MouseButton.Left);
+            _window.MouseUp(at, MouseButton.Left);
+            Settle();
+        }
+
         public void Click(PanelPaneModel pane, int index, RawInputModifiers modifiers = RawInputModifiers.None)
         {
             var at = PointOf(pane, index);
@@ -346,6 +377,12 @@ public class PanelPaneTests
             }
 
             Settle();
+        }
+
+        private bool Record(CommandId command)
+        {
+            Dispatched.Add((command, Workspace.ActiveSide));
+            return true;
         }
 
         public void Dispose()

@@ -8,7 +8,7 @@ using D3skCommander.App.Controls.FileList;
 
 namespace D3skCommander.App.Features.Panels;
 
-/// <summary>Path bar, Browse, the file list control and the selection count of one panel.</summary>
+/// <summary>Panel bar buttons, path bar, Browse, the file list control and the selection count of one panel.</summary>
 public sealed partial class PanelPaneView : UserControl
 {
     private static readonly TimeSpan Beat = TimeSpan.FromMilliseconds(100);
@@ -44,6 +44,7 @@ public sealed partial class PanelPaneView : UserControl
         _files.EnterPressed += (_, _) => _ = model.OpenEntryAsync();
         _files.RowActivated += (_, _) => _ = model.OpenEntryAsync();
         ListHost.Content = _files;
+        BuildBar(model);
         model.FilterOpened += (_, _) => Dispatcher.UIThread.Post(() => FilterBox.Focus());
     }
 

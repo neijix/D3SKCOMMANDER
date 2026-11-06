@@ -21,6 +21,9 @@ public static class CommandCatalog
 
     public static IReadOnlyList<FunctionKey> FunctionKeys => FunctionKeyList.All;
 
+    /// <summary>The icon buttons in front of one panel's path box, left to right.</summary>
+    public static IReadOnlyList<CommandId> PanelBar(bool leftPanel) => PanelBarLayout.For(leftPanel);
+
     public static CommandId? FromName(string name)
     {
         ArgumentNullException.ThrowIfNull(name);

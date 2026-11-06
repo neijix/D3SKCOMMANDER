@@ -22,6 +22,14 @@ public class CommandRegistryTests
     }
 
     [Fact]
+    public void EachPanelBarOpensItsOwnDrivesThenTheSharedPlaces()
+    {
+        CommandId[] shared = [CommandId.Parent, CommandId.Hotlist, CommandId.History, CommandId.NetConnect, CommandId.Ftp];
+        Assert.Equal([CommandId.DrivesLeft, .. shared], CommandCatalog.PanelBar(leftPanel: true));
+        Assert.Equal([CommandId.DrivesRight, .. shared], CommandCatalog.PanelBar(leftPanel: false));
+    }
+
+    [Fact]
     public void EveryCommandHasItsOwnTranslatedLabel()
     {
         var localizer = Localizer.Load(settingsLanguage: Language.En, systemLanguage: Language.En);
