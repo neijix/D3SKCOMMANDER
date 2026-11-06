@@ -23,6 +23,9 @@ public sealed partial class SearchViewModel : ObservableObject, IShellWidget
     private readonly IPanelWorkspace _panels;
     private readonly SearchEngine _engine;
     private readonly FileList _results;
+    private readonly IDialogService _dialogs;
+    private readonly SearchHistoryStore _history;
+    private readonly SearchTemplateStore _templates;
 
     [ObservableProperty]
     private string _roots = "";
@@ -47,6 +50,15 @@ public sealed partial class SearchViewModel : ObservableObject, IShellWidget
 
     [ObservableProperty]
     private bool _notContaining;
+
+    [ObservableProperty]
+    private string _excludeFiles = "";
+
+    [ObservableProperty]
+    private string _excludeFolders = "";
+
+    [ObservableProperty]
+    private bool _followLinks;
 
     [ObservableProperty]
     private bool _depthLimited;
@@ -95,24 +107,35 @@ public sealed partial class SearchViewModel : ObservableObject, IShellWidget
         IJobService jobs,
         IFolderPicker picker,
         IPanelWorkspace panels,
-        SearchEngine engine)
+        SearchEngine engine,
+        IDialogService dialogs,
+        SearchHistoryStore history,
+        SearchTemplateStore templates)
     {
         ArgumentNullException.ThrowIfNull(text);
         ArgumentNullException.ThrowIfNull(jobs);
         ArgumentNullException.ThrowIfNull(picker);
         ArgumentNullException.ThrowIfNull(panels);
         ArgumentNullException.ThrowIfNull(engine);
+        ArgumentNullException.ThrowIfNull(dialogs);
+        ArgumentNullException.ThrowIfNull(history);
+        ArgumentNullException.ThrowIfNull(templates);
         _text = text;
         _jobs = jobs;
         _picker = picker;
         _panels = panels;
         _engine = engine;
+        _dialogs = dialogs;
+        _history = history;
+        _templates = templates;
         _results = new FileList(text);
         _status = text.Get("search.status.ready");
         _results.ShowRows(SearchRows.Columns, []);
         StartCommand = new RelayCommand(Start);
         CancelCommand = new RelayCommand(Cancel, () => IsRunning);
         BrowseCommand = new AsyncRelayCommand(BrowseAsync);
+        SaveTemplateCommand = new AsyncRelayCommand(SaveTemplateAsync);
+        RefreshHistory();
         GoToFileCommand = new AsyncRelayCommand(() => GoToCursorAsync(), () => HitCount > 0);
     }
 
@@ -128,6 +151,8 @@ public sealed partial class SearchViewModel : ObservableObject, IShellWidget
     public IAsyncRelayCommand BrowseCommand { get; }
 
     public IAsyncRelayCommand GoToFileCommand { get; }
+
+    public IAsyncRelayCommand SaveTemplateCommand { get; }
 
     public SearchView CreateView() => new(this, _text);
 
@@ -167,6 +192,9 @@ public sealed partial class SearchViewModel : ObservableObject, IShellWidget
         CaseSensitive = CaseSensitive,
         WholeWords = WholeWords,
         NotContaining = NotContaining,
+        ExcludeFiles = ExcludeFiles,
+        ExcludeFolders = ExcludeFolders,
+        FollowLinks = FollowLinks,
         DepthLimited = DepthLimited,
         Depth = (int)Math.Clamp(Depth ?? 1, 1, 10_000),
         IncludeHidden = IncludeHidden,

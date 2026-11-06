@@ -1,11 +1,12 @@
 using D3skCommander.Core.Common;
+using D3skCommander.Core.Search;
 using D3skCommander.Core.Settings;
 using D3skCommander.Core.SettingsLocation;
 
 namespace D3skCommander.App.Startup;
 
 /// <summary>
-/// The settings folder this run uses and its three stores (preferences, session, hotlist).
+/// The settings folder this run uses and its stores (preferences, session, hotlist, search history and templates).
 /// Every feature reads and saves its settings here; the stores debounce their own writes.
 /// </summary>
 public sealed class AppSettings : IDisposable
@@ -18,6 +19,8 @@ public sealed class AppSettings : IDisposable
         Preferences = new PreferencesStore(folder.Dir);
         Session = new SessionStore(folder.Dir);
         Hotlist = new HotlistStore(folder.Dir);
+        SearchHistory = new SearchHistoryStore(folder.Dir);
+        SearchTemplates = new SearchTemplateStore(folder.Dir);
     }
 
     public SettingsFolder Folder { get; }
@@ -30,16 +33,22 @@ public sealed class AppSettings : IDisposable
 
     public HotlistStore Hotlist { get; }
 
+    public SearchHistoryStore SearchHistory { get; }
+
+    public SearchTemplateStore SearchTemplates { get; }
+
     /// <summary>The settings folder of this process (<see cref="SettingsDirectory.Resolve"/> on the current places).</summary>
     public static AppSettings ForThisProcess() => new(SettingsDirectory.Resolve(SettingsPlaces.Current()));
 
-    /// <summary>Load errors of the three stores, each reported once.</summary>
+    /// <summary>Load errors of the stores, each reported once.</summary>
     public IReadOnlyList<OperationError> TakeLoadErrors()
     {
         var errors = new List<OperationError>();
         Add(errors, Preferences.TakeLoadError());
         Add(errors, Session.TakeLoadError());
         Add(errors, Hotlist.TakeLoadError());
+        Add(errors, SearchHistory.TakeLoadError());
+        Add(errors, SearchTemplates.TakeLoadError());
         return errors;
     }
 
@@ -49,6 +58,8 @@ public sealed class AppSettings : IDisposable
         Preferences.Flush();
         Session.Flush();
         Hotlist.Flush();
+        SearchHistory.Flush();
+        SearchTemplates.Flush();
     }
 
     public void Dispose()
@@ -56,6 +67,8 @@ public sealed class AppSettings : IDisposable
         Preferences.Dispose();
         Session.Dispose();
         Hotlist.Dispose();
+        SearchHistory.Dispose();
+        SearchTemplates.Dispose();
     }
 
     private static void Add(List<OperationError> errors, OperationError? error)

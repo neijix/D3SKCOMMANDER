@@ -3,6 +3,7 @@ using Avalonia.Controls;
 using Avalonia.Input;
 using Avalonia.Interactivity;
 using Avalonia.Threading;
+using Avalonia.VisualTree;
 using D3skCommander.App.Controls.FileList;
 using D3skCommander.Core.Localization;
 
@@ -55,11 +56,47 @@ public sealed partial class SearchView : UserControl
 
     private void OnFormKey(object? sender, KeyEventArgs e)
     {
-        if (e.Key == Key.Enter && e.Source is TextBox)
+        if (e.Key == Key.Enter && e.Source is TextBox && !IsDropDownOpen(e.Source))
         {
             _model.Start();
             e.Handled = true;
         }
+    }
+
+    private static bool IsDropDownOpen(object? source) =>
+        source is Visual visual && visual.FindAncestorOfType<ComboBox>() is { IsDropDownOpen: true };
+
+    private void ShowTemplates(ILocalizer text)
+    {
+        var menu = new MenuFlyout();
+        var names = _model.TemplateNames;
+        if (names.Count == 0)
+        {
+            menu.Items.Add(new MenuItem { Header = text.Get("search.template.none"), IsEnabled = false });
+        }
+
+        foreach (var name in names)
+        {
+            var load = new MenuItem { Header = name };
+            load.Click += (_, _) => _model.LoadTemplate(name);
+            menu.Items.Add(load);
+        }
+
+        if (names.Count > 0)
+        {
+            var delete = new MenuItem { Header = text.Get("search.template.delete") };
+            foreach (var name in names)
+            {
+                var one = new MenuItem { Header = name };
+                one.Click += (_, _) => _model.DeleteTemplate(name);
+                delete.Items.Add(one);
+            }
+
+            menu.Items.Add(new Separator());
+            menu.Items.Add(delete);
+        }
+
+        menu.ShowAt(TemplatesButton);
     }
 
     private void Label(ILocalizer text)
@@ -86,5 +123,11 @@ public sealed partial class SearchView : UserControl
         StartButton.Content = text.Get("start");
         CancelButton.Content = text.Get("cancel");
         GoButton.Content = text.Get("search.go");
+        ExcludeFilesLabel.Text = text.Get("search.exclude_files");
+        ExcludeFoldersLabel.Text = text.Get("search.exclude_folders");
+        LinksBox.Content = text.Get("search.follow_links");
+        SaveTemplateButton.Content = text.Get("search.template.save");
+        TemplatesButton.Content = text.Get("search.template.menu");
+        TemplatesButton.Click += (_, _) => ShowTemplates(text);
     }
 }

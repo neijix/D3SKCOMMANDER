@@ -11,6 +11,8 @@ internal sealed class SearchWalk
     private readonly SearchEngine _engine;
     private readonly SearchQuery _query;
     private readonly SearchMatchers _matchers;
+    private readonly HashSet<string> _visited =
+        new(OperatingSystem.IsWindows() ? StringComparer.OrdinalIgnoreCase : StringComparer.Ordinal);
     private long _seen;
 
     public SearchWalk(SearchEngine engine, SearchQuery query, SearchMatchers matchers)
@@ -36,7 +38,13 @@ internal sealed class SearchWalk
         }
 
         var pending = new Stack<Frame>();
-        pending.Push(new Frame(root, 1, inArchive));
+        var realRoot = _query.FollowLinks && !inArchive ? RealPath(root) : null;
+        if (realRoot is not null)
+        {
+            _visited.Add(realRoot);
+        }
+
+        pending.Push(new Frame(root, 1, inArchive, realRoot));
         while (pending.Count > 0 && !cancellationToken.IsCancellationRequested)
         {
             var frame = pending.Pop();
@@ -56,6 +64,11 @@ internal sealed class SearchWalk
 
                 var entry = item.Value;
                 if (entry.IsParent)
+                {
+                    continue;
+                }
+
+                if (entry.IsDirectory && _matchers.FolderExcluded(entry.Name, entry.Path))
                 {
                     continue;
                 }
@@ -90,14 +103,43 @@ internal sealed class SearchWalk
             return;
         }
 
-        if (entry.IsDirectory && !entry.IsLink)
+        if (entry.IsDirectory && (!entry.IsLink || _query.FollowLinks && !frame.InArchive))
         {
-            pending.Push(new Frame(entry.Path, frame.Depth + 1, frame.InArchive));
+            DescendFolder(pending, frame, entry);
         }
         else if (!entry.IsDirectory && !frame.InArchive && _query.SearchArchives
             && ArchiveFileSystemProvider.IsArchiveFile(entry.Path))
         {
             pending.Push(new Frame(entry.Path, frame.Depth + 1, true));
+        }
+    }
+
+    private void DescendFolder(Stack<Frame> pending, Frame frame, Entry entry)
+    {
+        string? real = null;
+        if (_query.FollowLinks && !frame.InArchive)
+        {
+            real = entry.IsLink ? RealPath(entry.Path) : frame.RealPath is null ? null : Path.Combine(frame.RealPath, entry.Name);
+            if (real is null || !_visited.Add(real))
+            {
+                return;
+            }
+        }
+
+        pending.Push(new Frame(entry.Path, frame.Depth + 1, frame.InArchive, real));
+    }
+
+    /// <summary>The folder a path really is, links resolved; null when it cannot be told.</summary>
+    private static string? RealPath(string path)
+    {
+        try
+        {
+            var info = new DirectoryInfo(path);
+            return (info.ResolveLinkTarget(returnFinalTarget: true) ?? info).FullName.TrimEnd(Path.DirectorySeparatorChar);
+        }
+        catch (Exception ex) when (ex is IOException or UnauthorizedAccessException or ArgumentException)
+        {
+            return null;
         }
     }
 
@@ -111,7 +153,7 @@ internal sealed class SearchWalk
             return Evaluated.None;
         }
 
-        if (!_matchers.NameMatches(entry.Name) || !PassesMeta(entry))
+        if (!_matchers.NameMatches(entry.Name) || _matchers.FileExcluded(entry.Name) || !PassesMeta(entry))
         {
             return Evaluated.None;
         }
@@ -179,7 +221,7 @@ internal sealed class SearchWalk
         return new SearchHit(entry.Path, entry.Name, entry.IsDirectory, size, entry.Modified, null, null);
     }
 
-    private readonly record struct Frame(string Path, int Depth, bool InArchive);
+    private readonly record struct Frame(string Path, int Depth, bool InArchive, string? RealPath = null);
 
     private readonly record struct Evaluated(SearchHit? Hit, OperationError? Failure)
     {

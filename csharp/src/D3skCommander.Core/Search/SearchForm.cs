@@ -20,6 +20,15 @@ public sealed class SearchForm
 
     public bool NotContaining { get; set; }
 
+    /// <summary>Masks separated by ';': a file or folder whose name matches is never a hit.</summary>
+    public string ExcludeFiles { get; set; } = "";
+
+    /// <summary>Folder name masks or absolute paths separated by ';': such a folder is not entered.</summary>
+    public string ExcludeFolders { get; set; } = "";
+
+    /// <summary>Walk into links to folders (local folders only; each real folder once).</summary>
+    public bool FollowLinks { get; set; }
+
     public bool DepthLimited { get; set; }
 
     public int Depth { get; set; } = 1;
@@ -41,4 +50,7 @@ public sealed class SearchForm
 
     /// <summary>Modified more than N days ago.</summary>
     public string OlderDays { get; set; } = "";
+
+    /// <summary>An independent copy, so a saved template never shares state with the live form.</summary>
+    public SearchForm Clone() => (SearchForm)MemberwiseClone();
 }

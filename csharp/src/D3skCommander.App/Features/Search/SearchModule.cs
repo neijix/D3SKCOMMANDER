@@ -1,4 +1,5 @@
 using D3skCommander.App.Shell;
+using D3skCommander.App.Startup;
 using D3skCommander.Core.Search;
 using Microsoft.Extensions.DependencyInjection;
 
@@ -19,6 +20,8 @@ public sealed class SearchModule : IShellModule
     {
         ArgumentNullException.ThrowIfNull(services);
         services.AddSingleton(_ => new SearchEngine());
+        services.AddSingleton(provider => provider.GetRequiredService<AppSettings>().SearchHistory);
+        services.AddSingleton(provider => provider.GetRequiredService<AppSettings>().SearchTemplates);
         services.AddSingleton<SearchViewModel>();
         services.AddSingleton<SearchCommands>();
         services.AddSingleton<SearchModule>();

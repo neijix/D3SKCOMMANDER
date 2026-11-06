@@ -29,12 +29,15 @@ public sealed partial class SearchViewModel
 
     public void Start()
     {
-        var result = SearchQueryBuilder.Build(ReadForm(), DateTimeOffset.Now);
+        var form = ReadForm();
+        var result = SearchQueryBuilder.Build(form, DateTimeOffset.Now);
         if (result.Query is null)
         {
             Status = ProblemText(result);
             return;
         }
+
+        Remember(form);
 
         _job?.Cancel();
         _generation++;

@@ -12,10 +12,15 @@ internal sealed class SearchMatchers
     private readonly Mask? _mask;
     private readonly Regex? _nameRegex;
 
-    private SearchMatchers(Mask? mask, Regex? nameRegex, Regex? content, bool contentIsPlain)
+    private readonly Mask? _excludeFiles;
+    private readonly ExcludedFolders _excludedFolders;
+
+    private SearchMatchers(Mask? mask, Regex? nameRegex, Regex? content, bool contentIsPlain, SearchQuery query)
     {
         _mask = mask;
         _nameRegex = nameRegex;
+        _excludeFiles = query.ExcludeFiles.Trim().Length == 0 ? null : new Mask(query.ExcludeFiles);
+        _excludedFolders = new ExcludedFolders(query.ExcludeFolders);
         Content = content;
         ContentIsPlain = contentIsPlain;
     }
@@ -64,8 +69,14 @@ internal sealed class SearchMatchers
             content = built.Regex;
         }
 
-        return (new SearchMatchers(mask, nameRegex, content, plain), null);
+        return (new SearchMatchers(mask, nameRegex, content, plain, query), null);
     }
+
+    /// <summary>True when the name matches an "exclude files" mask.</summary>
+    public bool FileExcluded(string name) => _excludeFiles is not null && _excludeFiles.Matches(name);
+
+    /// <summary>True when the folder is never entered nor reported.</summary>
+    public bool FolderExcluded(string name, string path) => _excludedFolders.Contains(name, path);
 
     public bool NameMatches(string name)
     {

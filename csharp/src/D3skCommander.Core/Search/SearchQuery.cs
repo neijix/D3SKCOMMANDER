@@ -25,6 +25,15 @@ public sealed class SearchQuery
     /// <summary>Keep the files that do NOT contain <see cref="Content"/>.</summary>
     public bool NotContaining { get; init; }
 
+    /// <summary>Masks separated by ';' (see <c>Mask</c>): a file or folder named like one is not a hit. Empty = none.</summary>
+    public string ExcludeFiles { get; init; } = "";
+
+    /// <summary>Folder name masks, or absolute paths (that folder and what is below it): never entered.</summary>
+    public IReadOnlyList<string> ExcludeFolders { get; init; } = [];
+
+    /// <summary>Walk into links to folders on the local file system; each real folder is visited once.</summary>
+    public bool FollowLinks { get; init; }
+
     public int? MaxDepth { get; init; }
 
     public bool IncludeHidden { get; init; }

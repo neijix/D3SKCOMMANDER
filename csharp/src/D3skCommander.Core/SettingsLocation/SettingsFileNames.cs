@@ -13,6 +13,10 @@ public static class SettingsFileNames
 
     public const string Hotlist = "hotlist.json";
 
+    public const string SearchHistory = "search-history.json";
+
+    public const string SearchTemplates = "search-templates.json";
+
     public const string Sites = "sites.json";
 
     public const string Vault = "vault.d3enc";
@@ -32,6 +36,8 @@ public static class SettingsFileNames
         Preferences,
         Session,
         Hotlist,
+        SearchHistory,
+        SearchTemplates,
         Sites,
         Vault,
         OperationsLog,

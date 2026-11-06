@@ -127,3 +127,28 @@ internal sealed class StallingProvider : IFileSystemProvider
     public Task<FileStatus> DeleteAsync(string path, CancellationToken cancellationToken) =>
         throw new NotSupportedException();
 }
+
+/// <summary>One scratch settings folder per test process, removed when it ends.</summary>
+internal static class SearchMemoryFolder
+{
+    private static readonly string Shared = Create();
+
+    /// <summary>A settings folder of its own inside the shared scratch one.</summary>
+    public static string Fresh() => Path.Combine(Shared, Guid.NewGuid().ToString("N"));
+
+    public static string Create()
+    {
+        var folder = Path.Combine(Path.GetTempPath(), "d3sk-search-cfg-" + Guid.NewGuid().ToString("N"));
+        AppDomain.CurrentDomain.ProcessExit += (_, _) =>
+        {
+            try
+            {
+                Directory.Delete(folder, recursive: true);
+            }
+            catch (Exception ex) when (ex is IOException or UnauthorizedAccessException)
+            {
+            }
+        };
+        return folder;
+    }
+}

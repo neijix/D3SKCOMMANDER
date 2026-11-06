@@ -3,9 +3,11 @@ using Avalonia.Headless;
 using Avalonia.Headless.XUnit;
 using Avalonia.Input;
 using D3skCommander.App;
+using D3skCommander.App.Dialogs;
 using D3skCommander.App.Features.Panels;
 using D3skCommander.App.Features.Search;
 using D3skCommander.App.Shell;
+using D3skCommander.App.Tests.Dialogs;
 using D3skCommander.App.ToolWindows;
 using D3skCommander.Core.Commands;
 using D3skCommander.Core.Jobs;
@@ -21,8 +23,14 @@ public class SearchWindowTests
     private static Localizer English() =>
         Localizer.Load(settingsLanguage: Language.En, systemLanguage: Language.En);
 
-    private static SearchViewModel Model(SearchPanels panels, SearchPicker? picker = null, SearchEngine? engine = null) =>
-        new(English(), new JobService(), picker ?? new SearchPicker(null), panels, engine ?? new SearchEngine());
+    private static string Cfg() => SearchMemoryFolder.Fresh();
+
+    private static SearchViewModel Model(
+        SearchPanels panels,
+        SearchPicker? picker = null,
+        SearchEngine? engine = null,
+        IDialogService? dialogs = null) =>
+        new(English(), new JobService(), picker ?? new SearchPicker(null), panels, engine ?? new SearchEngine(), dialogs ?? new FakeDialogService(), new SearchHistoryStore(Cfg()), new SearchTemplateStore(Cfg()));
 
     private static async Task Finish(SearchViewModel model)
     {

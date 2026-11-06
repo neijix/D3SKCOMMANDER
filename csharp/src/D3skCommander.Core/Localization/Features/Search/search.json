@@ -122,5 +122,41 @@
   "search.browse": {
     "en": "Browse…",
     "fr": "Parcourir…"
+  },
+  "search.exclude_files": {
+    "en": "Exclude files (masks separated by ;)",
+    "fr": "Exclure les fichiers (masques séparés par ;)"
+  },
+  "search.exclude_folders": {
+    "en": "Exclude folders (names or paths separated by ;)",
+    "fr": "Exclure les dossiers (noms ou chemins séparés par ;)"
+  },
+  "search.follow_links": {
+    "en": "Follow symbolic links",
+    "fr": "Suivre les liens symboliques"
+  },
+  "search.template.save": {
+    "en": "Save template…",
+    "fr": "Enregistrer le modèle…"
+  },
+  "search.template.name": {
+    "en": "Template name",
+    "fr": "Nom du modèle"
+  },
+  "search.template.replace": {
+    "en": "A template named \"{name}\" exists. Replace it?",
+    "fr": "Un modèle nommé « {name} » existe. Le remplacer ?"
+  },
+  "search.template.menu": {
+    "en": "Templates",
+    "fr": "Modèles"
+  },
+  "search.template.none": {
+    "en": "No saved template",
+    "fr": "Aucun modèle enregistré"
+  },
+  "search.template.delete": {
+    "en": "Delete",
+    "fr": "Supprimer"
   }
 }
