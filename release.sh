@@ -1,6 +1,6 @@
 #!/usr/bin/env bash
-# Builds the release packages locally, the same ones release.yml builds on a v* tag, and
-# publishes nothing:
+# Builds every release package locally into dist/ (gitignored). Nothing is built on GitHub and
+# nothing is published:
 #   ./release.sh              gate (csharp/check.sh), the three archives, the Windows setup, SHA256SUMS
 #   ./release.sh --no-check   skip the gate
 #   ./release.sh --no-setup   skip the Windows setup

@@ -3,7 +3,7 @@ rem Double-click it to build every package into dist\ with release.sh: the gate,
 rem archives, the Windows setup when NSIS is installed, SHA256SUMS. Opens dist\ when it worked
 rem and waits for a key, so the window stays readable. Options go to release.sh (--no-check,
 rem --no-setup). Needs Git for Windows (its bash runs release.sh) and the .NET 10 SDK.
-rem macOS and Linux: release.command. D3SK_UNATTENDED=1: no wait, no folder opened (CI).
+rem macOS and Linux: release.command. D3SK_UNATTENDED=1: no wait, no folder opened (scripted runs).
 setlocal
 cd /d "%~dp0"
 set "GITBASH="

@@ -1,7 +1,8 @@
 # The same gate on GitHub-hosted macOS and Windows, on demand only: `gh workflow run
 # check-desktop.yml` (then `gh run watch`), run by the agent after platform-specific changes and
 # before a release. Daily cap: .github/ci-quota.sh (over the macOS cap, only Windows runs).
-# The Linux gate is ./check.sh, run locally before every commit (no per-push CI).
+# The Linux gate is ./check.sh, run locally before every commit (no per-push CI). Packages are
+# never built on GitHub: ./release.sh builds them locally into dist/.
 name: check-desktop
 
 on:
@@ -9,10 +10,6 @@ on:
     inputs:
       force:
         description: Ignore the daily CI quota
-        type: boolean
-        default: false
-      release_smoke:
-        description: Also build the packages with the one-click release.bat / release.command (no gate, no setup)
         type: boolean
         default: false
 
@@ -65,14 +62,3 @@ jobs:
           dotnet-version: 10.0.x
       - run: csharp/check.sh
         shell: bash
-      # Opt-in: the one-click launchers build the archives as a double-click would.
-      - if: inputs.release_smoke && runner.os == 'Windows'
-        run: release.bat --no-check --no-setup
-        shell: cmd
-        env:
-          D3SK_UNATTENDED: "1"
-      - if: inputs.release_smoke && runner.os == 'macOS'
-        run: ./release.command --no-check --no-setup
-        shell: bash
-        env:
-          D3SK_UNATTENDED: "1"

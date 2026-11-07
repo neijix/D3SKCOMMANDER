@@ -3,7 +3,7 @@
 # into dist/ with ./release.sh: the gate, the three archives, the Windows setup when NSIS is
 # installed, SHA256SUMS. Opens dist/ when it worked and waits for Enter, so the window stays
 # readable. Options go to release.sh (--no-check, --no-setup). Windows: release.bat.
-# D3SK_UNATTENDED=1: no wait, no folder opened (CI).
+# D3SK_UNATTENDED=1: no wait, no folder opened (scripted runs).
 cd "$(dirname "$0")" || exit 1
 # A double-click starts a bare shell: PATH may miss dotnet.
 if ! command -v dotnet >/dev/null 2>&1; then

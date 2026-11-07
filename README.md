@@ -52,10 +52,11 @@ What is planned beyond that: [docs/ROADMAP.md](docs/ROADMAP.md).
 
 ## Install
 
-Download the archive for your system from the
-[releases page](https://github.com/neijix/D3SKCOMMANDER/releases), unpack it and run the
-program inside (`D3skCommander.exe` on Windows, `D3skCommander` elsewhere). Nothing else is
-needed: the .NET runtime is included.
+Build the packages on your own machine with `./release.sh` (one click: `release.bat` on Windows,
+`release.command` on macOS and Linux; see [Packaging](#packages) below): they land in `dist/`,
+which git ignores. Nothing is built or published on GitHub. Unpack the archive for your system
+and run the program inside (`D3skCommander.exe` on Windows, `D3skCommander` elsewhere). Nothing
+else is needed: the .NET runtime is included.
 
 | System | File |
 |---|---|
@@ -112,25 +113,25 @@ libraries beside it, plus a `.sha256` file. Any of them builds from any OS. The 
 (`makensis`) and packs the Windows publish; it builds that publish first when the folder is
 not already there. The version is in `csharp/Directory.Build.props`.
 
-`./release.sh` builds locally what a release publishes, and uploads nothing. It runs the gate
-(`csharp/check.sh`), then the three archives and the Windows setup, and writes `dist/SHA256SUMS`.
-Without NSIS it skips the setup with a warning. Options: `--no-check` skips the gate,
-`--no-setup` skips the setup.
+`./release.sh` builds every package locally, into `dist/` (ignored by git), and uploads nothing:
+no GitHub workflow builds them. It runs the gate (`csharp/check.sh`), then the three archives and
+the Windows setup, and writes `dist/SHA256SUMS`. Without NSIS it skips the setup with a warning.
+Options: `--no-check` skips the gate, `--no-setup` skips the setup.
 
 To build them with a double-click, use `release.bat` on Windows or `release.command` on macOS. On Linux, run `release.command` from the file manager ("Run as a program") or a terminal. Both run `./release.sh` with the same options, open `dist/` when it worked and wait for a key before closing the window. `release.bat` needs Git for Windows, whose bash runs the script.
 
-Pushing a tag `v<version>` (that version) runs `.github/workflows/release.yml`, which runs the
-gate, builds the three archives and the Windows setup, and publishes the release.
-`gh workflow run release.yml --ref master` builds them without publishing. The logo and app icon come from the brand kit in
+To share a version, attach the files of `dist/` to a release by hand, for example
+`gh release create v<version> dist/*` (optional; the version is the one in
+`csharp/Directory.Build.props`). The logo and app icon come from the brand kit in
 `d3skcommander_logo/`; `packaging/make_icon.py` (Python with Pillow) turns its PNGs into
 `packaging/icons/`.
 
 ### CI
 
 There is no per-push CI: `./check.sh` runs locally before every commit. The same gate on macOS
-and Windows runs on GitHub on demand (`gh workflow run check-desktop.yml`). Both workflows have
-a daily cap (`.github/ci-quota.sh`, UTC day): at most 2 macOS jobs a day across workflows and 4
-runs a day per workflow. Change the caps with repository variables
+and Windows runs on GitHub on demand (`gh workflow run check-desktop.yml`), the only workflow; it has
+a daily cap (`.github/ci-quota.sh`, UTC day): at most 2 macOS jobs a day and 4
+runs a day. Change the caps with repository variables
 (`gh variable set CI_MAX_MACOS_PER_DAY --body 3`, `CI_MAX_RUNS_PER_DAY`); skip them once with
 `-f force=true`.
 

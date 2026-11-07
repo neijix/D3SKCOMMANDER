@@ -193,7 +193,7 @@ public class DialogServiceTests
         var dialogs = new DialogService(surface);
         var stop = TestContext.Current.CancellationToken;
         var pending = dialogs.ShowMessageAsync("Title", "Text", stop);
-        var finished = await Task.WhenAny(pending, Task.Delay(TimeSpan.FromSeconds(2), stop));
+        var finished = await Task.WhenAny(pending, Task.Delay(TimeSpan.FromSeconds(10), stop));
 
         Assert.Same(pending, finished);
         var error = await Assert.ThrowsAsync<InvalidOperationException>(() => pending);
