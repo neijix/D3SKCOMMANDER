@@ -34,6 +34,11 @@
     <PackageVersion Include="BitMiracle.LibTiff.NET" Version="2.4.660" />
   </ItemGroup>
 
+  <!-- Signed self-update (GitHub Packages, private; nuget.config maps D3sk.*). -->
+  <ItemGroup>
+    <PackageVersion Include="D3sk.Update" Version="0.1.2" />
+  </ItemGroup>
+
   <!-- Tests -->
   <ItemGroup>
     <PackageVersion Include="Microsoft.NET.Test.Sdk" Version="18.11.0" />
