@@ -1,19 +1,24 @@
 <UserControl xmlns="https://github.com/avaloniaui"
              xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
              xmlns:u="using:D3skCommander.App.Features.Update"
+             xmlns:s="using:D3skCommander.App.Features.Update.SignIn"
              x:Class="D3skCommander.App.Features.Update.UpdateView"
              x:DataType="u:UpdateViewModel">
-  <Grid Margin="12" RowDefinitions="Auto,Auto,Auto,Auto,Auto,*" RowSpacing="8">
+  <Grid Margin="12" RowDefinitions="Auto,Auto,Auto,Auto,Auto,Auto,*" RowSpacing="8">
     <TextBlock x:Name="CurrentLabel" Grid.Row="0" Text="{Binding CurrentText}"/>
     <TextBlock x:Name="LatestLabel" Grid.Row="1" Text="{Binding Latest}" IsVisible="{Binding Latest.Length}"/>
     <TextBlock x:Name="StatusLabel" Grid.Row="2" TextWrapping="Wrap" FontWeight="SemiBold" Text="{Binding Status}"/>
     <ProgressBar x:Name="DownloadBar" Grid.Row="3" Minimum="0" Maximum="100" Value="{Binding Percent}" IsVisible="{Binding IsDownloading}"/>
-    <StackPanel Grid.Row="4" Orientation="Horizontal" Spacing="8">
+    <StackPanel x:Name="SignInRow" Grid.Row="4" Spacing="6" DataContext="{Binding SignInPanel}" x:DataType="s:SignInPanel">
+      <Button x:Name="SignInButton" Content="{Binding ButtonText}" Command="{Binding SignInCommand}" IsVisible="{Binding IsOffered}"/>
+      <TextBlock x:Name="SignInLine" TextWrapping="Wrap" Text="{Binding Line}" IsVisible="{Binding Line.Length}"/>
+    </StackPanel>
+    <StackPanel Grid.Row="5" Orientation="Horizontal" Spacing="8">
       <Button x:Name="CheckButton" Content="{Binding CheckAgainText}" Command="{Binding CheckCommand}" IsEnabled="{Binding !IsBusy}"/>
       <Button x:Name="InstallButton" Content="{Binding InstallText}" Command="{Binding InstallCommand}" IsEnabled="{Binding CanInstall}"/>
       <Button x:Name="CancelButton" Content="{Binding CancelText}" Command="{Binding CancelDownloadCommand}" IsVisible="{Binding IsDownloading}"/>
     </StackPanel>
-    <ScrollViewer Grid.Row="5" IsVisible="{Binding Notes.Length}">
+    <ScrollViewer Grid.Row="6" IsVisible="{Binding Notes.Length}">
       <StackPanel Spacing="4">
         <TextBlock FontWeight="SemiBold" Text="{Binding NotesTitle}"/>
         <TextBlock x:Name="NotesText" TextWrapping="Wrap" Text="{Binding Notes}"/>

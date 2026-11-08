@@ -1,7 +1,9 @@
 using D3sk.Update.UpdateClient;
+using D3skCommander.App.Features.Update.SignIn;
 using D3skCommander.App.Shell;
 using D3skCommander.App.ToolWindows;
 using D3skCommander.Core.Commands;
+using D3skCommander.Core.Jobs;
 using D3skCommander.Core.Localization;
 using D3skCommander.Core.Settings;
 using D3skCommander.Core.Update;
@@ -22,6 +24,8 @@ public sealed class UpdateCommands
     private readonly Func<bool> _screenshotActive;
     private readonly Func<bool> _disabledByEnvironment;
     private readonly UpdateMenuItem _menuItem;
+    private readonly IJobService _jobs;
+    private readonly IUrlOpener _opener;
 
     public UpdateCommands(
         UpdateChecker checker,
@@ -31,7 +35,9 @@ public sealed class UpdateCommands
         ILocalizer text,
         PreferencesStore preferences,
         Func<bool> screenshotActive,
-        Func<bool> disabledByEnvironment)
+        Func<bool> disabledByEnvironment,
+        IJobService? jobs = null,
+        IUrlOpener? opener = null)
     {
         ArgumentNullException.ThrowIfNull(checker);
         ArgumentNullException.ThrowIfNull(service);
@@ -49,6 +55,8 @@ public sealed class UpdateCommands
         _preferences = preferences;
         _screenshotActive = screenshotActive;
         _disabledByEnvironment = disabledByEnvironment;
+        _jobs = jobs ?? new JobService();
+        _opener = opener ?? new ProcessUrlOpener();
         _menuItem = new UpdateMenuItem(Open);
     }
 
@@ -63,13 +71,24 @@ public sealed class UpdateCommands
         _tools.Register(ToolKind.Update, CreateView);
     }
 
-    public UpdateViewModel CreateView() => new(
-        _checker,
-        _service,
-        _restarter,
-        _text,
-        Path.Combine(Path.GetTempPath(), "d3skcommander-update"),
-        ShowFound);
+    public UpdateViewModel CreateView()
+    {
+        SignInPanel? panel = null;
+        var model = new UpdateViewModel(
+            _checker,
+            _service,
+            _restarter,
+            _text,
+            Path.Combine(Path.GetTempPath(), "d3skcommander-update"),
+            check =>
+            {
+                ShowFound(check);
+                panel?.Observe(check);
+            });
+        panel = new SignInPanel(new SignInFlow(_service, _jobs, _opener), _text, model.SignInLine, model.CheckAsync);
+        model.SignInPanel = panel;
+        return model;
+    }
 
     /// <summary>The quiet start-up check. A failure stays silent; a newer release shows the menu-bar item.</summary>
     public async Task<bool> CheckAtStartAsync()
