@@ -137,6 +137,27 @@ runs a day. Change the caps with repository variables
 (`gh variable set CI_MAX_MACOS_PER_DAY --body 3`, `CI_MAX_RUNS_PER_DAY`); skip them once with
 `-f force=true`.
 
+### Build token
+
+The shared `D3sk.*` libraries are private packages on GitHub Packages (`nuget.config` at the root
+maps `D3sk.*` to `https://nuget.pkg.github.com/neijix/index.json`), and GitHub Packages asks for a
+token even to read. `./check.sh` and `./release.sh` look for a token with `read:packages` once a
+`D3sk.*` package is referenced, in this order, and use the first that answers (for that process only;
+the token is never printed or written anywhere):
+
+1. The environment variable `NuGetPackageSourceCredentials_github`, set to `Username=<login>;Password=<token>`.
+2. The Bitwarden item `d3skhand-github-packages-read-token` in the `DEV_KEYS` folder, read with
+   `bw-auto get-pass` (`$AI_CODE_ROOT/BitwardenAuto/bw-auto`).
+3. The first line of the file `~/.d3skcommander-release/github-packages-read-token` (mode 0600 on
+   Linux and macOS; on Windows the profile folder's own permissions protect it).
+4. The token of the GitHub CLI, when it has the scope: `gh auth refresh -h github.com -s read:packages`.
+
+The GitHub login comes from `D3SKCOMMANDER_PACKAGES_USER`, else the Bitwarden item's username, else
+`gh api user`. In PowerShell, to set the first way for one session:
+`$env:NuGetPackageSourceCredentials_github = "Username=<login>;Password=<token>"`.
+`check-desktop.yml` passes the job's `GITHUB_TOKEN` (`packages: read`) the same way.
+
+
 ## Keyboard
 
 The default keys of the first version are kept:

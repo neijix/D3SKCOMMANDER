@@ -27,6 +27,11 @@ fi
 
 SLN=D3skCommander.sln
 
+# The read:packages credential of the private D3sk.* source, only once a D3sk.* package is referenced.
+# shellcheck disable=SC1091
+. "$ROOT/csharp/packaging/sdk-env.sh"
+if d3sk_uses_private_packages "$ROOT/csharp"; then d3sk_packages_credentials || exit 1; fi
+
 dotnet format "$SLN" --verify-no-changes
 dotnet build "$SLN" -warnaserror --nologo -v q
 

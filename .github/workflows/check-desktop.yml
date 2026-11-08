@@ -15,6 +15,7 @@ on:
 
 permissions:
   contents: read
+  packages: read
 
 concurrency:
   group: check-desktop
@@ -62,3 +63,6 @@ jobs:
           dotnet-version: 10.0.x
       - run: csharp/check.sh
         shell: bash
+        env:
+          # Private D3sk.* packages (root nuget.config, source "github"): the job token, packages: read.
+          NuGetPackageSourceCredentials_github: Username=${{ github.actor }};Password=${{ secrets.GITHUB_TOKEN }}

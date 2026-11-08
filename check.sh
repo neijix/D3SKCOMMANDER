@@ -6,6 +6,13 @@ cd "$(dirname "$0")"
 
 csharp/check.sh "$@"
 
+# Packaging scripts proven with fakes (no network, no vault); --full is passed on for any real-tool branch.
+for t in csharp/packaging/test-*.sh; do
+  [ -f "$t" ] || continue
+  echo "== $t"
+  bash "$t" "$@"
+done
+
 # Size/complexity/copy ratchet (optional: needs the code-health skill and uv).
 CH="$HOME/.agents/skills/code-health/scripts/code_health.py"
 [ -f "$CH" ] || CH="$HOME/.claude/skills/code-health/scripts/code_health.py"
