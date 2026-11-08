@@ -33,37 +33,15 @@ while [ $# -gt 0 ]; do
   shift
 done
 
-# Optional, git-ignored local environment (same file as csharp/check.sh).
-if [ -f "$ROOT/.env" ]; then
-  set -a
-  # shellcheck disable=SC1091
-  . "$ROOT/.env"
-  set +a
-fi
+# shellcheck disable=SC1091
+. "$ROOT/csharp/packaging/release-env.sh"
+d3sk_load_env
 
 if [ "$CHECK" = 1 ]; then
   echo "== gate: ${D3SK_GATE:-csharp/check.sh}"
   ${D3SK_GATE:-csharp/check.sh}
 fi
 
-if [ -z "${D3SK_RELEASE:-}" ]; then
-  if ! command -v dotnet >/dev/null 2>&1; then
-    if [ -n "${DOTNET_ROOT:-}" ] && [ -x "$DOTNET_ROOT/dotnet" ]; then
-      export PATH="$DOTNET_ROOT:$PATH"
-    else
-      echo "ERROR: dotnet not found: install the .NET 10 SDK or set DOTNET_ROOT" >&2
-      exit 1
-    fi
-  fi
-  # The tool is a private D3sk.* package: its restore needs the read:packages credential (never printed).
-  # shellcheck disable=SC1091
-  . "$ROOT/csharp/packaging/sdk-env.sh"
-  d3sk_packages_credentials || exit 1
-  dotnet tool restore >&2
-  RELEASE=(dotnet tool run d3sk-release)
-else
-  # shellcheck disable=SC2206
-  RELEASE=($D3SK_RELEASE)
-fi
+d3sk_release_cmd
 
 "${RELEASE[@]}" build ${PASS[@]+"${PASS[@]}"}

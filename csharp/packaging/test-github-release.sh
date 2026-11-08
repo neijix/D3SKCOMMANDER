@@ -4,23 +4,9 @@
 # exit code. Fakes only: no gh, no network, no key.
 #   test-github-release.sh [--full]   (--full is accepted; there is no extra tier here)
 set -euo pipefail
-here="$(cd "$(dirname "$0")" && pwd)"
-root="$(cd "$here/../.." && pwd)"
-tmp="$(mktemp -d)"
-trap 'rm -rf "$tmp"' EXIT
-failures=0
-ok() { echo "ok   $*"; }
-bad() { echo "FAIL $*" >&2; failures=$((failures + 1)); }
+# shellcheck disable=SC1091
+. "$(dirname "$0")/fake-release-lib.sh"
 
-tmpn="$tmp"
-case "${OSTYPE:-}" in msys* | cygwin*) tmpn="$(cygpath -m "$tmp")" ;; esac
-cat > "$tmp/fake-release" <<'SHIM'
-#!/usr/bin/env bash
-printf '%s\n' "$@" > "${FAKE_LOG:?}"
-exit "${FAKE_EXIT:-0}"
-SHIM
-export FAKE_LOG="$tmpn/args"
-export D3SK_RELEASE="bash $tmpn/fake-release"
 
 # run <label> <expected args after "publish --config release.json"> -- <github-release.sh args>
 run() {
@@ -45,5 +31,4 @@ rc=0
 FAKE_EXIT=7 "$here/github-release.sh" >/dev/null 2>&1 || rc=$?
 [ "$rc" = 7 ] && ok "tool exit code 7 propagates" || bad "tool exit code 7 gave $rc"
 
-[ "$failures" = 0 ] || { echo "$failures failure(s)" >&2; exit 1; }
-echo "all github-release.sh tests passed"
+fake_finish "all github-release.sh tests passed"

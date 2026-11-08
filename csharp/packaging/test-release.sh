@@ -4,27 +4,14 @@
 # pinned tool (a dry run: writes nothing, needs no key, NSIS or WSL).
 #   test-release.sh [--full]   (--full is accepted; there is no extra tier here)
 set -euo pipefail
-here="$(cd "$(dirname "$0")" && pwd)"
-root="$(cd "$here/../.." && pwd)"
-tmp="$(mktemp -d)"
-trap 'rm -rf "$tmp"' EXIT
-failures=0
-ok() { echo "ok   $*"; }
-bad() { echo "FAIL $*" >&2; failures=$((failures + 1)); }
+# shellcheck disable=SC1091
+. "$(dirname "$0")/fake-release-lib.sh"
 
-# The fakes live in a folder without spaces; a native Windows path for cmd.exe.
-tmpn="$tmp"
-case "${OSTYPE:-}" in msys* | cygwin*) tmpn="$(cygpath -m "$tmp")" ;; esac
-cat > "$tmp/fake-release" <<'SHIM'
-#!/usr/bin/env bash
-printf '%s\n' "$@" > "${FAKE_LOG:?}"
-SHIM
 cat > "$tmp/fake-gate" <<'SHIM'
 #!/usr/bin/env bash
 echo called > "${FAKE_GATE_MARK:?}"
 SHIM
-export FAKE_LOG="$tmpn/args" FAKE_GATE_MARK="$tmpn/gate"
-export D3SK_RELEASE="bash $tmpn/fake-release" D3SK_GATE="bash $tmpn/fake-gate"
+export FAKE_GATE_MARK="$tmpn/gate" D3SK_GATE="bash $tmpn/fake-gate"
 
 # run <label> <expected args, space separated, after "build"> <gate: 0|1> -- <release.sh args>
 run() {
@@ -78,5 +65,4 @@ else
   bad "real dry run failed: $(cat "$tmp/err")"
 fi
 
-[ "$failures" = 0 ] || { echo "$failures failure(s)" >&2; exit 1; }
-echo "all release.sh tests passed"
+fake_finish "all release.sh tests passed"
