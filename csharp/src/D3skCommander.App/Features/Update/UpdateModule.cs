@@ -1,3 +1,5 @@
+using D3sk.Update.Keychain;
+using D3sk.Update.Keychain.Unix;
 using D3skCommander.App.Dialogs;
 using D3skCommander.App.Shell;
 using D3skCommander.App.Smoke;
@@ -24,14 +26,12 @@ public sealed class UpdateModule : IShellModule
     public static void Register(IServiceCollection services)
     {
         ArgumentNullException.ThrowIfNull(services);
-        services.AddSingleton<IUpdateFeed, HttpUpdateFeed>();
         services.AddSingleton<IUpdateRestarter, ProcessRestarter>();
         services.AddSingleton(_ => UpdateEnvironment.Current());
         services.AddSingleton<UpdateChecker>();
-        services.AddSingleton(provider => new UpdateService(provider.GetRequiredService<IJobService>()));
+        services.AddSingleton(provider => CreateService(provider.GetRequiredService<IJobService>(), provider.GetRequiredService<UpdateEnvironment>()));
         services.AddSingleton(provider => new UpdateCommands(
             provider.GetRequiredService<UpdateChecker>(),
-            provider.GetRequiredService<IUpdateFeed>(),
             provider.GetRequiredService<UpdateService>(),
             provider.GetRequiredService<IUpdateRestarter>(),
             provider.GetRequiredService<IToolWindowHost>(),
@@ -47,5 +47,13 @@ public sealed class UpdateModule : IShellModule
     {
         ArgumentNullException.ThrowIfNull(shell);
         _commands.Bind(shell);
+    }
+
+    /// <summary>The signed updater for this install: Core's pinned configuration, the OS keychain for the GitHub token.</summary>
+    private static UpdateService CreateService(IJobService jobs, UpdateEnvironment environment)
+    {
+        var config = UpdateConfig.Create(environment.Version, version => UpdateChecker.AssetFor(environment, version));
+        IKeychain keychain = OperatingSystem.IsWindows() ? new WindowsKeychain() : new UnixKeychain();
+        return new UpdateService(jobs, config, new HttpClient(), keychain);
     }
 }

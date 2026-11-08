@@ -1,7 +1,7 @@
+using D3sk.Update.UpdateClient;
 using D3skCommander.App.Shell;
 using D3skCommander.App.ToolWindows;
 using D3skCommander.Core.Commands;
-using D3skCommander.Core.Jobs;
 using D3skCommander.Core.Localization;
 using D3skCommander.Core.Settings;
 using D3skCommander.Core.Update;
@@ -14,7 +14,6 @@ public sealed class UpdateCommands
     public const string DisableVariable = "D3SK_NO_UPDATE_CHECK";
 
     private readonly UpdateChecker _checker;
-    private readonly IUpdateFeed _feed;
     private readonly UpdateService _service;
     private readonly IUpdateRestarter _restarter;
     private readonly IToolWindowHost _tools;
@@ -26,7 +25,6 @@ public sealed class UpdateCommands
 
     public UpdateCommands(
         UpdateChecker checker,
-        IUpdateFeed feed,
         UpdateService service,
         IUpdateRestarter restarter,
         IToolWindowHost tools,
@@ -36,7 +34,6 @@ public sealed class UpdateCommands
         Func<bool> disabledByEnvironment)
     {
         ArgumentNullException.ThrowIfNull(checker);
-        ArgumentNullException.ThrowIfNull(feed);
         ArgumentNullException.ThrowIfNull(service);
         ArgumentNullException.ThrowIfNull(restarter);
         ArgumentNullException.ThrowIfNull(tools);
@@ -45,7 +42,6 @@ public sealed class UpdateCommands
         ArgumentNullException.ThrowIfNull(screenshotActive);
         ArgumentNullException.ThrowIfNull(disabledByEnvironment);
         _checker = checker;
-        _feed = feed;
         _service = service;
         _restarter = restarter;
         _tools = tools;
@@ -69,7 +65,6 @@ public sealed class UpdateCommands
 
     public UpdateViewModel CreateView() => new(
         _checker,
-        _feed,
         _service,
         _restarter,
         _text,
@@ -85,17 +80,25 @@ public sealed class UpdateCommands
         }
 
         var check = await _checker.CheckAsync().ConfigureAwait(false);
-        ShowFound(check.Outcome == UpdateOutcome.Newer ? check.Release : null);
+        ShowFound(check);
         return true;
     }
 
     private void Open() => _tools.Open(ToolKind.Update);
 
-    private void ShowFound(GitHubRelease? release)
+    /// <summary>
+    /// The menu-bar item: "Update to X" for a newer signed release, "sign in needed" when the quiet check met a private
+    /// repository without a token (it never starts the sign-in itself), else hidden.
+    /// </summary>
+    private void ShowFound(UpdateCheck check)
     {
-        var header = release is null
-            ? ""
-            : _text.Get("update.menu_item").Replace("{version}", release.Version, StringComparison.Ordinal);
+        var header = check.Status switch
+        {
+            CheckStatus.Newer when check.Offer is { } offer =>
+                _text.Get("update.menu_item").Replace("{version}", offer.Version, StringComparison.Ordinal),
+            CheckStatus.SignInNeeded => _text.Get("update.sign_in_needed"),
+            _ => "",
+        };
         _menuItem.Set(header);
     }
 }

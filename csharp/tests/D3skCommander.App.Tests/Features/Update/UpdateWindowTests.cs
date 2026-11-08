@@ -1,13 +1,15 @@
 using Avalonia.Controls;
 using Avalonia.Headless.XUnit;
 using Avalonia.VisualTree;
+using D3sk.Update.Keychain;
+using D3sk.Update.SignIn;
 using D3skCommander.App;
 using D3skCommander.App.Features.Update;
 using D3skCommander.App.Shell;
 using D3skCommander.App.ToolWindows;
+using D3skCommander.Core.Archives;
 using D3skCommander.Core.Commands;
 using D3skCommander.Core.Install;
-using D3skCommander.Core.Jobs;
 using D3skCommander.Core.Localization;
 using D3skCommander.Core.Settings;
 using D3skCommander.Core.Update;
@@ -19,12 +21,12 @@ namespace D3skCommander.App.Tests.Features.Update;
 public class UpdateWindowTests
 {
     private static readonly Localizer English = Localizer.Load(settingsLanguage: Language.En, systemLanguage: Language.En);
+    private static readonly Localizer French = Localizer.Load(settingsLanguage: Language.Fr, systemLanguage: Language.Fr);
 
     [AvaloniaFact]
-    public async Task ANewerReleaseIsShownNextToTheInstalledVersion()
+    public async Task ANewerSignedReleaseIsShownNextToTheInstalledVersion()
     {
-        var feed = new FakeFeed { Answer = Releases.Ok("0.3.0", Asset("d3skcommander-0.3.0-linux-x86_64.tar.gz", [1])) };
-        var model = Model(feed, Releases.Environment(), out _);
+        var model = Model(new FakeReleases("0.3.0", Releases.Environment()), Releases.Environment(), out _);
 
         await model.CheckAsync();
 
@@ -32,14 +34,12 @@ public class UpdateWindowTests
         Assert.Equal("Latest version: 0.3.0", model.Latest);
         Assert.Equal("Version 0.3.0 is available.", model.Status);
         Assert.True(model.CanInstall);
-        Assert.Equal("Fixes things.", model.Notes);
     }
 
     [AvaloniaFact]
     public async Task TheSameVersionIsUpToDate()
     {
-        var feed = new FakeFeed { Answer = Releases.Ok("0.2.1") };
-        var model = Model(feed, Releases.Environment(), out _);
+        var model = Model(new FakeReleases("0.2.1", Releases.Environment()), Releases.Environment(), out _);
 
         await model.CheckAsync();
 
@@ -48,29 +48,54 @@ public class UpdateWindowTests
     }
 
     [AvaloniaFact]
-    public async Task APrivateRepositoryIsAClearMessageNotACrash()
+    public async Task APrivateRepositoryAsksToSignInAndTheNetworkFailureSaysNoNetwork()
     {
-        var notFound = new FakeFeed
-        {
-            Answer = UpdateStep<GitHubRelease>.Fail("no published release at x (none yet, or the repository is private)"),
-        };
-        var model = Model(notFound, Releases.Environment(), out _);
-        await model.CheckAsync();
-        Assert.Equal(English.Get("update.check_failed"), model.Status);
-        Assert.DoesNotContain("x (none", model.Status, StringComparison.Ordinal);
+        var environment = Releases.Environment();
+        var needsSignIn = Model(new FakeReleases("0.3.0", environment) { PrivateRepository = true }, environment, out _);
+        await needsSignIn.CheckAsync();
+        Assert.Equal(English.Get("update.sign_in_needed"), needsSignIn.Status);
+        Assert.False(needsSignIn.CanInstall);
 
-        var offline = new FakeFeed { Throw = new HttpRequestException("name resolution") };
-        var other = Model(offline, Releases.Environment(), out _);
-        await other.CheckAsync();
-        Assert.Equal(English.Get("update.check_failed"), other.Status);
-        Assert.False(other.CanInstall);
+        var offline = Model(new FakeReleases("0.3.0", environment) { Offline = true }, environment, out _, french: true);
+        await offline.CheckAsync();
+        Assert.Equal(French.Get("update.no_network"), offline.Status);
+        Assert.NotEqual(English.Get("update.no_network"), offline.Status);
+        Assert.False(offline.CanInstall);
+    }
+
+    [AvaloniaFact]
+    public async Task AnUnavailableKeychainIsNamedWithItsReason()
+    {
+        var environment = Releases.Environment();
+        var model = Model(new FakeReleases("0.3.0", environment) { PrivateRepository = true }, environment, out _, keychain: new BrokenKeychain());
+
+        await model.CheckAsync();
+
+        Assert.Equal(English.Get("update.keychain_unavailable").Replace("{reason}", "no secret service", StringComparison.Ordinal), model.Status);
+        Assert.False(model.CanInstall);
+    }
+
+    [AvaloniaFact]
+    public void ASignInFailureOfTheKeychainUsesTheKeychainText()
+    {
+        var environment = Releases.Environment();
+        var releases = new FakeReleases("0.3.0", environment);
+        using var service = releases.Service(new BrokenKeychain());
+        var model = new UpdateViewModel(
+            new UpdateChecker(service, environment), service, new RecordingRestarter(), English, Path.GetTempPath(), _ => { });
+
+        var state = service.GetSignInState() with { Phase = SignInPhase.Failed, Reason = "keychain unavailable: no secret service" };
+
+        Assert.Equal(
+            English.Get("update.keychain_unavailable").Replace("{reason}", "no secret service", StringComparison.Ordinal),
+            model.SignInLine(state));
     }
 
     [AvaloniaFact]
     public async Task ASourceBuildIsNeverOfferedAnInstall()
     {
-        var feed = new FakeFeed { Answer = Releases.Ok("0.3.0", Asset("d3skcommander-0.3.0-linux-x86_64.tar.gz", [1])) };
-        var model = Model(feed, Releases.Environment(kind: new InstallKind.Source()), out _);
+        var environment = Releases.Environment(kind: new InstallKind.Source());
+        var model = Model(new FakeReleases("0.3.0", environment), environment, out _);
 
         await model.CheckAsync();
 
@@ -79,16 +104,13 @@ public class UpdateWindowTests
     }
 
     [AvaloniaFact]
-    public async Task InstallDownloadsChecksAndRestartsTheNewProgram()
+    public async Task InstallDownloadsVerifiesAndRestartsTheNewProgram()
     {
         using var temp = new TempFolder();
         var target = Path.Combine(temp.Path, "d3skcommander.AppImage");
         File.WriteAllText(target, "old");
-        var bytes = "new program"u8.ToArray();
-        var name = "d3skcommander-0.3.0-linux-x86_64.AppImage";
-        var asset = new ReleaseAsset(name, "https://example.invalid/" + name, bytes.Length, ReleaseChecksum.Of(bytes));
-        var feed = new FakeFeed { Answer = Releases.Ok("0.3.0", asset) };
-        var model = Model(feed, Releases.Environment(kind: new InstallKind.AppImage(target)), out var restarter, bytes, temp.Path);
+        var environment = Releases.Environment(kind: new InstallKind.AppImage(target));
+        var model = Model(new FakeReleases("0.3.0", environment, "new program"u8.ToArray()), environment, out var restarter, folder: temp.Path);
 
         await model.CheckAsync();
         Assert.True(model.CanInstall);
@@ -100,35 +122,106 @@ public class UpdateWindowTests
     }
 
     [AvaloniaFact]
-    public async Task AWrongChecksumInstallsNothing()
+    public async Task AReleaseWithoutASignatureIsRefusedAndInstallsNothing()
     {
         using var temp = new TempFolder();
         var target = Path.Combine(temp.Path, "d3skcommander.AppImage");
         File.WriteAllText(target, "old");
-        var name = "d3skcommander-0.3.0-linux-x86_64.AppImage";
-        var asset = new ReleaseAsset(name, "https://example.invalid/" + name, 3, new string('0', 64));
-        var feed = new FakeFeed { Answer = Releases.Ok("0.3.0", asset) };
-        var model = Model(feed, Releases.Environment(kind: new InstallKind.AppImage(target)), out var restarter, "abc"u8.ToArray(), temp.Path);
+        var environment = Releases.Environment(kind: new InstallKind.AppImage(target));
+        var model = Model(new FakeReleases("0.3.0", environment) { Sign = false }, environment, out var restarter, folder: temp.Path);
 
         await model.CheckAsync();
         await model.InstallAsync();
 
         Assert.Equal("old", File.ReadAllText(target));
         Assert.Null(restarter.Started);
-        Assert.StartsWith(English.Get("update.failed"), model.Status, StringComparison.Ordinal);
-        Assert.Contains(English.Get("error.invalid_data"), model.Status, StringComparison.Ordinal);
+        Assert.Equal(English.Get("update.release_not_signed"), model.Status);
+    }
+
+    [AvaloniaFact]
+    public async Task ATamperedPackageIsRefusedAndInstallsNothing()
+    {
+        using var temp = new TempFolder();
+        var target = Path.Combine(temp.Path, "d3skcommander.AppImage");
+        File.WriteAllText(target, "old");
+        var environment = Releases.Environment(kind: new InstallKind.AppImage(target));
+        var model = Model(new FakeReleases("0.3.0", environment) { TamperPackage = true }, environment, out var restarter, french: true, folder: temp.Path);
+
+        await model.CheckAsync();
+        await model.InstallAsync();
+
+        Assert.Equal("old", File.ReadAllText(target));
+        Assert.Null(restarter.Started);
+        Assert.Equal(French.Get("update.checksum_mismatch"), model.Status);
+    }
+
+    [AvaloniaFact]
+    public async Task ASetupInstallInAFolderNeedingAdministratorRightsSaysWindowsWillAsk()
+    {
+        var environment = Releases.Environment(kind: new InstallKind.WindowsSetup(@"C:\Program Files\D3SK\d3skcommander.exe"));
+        var releases = new FakeReleases("0.3.0", environment);
+        var asks = Model(releases, environment, out _, needsAdministrator: _ => true);
+        await asks.CheckAsync();
+        Assert.Contains("Windows will ask for administrator rights", asks.Status, StringComparison.Ordinal);
+        Assert.Contains(English.Get("update.needs_admin"), asks.Status, StringComparison.Ordinal);
+        Assert.True(asks.CanInstall);
+
+        var french = Model(releases, environment, out _, french: true, needsAdministrator: _ => true);
+        await french.CheckAsync();
+        Assert.Contains(French.Get("update.needs_admin"), french.Status, StringComparison.Ordinal);
+        Assert.NotEqual(English.Get("update.needs_admin"), French.Get("update.needs_admin"));
+
+        var quiet = Model(releases, environment, out _, needsAdministrator: _ => false);
+        await quiet.CheckAsync();
+        Assert.DoesNotContain(English.Get("update.needs_admin"), quiet.Status, StringComparison.Ordinal);
+    }
+
+    [AvaloniaFact]
+    public async Task ALinuxScriptUpdateRewritesTheVersionOfTheInstallRecord()
+    {
+        using var temp = new TempFolder();
+        var folder = Path.Combine(temp.Path, "apps", "d3skcommander");
+        Directory.CreateDirectory(folder);
+        File.WriteAllText(Path.Combine(folder, "D3skCommander"), "v1");
+        File.WriteAllText(Path.Combine(folder, InstallRecord.FileName), "kind=linux-script\nversion=0.2.1\n");
+        var environment = Releases.Environment(kind: new InstallKind.LinuxScript(folder));
+        var model = Model(new FakeReleases("0.3.0", environment, LinuxArchive(temp.Path)), environment, out var restarter, folder: temp.Path);
+
+        await model.CheckAsync();
+        await model.InstallAsync();
+
+        Assert.Equal(["kind=linux-script", "version=0.3.0"], File.ReadAllLines(Path.Combine(folder, InstallRecord.FileName)));
+        Assert.Equal(Relaunch.Of(Path.Combine(folder, "D3skCommander")), restarter.Started);
+    }
+
+    [AvaloniaFact]
+    public async Task ANotWritableFolderShowsTheLocalizedTextWithTheFolder()
+    {
+        using var temp = new TempFolder();
+        var folder = Path.Combine(temp.Path, "d3skcommander");
+        Directory.CreateDirectory(folder);
+        File.WriteAllText(Path.Combine(folder, "D3skCommander"), "v1");
+        Directory.CreateDirectory(Path.Combine(folder, ".d3sk-write-test"));
+        var environment = Releases.Environment(kind: new InstallKind.LinuxScript(folder));
+        var model = Model(new FakeReleases("0.3.0", environment, LinuxArchive(temp.Path)), environment, out var restarter, french: true, folder: temp.Path);
+
+        await model.CheckAsync();
+        await model.InstallAsync();
+
+        Assert.Equal(French.Get("update.not_writable").Replace("{folder}", folder, StringComparison.Ordinal), model.Status);
+        Assert.Null(restarter.Started);
+        Assert.Equal("v1", File.ReadAllText(Path.Combine(folder, "D3skCommander")));
     }
 
     [AvaloniaFact]
     public async Task CheckUpdateOpensTheUpdateToolWindowWithTheVersions()
     {
-        var feed = new FakeFeed { Answer = Releases.Ok("0.3.0", Asset("d3skcommander-0.3.0-linux-x86_64.tar.gz", [1])) };
         using var provider = TestComposition.Build(English);
         var main = provider.GetRequiredService<MainWindow>();
         main.Show();
         var tools = provider.GetRequiredService<IToolWindowHost>();
         var shell = provider.GetRequiredService<IShellContributions>();
-        var commands = Commands(feed, Releases.Environment(), out _);
+        var commands = Commands(new FakeReleases("0.3.0", Releases.Environment()), Releases.Environment());
         tools.Register(ToolKind.Update, commands.CreateView);
         Assert.True(shell.CanExecute(CommandId.CheckUpdate));
 
@@ -153,70 +246,85 @@ public class UpdateWindowTests
         Assert.False(UpdateChecker.ShouldCheckAtStart(checkUpdates: true, screenshotHookActive: false, disabledByEnvironment: true));
         Assert.True(UpdateChecker.ShouldCheckAtStart(checkUpdates: true, screenshotHookActive: false, disabledByEnvironment: false));
 
-        var feed = new FakeFeed { Answer = Releases.Ok("0.3.0") };
-        var hooked = Commands(feed, Releases.Environment(), out _, screenshotActive: true);
+        var releases = new FakeReleases("0.3.0", Releases.Environment());
+        var hooked = Commands(releases, Releases.Environment(), screenshotActive: true);
         Assert.False(await hooked.CheckAtStartAsync());
-        Assert.Equal(0, feed.Calls);
+        Assert.Empty(releases.Seen);
         Assert.False(hooked.MenuItem.IsShown);
     }
 
     [Fact]
     public async Task TheQuietStartupCheckShowsTheMenuBarItemForANewerRelease()
     {
-        var feed = new FakeFeed { Answer = Releases.Ok("0.3.0") };
-        var commands = Commands(feed, Releases.Environment(), out _);
+        var releases = new FakeReleases("0.3.0", Releases.Environment());
+        var commands = Commands(releases, Releases.Environment());
 
         Assert.True(await commands.CheckAtStartAsync());
 
-        Assert.Equal(1, feed.Calls);
+        Assert.NotEmpty(releases.Seen);
         Assert.Equal("Update to 0.3.0", commands.MenuItem.Header);
 
-        var failing = new FakeFeed { Throw = new HttpRequestException("offline") };
-        var quiet = Commands(failing, Releases.Environment(), out _);
+        var quiet = Commands(new FakeReleases("0.3.0", Releases.Environment()) { Offline = true }, Releases.Environment());
         Assert.True(await quiet.CheckAtStartAsync());
         Assert.False(quiet.MenuItem.IsShown);
     }
 
-    private static ReleaseAsset Asset(string name, byte[] bytes) =>
-        new(name, "https://example.invalid/" + name, bytes.Length, ReleaseChecksum.Of(bytes));
-
-    private static UpdateViewModel Model(
-        FakeFeed feed,
-        UpdateEnvironment environment,
-        out RecordingRestarter restarter,
-        byte[]? bytes = null,
-        string? folder = null)
+    [Fact]
+    public async Task TheQuietStartupCheckWithoutATokenOnlyShowsSignInNeededAndNeverStartsTheDeviceFlow()
     {
-        restarter = new RecordingRestarter();
-        var service = new UpdateService(new JobService(), new BytesSource(bytes ?? []));
-        var checker = new UpdateChecker(feed, environment);
-        return new UpdateViewModel(
-            checker,
-            feed,
-            service,
-            restarter,
-            English,
-            Path.Combine(folder ?? Path.GetTempPath(), "d3sk-update-test"),
-            _ => { });
+        var releases = new FakeReleases("0.3.0", Releases.Environment()) { PrivateRepository = true };
+        var commands = Commands(releases, Releases.Environment());
+
+        Assert.True(await commands.CheckAtStartAsync());
+
+        Assert.Equal(English.Get("update.sign_in_needed"), commands.MenuItem.Header);
+        Assert.DoesNotContain(releases.Seen, s => s.StartsWith("POST", StringComparison.Ordinal));
+        Assert.DoesNotContain(releases.Seen, s => s.Contains("github.com/login", StringComparison.Ordinal));
     }
 
-    private static UpdateCommands Commands(
-        FakeFeed feed,
+    private static byte[] LinuxArchive(string root)
+    {
+        var stage = Path.Combine(root, "stage", "d3skcommander");
+        Directory.CreateDirectory(stage);
+        File.WriteAllText(Path.Combine(stage, "D3skCommander"), "v2");
+        var archive = Path.Combine(root, "linux.tar.gz");
+        var created = ArchiveIo.Create(archive, ArchiveKind.TarGz, [stage], 6, null, TestContext.Current.CancellationToken);
+        Assert.True(created.IsSuccess, created.Error?.Message);
+        return File.ReadAllBytes(archive);
+    }
+
+    private static UpdateViewModel Model(
+        FakeReleases releases,
         UpdateEnvironment environment,
         out RecordingRestarter restarter,
-        bool screenshotActive = false)
+        bool french = false,
+        IKeychain? keychain = null,
+        string? folder = null,
+        Func<InstallKind, bool>? needsAdministrator = null)
     {
         restarter = new RecordingRestarter();
-        using var folder = new TempFolder();
-        var prefs = new PreferencesStore(folder.Path);
-        return new UpdateCommands(
-            new UpdateChecker(feed, environment),
-            feed,
-            new UpdateService(new JobService(), new BytesSource([])),
+        var service = releases.Service(keychain);
+        return new UpdateViewModel(
+            new UpdateChecker(service, environment),
+            service,
             restarter,
+            french ? French : English,
+            Path.Combine(folder ?? Path.GetTempPath(), "d3sk-update-test"),
+            _ => { },
+            needsAdministrator);
+    }
+
+    private static UpdateCommands Commands(FakeReleases releases, UpdateEnvironment environment, bool screenshotActive = false)
+    {
+        using var folder = new TempFolder();
+        var service = releases.Service();
+        return new UpdateCommands(
+            new UpdateChecker(service, environment),
+            service,
+            new RecordingRestarter(),
             new NoTools(),
             English,
-            prefs,
+            new PreferencesStore(folder.Path),
             () => screenshotActive,
             () => false);
     }
