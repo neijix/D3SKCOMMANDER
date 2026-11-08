@@ -78,5 +78,41 @@
   "update.menu_item": {
     "en": "Update to {version}",
     "fr": "Mettre à jour vers {version}"
+  },
+  "update.sign_in_needed": {
+    "en": "Sign in to GitHub to check for updates.",
+    "fr": "Connectez-vous à GitHub pour chercher des mises à jour."
+  },
+  "update.sign_in": {
+    "en": "Sign in to GitHub",
+    "fr": "Se connecter à GitHub"
+  },
+  "update.sign_in_code": {
+    "en": "Enter the code {code} on {url}.",
+    "fr": "Saisissez le code {code} sur {url}."
+  },
+  "update.no_network": {
+    "en": "No network: could not reach GitHub.",
+    "fr": "Pas de réseau : GitHub est injoignable."
+  },
+  "update.keychain_unavailable": {
+    "en": "The system keychain is unavailable ({reason}): the GitHub sign-in cannot be kept.",
+    "fr": "Le trousseau du système est indisponible ({reason}) : la connexion à GitHub ne peut pas être conservée."
+  },
+  "update.release_not_signed": {
+    "en": "Release not signed: the update was refused.",
+    "fr": "Version non signée : la mise à jour est refusée."
+  },
+  "update.signature_invalid": {
+    "en": "Signature invalid: the update was refused.",
+    "fr": "Signature invalide : la mise à jour est refusée."
+  },
+  "update.key_invalid": {
+    "en": "The pinned release key is not valid: the update was refused.",
+    "fr": "La clé de version épinglée n'est pas valide : la mise à jour est refusée."
+  },
+  "update.checksum_mismatch": {
+    "en": "The downloaded file does not match the signed checksum: the update was refused.",
+    "fr": "Le fichier téléchargé ne correspond pas à la somme signée : la mise à jour est refusée."
   }
 }
