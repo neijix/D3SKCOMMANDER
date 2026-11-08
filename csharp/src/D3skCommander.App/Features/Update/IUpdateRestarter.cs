@@ -25,11 +25,7 @@ public sealed class ProcessRestarter : IUpdateRestarter
     public void Restart(Relaunch relaunch)
     {
         ArgumentNullException.ThrowIfNull(relaunch);
-        var info = new ProcessStartInfo(relaunch.Program) { UseShellExecute = false };
-        foreach (var argument in relaunch.Arguments)
-        {
-            info.ArgumentList.Add(argument);
-        }
+        var info = new ProcessStartInfo(relaunch.Program) { UseShellExecute = false, Arguments = RelaunchCommandLine.Build(relaunch) };
 
         using var started = Process.Start(info);
         _shell.Dispatch(CommandId.Quit);

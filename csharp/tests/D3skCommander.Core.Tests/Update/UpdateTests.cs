@@ -95,7 +95,7 @@ public class UpdateTests
             Name(release, new InstallKind.Deb(""), "linux", "x86_64"));
         Assert.EndsWith(".AppImage", Name(release, new InstallKind.AppImage(""), "linux", "x86_64"), StringComparison.Ordinal);
         Assert.EndsWith("linux-x86_64.tar.gz", Name(release, new InstallKind.Portable(""), "linux", "x86_64"), StringComparison.Ordinal);
-        Assert.EndsWith(".app.tar.gz", Name(release, new InstallKind.MacApp(""), "macos", "aarch64"), StringComparison.Ordinal);
+        Assert.Equal("d3skcommander-1.0.0-macos-aarch64.tar.gz", Name(release, new InstallKind.MacApp(""), "macos", "aarch64"));
         Assert.EndsWith("-setup.exe", Name(release, new InstallKind.WindowsSetup(""), "windows", "x86_64"), StringComparison.Ordinal);
         Assert.EndsWith(".zip", Name(release, new InstallKind.Portable(""), "windows", "x86_64"), StringComparison.Ordinal);
         Assert.Null(AssetChoice.Pick(release, new InstallKind.Deb(""), "linux", "aarch64"));
@@ -113,7 +113,6 @@ public class UpdateTests
             (new InstallKind.Deb(""), "linux", "x86_64"),
             (new InstallKind.AppImage(""), "linux", "x86_64"),
             (new InstallKind.Portable(""), "linux", "x86_64"),
-            (new InstallKind.MacApp(""), "macos", "aarch64"),
             (new InstallKind.WindowsSetup(""), "windows", "x86_64"),
             (new InstallKind.Portable(""), "windows", "x86_64"),
         };
@@ -123,6 +122,9 @@ public class UpdateTests
             Assert.NotNull(asset);
             Assert.Equal(64, asset.Sha256?.Length);
         }
+
+        // The recorded 0.2.1 release predates the macOS tar.gz name (Q6).
+        Assert.Null(AssetChoice.Pick(release, new InstallKind.MacApp(""), "macos", "aarch64"));
     }
 
     private static string Name(GitHubRelease release, InstallKind kind, string os, string arch)
@@ -140,7 +142,7 @@ public class UpdateTests
             "d3skcommander-1.0.0-linux-x86_64.AppImage",
             "d3skcommander-1.0.0-linux-x86_64.tar.gz",
             "d3skcommander-1.0.0-macos-aarch64.dmg",
-            "d3skcommander-1.0.0-macos-aarch64.app.tar.gz",
+            "d3skcommander-1.0.0-macos-aarch64.tar.gz",
             "d3skcommander-1.0.0-windows-x86_64-setup.exe",
             "d3skcommander-1.0.0-windows-x86_64.zip",
             "SHA256SUMS",
