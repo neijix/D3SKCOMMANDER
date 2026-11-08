@@ -4,12 +4,12 @@ namespace D3skCommander.Core.Install;
 public static class InstallDetection
 {
     /// <summary>
-    /// Source checkout first, then AppImage, macOS bundle, <c>.deb</c>, Windows setup, else portable.
+    /// Source checkout first, then AppImage, macOS bundle, <c>.deb</c>, <c>install.sh</c> record, Windows setup, else portable.
     /// </summary>
     public static InstallKind Detect(InstallFacts facts)
     {
         ArgumentNullException.ThrowIfNull(facts);
-        if (facts.InCargoTarget)
+        if (facts.InSourceTree)
         {
             return new InstallKind.Source();
         }
@@ -31,6 +31,15 @@ public static class InstallDetection
         if (facts.Os == "linux" && facts.DpkgOwned)
         {
             return new InstallKind.Deb(facts.Exe);
+        }
+
+        if (facts.HasInstallRecord)
+        {
+            var folder = Path.GetDirectoryName(facts.Exe);
+            if (!string.IsNullOrEmpty(folder))
+            {
+                return new InstallKind.LinuxScript(folder);
+            }
         }
 
         if (facts.Os == "windows" && facts.HasUninstaller)

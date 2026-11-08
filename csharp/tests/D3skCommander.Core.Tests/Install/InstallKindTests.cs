@@ -33,7 +33,7 @@ public class InstallKindTests
         windows = new InstallFacts { Os = windows.Os, Exe = windows.Exe, HasUninstaller = true };
         Assert.Equal(new InstallKind.WindowsSetup(windows.Exe), InstallDetection.Detect(windows));
 
-        var source = new InstallFacts { Os = deb.Os, Exe = deb.Exe, DpkgOwned = true, InCargoTarget = true };
+        var source = new InstallFacts { Os = deb.Os, Exe = deb.Exe, DpkgOwned = true, InSourceTree = true };
         Assert.Equal(new InstallKind.Source(), InstallDetection.Detect(source));
     }
 
@@ -41,4 +41,49 @@ public class InstallKindTests
     private static string Native(string path) => path.Replace('/', Path.DirectorySeparatorChar);
 
     private static InstallFacts Facts(string os, string exe) => new() { Os = os, Exe = exe };
+
+    [Fact]
+    public void AFolderHoldingTheInstallRecordIsALinuxScriptInstall()
+    {
+        var script = new InstallFacts
+        {
+            Os = "linux",
+            Exe = "/home/u/apps/d3skcommander/D3skCommander.App",
+            HasInstallRecord = true,
+        };
+        Assert.Equal(
+            new InstallKind.LinuxScript(Native("/home/u/apps/d3skcommander")),
+            InstallDetection.Detect(script));
+    }
+
+    [Fact]
+    public void ASourceTreeWinsOverAnInstallRecord()
+    {
+        var facts = new InstallFacts { Os = "linux", Exe = "/src/csharp/bin/app", HasInstallRecord = true, InSourceTree = true };
+        Assert.Equal(new InstallKind.Source(), InstallDetection.Detect(facts));
+    }
+
+    [Fact]
+    public void TheFactsSeeTheSolutionAndTheInstallRecordAroundTheProgram()
+    {
+        var root = Directory.CreateTempSubdirectory("d3sk-kind-");
+        try
+        {
+            var bin = Path.Combine(root.FullName, "csharp", "src", "App", "bin");
+            Directory.CreateDirectory(bin);
+            Assert.False(InstallFacts.InSourceTreeAt(Path.Combine(bin, "app")));
+            File.WriteAllText(Path.Combine(root.FullName, "csharp", "D3skCommander.sln"), "");
+            Assert.True(InstallFacts.InSourceTreeAt(Path.Combine(bin, "app")));
+
+            var installed = Path.Combine(root.FullName, "installed");
+            Directory.CreateDirectory(installed);
+            Assert.False(InstallFacts.HasInstallRecordAt(Path.Combine(installed, "app")));
+            File.WriteAllText(Path.Combine(installed, ".d3skcommander-install"), "kind=linux-script\nversion=0.2.1\n");
+            Assert.True(InstallFacts.HasInstallRecordAt(Path.Combine(installed, "app")));
+        }
+        finally
+        {
+            root.Delete(recursive: true);
+        }
+    }
 }

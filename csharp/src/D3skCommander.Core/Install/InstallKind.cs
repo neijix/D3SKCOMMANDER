@@ -22,9 +22,14 @@ public abstract record InstallKind
     /// <summary>Installed by the Windows setup. <paramref name="Path"/> is the program file.</summary>
     public sealed record WindowsSetup(string Path) : InstallKind;
 
+    /// <summary>
+    /// Installed by <c>install.sh</c>: <paramref name="Folder"/> holds the app and its <c>.d3skcommander-install</c> record.
+    /// </summary>
+    public sealed record LinuxScript(string Folder) : InstallKind;
+
     /// <summary>A program file copied by hand. <paramref name="Path"/> is that file.</summary>
     public sealed record Portable(string Path) : InstallKind;
 
-    /// <summary>Built from a source checkout. Nothing on disk is replaced.</summary>
+    /// <summary>Built from a source checkout (the solution sits above the program). Nothing on disk is replaced.</summary>
     public sealed record Source : InstallKind;
 }

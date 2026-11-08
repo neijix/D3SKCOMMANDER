@@ -139,11 +139,63 @@ public class SettingsDirTests
     }
 
     [Fact]
+    public void TheInstallingUserOfAPerMachineInstallKeepsTheInstallConfigFolder()
+    {
+        using var root = new ScratchFolder();
+        var places = Places(root.Folder);
+        places.InstallWritable = false;
+        var config = Path.Combine(places.InstallDir!, "config");
+        Directory.CreateDirectory(config);
+        SettingsDirectory.WritePointer(places.InstallDir!, config);
+        Assert.Equal(new SettingsFolder(config, SettingsSource.Chosen), SettingsDirectory.Resolve(places));
+        Assert.False(Directory.Exists(places.PlatformDir));
+    }
+
+    [Fact]
+    public void AChangeInSettingsWritesThePlatformPointerAndWinsOnTheNextResolve()
+    {
+        using var root = new ScratchFolder();
+        var places = Places(root.Folder);
+        places.InstallWritable = false;
+        var config = Path.Combine(places.InstallDir!, "config");
+        Directory.CreateDirectory(config);
+        SettingsDirectory.WritePointer(places.InstallDir!, config);
+        Assert.Equal(places.PlatformDir, places.PointerHome());
+        var elsewhere = Path.Combine(root.Folder, "elsewhere");
+        SettingsDirectory.WritePointer(places.PointerHome(), elsewhere);
+        Assert.Equal(new SettingsFolder(elsewhere, SettingsSource.Chosen), SettingsDirectory.Resolve(places));
+    }
+
+    [Fact]
+    public void ASecondUserWhoCannotWriteTheInstallConfigFolderGetsThePlatformFolder()
+    {
+        using var root = new ScratchFolder();
+        var places = Places(root.Folder);
+        places.InstallWritable = false;
+        var config = Path.Combine(places.InstallDir!, "config-nobody-can-write");
+        SettingsDirectory.WritePointer(places.InstallDir!, config);
+        Assert.Equal(places.PlatformDir, SettingsDirectory.Resolve(places).Dir);
+    }
+
+    [Fact]
+    public void AWritableInstallFolderKeepsTodaysOrder()
+    {
+        using var root = new ScratchFolder();
+        var places = Places(root.Folder);
+        var installChoice = Path.Combine(root.Folder, "install-choice");
+        var platformChoice = Path.Combine(root.Folder, "platform-choice");
+        SettingsDirectory.WritePointer(places.InstallDir!, installChoice);
+        SettingsDirectory.WritePointer(places.PlatformDir, platformChoice);
+        Assert.Equal(installChoice, SettingsDirectory.Resolve(places).Dir);
+    }
+
+    [Fact]
     public void InstallFoldersPerKind()
     {
         var exe = "/x/app/d3skcommander";
         Assert.Equal(Native("/x/app"), SettingsDirectory.InstallDirectory(new InstallKind.Portable(exe)));
         Assert.Equal(Native("/x"), SettingsDirectory.InstallDirectory(new InstallKind.AppImage("/x/d3sk.AppImage")));
+        Assert.Equal(Native("/x/apps/d3sk"), SettingsDirectory.InstallDirectory(new InstallKind.LinuxScript(Native("/x/apps/d3sk"))));
         Assert.Null(SettingsDirectory.InstallDirectory(new InstallKind.Deb(exe)));
         Assert.Null(SettingsDirectory.InstallDirectory(new InstallKind.MacApp("/A/d.app")));
         Assert.Null(SettingsDirectory.InstallDirectory(new InstallKind.Source()));

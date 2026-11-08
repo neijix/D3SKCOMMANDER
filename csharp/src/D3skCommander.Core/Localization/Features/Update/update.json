@@ -63,6 +63,10 @@
     "en": "This release has no package for this installation.",
     "fr": "Cette version n'a pas de paquet pour cette installation."
   },
+  "update.not_writable": {
+    "en": "Cannot update: {folder} is not writable. Move the app to a folder you own, or reinstall.",
+    "fr": "Mise à jour impossible : {folder} n'est pas accessible en écriture. Déplacez l'application dans un dossier qui vous appartient, ou réinstallez-la."
+  },
   "update.source_build": {
     "en": "Built from source: update with git pull, then rebuild.",
     "fr": "Compilé depuis les sources : mettez à jour avec git pull, puis recompilez."

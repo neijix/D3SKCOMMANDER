@@ -18,8 +18,11 @@ public sealed class InstallFacts
     /// <summary>An <c>uninstall.exe</c> sits beside the program.</summary>
     public bool HasUninstaller { get; init; }
 
-    /// <summary>The program lies in a cargo <c>target</c> folder next to a <c>Cargo.toml</c>.</summary>
-    public bool InCargoTarget { get; init; }
+    /// <summary>The program folder holds <c>.d3skcommander-install</c>, the record <c>install.sh</c> writes.</summary>
+    public bool HasInstallRecord { get; init; }
+
+    /// <summary>The program lies below a folder holding <c>D3skCommander.sln</c> (a source build).</summary>
+    public bool InSourceTree { get; init; }
 
     /// <summary>Facts for this process. A missing or unresolvable program file leaves <see cref="Exe"/> empty.</summary>
     public static InstallFacts Current()
@@ -33,7 +36,8 @@ public sealed class InstallFacts
             AppImage = Environment.GetEnvironmentVariable("APPIMAGE"),
             DpkgOwned = exe.Length > 0 && DpkgOwns(exe),
             HasUninstaller = dir is not null && File.Exists(Path.Combine(dir, "uninstall.exe")),
-            InCargoTarget = exe.Length > 0 && LiesInCargoTarget(exe),
+            InSourceTree = exe.Length > 0 && InSourceTreeAt(exe),
+            HasInstallRecord = exe.Length > 0 && HasInstallRecordAt(exe),
         };
     }
 
@@ -90,25 +94,25 @@ public sealed class InstallFacts
         return false;
     }
 
-    /// <summary>An ancestor named <c>target</c> whose parent holds <c>Cargo.toml</c>.</summary>
-    private static bool LiesInCargoTarget(string exe)
+    /// <summary>An ancestor of <paramref name="exe"/> holds <c>D3skCommander.sln</c>.</summary>
+    public static bool InSourceTreeAt(string exe)
     {
-        for (var current = exe; !string.IsNullOrEmpty(current); current = Path.GetDirectoryName(current))
+        for (var current = Path.GetDirectoryName(exe); !string.IsNullOrEmpty(current); current = Path.GetDirectoryName(current))
         {
-            var name = Path.GetFileName(current.TrimEnd(Path.DirectorySeparatorChar, Path.AltDirectorySeparatorChar));
-            if (!string.Equals(name, "target", StringComparison.Ordinal))
-            {
-                continue;
-            }
-
-            var parent = Path.GetDirectoryName(current);
-            if (parent is not null && File.Exists(Path.Combine(parent, "Cargo.toml")))
+            if (File.Exists(Path.Combine(current, "D3skCommander.sln")))
             {
                 return true;
             }
         }
 
         return false;
+    }
+
+    /// <summary>The folder of <paramref name="exe"/> holds the <c>install.sh</c> record.</summary>
+    public static bool HasInstallRecordAt(string exe)
+    {
+        var dir = Path.GetDirectoryName(exe);
+        return dir is not null && File.Exists(Path.Combine(dir, InstallRecord.FileName));
     }
 
     /// <summary>Resolve the path the way Rust <c>canonicalize</c> does: absolute, links followed, or null.</summary>

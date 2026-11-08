@@ -26,7 +26,12 @@ public static class AssetChoice
 
         if (kind is InstallKind.MacApp)
         {
-            return "-macos-" + arch + ".app.tar.gz";
+            return "-macos-" + arch + ".tar.gz";
+        }
+
+        if (kind is InstallKind.LinuxScript)
+        {
+            return "-linux-" + arch + ".tar.gz";
         }
 
         if (kind is InstallKind.WindowsSetup)

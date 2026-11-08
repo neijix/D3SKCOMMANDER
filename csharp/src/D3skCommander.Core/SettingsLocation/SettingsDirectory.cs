@@ -30,19 +30,10 @@ public static class SettingsDirectory
             return new SettingsFolder(places.ExeDir, SettingsSource.Portable);
         }
 
-        if (places.InstallDir is not null)
+        var chosen = ChosenPointer(places);
+        if (chosen is not null)
         {
-            var chosen = ReadPointer(places.InstallDir);
-            if (chosen is not null)
-            {
-                return new SettingsFolder(chosen, SettingsSource.Chosen);
-            }
-        }
-
-        var fromPlatform = ReadPointer(places.PlatformDir);
-        if (fromPlatform is not null)
-        {
-            return new SettingsFolder(fromPlatform, SettingsSource.Chosen);
+            return new SettingsFolder(chosen, SettingsSource.Chosen);
         }
 
         if (IsFile(Path.Combine(places.PlatformDir, SettingsFileNames.Preferences)))
@@ -51,6 +42,28 @@ public static class SettingsDirectory
         }
 
         return new SettingsFolder(places.DefaultDir(), SettingsSource.Default);
+    }
+
+    /// <summary>
+    /// The pointer that applies. A writable install folder reads its own pointer first, then the platform one.
+    /// An install folder the user cannot write (a per-machine install) reads the platform pointer first,
+    /// and honours the install-folder pointer only when its target is writable by this user.
+    /// </summary>
+    private static string? ChosenPointer(SettingsPlaces places)
+    {
+        var fromInstall = places.InstallDir is null ? null : ReadPointer(places.InstallDir);
+        var fromPlatform = ReadPointer(places.PlatformDir);
+        if (places.InstallWritable)
+        {
+            return fromInstall ?? fromPlatform;
+        }
+
+        if (fromPlatform is not null)
+        {
+            return fromPlatform;
+        }
+
+        return fromInstall is not null && CanWrite(fromInstall) ? fromInstall : null;
     }
 
     /// <summary>
@@ -131,11 +144,16 @@ public static class SettingsDirectory
 
     /// <summary>
     /// The installation folder of <paramref name="kind"/>: the parent of an AppImage, a Windows setup
-    /// or a portable program. A <c>.deb</c>, a macOS app and a source build have none.
+    /// , a portable program or an <c>install.sh</c> folder. A <c>.deb</c>, a macOS app and a source build have none.
     /// </summary>
     public static string? InstallDirectory(InstallKind kind)
     {
         ArgumentNullException.ThrowIfNull(kind);
+        if (kind is InstallKind.LinuxScript script)
+        {
+            return script.Folder;
+        }
+
         var path = kind switch
         {
             InstallKind.AppImage(var file) => file,
