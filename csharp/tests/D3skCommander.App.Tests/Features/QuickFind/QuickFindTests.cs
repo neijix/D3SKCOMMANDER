@@ -141,7 +141,8 @@ public class QuickFindTests
         Assert.True(await model.FeedToPanelAsync());
 
         var snap = panels.Read(PanelSide.Left);
-        Assert.Equal(Path.Combine(dir.Root, "Quick find: report"), snap.Path);
+        // The tab folder name drops characters the file system forbids (':' on Windows).
+        Assert.Equal(Path.Combine(dir.Root, OperatingSystem.IsWindows() ? "Quick find_ report" : "Quick find: report"), snap.Path);
         var sep = Path.DirectorySeparatorChar;
         var names = snap.Entries.Where(entry => !entry.IsParent).Select(entry => entry.Name).Order().ToArray();
         Assert.Equal(2, names.Length);

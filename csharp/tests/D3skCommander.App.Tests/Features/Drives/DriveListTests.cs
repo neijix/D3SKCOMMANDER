@@ -38,6 +38,9 @@ public class DriveListTests
     [AvaloniaFact]
     public async Task AnUnmountedDiskIsMountedThenOpened()
     {
+        // udisksctl prints a Unix mount path ("Mounted /dev/sdb1 at /media/..."): the fake's
+        // temp folder is one only on Linux and macOS.
+        Assert.SkipWhen(OperatingSystem.IsWindows(), "Mounting goes through udisksctl, which prints Unix paths");
         using var harness = await DrivesHarness.Open();
         harness.Devices.Json = File.ReadAllText(Path.Combine(AppContext.BaseDirectory, "fixtures", "lsblk", "2.41.3", "with-usb.json"));
         harness.Menu.Pick = DriveMenuKind.Unmounted;

@@ -10,6 +10,9 @@ public sealed class FakeDialogSurface : IDialogSurface
     private readonly Queue<DialogResult> _prepared = new();
     private TaskCompletionSource<DialogResult>? _pending;
 
+    /// <summary>How long an open dialog waits for the test's answer before it fails the test.</summary>
+    public static TimeSpan AnswerLimit { get; } = TimeSpan.FromSeconds(30);
+
     public DialogRequest? Current { get; private set; }
 
     public int ShownCount { get; private set; }
@@ -69,7 +72,12 @@ public sealed class FakeDialogSurface : IDialogSurface
         using var registration = cancellationToken.Register(() => answer.TrySetCanceled(cancellationToken));
         try
         {
-            return await answer.Task;
+            // A dialog the test never answers fails the test instead of hanging the run.
+            return await answer.Task.WaitAsync(AnswerLimit, CancellationToken.None);
+        }
+        catch (TimeoutException)
+        {
+            throw new TimeoutException($"The dialog \"{request.Title}\" ({request.Text}) was shown but not answered within {AnswerLimit.TotalSeconds:0} s: enqueue or answer it in the test.");
         }
         finally
         {

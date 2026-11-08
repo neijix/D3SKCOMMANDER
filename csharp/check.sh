@@ -39,8 +39,32 @@ if [ -n "$too_long" ]; then
   exit 1
 fi
 
-if [ "$FULL" = 1 ]; then
-  dotnet test "$SLN" --no-build --nologo
-else
-  dotnet test "$SLN" --no-build --nologo --filter "Tier!=Slow"
+# Hang guard: a test silent for D3SK_TEST_HANG_TIMEOUT (default 5 min; the slowest test takes
+# well under one) aborts the run, names the test that was running and fails the gate.
+# Dump type none: no dump tool needed on any OS, and the run ends at once.
+HANG=(--blame-hang-timeout "${D3SK_TEST_HANG_TIMEOUT:-5m}" --blame-hang-dump-type none)
+# Blame results (Sequence_*.xml) go out of the source tree.
+RESULTS="${TMPDIR:-${TEMP:-/tmp}}/d3sk-test-results"
+
+# The abort kills the VSTest host but not the xUnit v3 test program it started: left alive, that
+# one locks bin/ and holds the caller's output pipe open (`./check.sh | tail` never returns).
+kill_test_programs() {
+  case "${OSTYPE:-}" in
+    msys* | cygwin*)
+      local bin
+      bin="$(cygpath -w "$PWD/tests")"
+      powershell.exe -NoProfile -NonInteractive -Command \
+        "Get-CimInstance Win32_Process | Where-Object { \$_.ExecutablePath -like '$bin\\*\\bin\\*' } | ForEach-Object { Stop-Process -Id \$_.ProcessId -Force -ErrorAction SilentlyContinue }" || true
+      ;;
+    *) pkill -f "$PWD/tests/[^ ]*/bin/" || true ;;
+  esac
+}
+
+FILTER=()
+[ "$FULL" = 1 ] || FILTER=(--filter "Tier!=Slow")
+status=0
+dotnet test "$SLN" --no-build --nologo ${FILTER[@]+"${FILTER[@]}"} "${HANG[@]}" --results-directory "$RESULTS" || status=$?
+if [ "$status" != 0 ]; then
+  kill_test_programs
+  exit "$status"
 fi

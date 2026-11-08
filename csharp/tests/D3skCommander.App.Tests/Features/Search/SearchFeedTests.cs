@@ -53,7 +53,8 @@ public class SearchFeedTests
         Assert.True(await model.FeedToPanelAsync());
 
         var snap = panels.Read(PanelSide.Left);
-        Assert.Equal(Path.Combine(dir.Root, "Search: *.txt"), snap.Path);
+        // The tab folder name drops characters the file system forbids (':' and '*' on Windows).
+        Assert.Equal(Path.Combine(dir.Root, OperatingSystem.IsWindows() ? "Search_ _.txt" : "Search: *.txt"), snap.Path);
         var sep = Path.DirectorySeparatorChar;
         Assert.Equal(["a.txt", $"one{sep}same.txt", $"two{sep}same.txt"], Names(panels));
         Assert.Equal(dir.Root, snap.Entries.Single(entry => entry.IsParent).Path);
