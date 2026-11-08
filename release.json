@@ -1,0 +1,34 @@
+{
+  "app": { "id": "d3skcommander", "name": "D3skCommander", "executable": "D3skCommander" },
+  "project": "csharp/src/D3skCommander.App/D3skCommander.App.csproj",
+  "version": { "file": "csharp/Directory.Build.props", "property": "Version" },
+  "publishProperties": {
+    "PublishSingleFile": "true",
+    "IncludeNativeLibrariesForSelfExtract": "false",
+    "DebugType": "none",
+    "GenerateDocumentationFile": "false"
+  },
+  "extraFiles": ["LICENSE"],
+  "deleteAfterPublish": ["*.pdb"],
+  "rids": [
+    { "rid": "win-x64", "os": "windows", "arch": "x86_64" },
+    { "rid": "linux-x64", "os": "linux", "arch": "x86_64" },
+    { "rid": "osx-arm64", "os": "macos", "arch": "aarch64" }
+  ],
+  "repo": "neijix/D3SKCOMMANDER",
+  "tagPrefix": "v",
+  "signing": {
+    "keyEnv": "D3SKCOMMANDER_RELEASE_KEY_FILE",
+    "defaultKeyPath": "~/.d3skcommander-release/release-signing-key.pem",
+    "publicKeyPem": "-----BEGIN PUBLIC KEY-----\nMFkwEwYHKoZIzj0CAQYIKoZIzj0DAQcDQgAEpFkqu2s/vvxjjf5F31T7IXV1PZ3B\nE1NedRteqMAgfy5GYhijY6XM2+u1vHemElKTeAXZrAZ8N1a8l51PG7DJSQ==\n-----END PUBLIC KEY-----\n"
+  },
+  "nsis": { "script": "csharp/packaging/nsis/setup.nsi", "icon": "packaging/icons/icon.ico", "license": "LICENSE" },
+  "dmg": { "libdmgBuildFolder": ".tools/libdmg-hfsplus", "libdmgBuildFolderEnv": "D3SKCOMMANDER_DMG_TOOLS_DIR" },
+  "bundle": { "id": "io.github.neijix.d3skcommander", "icon": "packaging/icons/icon.icns" },
+  "desktopEntry": {
+    "name": "D3skCommander",
+    "comment": "Two-panel file manager",
+    "categories": "Utility;FileManager;",
+    "icon": "packaging/icons/256x256.png"
+  }
+}

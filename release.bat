@@ -1,8 +1,10 @@
 @echo off
-rem Double-click it to build every package into dist\ with release.sh: the gate, the three
-rem archives, the Windows setup when NSIS is installed, SHA256SUMS. Opens dist\ when it worked
-rem and waits for a key, so the window stays readable. Options go to release.sh (--no-check,
-rem --no-setup). Needs Git for Windows (its bash runs release.sh) and the .NET 10 SDK.
+rem Double-click it to build every package into dist\ with release.sh (the d3sk-release tool): the gate,
+rem the archives, the Windows setup, the .dmg, SHA256SUMS and its signature. Opens dist\ when it worked
+rem and waits for a key, so the window stays readable. Options go to release.sh: --no-check,
+rem --no-setup, --no-dmg, --dry-run, --verbose, --json (also --version, --out, --help). A missing tool
+rem (NSIS, WSL, rcodesign) fails the build naming its install command.
+rem Needs Git for Windows (its bash runs release.sh) and the .NET 10 SDK.
 rem macOS and Linux: release.command. D3SK_UNATTENDED=1: no wait, no folder opened (scripted runs).
 setlocal
 cd /d "%~dp0"

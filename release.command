@@ -1,8 +1,10 @@
 #!/usr/bin/env bash
 # Double-click it (macOS Finder; a Linux file manager: "Run as a program") to build every package
-# into dist/ with ./release.sh: the gate, the three archives, the Windows setup when NSIS is
-# installed, SHA256SUMS. Opens dist/ when it worked and waits for Enter, so the window stays
-# readable. Options go to release.sh (--no-check, --no-setup). Windows: release.bat.
+# into dist/ with ./release.sh (the d3sk-release tool): the gate, the archives, the Windows setup,
+# the .dmg, SHA256SUMS and its signature. Opens dist/ when it worked and waits for Enter, so the
+# window stays readable. Options go to release.sh: --no-check, --no-setup, --no-dmg, --dry-run,
+# --verbose, --json (also --version, --out, --help). A missing tool (NSIS, WSL, rcodesign) fails the
+# build naming its install command. Windows: release.bat.
 # D3SK_UNATTENDED=1: no wait, no folder opened (scripted runs).
 cd "$(dirname "$0")" || exit 1
 # A double-click starts a bare shell: PATH may miss dotnet.

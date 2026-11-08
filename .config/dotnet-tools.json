@@ -1,0 +1,11 @@
+{
+  "version": 1,
+  "isRoot": true,
+  "tools": {
+    "d3sk.release": {
+      "version": "0.1.2",
+      "commands": ["d3sk-release"],
+      "rollForward": false
+    }
+  }
+}
