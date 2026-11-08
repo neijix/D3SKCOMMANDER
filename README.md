@@ -93,6 +93,8 @@ No GPU or OpenGL is required.
 can set `DOTNET_ROOT`, `DOTNET_CLI_HOME`, `NUGET_PACKAGES` and a `PATH` prefix
 (`.env.example`). `./check.sh --full` adds the slow tests.
 
+Building needs a GitHub Packages read token, see Build token.
+
 The sources are in `csharp/`: `src/D3skCommander.Core` holds every rule and has no UI
 dependency; `src/D3skCommander.App` is the Avalonia window layer; each has its test project under
 `csharp/tests/`.
