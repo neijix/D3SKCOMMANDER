@@ -4,7 +4,7 @@ namespace D3skCommander.Core.DiskUsage;
 /// Measures a folder in one walk and keeps a node per folder. Links are not followed (a link counts as a file of
 /// size 0). Of each folder's files only the biggest <see cref="TopFiles"/> stay as nodes; the rest are summed.
 /// </summary>
-public static class DiskUsageScanner
+public static partial class DiskUsageScanner
 {
     public const int TopFiles = 50;
 
@@ -22,7 +22,7 @@ public static class DiskUsageScanner
             throw new DirectoryNotFoundException(full);
         }
 
-        var walk = new Walk(progress, cancel, Math.Max(0, topFiles));
+        var walk = new Walk(progress, cancel, Math.Max(0, topFiles), null);
         var node = walk.Folder(full, NameOf(full));
         walk.Report();
         return node;
@@ -34,7 +34,7 @@ public static class DiskUsageScanner
         return name.Length == 0 ? full : name;
     }
 
-    private sealed class Walk(IProgress<ScanProgress>? progress, CancellationToken cancel, int topFiles)
+    private sealed partial class Walk(IProgress<ScanProgress>? progress, CancellationToken cancel, int topFiles, HashSet<string>? skip)
     {
         private const int ReportEvery = 256;
         private static readonly EnumerationOptions Strict = new()
@@ -64,6 +64,11 @@ public static class DiskUsageScanner
                     cancel.ThrowIfCancellationRequested();
                     if (IsRealFolder(info))
                     {
+                        if (skip is not null && skip.Contains(Normal(info.FullName)))
+                        {
+                            continue;
+                        }
+
                         folders.Add((info.FullName, info.Name));
                         continue;
                     }
