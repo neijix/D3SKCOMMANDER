@@ -36,3 +36,12 @@ public sealed class ListCase : IProviderCase
 
     public override string ToString() => "List";
 }
+
+public sealed class PanelCase : IProviderCase
+{
+    public bool ReadOnly => false;
+
+    public ProviderFixture Open() => new PanelProviderFixture();
+
+    public override string ToString() => "Panel";
+}
