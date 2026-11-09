@@ -8,6 +8,7 @@ using D3skCommander.Core.Commands;
 using D3skCommander.Core.Common;
 using D3skCommander.Core.FileSystem;
 using D3skCommander.Core.Localization;
+using D3skCommander.Core.Panels;
 
 namespace D3skCommander.App.Features.Editor;
 
@@ -58,6 +59,13 @@ public sealed class EditorCommands(IPanelWorkspace panels, IToolWindowHost tools
         }
 
         var title = _text.Get("cmd.edit_new");
+        if (ComputerAddress.IsAddress(capture.ActiveDirectory))
+        {
+            // Computer is no folder: a name joined to its address would land relative to the working folder.
+            await _dialogs.ShowMessageAsync(title, _text.Get("computer.readonly")).ConfigureAwait(true);
+            return;
+        }
+
         var name = (await _dialogs.AskTextAsync(title, _text.Get("editor.new_name")).ConfigureAwait(true))?.Trim();
         if (string.IsNullOrEmpty(name))
         {

@@ -1,6 +1,7 @@
 using D3skCommander.App.Dialogs;
 using D3skCommander.App.Features.Panels;
 using D3skCommander.Core.FileSystem;
+using D3skCommander.Core.Panels;
 
 namespace D3skCommander.App.Features.Drives;
 
@@ -19,7 +20,7 @@ public sealed partial class DrivesCommands
             var title = _text.Get("cmd.properties");
             var capture = _panels.Capture();
             var sources = _panels.ContextTarget is { } target ? ContextTargetPaths.Of(target) : capture?.Sources;
-            if (capture is null || sources is null || sources.Count == 0)
+            if (capture is null || sources is null || sources.Count == 0 || sources.All(ComputerAddress.IsAddress))
             {
                 await _dialogs.ShowMessageAsync(title, _text.Get("props.none")).ConfigureAwait(false);
                 return;
