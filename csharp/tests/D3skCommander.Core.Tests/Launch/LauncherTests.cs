@@ -291,7 +291,7 @@ public class LauncherTests
     public void WindowsOverrideWithAFullyQualifiedProgramIsWrappedLikeAResolvedOne()
     {
         var runner = new RecordingRunner();
-        var program = Path.Combine(Path.GetTempPath(), "my term.exe");
+        var program = @"C:\Temp\my term.exe";
         var result = Launcher.OpenTerminal("\"" + program + "\" -d \"C:\\x y\"", @"C:\work", runner, LaunchPlatform.Windows, _ => throw new InvalidOperationException("no lookup"));
         Assert.True(result.IsSuccess);
         var shell = Assert.IsType<ProcessRequest.Shell>(Assert.Single(runner.Requests));
@@ -302,11 +302,11 @@ public class LauncherTests
     public void WindowsOverrideWithAPercentInTheProgramPathIsRefused()
     {
         var runner = new RecordingRunner();
-        var given = Path.Combine(Path.GetTempPath(), "100%.exe");
+        var given = @"C:\Temp\100%.exe";
         var result = Launcher.OpenTerminal("\"" + given + "\" --x", @"C:\work", runner, LaunchPlatform.Windows, _ => throw new InvalidOperationException("no lookup"));
         Assert.Equal(LaunchRefusal.ProgramNotFound, result.Refusal);
 
-        result = Launcher.OpenTerminal("tty --x", @"C:\work", runner, LaunchPlatform.Windows, _ => Path.Combine(Path.GetTempPath(), "a%b.exe"));
+        result = Launcher.OpenTerminal("tty --x", @"C:\work", runner, LaunchPlatform.Windows, _ => @"C:\Temp\a%b.exe");
         Assert.Equal(LaunchRefusal.ProgramNotFound, result.Refusal);
         Assert.Empty(runner.Requests);
     }
@@ -316,6 +316,20 @@ public class LauncherTests
     {
         var runner = new RecordingRunner();
         var result = Launcher.OpenTerminal("tty --x", @"C:\work", runner, LaunchPlatform.Windows, _ => "tty.exe");
+        Assert.Equal(LaunchRefusal.ProgramNotFound, result.Refusal);
+        Assert.Empty(runner.Requests);
+    }
+
+    [Theory]
+    [InlineData("C:x.exe")]
+    [InlineData("\\x\\tty.exe")]
+    public void WindowsOverrideResolvedToADriveRelativeOrRootedPathIsRefused(string resolved)
+    {
+        var runner = new RecordingRunner();
+        var result = Launcher.OpenTerminal("tty --x", @"C:\work", runner, LaunchPlatform.Windows, _ => resolved);
+        Assert.Equal(LaunchRefusal.ProgramNotFound, result.Refusal);
+
+        result = Launcher.OpenTerminal("\"" + resolved + "\" --x", @"C:\work", runner, LaunchPlatform.Windows, _ => null);
         Assert.Equal(LaunchRefusal.ProgramNotFound, result.Refusal);
         Assert.Empty(runner.Requests);
     }

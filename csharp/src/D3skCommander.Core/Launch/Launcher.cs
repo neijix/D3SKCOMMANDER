@@ -171,16 +171,31 @@ public static class Launcher
             return null;
         }
 
-        var full = Path.IsPathFullyQualified(token) ? token : resolve(token);
+        var full = IsWindowsFullPath(token) ? token : resolve(token);
 
         // A resolved path must be absolute, and a % would let cmd expand a variable inside the program path.
-        if (string.IsNullOrEmpty(full) || !Path.IsPathFullyQualified(full) || full.Contains('%', StringComparison.Ordinal))
+        if (string.IsNullOrEmpty(full) || !IsWindowsFullPath(full) || full.Contains('%', StringComparison.Ordinal))
         {
             return null;
         }
 
         // cmd /C drops the outer quotes of a line that starts with one, so the whole line is wrapped in one more pair.
         return "\"\"" + full + "\"" + rest + "\"";
+    }
+
+    /// <summary>
+    /// A Windows full path checked lexically (it only runs for the Windows platform, on any host): a drive letter
+    /// with a separator (<c>C:\x</c>, <c>C:/x</c>) or a UNC / device prefix (<c>\\server\share</c>, <c>\\?\C:\x</c>).
+    /// A drive-relative <c>C:x</c> or a rooted <c>\x</c> is not full.
+    /// </summary>
+    private static bool IsWindowsFullPath(string path)
+    {
+        if (path.Length >= 3 && char.IsAsciiLetter(path[0]) && path[1] == ':' && (path[2] == '\\' || path[2] == '/'))
+        {
+            return true;
+        }
+
+        return path.Length >= 3 && path[0] == '\\' && path[1] == '\\' && path[2] != '\\';
     }
 
     public static LaunchResult RunInShell(string? commandLine, string workingDirectory, IProcessRunner runner)

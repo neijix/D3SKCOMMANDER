@@ -225,6 +225,7 @@ public class WindowsMenuTests
             Text = Localizer.Load(settingsLanguage: Language.En, systemLanguage: Language.En);
             Dialogs = new FakeDialogService();
             Module = new WindowsMenuModule(Workspace, Menu, new NoOwner(), Dialogs, Text);
+            Module.IsWindows = () => true;
             Module.Contribute(new StatusShell(Status.Add));
         }
 
