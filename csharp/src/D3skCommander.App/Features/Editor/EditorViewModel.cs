@@ -171,7 +171,58 @@ public sealed class EditorViewModel : ObservableObject, IShellWidget, ICloseGuar
 
     public string MatchCaseLabel => _text.Get("editor.match_case");
 
+    /// <summary>The texts the view's menu shows.</summary>
+    public ILocalizer Text => _text;
+
     public Control CreateContent() => new EditorView { DataContext = this };
+
+    /// <summary>Shows a document already read (the preview opens it in the background itself).</summary>
+    public void Load(CoreDocument document)
+    {
+        ArgumentNullException.ThrowIfNull(document);
+        _ticket++;
+        FileName = System.IO.Path.GetFileName(document.FilePath);
+        Show(document);
+    }
+
+    /// <summary>Reads the file again from the disk; unsaved changes are settled first.</summary>
+    public async Task ReloadAsync()
+    {
+        if (Path.Length == 0 || IsBusy)
+        {
+            return;
+        }
+
+        var path = Path;
+        if (Dirty)
+        {
+            var message = _text.Get("editor.reload_ask").Replace("{name}", FileName, StringComparison.Ordinal);
+            string[] choices = [_text.Get("editor.reload"), _text.Get("cancel")];
+            if (await _dialogs.ChooseAsync(_text.Get("cmd.edit"), message, choices).ConfigureAwait(true) != 0)
+            {
+                return;
+            }
+        }
+
+        await OpenAsync(path).ConfigureAwait(true);
+    }
+
+    /// <summary>Asks for a line number and puts the caret at the start of that line.</summary>
+    public async Task GoToLineAsync()
+    {
+        if (!CanEdit)
+        {
+            return;
+        }
+
+        var label = _text.Get("editor.goto_label").Replace("{n}", Buffer.LineCount.ToString(CultureInfo.CurrentCulture), StringComparison.Ordinal);
+        var answer = await _dialogs.AskTextAsync(_text.Get("editor.goto"), label).ConfigureAwait(true);
+        if (int.TryParse(answer?.Trim(), NumberStyles.Integer, CultureInfo.CurrentCulture, out var line) && line > 0)
+        {
+            var target = Buffer.GetLineByNumber(Math.Min(line, Buffer.LineCount));
+            SelectionRequested?.Invoke(target.Offset, 0);
+        }
+    }
 
     /// <summary>Shows <paramref name="path"/>: the name and busy state at once, the text when the load ends.</summary>
     public async Task OpenAsync(string path)

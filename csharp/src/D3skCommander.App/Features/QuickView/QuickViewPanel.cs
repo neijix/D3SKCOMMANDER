@@ -3,6 +3,7 @@ using Avalonia.Layout;
 using Avalonia.Media;
 using Avalonia.Media.Imaging;
 using AvaloniaEdit;
+using D3skCommander.App.Features.Editor;
 using D3skCommander.App.Features.Lister;
 using D3skCommander.Core.Viewer;
 
@@ -28,6 +29,7 @@ internal sealed class QuickViewPanel : ContentControl
     };
 
     private TextEditor? _editor;
+    private EditorView? _edit;
     private StackPanel? _pages;
 
     public QuickViewPanel(ViewerViewModel viewer)
@@ -45,11 +47,24 @@ internal sealed class QuickViewPanel : ContentControl
 
     public string SummaryText => _summary.Text ?? "";
 
-    /// <summary>The text in the editor while it is shown; null otherwise.</summary>
-    public string? ShownText => _editor is not null && ReferenceEquals(Content, _editor) ? _editor.Text : null;
+    /// <summary>The text in the editor (read-only or editable) while it is shown; null otherwise.</summary>
+    public string? ShownText => Content switch
+    {
+        EditorView { DataContext: EditorViewModel model } => model.Buffer.Text,
+        TextEditor editor when ReferenceEquals(editor, _editor) => editor.Text,
+        _ => null,
+    };
 
     /// <summary>The colouring the editor uses, by name ("C#", "XML"…); null for plain text or no editor.</summary>
-    public string? ShownHighlighting => ShownText is null ? null : _editor!.SyntaxHighlighting?.Name;
+    public string? ShownHighlighting => Content switch
+    {
+        EditorView view => view.Surface.SyntaxHighlighting?.Name,
+        TextEditor editor when ReferenceEquals(editor, _editor) => editor.SyntaxHighlighting?.Name,
+        _ => null,
+    };
+
+    /// <summary>The editable text shown; null when the preview shows something else.</summary>
+    public EditorView? ShownEditor => Content as EditorView;
 
     /// <summary>The picture shown; null when the content is not a picture.</summary>
     public Bitmap? ShownPicture => (Content as Image)?.Source as Bitmap;
@@ -77,6 +92,14 @@ internal sealed class QuickViewPanel : ContentControl
         _editor ??= PreviewViews.TextEditor();
         PreviewViews.ShowText(_editor, text, path);
         Replace(_editor);
+    }
+
+    /// <summary>Shows a text file the user may change, with the editor's menu bar.</summary>
+    public void ShowEditor(EditorViewModel model)
+    {
+        _edit ??= new EditorView();
+        _edit.DataContext = model;
+        Replace(_edit);
     }
 
     /// <summary>Shows <paramref name="picture"/>, which the panel now owns.</summary>

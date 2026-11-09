@@ -70,5 +70,109 @@
   "editor.save": {
     "en": "Save",
     "fr": "Enregistrer"
+  },
+  "editor.reload": {
+    "en": "Reload from disk",
+    "fr": "Recharger depuis le disque"
+  },
+  "editor.reload_ask": {
+    "en": "Reload {name} and lose the unsaved changes?",
+    "fr": "Recharger {name} et perdre les modifications non enregistrées ?"
+  },
+  "editor.goto": {
+    "en": "Go to line",
+    "fr": "Aller à la ligne"
+  },
+  "editor.goto_label": {
+    "en": "Line number (1 to {n}):",
+    "fr": "Numéro de ligne (1 à {n}) :"
+  },
+  "editor.menu.file": {
+    "en": "_File",
+    "fr": "_Fichier"
+  },
+  "editor.menu.edit": {
+    "en": "_Edit",
+    "fr": "É_dition"
+  },
+  "editor.menu.search": {
+    "en": "_Search",
+    "fr": "_Recherche"
+  },
+  "editor.menu.view": {
+    "en": "_View",
+    "fr": "_Affichage"
+  },
+  "editor.undo": {
+    "en": "Undo",
+    "fr": "Annuler"
+  },
+  "editor.redo": {
+    "en": "Redo",
+    "fr": "Rétablir"
+  },
+  "editor.cut": {
+    "en": "Cut",
+    "fr": "Couper"
+  },
+  "editor.copy": {
+    "en": "Copy",
+    "fr": "Copier"
+  },
+  "editor.paste": {
+    "en": "Paste",
+    "fr": "Coller"
+  },
+  "editor.delete": {
+    "en": "Delete",
+    "fr": "Supprimer"
+  },
+  "editor.select_all": {
+    "en": "Select all",
+    "fr": "Tout sélectionner"
+  },
+  "editor.duplicate_line": {
+    "en": "Duplicate line",
+    "fr": "Dupliquer la ligne"
+  },
+  "editor.delete_line": {
+    "en": "Delete line",
+    "fr": "Supprimer la ligne"
+  },
+  "editor.move_up": {
+    "en": "Move line up",
+    "fr": "Monter la ligne"
+  },
+  "editor.move_down": {
+    "en": "Move line down",
+    "fr": "Descendre la ligne"
+  },
+  "editor.upper": {
+    "en": "UPPERCASE",
+    "fr": "MAJUSCULES"
+  },
+  "editor.lower": {
+    "en": "lowercase",
+    "fr": "minuscules"
+  },
+  "editor.word_wrap": {
+    "en": "Word wrap",
+    "fr": "Retour à la ligne automatique"
+  },
+  "editor.line_numbers": {
+    "en": "Line numbers",
+    "fr": "Numéros de ligne"
+  },
+  "editor.zoom_in": {
+    "en": "Zoom in",
+    "fr": "Agrandir"
+  },
+  "editor.zoom_out": {
+    "en": "Zoom out",
+    "fr": "Réduire"
+  },
+  "editor.zoom_reset": {
+    "en": "Reset zoom",
+    "fr": "Taille normale"
   }
 }

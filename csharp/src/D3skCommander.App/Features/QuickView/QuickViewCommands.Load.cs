@@ -1,11 +1,13 @@
 using Avalonia.Controls;
 using Avalonia.Media.Imaging;
 using Avalonia.Platform;
+using D3skCommander.App.Features.Editor;
 using D3skCommander.App.Host;
 using D3skCommander.App.Imaging;
 using D3skCommander.Core.Archives;
 using D3skCommander.Core.FileSystem;
 using D3skCommander.Core.Preview;
+using CoreDocument = D3skCommander.Core.TextDocument.TextDocument;
 
 namespace D3skCommander.App.Features.QuickView;
 
@@ -69,6 +71,11 @@ public sealed partial class QuickViewCommands
 
     private async Task ShowTextAsync(string path, int ticket)
     {
+        if (_dialogs is not null && await EditTextAsync(path, ticket).ConfigureAwait(true))
+        {
+            return;
+        }
+
         var text = await Task.Run(() => TextPreview.Read(path)).ConfigureAwait(true);
         if (text is null)
         {
@@ -83,6 +90,29 @@ public sealed partial class QuickViewCommands
                 _panel!.ShowText(text, path);
             }
         });
+    }
+
+    // The editable view: true when the editor shows the file (or the cursor moved on meanwhile); false for a
+    // file the editor will not take (too big, unreadable, invalid UTF-8), which the read-only view shows instead.
+    private async Task<bool> EditTextAsync(string path, int ticket)
+    {
+        var document = await Task.Run(() => CoreDocument.Open(path)).ConfigureAwait(true);
+        if (document.TooBig || document.Refused is not null || document.Lossy)
+        {
+            return false;
+        }
+
+        UiThread.Invoke(() =>
+        {
+            if (Current(ticket))
+            {
+                var model = new EditorViewModel(_text, _dialogs!, () => _panels.RefreshAsync());
+                model.Load(document);
+                _edited = model;
+                _panel!.ShowEditor(model);
+            }
+        });
+        return true;
     }
 
     private async Task ShowPictureAsync(string path, int ticket, Func<Bitmap?> decode)

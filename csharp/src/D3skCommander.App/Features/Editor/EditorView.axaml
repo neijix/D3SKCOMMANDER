@@ -6,17 +6,21 @@
              x:DataType="e:EditorViewModel">
   <UserControl.Styles>
     <StyleInclude Source="avares://AvaloniaEdit/Themes/Fluent/AvaloniaEdit.xaml"/>
+    <Style Selector="WrapPanel#Toolbar > :is(Control)">
+      <Setter Property="Margin" Value="0,2,8,2"/>
+    </Style>
   </UserControl.Styles>
   <DockPanel>
-    <StackPanel DockPanel.Dock="Top" Orientation="Horizontal" Spacing="8" Margin="8,6">
+    <Menu x:Name="EditorMenu" DockPanel.Dock="Top"/>
+    <WrapPanel x:Name="Toolbar" DockPanel.Dock="Top" Margin="8,2">
       <Button x:Name="SaveButton" Content="{Binding SaveLabel}" IsEnabled="{Binding CanEdit}"/>
-      <TextBox x:Name="FindBox" MinWidth="160" Text="{Binding FindText, Mode=TwoWay}" PlaceholderText="{Binding FindLabel}"/>
+      <TextBox x:Name="FindBox" MinWidth="140" Text="{Binding FindText, Mode=TwoWay}" PlaceholderText="{Binding FindLabel}"/>
       <Button x:Name="NextButton" Content="{Binding NextLabel}" IsEnabled="{Binding CanEdit}"/>
-      <TextBox x:Name="ReplaceBox" MinWidth="160" Text="{Binding ReplaceText, Mode=TwoWay}" PlaceholderText="{Binding ReplaceLabel}"/>
+      <TextBox x:Name="ReplaceBox" MinWidth="140" Text="{Binding ReplaceText, Mode=TwoWay}" PlaceholderText="{Binding ReplaceLabel}"/>
       <Button x:Name="ReplaceButton" Content="{Binding ReplaceOneLabel}" IsEnabled="{Binding CanEdit}"/>
       <Button x:Name="ReplaceAllButton" Content="{Binding ReplaceAllLabel}" IsEnabled="{Binding CanEdit}"/>
       <CheckBox x:Name="CaseBox" IsChecked="{Binding MatchCase, Mode=TwoWay}" Content="{Binding MatchCaseLabel}"/>
-    </StackPanel>
+    </WrapPanel>
     <ProgressBar DockPanel.Dock="Top" IsIndeterminate="True" IsVisible="{Binding IsBusy}"/>
     <StackPanel DockPanel.Dock="Bottom" Orientation="Horizontal" Spacing="16" Margin="8,4">
       <TextBlock x:Name="FileLine" Text="{Binding FileName}" FontWeight="Bold"/>

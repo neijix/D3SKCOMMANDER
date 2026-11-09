@@ -10,6 +10,7 @@ public sealed class ShellContributions : IShellContributions
     private readonly Dictionary<string, List<Func<IReadOnlyList<ShellAction>>>> _dynamic = [];
     private readonly List<Func<IShellWidget>> _trailing = [];
     private readonly List<Action> _startup = [];
+    private readonly List<Func<Task<bool>>> _quitGuards = [];
     private readonly Dictionary<CommandId, Func<bool>> _checked = [];
     private readonly List<Func<IShellWidget>> _toolbar = [];
     private readonly List<Func<IShellWidget>> _under = [];
@@ -64,6 +65,26 @@ public sealed class ShellContributions : IShellContributions
             ArgumentNullException.ThrowIfNull(module);
             module.Contribute(this);
         }
+    }
+
+    public void GuardQuit(Func<Task<bool>> ask)
+    {
+        ArgumentNullException.ThrowIfNull(ask);
+        _quitGuards.Add(ask);
+    }
+
+    /// <summary>The quit guards in the order they were added; the first false stops the quit.</summary>
+    public async Task<bool> AskQuitGuardsAsync()
+    {
+        foreach (var ask in _quitGuards.ToArray())
+        {
+            if (!await ask().ConfigureAwait(true))
+            {
+                return false;
+            }
+        }
+
+        return true;
     }
 
     public void RunStartup()

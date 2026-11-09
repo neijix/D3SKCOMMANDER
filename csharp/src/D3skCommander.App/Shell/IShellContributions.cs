@@ -28,6 +28,14 @@ public interface IShellContributions
 
     void OnStartup(Action action);
 
+    /// <summary>
+    /// Asked before the app quits, after the owned windows: false keeps the app open (an unsaved preview
+    /// edit, for example). Shells that cannot quit ignore it.
+    /// </summary>
+    void GuardQuit(Func<Task<bool>> ask)
+    {
+    }
+
     void SetPanel(PanelSide side, Func<IShellWidget> build);
 
     void AddRegion(ShellRegion region, Func<IShellWidget> build);

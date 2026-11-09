@@ -1,4 +1,6 @@
 using Avalonia.Threading;
+using D3skCommander.App.Dialogs;
+using D3skCommander.App.Features.Editor;
 using D3skCommander.App.Features.Lister;
 using D3skCommander.App.Features.Panels;
 using D3skCommander.App.Host;
@@ -14,6 +16,8 @@ namespace D3skCommander.App.Features.QuickView;
 /// (after a short pause, so holding an arrow key does not open every file). Ctrl+Q again, or the
 /// other panel getting the focus, brings the file list back. The preview mode (a panel bar button) puts the
 /// same view on the panel it was asked on and keeps it there, whichever panel has the focus, until asked again.
+/// With a dialog service, a text file opens in the editor: a change is asked about (save, don't save, cancel)
+/// before the view moves to another file, goes away, or the app quits.
 /// </summary>
 public sealed partial class QuickViewCommands
 {
@@ -24,6 +28,7 @@ public sealed partial class QuickViewCommands
     private readonly ILocalizer _text;
     private readonly IJobService _jobs;
     private readonly TimeProvider _clock;
+    private readonly IDialogService? _dialogs;
     private DispatcherTimer? _timer;
     private ViewerViewModel? _viewer;
     private QuickViewPanel? _panel;
@@ -34,8 +39,10 @@ public sealed partial class QuickViewCommands
     private string? _shown;
     private DateTimeOffset _changed;
     private int _ticket;
+    private EditorViewModel? _edited;
+    private bool _asking;
 
-    public QuickViewCommands(PanelWorkspace panels, ILocalizer text, IJobService jobs, TimeProvider? clock = null)
+    public QuickViewCommands(PanelWorkspace panels, ILocalizer text, IJobService jobs, TimeProvider? clock = null, IDialogService? dialogs = null)
     {
         ArgumentNullException.ThrowIfNull(panels);
         ArgumentNullException.ThrowIfNull(text);
@@ -44,6 +51,7 @@ public sealed partial class QuickViewCommands
         _text = text;
         _jobs = jobs;
         _clock = clock ?? TimeProvider.System;
+        _dialogs = dialogs;
     }
 
     public bool IsOn => _panel is not null;
@@ -58,6 +66,32 @@ public sealed partial class QuickViewCommands
         ArgumentNullException.ThrowIfNull(shell);
         shell.Handle(CommandId.QuickView, Toggle);
         shell.Handle(CommandId.PreviewPanel, TogglePreview);
+        shell.GuardQuit(SettleAsync);
+    }
+
+    /// <summary>The text being edited in the view; null when it shows anything else.</summary>
+    internal EditorViewModel? Edited => _edited;
+
+    /// <summary>
+    /// Unsaved changes in the view are asked about: true when there are none, or they were saved or
+    /// dropped; false when the user cancelled (or the save failed), and the view must stay.
+    /// </summary>
+    public async Task<bool> SettleAsync()
+    {
+        if (_edited is not { Dirty: true } edited || _asking)
+        {
+            return !_asking;
+        }
+
+        _asking = true;
+        try
+        {
+            return await edited.CanCloseAsync().ConfigureAwait(true);
+        }
+        finally
+        {
+            _asking = false;
+        }
     }
 
     /// <summary>True while the preview mode holds a panel (it stays when that panel gets the focus).</summary>
@@ -66,11 +100,17 @@ public sealed partial class QuickViewCommands
     /// <summary>The side whose cursor the view follows while it is on.</summary>
     public PanelSide Source => _source;
 
-    public void Toggle()
+    public void Toggle() => _ = ToggleAsync();
+
+    private async Task ToggleAsync()
     {
         if (IsOn)
         {
-            Stop();
+            if (await SettleAsync().ConfigureAwait(true))
+            {
+                Stop();
+            }
+
             return;
         }
 
@@ -81,12 +121,19 @@ public sealed partial class QuickViewCommands
     /// The active panel turns into a preview of the other panel's cursor, or back into a list when it already
     /// is one; the other panel gets the focus so the arrow keys move what is previewed.
     /// </summary>
-    public void TogglePreview()
+    public void TogglePreview() => _ = TogglePreviewAsync();
+
+    private async Task TogglePreviewAsync()
     {
         var side = _panels.ActiveSide;
         var again = IsSticky && _target == side;
         if (IsOn)
         {
+            if (!await SettleAsync().ConfigureAwait(true))
+            {
+                return;
+            }
+
             Stop();
         }
 
@@ -120,14 +167,15 @@ public sealed partial class QuickViewCommands
     /// <summary>One beat: the focus left the source panel, or the cursor moved and has rested long enough.</summary>
     public void Tick()
     {
-        if (!IsOn)
+        if (!IsOn || _asking)
         {
             return;
         }
 
-        if (!_sticky && _panels.ActiveSide == _target)
+        // Typing in the view's editor makes its panel the active one: the quick view stays while it has the focus.
+        if (!_sticky && _panels.ActiveSide == _target && _panel?.IsKeyboardFocusWithin != true)
         {
-            Stop();
+            _ = StopSettledAsync();
             return;
         }
 
@@ -148,7 +196,20 @@ public sealed partial class QuickViewCommands
         _viewer?.ReleaseImage();
         _viewer = null;
         _panel = null;
+        _edited = null;
         _sticky = false;
+    }
+
+    private async Task StopSettledAsync()
+    {
+        if (await SettleAsync().ConfigureAwait(true))
+        {
+            Stop();
+        }
+        else
+        {
+            _panels.Activate(_source);
+        }
     }
 
     private void Follow(bool immediately)
@@ -170,8 +231,30 @@ public sealed partial class QuickViewCommands
             return;
         }
 
+        if (_edited is { } edited && (edited.Dirty || edited.IsBusy) && path != edited.Path)
+        {
+            _ = LeaveEditedAsync(path);
+            return;
+        }
+
         _shown = path;
+        if (_edited is not null && path == _edited.Path)
+        {
+            return;
+        }
+
         Show(path);
+    }
+
+    // The cursor left a changed file: settle it first; a cancel keeps the text and waits for the next move.
+    private async Task LeaveEditedAsync(string? path)
+    {
+        var leave = await SettleAsync().ConfigureAwait(true);
+        _shown = path;
+        if (leave && IsOn)
+        {
+            Show(path);
+        }
     }
 
     private string? UnderCursor()
@@ -189,6 +272,7 @@ public sealed partial class QuickViewCommands
     private void Show(string? path)
     {
         var ticket = ++_ticket;
+        _edited = null;
         if (path is null || _panel is null || _viewer is null)
         {
             _panel?.ShowNothing();

@@ -104,7 +104,7 @@ public sealed partial class MainWindow
 
     /// <summary>
     /// Quit: asks each owned window in turn and closes it on yes. The first refusal stops it, and the
-    /// windows not yet asked stay open.
+    /// windows not yet asked stay open. Then the shell's quit guards (an unsaved preview edit).
     /// </summary>
     private async Task<bool> CloseOwnedWindowsAsync()
     {
@@ -116,7 +116,7 @@ public sealed partial class MainWindow
             }
         }
 
-        return true;
+        return await _shell.AskQuitGuardsAsync().ConfigureAwait(true);
     }
 
     public void KeyPress(GestureKey key, GestureModifiers modifiers)
