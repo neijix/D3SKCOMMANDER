@@ -28,6 +28,7 @@ What works today:
   usage bars, your usual folders, network shares and, on Linux, disks to mount or eject
   (`udisksctl`); Properties (Alt+Enter), and files dropped from the system copied into a panel;
 - quick view (Ctrl+Q) of the file under the cursor in the other panel;
+- a Computer view above the drives (the Computer command, or Up from a drive root): drives, network drives, your usual folders and favorites in one read-only list;
 - column sets: named sets of columns (name, extension, size, modified, created, accessed,
   attributes, owner, group, type) with their order and widths, chosen per tab from the header's
   right-click menu or cycled with Ctrl+F7, and edited in Settings;
