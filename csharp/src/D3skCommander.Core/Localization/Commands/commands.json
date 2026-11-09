@@ -434,5 +434,9 @@
   "cmd.open_in_other_panel": {
     "en": "Open in other panel",
     "fr": "Ouvrir dans l'autre panneau"
+  },
+  "cmd.preview_panel": {
+    "en": "Preview mode (this panel)",
+    "fr": "Mode aperçu (ce panneau)"
   }
 }

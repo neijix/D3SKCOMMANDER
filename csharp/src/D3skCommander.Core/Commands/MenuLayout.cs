@@ -112,6 +112,7 @@ internal static class MenuLayout
         CommandId.ViewBrief,
         CommandId.ViewThumbs,
         CommandId.QuickView,
+        CommandId.PreviewPanel,
         CommandId.ToggleHidden,
         CommandId.ToggleDriveBar,
         CommandId.ShowToolbar,

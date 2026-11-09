@@ -16,6 +16,7 @@ public static class PanelBarIcons
     private const string Clock = "F0 M8,1 A7,7 0 1 1 7.99,1 Z M8,2.5 A5.5,5.5 0 1 0 8.01,2.5 Z M7.3,4 h1.4 v3.7 l2.6,1.6 l-0.7,1.2 l-3.3,-2 Z";
     private const string Network = "M5.5,1 h5 v4 h-5z M7.4,5 h1.2 v2.4 h-1.2z M2.4,7.4 h11.2 v1.2 h-11.2z M2.4,8.6 h1.2 v2.4 h-1.2z M12.4,8.6 h1.2 v2.4 h-1.2z M0.5,11 h5 v4 h-5z M10.5,11 h5 v4 h-5z";
     private const string Transfer = "M4.5,1 L8,5 L5.6,5 L5.6,10 L3.4,10 L3.4,5 L1,5 Z M11.5,15 L15,11 L12.6,11 L12.6,6 L10.4,6 L10.4,11 L8,11 Z";
+    private const string Eye = "F0 M0.5,8 Q8,0.5 15.5,8 Q8,15.5 0.5,8 Z M8,4.6 A3.4,3.4 0 1 0 8.01,4.6 Z M8,6.4 A1.6,1.6 0 1 1 7.99,6.4 Z";
 
     private static readonly Dictionary<CommandId, string> Paths = new()
     {
@@ -27,6 +28,7 @@ public static class PanelBarIcons
         [CommandId.History] = Clock,
         [CommandId.NetConnect] = Network,
         [CommandId.Ftp] = Transfer,
+        [CommandId.PreviewPanel] = Eye,
     };
 
     /// <summary>The glyph of a panel bar command, or null when it has none.</summary>

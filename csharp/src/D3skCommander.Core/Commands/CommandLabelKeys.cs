@@ -120,6 +120,7 @@ internal static class CommandLabelKeys
         "cmd.open",
         "cmd.open_in_new_tab",
         "cmd.open_in_other_panel",
+        "cmd.preview_panel",
     ];
 
     private static string[] Merge(string[] early, string[] late)

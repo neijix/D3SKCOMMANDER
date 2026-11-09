@@ -112,4 +112,5 @@ public enum CommandId
     Open,
     OpenInNewTab,
     OpenInOtherPanel,
+    PreviewPanel,
 }

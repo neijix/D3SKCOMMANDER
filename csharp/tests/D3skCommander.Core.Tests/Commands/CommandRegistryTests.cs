@@ -12,7 +12,7 @@ public class CommandRegistryTests
         Assert.Equal(CommandId.Sync, CommandCatalog.FromName("sync"));
         Assert.Equal(CommandId.Sync, CommandCatalog.FromName("  SYNC  "));
         Assert.Null(CommandCatalog.FromName("Nope"));
-        Assert.Equal(109, CommandCatalog.All.Count);
+        Assert.Equal(110, CommandCatalog.All.Count);
         var seen = new HashSet<string>(StringComparer.Ordinal);
         foreach (var command in CommandCatalog.All)
         {
@@ -24,7 +24,7 @@ public class CommandRegistryTests
     [Fact]
     public void BothPanelBarsStartWithHomeThenTheSharedPlaces()
     {
-        CommandId[] shared = [CommandId.Parent, CommandId.Hotlist, CommandId.History, CommandId.NetConnect, CommandId.Ftp];
+        CommandId[] shared = [CommandId.Parent, CommandId.Hotlist, CommandId.History, CommandId.NetConnect, CommandId.Ftp, CommandId.PreviewPanel];
         Assert.Equal([CommandId.Computer, .. shared], CommandCatalog.PanelBar(leftPanel: true));
         Assert.Equal([CommandId.Computer, .. shared], CommandCatalog.PanelBar(leftPanel: false));
     }
@@ -43,7 +43,7 @@ public class CommandRegistryTests
             seen[key] = command;
         }
 
-        Assert.Equal(109, seen.Count);
+        Assert.Equal(110, seen.Count);
         Assert.Equal("View file", localizer.Get(CommandCatalog.LabelKey(CommandId.View), Language.En));
         Assert.Equal("Quitter", localizer.Get(CommandCatalog.LabelKey(CommandId.Quit), Language.Fr));
         AssertEarlyKeys();
@@ -169,6 +169,7 @@ public class CommandRegistryTests
         AssertKey(CommandId.NetDisconnect, "cmd.net_disconnect");
         AssertKey(CommandId.BrowseFolder, "cmd.browse_folder");
         AssertKey(CommandId.QuickView, "cmd.quick_view");
+        AssertKey(CommandId.PreviewPanel, "cmd.preview_panel");
         AssertKey(CommandId.ViewFull, "cmd.full");
         AssertKey(CommandId.ViewBrief, "cmd.brief");
         AssertKey(CommandId.ViewThumbs, "cmd.thumbnails");

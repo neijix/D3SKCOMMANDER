@@ -36,7 +36,7 @@ public class PanelPaneTests
     public async Task EachPaneHasTheBarButtonsAndAClickRunsThemOnThatSide()
     {
         using var rig = await Rig.Opened();
-        CommandId[] shared = [CommandId.Parent, CommandId.Hotlist, CommandId.History, CommandId.NetConnect, CommandId.Ftp];
+        CommandId[] shared = [CommandId.Parent, CommandId.Hotlist, CommandId.History, CommandId.NetConnect, CommandId.Ftp, CommandId.PreviewPanel];
         Assert.Equal([CommandId.Computer, .. shared], rig.LeftView.BarButtons.Select(b => (CommandId)b.Tag!));
         Assert.Equal([CommandId.Computer, .. shared], rig.RightView.BarButtons.Select(b => (CommandId)b.Tag!));
         Assert.All(rig.LeftView.BarButtons, b => Assert.True(b.Bounds.Width > 0));

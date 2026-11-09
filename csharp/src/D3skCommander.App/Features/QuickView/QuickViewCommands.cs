@@ -12,9 +12,10 @@ namespace D3skCommander.App.Features.QuickView;
 /// <summary>
 /// Ctrl+Q shows the entry under the active panel's cursor in the other panel and follows the cursor
 /// (after a short pause, so holding an arrow key does not open every file). Ctrl+Q again, or the
-/// other panel getting the focus, brings the file list back.
+/// other panel getting the focus, brings the file list back. The preview mode (a panel bar button) puts the
+/// same view on the panel it was asked on and keeps it there, whichever panel has the focus, until asked again.
 /// </summary>
-public sealed class QuickViewCommands
+public sealed partial class QuickViewCommands
 {
     public static readonly TimeSpan Debounce = TimeSpan.FromMilliseconds(150);
     private static readonly TimeSpan Beat = TimeSpan.FromMilliseconds(50);
@@ -27,6 +28,8 @@ public sealed class QuickViewCommands
     private ViewerViewModel? _viewer;
     private QuickViewPanel? _panel;
     private PanelSide _target;
+    private PanelSide _source;
+    private bool _sticky;
     private string? _wanted;
     private string? _shown;
     private DateTimeOffset _changed;
@@ -54,7 +57,14 @@ public sealed class QuickViewCommands
     {
         ArgumentNullException.ThrowIfNull(shell);
         shell.Handle(CommandId.QuickView, Toggle);
+        shell.Handle(CommandId.PreviewPanel, TogglePreview);
     }
+
+    /// <summary>True while the preview mode holds a panel (it stays when that panel gets the focus).</summary>
+    public bool IsSticky => IsOn && _sticky;
+
+    /// <summary>The side whose cursor the view follows while it is on.</summary>
+    public PanelSide Source => _source;
 
     public void Toggle()
     {
@@ -64,7 +74,38 @@ public sealed class QuickViewCommands
             return;
         }
 
-        _target = _panels.ActiveSide == PanelSide.Left ? PanelSide.Right : PanelSide.Left;
+        Start(Other(_panels.ActiveSide), sticky: false);
+    }
+
+    /// <summary>
+    /// The active panel turns into a preview of the other panel's cursor, or back into a list when it already
+    /// is one; the other panel gets the focus so the arrow keys move what is previewed.
+    /// </summary>
+    public void TogglePreview()
+    {
+        var side = _panels.ActiveSide;
+        var again = IsSticky && _target == side;
+        if (IsOn)
+        {
+            Stop();
+        }
+
+        if (again)
+        {
+            return;
+        }
+
+        Start(side, sticky: true);
+        _panels.Activate(_source);
+    }
+
+    private static PanelSide Other(PanelSide side) => side == PanelSide.Left ? PanelSide.Right : PanelSide.Left;
+
+    private void Start(PanelSide target, bool sticky)
+    {
+        _target = target;
+        _source = Other(target);
+        _sticky = sticky;
         _viewer = new ViewerViewModel(_text, _jobs);
         _panel = new QuickViewPanel(_viewer);
         _wanted = null;
@@ -84,7 +125,7 @@ public sealed class QuickViewCommands
             return;
         }
 
-        if (_panels.ActiveSide == _target)
+        if (!_sticky && _panels.ActiveSide == _target)
         {
             Stop();
             return;
@@ -101,11 +142,13 @@ public sealed class QuickViewCommands
         if (_panel is not null)
         {
             _panels.SetOverlay(_target, null);
+            _panel.Release();
         }
 
         _viewer?.ReleaseImage();
         _viewer = null;
         _panel = null;
+        _sticky = false;
     }
 
     private void Follow(bool immediately)
@@ -133,7 +176,7 @@ public sealed class QuickViewCommands
 
     private string? UnderCursor()
     {
-        var snap = _panels.Read(_panels.ActiveSide);
+        var snap = _panels.Read(_source);
         if (snap.Cursor < 0 || snap.Cursor >= snap.Entries.Count)
         {
             return null;
@@ -159,8 +202,7 @@ public sealed class QuickViewCommands
         }
         else if (File.Exists(path))
         {
-            _panel.ShowViewer();
-            _ = _viewer.OpenAsync(path);
+            _ = PreviewAsync(path, ticket);
         }
         else
         {

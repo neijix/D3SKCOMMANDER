@@ -32,6 +32,11 @@
     <PackageVersion Include="DiffPlex" Version="1.9.0" />
     <!-- TIFF. Other images are decoded when a viewer needs them. -->
     <PackageVersion Include="BitMiracle.LibTiff.NET" Version="2.4.660" />
+    <!-- PDF pages for the preview panel: PDFium native builds (BSD-3 / Apache-2.0), called directly (Core/Preview/PdfPages.cs).
+         PDFtoImage was rejected: it needs SkiaSharp 4, Avalonia 12 ships SkiaSharp 3. -->
+    <PackageVersion Include="bblanchon.PDFium.Win32" Version="158.0.8125" />
+    <PackageVersion Include="bblanchon.PDFium.Linux" Version="158.0.8125" />
+    <PackageVersion Include="bblanchon.PDFium.macOS" Version="158.0.8125" />
   </ItemGroup>
 
   <!-- Signed self-update (GitHub Packages, private; nuget.config maps D3sk.*). -->

@@ -1,14 +1,17 @@
 using Avalonia.Controls;
 using Avalonia.Layout;
 using Avalonia.Media;
+using Avalonia.Media.Imaging;
+using AvaloniaEdit;
 using D3skCommander.App.Features.Lister;
 using D3skCommander.Core.Viewer;
 
 namespace D3skCommander.App.Features.QuickView;
 
 /// <summary>
-/// What the quick view puts over a pane: the lister's own view for a file, a short summary for a
-/// folder, nothing for the rest.
+/// What the quick view and the preview mode put over a pane: a text editor with line numbers and colours, a
+/// picture, the pages of a PDF, the list of an archive, the lister's own view for any other file, a short
+/// summary for a folder, nothing for the rest. It owns the bitmaps it shows and frees them when they go.
 /// </summary>
 internal sealed class QuickViewPanel : ContentControl
 {
@@ -16,6 +19,7 @@ internal sealed class QuickViewPanel : ContentControl
     private const double Chrome = 32;
     private readonly Control _viewer;
     private readonly ViewerViewModel _model;
+    private readonly List<Bitmap> _bitmaps = [];
     private readonly TextBlock _summary = new()
     {
         Margin = new Avalonia.Thickness(8),
@@ -23,11 +27,15 @@ internal sealed class QuickViewPanel : ContentControl
         VerticalAlignment = VerticalAlignment.Top,
     };
 
+    private TextEditor? _editor;
+    private StackPanel? _pages;
+
     public QuickViewPanel(ViewerViewModel viewer)
     {
         ArgumentNullException.ThrowIfNull(viewer);
         _model = viewer;
         _viewer = viewer.CreateContent();
+        Styles.Add(PreviewViews.EditorStyles());
         SizeChanged += (_, e) => FitColumns(e.NewSize.Width);
         HorizontalContentAlignment = HorizontalAlignment.Stretch;
         VerticalContentAlignment = VerticalAlignment.Stretch;
@@ -37,12 +45,96 @@ internal sealed class QuickViewPanel : ContentControl
 
     public string SummaryText => _summary.Text ?? "";
 
-    public void ShowViewer() => Content = _viewer;
+    /// <summary>The text in the editor while it is shown; null otherwise.</summary>
+    public string? ShownText => _editor is not null && ReferenceEquals(Content, _editor) ? _editor.Text : null;
+
+    /// <summary>The colouring the editor uses, by name ("C#", "XML"…); null for plain text or no editor.</summary>
+    public string? ShownHighlighting => ShownText is null ? null : _editor!.SyntaxHighlighting?.Name;
+
+    /// <summary>The picture shown; null when the content is not a picture.</summary>
+    public Bitmap? ShownPicture => (Content as Image)?.Source as Bitmap;
+
+    /// <summary>How many PDF pages are on screen so far.</summary>
+    public int PageCount => _pages is not null && Content is ScrollViewer { Content: StackPanel shown } && ReferenceEquals(shown, _pages)
+        ? _pages.Children.Count
+        : 0;
+
+    /// <summary>The rows of the archive shown; empty when no archive is.</summary>
+    public IReadOnlyList<ArchivePreviewRow> ArchiveRows { get; private set; } = [];
+
+    public void ShowViewer() => Replace(_viewer);
 
     public void ShowSummary(string text)
     {
         _summary.Text = text;
-        Content = _summary;
+        Replace(_summary);
+    }
+
+    public void ShowNothing() => Replace(null);
+
+    public void ShowText(string text, string path)
+    {
+        _editor ??= PreviewViews.TextEditor();
+        PreviewViews.ShowText(_editor, text, path);
+        Replace(_editor);
+    }
+
+    /// <summary>Shows <paramref name="picture"/>, which the panel now owns.</summary>
+    public void ShowPicture(Bitmap picture)
+    {
+        var image = PreviewViews.Picture();
+        image.Source = picture;
+        Replace(image);
+        _bitmaps.Add(picture);
+    }
+
+    /// <summary>An empty page list; <see cref="AddPage"/> fills it while it is still shown.</summary>
+    public void StartPages()
+    {
+        var (view, pages) = PreviewViews.PdfPages();
+        Replace(view);
+        _pages = pages;
+    }
+
+    /// <summary>Adds <paramref name="page"/> (owned by the panel from now on) under the others.</summary>
+    public void AddPage(Bitmap page)
+    {
+        if (_pages is null)
+        {
+            page.Dispose();
+            return;
+        }
+
+        PreviewViews.AddPage(_pages, page);
+        _bitmaps.Add(page);
+    }
+
+    public void ShowArchive(string header, IReadOnlyList<ArchivePreviewRow> rows)
+    {
+        Replace(PreviewViews.Archive(header, rows));
+        ArchiveRows = rows;
+    }
+
+    /// <summary>Frees what the panel holds; called when the preview goes away.</summary>
+    public void Release() => Replace(null);
+
+    // Swaps the content, then frees the bitmaps the old content showed (after it let go of them).
+    private void Replace(Control? content)
+    {
+        var old = _bitmaps.ToArray();
+        _bitmaps.Clear();
+        _pages = null;
+        ArchiveRows = [];
+        if (_editor is not null && !ReferenceEquals(content, _editor))
+        {
+            _editor.Document = new AvaloniaEdit.Document.TextDocument();
+        }
+
+        Content = content;
+        foreach (var bitmap in old)
+        {
+            bitmap.Dispose();
+        }
     }
 
     /// <summary>
@@ -56,6 +148,4 @@ internal sealed class QuickViewPanel : ContentControl
             _model.SetColumns(ViewerText.ColumnsIn(width - Chrome, view.CharWidth()));
         }
     }
-
-    public void ShowNothing() => Content = null;
 }

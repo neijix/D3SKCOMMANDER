@@ -7,6 +7,9 @@
     <PackageReference Include="SSH.NET" />
     <PackageReference Include="DiffPlex" />
     <PackageReference Include="BitMiracle.LibTiff.NET" />
+    <PackageReference Include="bblanchon.PDFium.Win32" />
+    <PackageReference Include="bblanchon.PDFium.Linux" />
+    <PackageReference Include="bblanchon.PDFium.macOS" />
     <PackageReference Include="D3sk.Update" />
   </ItemGroup>
   <ItemGroup>

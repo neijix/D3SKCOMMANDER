@@ -6,5 +6,17 @@
   "quickview.unreadable": {
     "en": "Folder: cannot be read",
     "fr": "Dossier : illisible"
+  },
+  "quickview.archive_count": {
+    "en": "{files} files, {size}",
+    "fr": "{files} fichiers, {size}"
+  },
+  "quickview.archive_error": {
+    "en": "Archive: cannot be listed",
+    "fr": "Archive : impossible d'en lister le contenu"
+  },
+  "quickview.pdf_error": {
+    "en": "PDF: cannot be shown (damaged, protected or too large)",
+    "fr": "PDF : impossible à afficher (abîmé, protégé ou trop gros)"
   }
 }

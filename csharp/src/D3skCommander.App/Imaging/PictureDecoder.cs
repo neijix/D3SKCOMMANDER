@@ -33,6 +33,40 @@ public static class PictureDecoder
         }
     }
 
+    /// <summary>
+    /// A JPEG held in memory (a camera RAW's preview), scaled down to <paramref name="width"/> pixels wide when
+    /// larger, then turned by <paramref name="orientation"/>; null when it does not decode.
+    /// </summary>
+    public static Bitmap? DecodeJpeg(ReadOnlyMemory<byte> jpeg, int orientation, int width)
+    {
+        try
+        {
+            Bitmap bitmap;
+            using (var stream = new MemoryStream(jpeg.ToArray(), writable: false))
+            {
+                bitmap = new Bitmap(stream);
+            }
+
+            if (bitmap.PixelSize.Width > width)
+            {
+                var full = bitmap;
+                using (full)
+                {
+                    var height = Math.Max(1, (int)Math.Round((double)full.PixelSize.Height * width / full.PixelSize.Width));
+                    bitmap = full.CreateScaledBitmap(new PixelSize(width, height), BitmapInterpolationMode.MediumQuality);
+                }
+            }
+
+            return orientation == PictureOrientation.Upright ? bitmap : Turn(bitmap, orientation);
+        }
+#pragma warning disable CA1031 // As Decode: a preview that does not decode is "no image", never a crash.
+        catch (Exception)
+#pragma warning restore CA1031
+        {
+            return null;
+        }
+    }
+
     /// <summary>A bitmap holding a copy of four-byte pixels (rows top to bottom, premultiplied alpha).</summary>
     internal static Bitmap FromRaster(RasterImage raster, PixelFormat? format = null)
     {
