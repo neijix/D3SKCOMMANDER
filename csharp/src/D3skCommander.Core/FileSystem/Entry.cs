@@ -48,7 +48,8 @@ public sealed class Entry
 
     /// <summary>
     /// Group number (1-based) of a row in a duplicates listing; 0 outside one. Rows of a group stay together
-    /// whatever the sort column.
+    /// whatever the sort column. The Computer view numbers its rows too: drives 1, network drives 2,
+    /// places 3, favorites 4.
     /// </summary>
     public int Group { get; internal set; }
 
