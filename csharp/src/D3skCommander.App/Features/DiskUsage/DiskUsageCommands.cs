@@ -4,6 +4,8 @@ using D3skCommander.App.Shell;
 using D3skCommander.App.ToolWindows;
 using D3skCommander.Core.Commands;
 using D3skCommander.Core.Localization;
+using D3skCommander.Core.Panels;
+using D3skCommander.Core.Providers;
 
 namespace D3skCommander.App.Features.DiskUsage;
 
@@ -18,24 +20,28 @@ public sealed class DiskUsageCommands
     private readonly DiskUsageViewModel _window;
     private readonly IDialogService _dialogs;
     private readonly ILocalizer _text;
+    private readonly IComputerSources _sources;
 
     public DiskUsageCommands(
         IPanelWorkspace panels,
         IToolWindowHost tools,
         DiskUsageViewModel window,
         IDialogService dialogs,
-        ILocalizer text)
+        ILocalizer text,
+        IComputerSources sources)
     {
         ArgumentNullException.ThrowIfNull(panels);
         ArgumentNullException.ThrowIfNull(tools);
         ArgumentNullException.ThrowIfNull(window);
         ArgumentNullException.ThrowIfNull(dialogs);
         ArgumentNullException.ThrowIfNull(text);
+        ArgumentNullException.ThrowIfNull(sources);
         _panels = panels;
         _tools = tools;
         _window = window;
         _dialogs = dialogs;
         _text = text;
+        _sources = sources;
     }
 
     public void Bind(IShellContributions shell)
@@ -47,6 +53,18 @@ public sealed class DiskUsageCommands
 
     public async Task OpenAsync()
     {
+        var snapshot = _panels.Read(_panels.ActiveSide);
+        if (ComputerAddress.IsAddress(snapshot.Path))
+        {
+            var cursor = snapshot.Cursor >= 0 && snapshot.Cursor < snapshot.Entries.Count ? snapshot.Entries[snapshot.Cursor] : null;
+            var scan = new ComputerFileSystemProvider(_sources, _text).ScanTarget(cursor);
+            _tools.Open(ToolKind.DiskUsage);
+            await (scan.Folder is { } drive
+                ? _window.BeginAsync(drive)
+                : _window.BeginDrivesAsync(scan.Drives, _sources.MountPoints())).ConfigureAwait(true);
+            return;
+        }
+
         var target = TargetFolder();
         if (target is null)
         {

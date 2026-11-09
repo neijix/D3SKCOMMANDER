@@ -7,6 +7,7 @@ using D3skCommander.App.Shell;
 using D3skCommander.Core.DiskUsage;
 using D3skCommander.Core.FileSystem;
 using D3skCommander.Core.Localization;
+using D3skCommander.Core.Panels;
 
 namespace D3skCommander.App.Features.DiskUsage;
 
@@ -21,6 +22,8 @@ public sealed partial class DiskUsageViewModel : ObservableObject, IShellWidget
     private CancellationTokenSource? _cancel;
     private SizeNode? _root;
     private long _generation;
+    private IReadOnlyList<string>? _drives;
+    private IReadOnlyList<string> _skip = [];
 
     [ObservableProperty]
     private SizeNode? _current;
@@ -76,6 +79,25 @@ public sealed partial class DiskUsageViewModel : ObservableObject, IShellWidget
     public Task BeginAsync(string folder)
     {
         ArgumentException.ThrowIfNullOrEmpty(folder);
+        _drives = null;
+        return Start(folder);
+    }
+
+    /// <summary>
+    /// Scans every drive under one root named with the Computer title at <see cref="ComputerAddress.Text"/>, leaving
+    /// out <paramref name="skip"/> (the OS mount points). Rescan repeats it.
+    /// </summary>
+    public Task BeginDrivesAsync(IReadOnlyList<string> drives, IReadOnlyList<string> skip)
+    {
+        ArgumentNullException.ThrowIfNull(drives);
+        ArgumentNullException.ThrowIfNull(skip);
+        _drives = drives;
+        _skip = skip;
+        return Start(ComputerAddress.Text);
+    }
+
+    private Task Start(string folder)
+    {
         _cancel?.Cancel();
         var cancel = new CancellationTokenSource();
         _cancel = cancel;
@@ -95,7 +117,7 @@ public sealed partial class DiskUsageViewModel : ObservableObject, IShellWidget
         return ScanTask;
     }
 
-    public Task RescanAsync() => RootPath is { } path ? BeginAsync(path) : Task.CompletedTask;
+    public Task RescanAsync() => RootPath is { } path ? Start(path) : Task.CompletedTask;
 
     public void Cancel() => _cancel?.Cancel();
 
@@ -156,6 +178,11 @@ public sealed partial class DiskUsageViewModel : ObservableObject, IShellWidget
         }
 
         var path = node.Kind == SizeNodeKind.SmallFiles ? Current?.Path ?? node.Path : node.Path;
+        if (ComputerAddress.IsAddress(path))
+        {
+            return await _panels.GoAsync(_panels.ActiveSide, ComputerAddress.Text).ConfigureAwait(true);
+        }
+
         return await _panels.RevealAsync(path).ConfigureAwait(true);
     }
 
@@ -163,7 +190,14 @@ public sealed partial class DiskUsageViewModel : ObservableObject, IShellWidget
     {
         try
         {
-            var tree = await Task.Run(() => DiskUsageScanner.Scan(folder, progress, cancel), cancel)
+            var drives = _drives;
+            var skip = _skip;
+            var name = _text.Get("computer.title");
+            var tree = await Task.Run(
+                    () => drives is null
+                        ? DiskUsageScanner.Scan(folder, progress, cancel)
+                        : DiskUsageScanner.ScanDrives(name, folder, drives, skip, progress, cancel),
+                    cancel)
                 .ConfigureAwait(true);
             if (generation != _generation)
             {
