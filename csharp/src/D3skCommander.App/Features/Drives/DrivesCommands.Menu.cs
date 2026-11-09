@@ -39,7 +39,7 @@ public sealed partial class DrivesCommands
     {
         var devices = ReadDevices();
         var home = Environment.GetFolderPath(Environment.SpecialFolder.UserProfile);
-        var places = UserPlaces.Standard(home, ReadUserDirs(home), Directory.Exists);
+        var places = UserPlaces.Standard(home, UserPlaces.ReadUserDirs(home), Directory.Exists);
         return DriveMenu.Build(_text, current, _drives.Mounted(), places, _shares.ListConnected(), devices);
     }
 
@@ -47,19 +47,6 @@ public sealed partial class DrivesCommands
     {
         var json = _devices.List();
         return json is null ? [] : BlockDevices.ParseLsblk(json);
-    }
-
-    private static string? ReadUserDirs(string home)
-    {
-        try
-        {
-            var file = Path.Combine(Environment.GetEnvironmentVariable("XDG_CONFIG_HOME") is { Length: > 0 } config ? config : Path.Combine(home, ".config"), "user-dirs.dirs");
-            return File.Exists(file) ? File.ReadAllText(file) : null;
-        }
-        catch (Exception ex) when (ex is IOException or UnauthorizedAccessException)
-        {
-            return null;
-        }
     }
 
     private async Task ActAsync(PanelSide side, DriveMenuItem item)

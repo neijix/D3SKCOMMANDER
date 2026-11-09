@@ -41,4 +41,37 @@ public class UdisksAndPlacesTests
 
         Assert.Equal(["/h", downloads], places.Select(p => p.Path));
     }
+
+    [Fact]
+    public void UserDirsAreReadFromTheConfigFolder()
+    {
+        var dir = Directory.CreateTempSubdirectory("d3sk-userdirs").FullName;
+        try
+        {
+            File.WriteAllText(Path.Combine(dir, "user-dirs.dirs"), "XDG_MUSIC_DIR=\"$HOME/Tunes\"\n");
+
+            Assert.Equal("XDG_MUSIC_DIR=\"$HOME/Tunes\"\n", UserPlaces.ReadUserDirs("/h", dir));
+        }
+        finally
+        {
+            Directory.Delete(dir, true);
+        }
+    }
+
+    [Fact]
+    public void AMissingOrUnreadableUserDirsFileGivesNull()
+    {
+        var dir = Directory.CreateTempSubdirectory("d3sk-userdirs").FullName;
+        try
+        {
+            Directory.CreateDirectory(Path.Combine(dir, "user-dirs.dirs"));
+
+            Assert.Null(UserPlaces.ReadUserDirs("/h", Path.Combine(dir, "absent")));
+            Assert.Null(UserPlaces.ReadUserDirs("/h", dir));
+        }
+        finally
+        {
+            Directory.Delete(dir, true);
+        }
+    }
 }

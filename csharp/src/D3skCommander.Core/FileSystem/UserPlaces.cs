@@ -50,6 +50,26 @@ public static class UserPlaces
         return places;
     }
 
+    /// <summary>
+    /// The text of <c>user-dirs.dirs</c> in <paramref name="configHome"/> (default: <c>XDG_CONFIG_HOME</c>, else
+    /// <c>~/.config</c> under <paramref name="home"/>); null when absent or unreadable.
+    /// </summary>
+    public static string? ReadUserDirs(string home, string? configHome = null)
+    {
+        try
+        {
+            var config = !string.IsNullOrEmpty(configHome) ? configHome
+                : Environment.GetEnvironmentVariable("XDG_CONFIG_HOME") is { Length: > 0 } env ? env
+                : System.IO.Path.Combine(home, ".config");
+            var file = System.IO.Path.Combine(config, "user-dirs.dirs");
+            return File.Exists(file) ? File.ReadAllText(file) : null;
+        }
+        catch (Exception ex) when (ex is IOException or UnauthorizedAccessException)
+        {
+            return null;
+        }
+    }
+
     /// <summary>Lines like <c>XDG_MUSIC_DIR="$HOME/Tunes"</c> as name to absolute path.</summary>
     public static Dictionary<string, string> ParseUserDirs(string? text, string home)
     {
