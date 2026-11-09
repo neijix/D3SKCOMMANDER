@@ -4,6 +4,7 @@ using D3skCommander.App.Features.Associations;
 using D3skCommander.App.Features.Catalog;
 using D3skCommander.App.Features.Clipboard;
 using D3skCommander.App.Features.Compare;
+using D3skCommander.App.Features.Computer;
 using D3skCommander.App.Features.Crypt;
 using D3skCommander.App.Features.DiskUsage;
 using D3skCommander.App.Features.Drives;
@@ -49,6 +50,7 @@ public static class AppComposition
         CatalogModule.Register(services);
         ClipboardModule.Register(services);
         CompareModule.Register(services);
+        ComputerModule.Register(services);
         CryptModule.Register(services);
         DiskUsageModule.Register(services);
         DrivesModule.Register(services);

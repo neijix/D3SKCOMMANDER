@@ -1,4 +1,5 @@
 using D3skCommander.App.Dialogs;
+using D3skCommander.App.Features.Computer;
 using D3skCommander.App.Features.Drives;
 using D3skCommander.App.Features.NetDrives;
 using D3skCommander.App.Shell;
@@ -40,7 +41,15 @@ public sealed class PanelsModule : IShellModule
     public static void Register(IServiceCollection services)
     {
         ArgumentNullException.ThrowIfNull(services);
-        services.AddSingleton<IFileSystemProvider, LocalFileSystemProvider>();
+        services.AddSingleton<IFileSystemProvider>(provider =>
+        {
+            var sources = provider.GetRequiredService<IComputerSources>();
+            return new PanelFileSystemProvider(
+                new LocalFileSystemProvider(),
+                new ComputerFileSystemProvider(sources, provider.GetRequiredService<ILocalizer>()),
+                sources,
+                provider.GetRequiredService<ComputerOptions>().RemovablePrefixes);
+        });
         services.AddSingleton<PanelWorkspace>();
         services.AddSingleton<IPanelWorkspace>(provider => provider.GetRequiredService<PanelWorkspace>());
         services.AddSingleton<PanelCommands>();
