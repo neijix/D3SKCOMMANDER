@@ -36,7 +36,7 @@ internal static class MenuExpectations
 
         if (titleKey == "menu.commands")
         {
-            return "Search QuickFind MultiRename CompareFiles Sync | DirSizes DiskUsage Branch QuickFilter | BrowseFolder Hotlist AddHotlist AddToFavorites History GoToContainingFolder | Back Forward Parent Root Home | SameDir Swap Terminal";
+            return "Search QuickFind MultiRename CompareFiles Sync | DirSizes DiskUsage Branch QuickFilter | BrowseFolder Hotlist AddHotlist AddToFavorites History GoToContainingFolder | Back Forward Parent Root Home | SameDir Swap Terminal TerminalHere TerminalAdmin PowerShellHere PowerShellAdmin";
         }
 
         if (titleKey == "menu.net")

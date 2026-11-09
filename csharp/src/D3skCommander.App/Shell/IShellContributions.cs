@@ -11,6 +11,9 @@ public interface IShellContributions
 
     bool Dispatch(CommandId command);
 
+    /// <summary>Shows a text on the main window's status line until the next dispatched command or 5 seconds, whichever comes first.</summary>
+    void SetStatus(string text);
+
     /// <summary>Gives a toggle command a check mark in its menu items, read each time a menu opens.</summary>
     void Checked(CommandId command, Func<bool> isChecked);
 

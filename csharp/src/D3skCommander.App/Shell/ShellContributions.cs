@@ -14,10 +14,29 @@ public sealed class ShellContributions : IShellContributions
     private readonly List<Func<IShellWidget>> _toolbar = [];
     private readonly List<Func<IShellWidget>> _under = [];
     private readonly List<Func<IShellWidget>> _beside = [];
+    private readonly TimeProvider _time;
+    private readonly object _statusLock = new();
     private Func<IShellWidget>? _left;
     private Func<IShellWidget>? _right;
     private bool _modulesApplied;
     private bool _startupRan;
+    private ITimer? _statusTimer;
+    private int _statusGeneration;
+    private string? _status;
+
+    public ShellContributions(TimeProvider? time = null)
+    {
+        _time = time ?? TimeProvider.System;
+    }
+
+    /// <summary>Raised with the new status text, or null when the status line goes back to its idle text. May fire on a timer thread.</summary>
+    public event Action<string?>? StatusChanged;
+
+    /// <summary>The text a feature put on the status line, or null when it shows its idle text.</summary>
+    public string? Status => Volatile.Read(ref _status);
+
+    /// <summary>How long a status text stays when no command is dispatched.</summary>
+    public static TimeSpan StatusLifetime { get; } = TimeSpan.FromSeconds(5);
 
     public IReadOnlyList<Func<IShellWidget>> MenuBarTrailing => _trailing;
 
@@ -86,8 +105,46 @@ public sealed class ShellContributions : IShellContributions
             return false;
         }
 
+        ClearStatus();
         handler();
         return true;
+    }
+
+    public void SetStatus(string text)
+    {
+        ArgumentException.ThrowIfNullOrEmpty(text);
+        lock (_statusLock)
+        {
+            _statusTimer?.Dispose();
+            var generation = ++_statusGeneration;
+            _statusTimer = _time.CreateTimer(_ => ClearStatus(generation), null, StatusLifetime, Timeout.InfiniteTimeSpan);
+            Volatile.Write(ref _status, text);
+        }
+
+        StatusChanged?.Invoke(text);
+    }
+
+    // generation: the timer that fired; a command clears whatever is showing (null).
+    private void ClearStatus(int? generation = null)
+    {
+        lock (_statusLock)
+        {
+            if (generation is not null && generation != _statusGeneration)
+            {
+                return;
+            }
+
+            _statusTimer?.Dispose();
+            _statusTimer = null;
+            if (Volatile.Read(ref _status) is null)
+            {
+                return;
+            }
+
+            Volatile.Write(ref _status, null);
+        }
+
+        StatusChanged?.Invoke(null);
     }
 
     public void Checked(CommandId command, Func<bool> isChecked)

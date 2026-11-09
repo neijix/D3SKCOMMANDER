@@ -1,3 +1,4 @@
+using Avalonia.Threading;
 using D3skCommander.App.Smoke;
 using D3skCommander.Core.Commands;
 using D3skCommander.Core.Localization;
@@ -10,6 +11,7 @@ public sealed partial class MainWindow
     private readonly ShellContributions _shell;
     private readonly MainWindowModel _model;
     private readonly ILocalizer _localizer;
+    private readonly string _idleStatus;
     private readonly List<IOwnedWindow> _owned = [];
     private bool _quitApproved;
     private bool _quitting;
@@ -29,7 +31,8 @@ public sealed partial class MainWindow
         _localizer = localizer;
         shell.ApplyModules(modules);
         shell.Handle(CommandId.Quit, () => Close());
-        StatusText = localizer.Get("st.ready");
+        _idleStatus = localizer.Get("st.ready");
+        StatusText = _idleStatus;
         LeftPanel = new ShellSlot(localizer.Get("shell.panel.left"));
         RightPanel = new ShellSlot(localizer.Get("shell.panel.right"));
         _model = new MainWindowModel(shell, localizer);
@@ -41,9 +44,11 @@ public sealed partial class MainWindow
         RightPanel.Content = BuildOne(shell.RightPanel);
         StartSize = new WindowSize(1100, 700);
         Build();
+        shell.StatusChanged += ShowStatus;
     }
 
-    public string StatusText { get; }
+    /// <summary>The status line: the idle text, or what a feature set for a few seconds (<see cref="IShellContributions.SetStatus"/>).</summary>
+    public string StatusText { get; private set; }
 
     /// <summary>The size the window opens at; <c>Bounds</c> is the laid-out rectangle.</summary>
     public WindowSize StartSize { get; }
@@ -70,6 +75,24 @@ public sealed partial class MainWindow
     public new IReadOnlyList<IOwnedWindow> OwnedWindows => _owned;
 
     public bool Dispatch(CommandId command) => _shell.Dispatch(command);
+
+    // The change may come from the clear timer's thread.
+    private void ShowStatus(string? text)
+    {
+        if (Dispatcher.UIThread.CheckAccess())
+        {
+            ApplyStatus(text);
+            return;
+        }
+
+        Dispatcher.UIThread.Post(() => ApplyStatus(text));
+    }
+
+    private void ApplyStatus(string? text)
+    {
+        StatusText = text ?? _idleStatus;
+        StatusLine.Text = StatusText;
+    }
 
     /// <summary>The window opened: the owners list, the smoke notification, then the startup actions once.</summary>
     private void HandleOpened()

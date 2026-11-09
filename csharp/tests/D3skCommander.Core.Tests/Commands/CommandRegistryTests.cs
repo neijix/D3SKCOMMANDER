@@ -12,7 +12,7 @@ public class CommandRegistryTests
         Assert.Equal(CommandId.Sync, CommandCatalog.FromName("sync"));
         Assert.Equal(CommandId.Sync, CommandCatalog.FromName("  SYNC  "));
         Assert.Null(CommandCatalog.FromName("Nope"));
-        Assert.Equal(102, CommandCatalog.All.Count);
+        Assert.Equal(106, CommandCatalog.All.Count);
         var seen = new HashSet<string>(StringComparer.Ordinal);
         foreach (var command in CommandCatalog.All)
         {
@@ -43,7 +43,7 @@ public class CommandRegistryTests
             seen[key] = command;
         }
 
-        Assert.Equal(102, seen.Count);
+        Assert.Equal(106, seen.Count);
         Assert.Equal("View file", localizer.Get(CommandCatalog.LabelKey(CommandId.View), Language.En));
         Assert.Equal("Quitter", localizer.Get(CommandCatalog.LabelKey(CommandId.Quit), Language.Fr));
         AssertEarlyKeys();
@@ -193,6 +193,10 @@ public class CommandRegistryTests
         AssertKey(CommandId.DiskUsage, "cmd.disk_usage");
         AssertKey(CommandId.QuickFind, "cmd.quick_find");
         AssertKey(CommandId.Terminal, "cmd.terminal");
+        AssertKey(CommandId.TerminalHere, "cmd.terminal_here");
+        AssertKey(CommandId.TerminalAdmin, "cmd.terminal_admin");
+        AssertKey(CommandId.PowerShellHere, "cmd.powershell_here");
+        AssertKey(CommandId.PowerShellAdmin, "cmd.powershell_admin");
         AssertKey(CommandId.Settings, "cmd.settings");
         AssertKey(CommandId.SettingsFolder, "cmd.settings_folder");
         AssertKey(CommandId.Log, "cmd.log");

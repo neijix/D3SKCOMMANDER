@@ -44,6 +44,11 @@ public sealed class LaunchModule : IShellModule
         ArgumentNullException.ThrowIfNull(shell);
         shell.Handle(CommandId.OpenWith, () => _ = _commands.OpenWithAsync());
         shell.Handle(CommandId.Terminal, _commands.OpenTerminal);
+        shell.Handle(CommandId.TerminalHere, () => _ = _commands.OpenTerminalHereAsync(TerminalKind.Terminal, elevated: false));
+        shell.Handle(CommandId.TerminalAdmin, () => _ = _commands.OpenTerminalHereAsync(TerminalKind.Terminal, elevated: true));
+        shell.Handle(CommandId.PowerShellHere, () => _ = _commands.OpenTerminalHereAsync(TerminalKind.PowerShell, elevated: false));
+        shell.Handle(CommandId.PowerShellAdmin, () => _ = _commands.OpenTerminalHereAsync(TerminalKind.PowerShell, elevated: true));
+        _commands.ShowStatus = shell.SetStatus;
         shell.AddRegion(ShellRegion.UnderPanels, () => _bar);
         shell.AppendDynamicItems("menu.tools", _commands.UserCommandItems);
         if (_panels is PanelWorkspace workspace)

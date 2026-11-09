@@ -45,6 +45,7 @@ internal sealed class LaunchHarness : IDisposable
         Runner = new RecordingRunner();
         Dialogs = new FakeDialogService();
         Commands = new LaunchCommands(workspace, Dialogs, Text, Runner, settings);
+        Commands.ShowStatus = Status.Add;
     }
 
     public string Root { get; }
@@ -64,6 +65,9 @@ internal sealed class LaunchHarness : IDisposable
     public FakeDialogService Dialogs { get; }
 
     public LaunchCommands Commands { get; }
+
+    /// <summary>The status-line texts the commands set.</summary>
+    public List<string> Status { get; } = [];
 
     public static async Task<LaunchHarness> Open()
     {

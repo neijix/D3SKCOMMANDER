@@ -15,6 +15,22 @@
     "en": "%s = the selected files; without %s they are appended.",
     "fr": "%s = les fichiers sélectionnés ; sans %s ils sont ajoutés à la fin."
   },
+  "launch.windows_only": {
+    "en": "This command is available on Windows only",
+    "fr": "Cette commande n'existe que sous Windows"
+  },
+  "launch.powershell_unavailable": {
+    "en": "PowerShell is not available on this system",
+    "fr": "PowerShell n'est pas disponible sur ce système"
+  },
+  "launch.cancelled": {
+    "en": "Cancelled: administrator permission was not given",
+    "fr": "Annulé : l'autorisation administrateur n'a pas été donnée"
+  },
+  "launch.refused": {
+    "en": "Not started",
+    "fr": "Non lancé"
+  },
   "launch.failed": {
     "en": "Could not start the program",
     "fr": "Impossible de lancer le programme"

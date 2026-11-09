@@ -89,6 +89,10 @@ internal static class MenuLayout
         CommandId.SameDir,
         CommandId.Swap,
         CommandId.Terminal,
+        CommandId.TerminalHere,
+        CommandId.TerminalAdmin,
+        CommandId.PowerShellHere,
+        CommandId.PowerShellAdmin,
     ]);
 
     private static MenuDefinition Net() => Menu("menu.net",

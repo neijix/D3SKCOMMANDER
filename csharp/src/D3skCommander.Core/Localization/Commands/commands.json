@@ -311,6 +311,22 @@
     "en": "Open terminal here",
     "fr": "Terminal ici"
   },
+  "cmd.terminal_here": {
+    "en": "Terminal here",
+    "fr": "Terminal dans ce dossier"
+  },
+  "cmd.terminal_admin": {
+    "en": "Terminal here (administrator)",
+    "fr": "Terminal dans ce dossier (administrateur)"
+  },
+  "cmd.powershell_here": {
+    "en": "PowerShell here",
+    "fr": "PowerShell dans ce dossier"
+  },
+  "cmd.powershell_admin": {
+    "en": "PowerShell here (administrator)",
+    "fr": "PowerShell dans ce dossier (administrateur)"
+  },
   "cmd.settings": {
     "en": "Settings…",
     "fr": "Options…"

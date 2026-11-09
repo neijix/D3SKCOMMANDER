@@ -10,7 +10,7 @@ using D3skCommander.Core.Toolbar;
 namespace D3skCommander.App.Features.Launch;
 
 /// <summary>OpenWith, Terminal, user commands and the default open. Arguments go as argv; nothing here builds a shell string.</summary>
-public sealed class LaunchCommands : IFileLauncher
+public sealed partial class LaunchCommands : IFileLauncher
 {
     private readonly IPanelWorkspace _panels;
     private readonly IDialogService _dialogs;
