@@ -9,6 +9,9 @@ public sealed partial class PanelWorkspace
     /// <summary>Whether the drive bar shows above both panels (saved in the preferences).</summary>
     public bool ShowDriveBar => _showDriveBar;
 
+    /// <summary>The favorite folders (the hotlist), shown after the drives in the drive bar; empty without settings.</summary>
+    public IReadOnlyList<Core.Settings.HotlistItem> Favorites => _settings?.Hotlist.Current.Items ?? [];
+
     public void ToggleDriveBar()
     {
         _showDriveBar = !_showDriveBar;

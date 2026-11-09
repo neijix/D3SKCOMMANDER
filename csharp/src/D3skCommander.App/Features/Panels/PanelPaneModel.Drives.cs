@@ -35,7 +35,7 @@ public sealed partial class PanelPaneModel
     private void TickDrives(string path)
     {
         ShowDriveBar = _panels.ShowDriveBar;
-        if (ShowDriveBar && _driveBar is { } bar && bar.Update(path))
+        if (ShowDriveBar && _driveBar is { } bar && bar.Update(path, _panels.Favorites))
         {
             DriveButtons = bar.Buttons;
         }

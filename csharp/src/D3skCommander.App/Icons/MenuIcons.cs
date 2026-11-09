@@ -30,9 +30,12 @@ public static class MenuIcons
         CommandId.TerminalAdmin => Make(blue: false, admin: true),
         CommandId.PowerShellHere => Make(blue: true, admin: false),
         CommandId.PowerShellAdmin => Make(blue: true, admin: true),
-        CommandId.AddToFavorites => new Panel { Width = 16, Height = 16, Children = { Glyph(Star, ShieldGold) } },
+        CommandId.AddToFavorites => FavoriteStar(),
         _ => null,
     };
+
+    /// <summary>The gold star of a favorite folder, 16 units square.</summary>
+    public static Control FavoriteStar() => new Panel { Width = 16, Height = 16, Children = { Glyph(Star, ShieldGold) } };
 
     private static Panel Make(bool blue, bool admin)
     {

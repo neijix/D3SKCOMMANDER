@@ -1,11 +1,15 @@
 using D3skCommander.App.Features.Drives;
 using D3skCommander.Core.FileSystem;
 using D3skCommander.Core.Localization;
+using D3skCommander.Core.Settings;
 
 namespace D3skCommander.App.Features.Panels;
 
-/// <summary>One button of the drive bar. <see cref="Holds"/> marks the drive that holds the panel's folder.</summary>
-public sealed record DriveButton(string Path, string Text, string Tip, bool Holds);
+/// <summary>
+/// One button of the drive bar: a drive, or a favorite folder when <see cref="Favorite"/> is set. <see cref="Holds"/>
+/// marks the drive that holds the panel's folder.
+/// </summary>
+public sealed record DriveButton(string Path, string Text, string Tip, bool Holds, bool Favorite = false);
 
 /// <summary>
 /// The buttons above a panel. The volumes are polled on a worker every few seconds; <see cref="Update"/>
@@ -21,6 +25,7 @@ public sealed class DriveBarModel
     private IReadOnlyList<DriveEntry> _drives = [];
     private IReadOnlyList<DriveEntry>? _applied;
     private string _path = "\0";
+    private (string Name, string Path)[] _favorites = [];
     private DateTimeOffset _next = DateTimeOffset.MinValue;
     private int _busy;
 
@@ -35,24 +40,35 @@ public sealed class DriveBarModel
 
     public IReadOnlyList<DriveButton> Buttons { get; private set; } = [];
 
-    /// <summary>Starts a poll when one is due, then rebuilds the buttons if the list or the folder changed.</summary>
-    public bool Update(string path)
+    /// <summary>
+    /// Starts a poll when one is due, then rebuilds the buttons if the drives, the folder or the
+    /// <paramref name="favorites"/> (shown after the drives, by name) changed.
+    /// </summary>
+    public bool Update(string path, IReadOnlyList<HotlistItem>? favorites = null)
     {
         ArgumentNullException.ThrowIfNull(path);
         Poll();
         var drives = Volatile.Read(ref _drives);
-        if (ReferenceEquals(drives, _applied) && path == _path)
+        favorites ??= [];
+        if (ReferenceEquals(drives, _applied) && path == _path && SameFavorites(favorites))
         {
             return false;
         }
 
         _applied = drives;
         _path = path;
+        _favorites = favorites.Select(item => (item.Name, item.Path)).ToArray();
         var holder = DriveList.Holding(drives, path);
-        var next = new List<DriveButton>(drives.Count);
+        var next = new List<DriveButton>(drives.Count + favorites.Count);
         foreach (var drive in drives)
         {
             next.Add(new DriveButton(drive.Path, DriveList.ShortName(drive.Path), TipOf(drive), ReferenceEquals(drive, holder)));
+        }
+
+        foreach (var (name, place) in _favorites)
+        {
+            var text = name.Length > 0 ? name : System.IO.Path.GetFileName(place.TrimEnd('/', '\\'));
+            next.Add(new DriveButton(place, text.Length > 0 ? text : place, place, Holds: false, Favorite: true));
         }
 
         if (next.SequenceEqual(Buttons))
@@ -61,6 +77,24 @@ public sealed class DriveBarModel
         }
 
         Buttons = next;
+        return true;
+    }
+
+    private bool SameFavorites(IReadOnlyList<HotlistItem> favorites)
+    {
+        if (favorites.Count != _favorites.Length)
+        {
+            return false;
+        }
+
+        for (var i = 0; i < favorites.Count; i++)
+        {
+            if (favorites[i].Name != _favorites[i].Name || favorites[i].Path != _favorites[i].Path)
+            {
+                return false;
+            }
+        }
+
         return true;
     }
 

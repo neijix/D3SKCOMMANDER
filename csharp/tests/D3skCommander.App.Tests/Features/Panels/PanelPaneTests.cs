@@ -36,17 +36,17 @@ public class PanelPaneTests
     public async Task EachPaneHasTheBarButtonsAndAClickRunsThemOnThatSide()
     {
         using var rig = await Rig.Opened();
-        CommandId[] shared = [CommandId.Parent, CommandId.Hotlist, CommandId.History, CommandId.NetConnect, CommandId.Ftp, CommandId.PreviewPanel];
+        CommandId[] shared = [CommandId.Parent, CommandId.History, CommandId.NetConnect, CommandId.Ftp, CommandId.PreviewPanel];
         Assert.Equal([CommandId.Computer, .. shared], rig.LeftView.BarButtons.Select(b => (CommandId)b.Tag!));
         Assert.Equal([CommandId.Computer, .. shared], rig.RightView.BarButtons.Select(b => (CommandId)b.Tag!));
         Assert.All(rig.LeftView.BarButtons, b => Assert.True(b.Bounds.Width > 0));
-        Assert.Equal($"Favorites ({(OperatingSystem.IsMacOS() ? "Cmd" : "Ctrl")}+D)", ToolTip.GetTip(rig.LeftView.BarButtons[2]));
+        Assert.DoesNotContain(rig.LeftView.BarButtons, b => (CommandId)b.Tag! == CommandId.Hotlist);
         Assert.Equal(PanelSide.Left, rig.Workspace.ActiveSide);
 
         rig.ClickControl(rig.RightView.BarButtons[2]);
-        rig.ClickControl(rig.RightView.BarButtons[5]);
+        rig.ClickControl(rig.RightView.BarButtons[4]);
 
-        Assert.Equal([(CommandId.Hotlist, PanelSide.Right), (CommandId.Ftp, PanelSide.Right)], rig.Dispatched);
+        Assert.Equal([(CommandId.History, PanelSide.Right), (CommandId.Ftp, PanelSide.Right)], rig.Dispatched);
     }
 
     [AvaloniaFact]

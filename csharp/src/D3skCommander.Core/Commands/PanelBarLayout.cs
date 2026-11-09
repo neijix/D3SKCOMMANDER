@@ -2,8 +2,8 @@ namespace D3skCommander.Core.Commands;
 
 /// <summary>
 /// The icon buttons in front of each panel's path box, left to right: Home (drives and favorites), parent,
-/// hotlist, history, network, FTP and the preview mode. The bar runs a button's command on the panel it sits on. The drive
-/// menu stays on its keys and the drive buttons above.
+/// history, network, FTP and the preview mode. The bar runs a button's command on the panel it sits on. The
+/// drive menu stays on its keys; the drive buttons and the favorites sit in the drive bar above.
 /// </summary>
 internal static class PanelBarLayout
 {
@@ -11,7 +11,6 @@ internal static class PanelBarLayout
     [
         CommandId.Computer,
         CommandId.Parent,
-        CommandId.Hotlist,
         CommandId.History,
         CommandId.NetConnect,
         CommandId.Ftp,

@@ -10,6 +10,7 @@ using D3skCommander.App.Tests.Dialogs;
 using D3skCommander.Core.FileSystem;
 using D3skCommander.Core.Localization;
 using D3skCommander.Core.Providers;
+using D3skCommander.Core.Settings;
 using Xunit;
 using TextCatalog = D3skCommander.Core.Localization.Localizer;
 
@@ -66,6 +67,28 @@ public class DriveBarTests
 
         rig.Workspace.ToggleDriveBar();
         await rig.WaitUntil(() => rig.Scroll.IsVisible);
+    }
+
+    [Fact]
+    public async Task TheFavoritesFollowTheDrivesByName()
+    {
+        var bar = new DriveBarModel(new FakeDrives(new DriveEntry("/a", "Alpha", "ext4", 10, 100)), TextCatalog.Load(Language.En, Language.En));
+        List<HotlistItem> favorites = [new("Projects", "/a/projects"), new("", "/a/music/")];
+        for (var i = 0; i < 200 && bar.Buttons.Count < 3; i++)
+        {
+            bar.Update("/a", favorites);
+            await Task.Delay(10, TestContext.Current.CancellationToken);
+        }
+
+        Assert.Equal(["/a", "/a/projects", "/a/music/"], bar.Buttons.Select(b => b.Path));
+        Assert.Equal([false, true, true], bar.Buttons.Select(b => b.Favorite));
+        Assert.Equal("Projects", bar.Buttons[1].Text);
+        Assert.Equal("music", bar.Buttons[2].Text);
+
+        favorites[0].Name = "Work";
+        Assert.True(bar.Update("/a", favorites));
+        Assert.Equal("Work", bar.Buttons[1].Text);
+        Assert.False(bar.Update("/a", favorites));
     }
 
     private sealed class FakeDrives(params DriveEntry[] list) : IDriveSource

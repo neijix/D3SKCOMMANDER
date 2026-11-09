@@ -24,7 +24,7 @@ public class CommandRegistryTests
     [Fact]
     public void BothPanelBarsStartWithHomeThenTheSharedPlaces()
     {
-        CommandId[] shared = [CommandId.Parent, CommandId.Hotlist, CommandId.History, CommandId.NetConnect, CommandId.Ftp, CommandId.PreviewPanel];
+        CommandId[] shared = [CommandId.Parent, CommandId.History, CommandId.NetConnect, CommandId.Ftp, CommandId.PreviewPanel];
         Assert.Equal([CommandId.Computer, .. shared], CommandCatalog.PanelBar(leftPanel: true));
         Assert.Equal([CommandId.Computer, .. shared], CommandCatalog.PanelBar(leftPanel: false));
     }
