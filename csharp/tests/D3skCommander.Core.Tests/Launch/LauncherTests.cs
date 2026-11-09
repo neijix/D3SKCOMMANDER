@@ -165,7 +165,7 @@ public class LauncherTests
         Assert.True(info.RedirectStandardError);
         if (OperatingSystem.IsWindows())
         {
-            Assert.Equal("cmd", info.FileName);
+            Assert.Equal(Path.Combine(Environment.SystemDirectory, "cmd.exe"), info.FileName);
             Assert.Equal("/C echo \"a b\"", info.Arguments);
             return;
         }
@@ -288,13 +288,36 @@ public class LauncherTests
     }
 
     [Fact]
-    public void WindowsOverrideWithAFullyQualifiedProgramIsKeptAsIs()
+    public void WindowsOverrideWithAFullyQualifiedProgramIsWrappedLikeAResolvedOne()
     {
         var runner = new RecordingRunner();
-        var result = Launcher.OpenTerminal(@"""C:\Tools\my term.exe"" --x", @"C:\work", runner, LaunchPlatform.Windows, _ => throw new InvalidOperationException("no lookup"));
+        var program = Path.Combine(Path.GetTempPath(), "my term.exe");
+        var result = Launcher.OpenTerminal("\"" + program + "\" -d \"C:\\x y\"", @"C:\work", runner, LaunchPlatform.Windows, _ => throw new InvalidOperationException("no lookup"));
         Assert.True(result.IsSuccess);
         var shell = Assert.IsType<ProcessRequest.Shell>(Assert.Single(runner.Requests));
-        Assert.Equal(@"""C:\Tools\my term.exe"" --x", shell.CommandLine);
+        Assert.Equal("\"\"" + program + "\" -d \"C:\\x y\"\"", shell.CommandLine);
+    }
+
+    [Fact]
+    public void WindowsOverrideWithAPercentInTheProgramPathIsRefused()
+    {
+        var runner = new RecordingRunner();
+        var given = Path.Combine(Path.GetTempPath(), "100%.exe");
+        var result = Launcher.OpenTerminal("\"" + given + "\" --x", @"C:\work", runner, LaunchPlatform.Windows, _ => throw new InvalidOperationException("no lookup"));
+        Assert.Equal(LaunchRefusal.ProgramNotFound, result.Refusal);
+
+        result = Launcher.OpenTerminal("tty --x", @"C:\work", runner, LaunchPlatform.Windows, _ => Path.Combine(Path.GetTempPath(), "a%b.exe"));
+        Assert.Equal(LaunchRefusal.ProgramNotFound, result.Refusal);
+        Assert.Empty(runner.Requests);
+    }
+
+    [Fact]
+    public void WindowsOverrideResolvedToANonFullyQualifiedPathIsRefused()
+    {
+        var runner = new RecordingRunner();
+        var result = Launcher.OpenTerminal("tty --x", @"C:\work", runner, LaunchPlatform.Windows, _ => "tty.exe");
+        Assert.Equal(LaunchRefusal.ProgramNotFound, result.Refusal);
+        Assert.Empty(runner.Requests);
     }
 
     [Fact]

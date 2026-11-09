@@ -125,7 +125,7 @@ internal static class ExecutablePath
             foreach (var extension in extensions)
             {
                 var candidate = Path.Combine(directory, program + extension);
-                if (ExistsSafe(candidate))
+                if (Path.IsPathFullyQualified(candidate) && ExistsSafe(candidate))
                 {
                     return candidate;
                 }

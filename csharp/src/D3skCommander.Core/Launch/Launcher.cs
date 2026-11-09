@@ -170,13 +170,10 @@ public static class Launcher
             return null;
         }
 
-        if (Path.IsPathFullyQualified(token))
-        {
-            return line;
-        }
+        var full = Path.IsPathFullyQualified(token) ? token : resolve(token);
 
-        var full = resolve(token);
-        if (string.IsNullOrEmpty(full))
+        // A resolved path must be absolute, and a % would let cmd expand a variable inside the program path.
+        if (string.IsNullOrEmpty(full) || !Path.IsPathFullyQualified(full) || full.Contains('%', StringComparison.Ordinal))
         {
             return null;
         }

@@ -30,7 +30,7 @@ public class TerminalLaunchTests
         Assert.True(Open(runner, TerminalKind.Terminal, false, @"C:\a&b^c%d!e'f’g(h)", OnPath()).IsSuccess);
         var cmd = Assert.IsType<ProcessRequest.Argv>(runner.Requests[1]);
         Assert.Equal(Path.Combine(Environment.SystemDirectory, "cmd.exe"), cmd.Program);
-        Assert.Equal(["/c", "start", "cmd"], cmd.Arguments);
+        Assert.Equal(["/c", "start", cmd.Program], cmd.Arguments);
         Assert.Equal(@"C:\a&b^c%d!e'f’g(h)", cmd.WorkingDirectory);
     }
 

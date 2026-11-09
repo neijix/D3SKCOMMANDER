@@ -75,7 +75,7 @@ public static class TerminalLaunch
         {
             ProcessRequest plain = wt
                 ? new ProcessRequest.Argv(wtPath!, ["-d", directory.Replace(";", "\\;", StringComparison.Ordinal)], directory, true, false)
-                : new ProcessRequest.Argv(CmdPath(), ["/c", "start", "cmd"], directory, true, false);
+                : new ProcessRequest.Argv(CmdPath(), ["/c", "start", CmdPath()], directory, true, false);
             return Launcher.Start(plain, runner, null);
         }
 

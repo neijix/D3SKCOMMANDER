@@ -24,6 +24,14 @@ public class ExecutablePathTests : IDisposable
     private static string Join(params string[] entries) => string.Join(Path.PathSeparator, entries);
 
     [Fact]
+    public void ARootedOrDriveRelativeTokenResolvesToNull()
+    {
+        var dir = Dir("bin", "wt.exe");
+        Assert.Null(ExecutablePath.Resolve(@"\wt", dir, ".exe", windows: true));
+        Assert.Null(ExecutablePath.Resolve("C:wt.exe", dir, ".exe", windows: true));
+    }
+
+    [Fact]
     public void ARelativePathEntryIsSkipped()
     {
         // A folder that really exists below the current one, so only the relative entry rule can reject it.

@@ -99,7 +99,7 @@ public sealed class ProcessRunner : IProcessRunner
         {
             var cmd = new ProcessStartInfo
             {
-                FileName = "cmd",
+                FileName = Path.Combine(Environment.SystemDirectory, "cmd.exe"),
                 WorkingDirectory = shell.WorkingDirectory,
                 UseShellExecute = false,
                 CreateNoWindow = true,
