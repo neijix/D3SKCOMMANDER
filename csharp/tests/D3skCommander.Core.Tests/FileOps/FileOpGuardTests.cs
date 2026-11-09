@@ -17,8 +17,8 @@ public class FileOpGuardTests
     {
         Assert.True(FileOpGuard.IsRefused(op, Folder, ComputerAddress.Text));
         Assert.True(FileOpGuard.IsRefused(op, Folder, "  COMPUTER:/usb"));
-        // Move is the one write op also refused from Computer (see ChangingItemsListedAtComputerIsRefused).
-        Assert.Equal(op == GuardedOp.Move, FileOpGuard.IsRefused(op, ComputerAddress.Text, Folder));
+        // Copy alone is allowed from Computer to a real folder; the others are refused there.
+        Assert.Equal(op != GuardedOp.Copy, FileOpGuard.IsRefused(op, ComputerAddress.Text, Folder));
     }
 
     [Theory]
@@ -28,6 +28,15 @@ public class FileOpGuardTests
     {
         Assert.True(FileOpGuard.IsRefused(op, ComputerAddress.Text));
         Assert.False(FileOpGuard.IsRefused(op, Folder));
+    }
+
+    [Theory]
+    [InlineData(GuardedOp.Paste)]
+    [InlineData(GuardedOp.NewFolder)]
+    public void PasteAndNewFolderAtComputerAreRefusedEvenForADriveRowTarget(GuardedOp op)
+    {
+        Assert.True(FileOpGuard.IsRefused(op, ComputerAddress.Text, "C:\\"));
+        Assert.True(FileOpGuard.IsRefused(op, ComputerAddress.Text, "/mnt/usb"));
     }
 
     [Theory]
@@ -50,7 +59,8 @@ public class FileOpGuardTests
     [Theory]
     [InlineData("computer:", true)]
     [InlineData("Computer:/x", true)]
-    [InlineData("computer:x", false)]
+    [InlineData("computer:x", true)]
+    [InlineData("computers:", false)]
     [InlineData("/data", false)]
     [InlineData(null, false)]
     public void ATargetFolderIsRefusedAtTheAddressOrUnderIt(string? target, bool refused)

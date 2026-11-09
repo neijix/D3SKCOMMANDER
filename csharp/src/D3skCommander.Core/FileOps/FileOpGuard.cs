@@ -32,8 +32,9 @@ public static class FileOpGuard
         var changes = op is GuardedOp.Delete or GuardedOp.Move or GuardedOp.Cut or GuardedOp.Rename;
         if (writes)
         {
+            // Paste and new folder write into the active folder whatever the target (a drive row's menu).
             var into = targetFolder ?? (op is GuardedOp.Paste or GuardedOp.NewFolder ? activeFolder : null);
-            if (IsTargetRefused(into))
+            if (IsTargetRefused(into) || (op is GuardedOp.Paste or GuardedOp.NewFolder && IsTargetRefused(activeFolder)))
             {
                 return true;
             }

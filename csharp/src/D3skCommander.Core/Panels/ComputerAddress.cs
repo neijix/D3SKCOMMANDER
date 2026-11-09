@@ -13,22 +13,12 @@ public static class ComputerAddress
     public static bool IsAddress(string? text) =>
         text is not null && string.Equals(text.Trim(), Text, StringComparison.OrdinalIgnoreCase);
 
-    /// <summary>True for the address, or the address followed by a separator and more.</summary>
-    public static bool IsAddressOrUnder(string? text)
-    {
-        if (text is null)
-        {
-            return false;
-        }
-
-        var trimmed = text.Trim();
-        if (trimmed.Length <= Text.Length)
-        {
-            return IsAddress(trimmed);
-        }
-
-        return trimmed.StartsWith(Text, StringComparison.OrdinalIgnoreCase) && IsSeparator(trimmed[Text.Length]);
-    }
+    /// <summary>
+    /// True for any text starting with the address (so typed names such as <c>computer:sums</c> count),
+    /// in any case, ignoring leading blanks.
+    /// </summary>
+    public static bool IsAddressOrUnder(string? text) =>
+        text is not null && text.Trim().StartsWith(Text, StringComparison.OrdinalIgnoreCase);
 
     /// <summary>
     /// Whether going up from <paramref name="path"/> leads to Computer: it is a path root, or one of

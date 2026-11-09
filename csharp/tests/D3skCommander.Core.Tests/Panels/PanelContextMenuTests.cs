@@ -111,6 +111,16 @@ public class PanelContextMenuTests
     }
 
     [Fact]
+    public void ComputerFolderRowHasNoPasteButARealRemoteFolderKeepsIt()
+    {
+        var computerRow = new PanelContextTarget(
+            ContextTargetKind.Folder, PanelProviderKind.Remote, ComputerAddress.Text, "C:\\", ["C:\\"]);
+        Assert.DoesNotContain("ClipPaste", Show(computerRow));
+        Assert.Contains("ClipCopy", Show(computerRow));
+        Assert.Contains("ClipPaste", Show(Target(ContextTargetKind.Folder, PanelProviderKind.Remote)));
+    }
+
+    [Fact]
     public void LocalEmptySpace() =>
         Assert.Equal(
             "ClipPaste MkDir EditNew Refresh - AddToFavorites - TerminalHere - Properties",

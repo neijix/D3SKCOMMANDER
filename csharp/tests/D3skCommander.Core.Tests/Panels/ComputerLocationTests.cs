@@ -31,7 +31,12 @@ public class ComputerLocationTests : IDisposable
     [InlineData("computer:", true)]
     [InlineData("Computer:/x", true)]
     [InlineData("computer:\\x", true)]
-    [InlineData("computer:x", false)]
+    [InlineData("computer:x", true)]
+    [InlineData("COMPUTER:sums", true)]
+    [InlineData(" computer:a/b", true)]
+    [InlineData("computer:cat.dcat", true)]
+    [InlineData("computers:", false)]
+    [InlineData("computer", false)]
     [InlineData("C:\\computer:", false)]
     public void AnAddressOrAPathUnderItIsRecognized(string text, bool expected)
     {

@@ -89,7 +89,8 @@ public static class PanelContextMenu
         }
 
         var clipboard = new List<MenuEntry> { MenuEntry.Of(CommandId.ClipCut), MenuEntry.Of(CommandId.ClipCopy) };
-        if (clipboardHasFiles)
+        // A Computer row is read-only: pasting "into" a drive row would write into the drive root.
+        if (clipboardHasFiles && !(isFolder && ComputerAddress.IsAddress(target.PanelFolder)))
         {
             clipboard.Add(MenuEntry.Of(CommandId.ClipPaste));
         }
