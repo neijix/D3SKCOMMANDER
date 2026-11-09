@@ -3,8 +3,8 @@ using Avalonia.Controls;
 using Avalonia.Controls.Documents;
 using Avalonia.Controls.Shapes;
 using Avalonia.Media;
-using Path = Avalonia.Controls.Shapes.Path;
 using D3skCommander.Core.Commands;
+using Path = Avalonia.Controls.Shapes.Path;
 
 namespace D3skCommander.App.Icons;
 
