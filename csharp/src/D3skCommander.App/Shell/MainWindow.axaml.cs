@@ -23,7 +23,8 @@ public sealed partial class MainWindow : Window
 
         foreach (var widget in MenuBarTrailing)
         {
-            TrailingMenu.Items.Add(widget.CreateContent());
+            var content = widget.CreateContent();
+            TrailingBar.Children.Add(content is MenuItem item ? new Menu { Items = { item } } : content);
         }
 
         foreach (var button in FunctionKeys)

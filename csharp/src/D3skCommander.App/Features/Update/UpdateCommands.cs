@@ -23,7 +23,7 @@ public sealed class UpdateCommands
     private readonly PreferencesStore _preferences;
     private readonly Func<bool> _screenshotActive;
     private readonly Func<bool> _disabledByEnvironment;
-    private readonly UpdateMenuItem _menuItem;
+    private readonly UpdateBadge _badge;
     private readonly IJobService _jobs;
     private readonly IUrlOpener _opener;
 
@@ -57,16 +57,16 @@ public sealed class UpdateCommands
         _disabledByEnvironment = disabledByEnvironment;
         _jobs = jobs ?? new JobService();
         _opener = opener ?? new ProcessUrlOpener();
-        _menuItem = new UpdateMenuItem(Open);
+        _badge = new UpdateBadge(checker.Environment.Version, text.Get("update.current"), Open);
     }
 
-    public UpdateMenuItem MenuItem => _menuItem;
+    public UpdateBadge Badge => _badge;
 
     public void Bind(IShellContributions shell)
     {
         ArgumentNullException.ThrowIfNull(shell);
         shell.Handle(CommandId.CheckUpdate, Open);
-        shell.AddMenuBarTrailing(() => _menuItem);
+        shell.AddMenuBarTrailing(() => _badge);
         shell.OnStartup(() => _ = CheckAtStartAsync());
         _tools.Register(ToolKind.Update, CreateView);
     }
@@ -90,7 +90,7 @@ public sealed class UpdateCommands
         return model;
     }
 
-    /// <summary>The quiet start-up check. A failure stays silent; a newer release shows the menu-bar item.</summary>
+    /// <summary>The quiet start-up check. A failure stays silent; a newer release shows the Update button.</summary>
     public async Task<bool> CheckAtStartAsync()
     {
         if (!UpdateChecker.ShouldCheckAtStart(_preferences.Current.CheckUpdates, _screenshotActive(), _disabledByEnvironment()))
@@ -106,11 +106,12 @@ public sealed class UpdateCommands
     private void Open() => _tools.Open(ToolKind.Update);
 
     /// <summary>
-    /// The menu-bar item: "Update to X" for a newer signed release, "sign in needed" when the quiet check met a private
+    /// The top-right Update button: "Update to X" for a newer signed release, "sign in needed" when the quiet check met a private
     /// repository without a token (it never starts the sign-in itself), else hidden.
     /// </summary>
     private void ShowFound(UpdateCheck check)
     {
+        var newer = check.Status == CheckStatus.Newer && check.Offer is not null;
         var header = check.Status switch
         {
             CheckStatus.Newer when check.Offer is { } offer =>
@@ -118,6 +119,6 @@ public sealed class UpdateCommands
             CheckStatus.SignInNeeded => _text.Get("update.sign_in_needed"),
             _ => "",
         };
-        _menuItem.Set(header);
+        _badge.Set(header, newer);
     }
 }

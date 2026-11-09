@@ -250,7 +250,7 @@ public class UpdateWindowTests
         var hooked = Commands(releases, Releases.Environment(), screenshotActive: true);
         Assert.False(await hooked.CheckAtStartAsync());
         Assert.Empty(releases.Seen);
-        Assert.False(hooked.MenuItem.IsShown);
+        Assert.False(hooked.Badge.IsShown);
     }
 
     [Fact]
@@ -262,11 +262,12 @@ public class UpdateWindowTests
         Assert.True(await commands.CheckAtStartAsync());
 
         Assert.NotEmpty(releases.Seen);
-        Assert.Equal("Update to 0.3.0", commands.MenuItem.Header);
+        Assert.Equal("Update to 0.3.0", commands.Badge.Header);
+        Assert.Equal("v" + Releases.Environment().Version, commands.Badge.VersionText);
 
         var quiet = Commands(new FakeReleases("0.3.0", Releases.Environment()) { Offline = true }, Releases.Environment());
         Assert.True(await quiet.CheckAtStartAsync());
-        Assert.False(quiet.MenuItem.IsShown);
+        Assert.False(quiet.Badge.IsShown);
     }
 
     [Fact]
@@ -277,7 +278,7 @@ public class UpdateWindowTests
 
         Assert.True(await commands.CheckAtStartAsync());
 
-        Assert.Equal(English.Get("update.sign_in_needed"), commands.MenuItem.Header);
+        Assert.Equal(English.Get("update.sign_in_needed"), commands.Badge.Header);
         Assert.DoesNotContain(releases.Seen, s => s.StartsWith("POST", StringComparison.Ordinal));
         Assert.DoesNotContain(releases.Seen, s => s.Contains("github.com/login", StringComparison.Ordinal));
     }

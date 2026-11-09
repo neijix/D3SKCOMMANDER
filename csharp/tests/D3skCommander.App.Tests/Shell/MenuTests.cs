@@ -114,9 +114,9 @@ public class MenuTests
     public void AMenuBarTrailingItemIsShown()
     {
         using var host = ShellHost.Open(Language.En, services => services.AddSingleton<IShellModule>(new AppendProbe()));
-        var trailing = host.Window.FindControl<Menu>("TrailingMenu");
+        var trailing = host.Window.FindControl<StackPanel>("TrailingBar");
         Assert.NotNull(trailing);
-        var item = Assert.IsType<MenuItem>(Assert.Single(trailing.Items, entry => entry is MenuItem menu && Equals(menu.Header, "probe")));
+        var item = Assert.Single(trailing.Children.OfType<Menu>().SelectMany(menu => menu.Items.OfType<MenuItem>()), menu => Equals(menu.Header, "probe"));
         Assert.True(item.IsVisible);
     }
 

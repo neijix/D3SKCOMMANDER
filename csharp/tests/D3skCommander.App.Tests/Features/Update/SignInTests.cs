@@ -36,7 +36,7 @@ public class SignInTests
 
         await commands.CheckAtStartAsync();
 
-        Assert.Equal(English.Get("update.sign_in_needed"), commands.MenuItem.Header);
+        Assert.Equal(English.Get("update.sign_in_needed"), commands.Badge.Header);
         Assert.DoesNotContain(rig.Github.Seen, s => s.StartsWith("POST", StringComparison.Ordinal));
         Assert.Empty(rig.Opener.Opened);
 

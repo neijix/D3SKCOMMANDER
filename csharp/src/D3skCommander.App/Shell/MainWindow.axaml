@@ -7,7 +7,7 @@
   <DockPanel Background="{DynamicResource SystemRegionBrush}">
     <Grid DockPanel.Dock="Top">
       <Menu x:Name="MainMenu" HorizontalAlignment="Left"/>
-      <Menu x:Name="TrailingMenu" HorizontalAlignment="Right"/>
+      <StackPanel x:Name="TrailingBar" Orientation="Horizontal" HorizontalAlignment="Right" VerticalAlignment="Center"/>
     </Grid>
     <StackPanel x:Name="ToolbarHost" DockPanel.Dock="Top"/>
     <UniformGrid x:Name="FunctionKeyBar" DockPanel.Dock="Bottom" Rows="1" Margin="4,2"/>
