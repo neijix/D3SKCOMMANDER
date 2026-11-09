@@ -157,12 +157,28 @@ Pillow) turns its PNGs into `packaging/icons/`.
 
 ### CI
 
-There is no per-push CI: `./check.sh` runs locally before every commit. The same gate on macOS
-and Windows runs on GitHub on demand (`gh workflow run check-desktop.yml`), the only workflow; it has
-a daily cap (`.github/ci-quota.sh`, UTC day): at most 2 macOS jobs a day and 4
-runs a day. Change the caps with repository variables
-(`gh variable set CI_MAX_MACOS_PER_DAY --body 3`, `CI_MAX_RUNS_PER_DAY`); skip them once with
-`-f force=true`.
+`./check.sh` runs locally before every commit; there is no per-push CI. The same gate runs on
+other operating systems on demand, on **self-hosted runners only** (never GitHub-hosted ones):
+`gh workflow run ci.yml` queues one job per OS (Linux, Windows, macOS) and any online runner of
+that OS picks it up; `-f os='["Windows"]'` picks the OSes. A job whose OS has no runner online
+waits in the queue (`gh run cancel` drops it). Packages are never built by a workflow:
+`./release.sh` builds them locally.
+
+To add a machine as a runner (Settings → Actions → Runners → New self-hosted runner shows the
+download and `config.sh`/`config.cmd` commands with a one-hour registration token):
+
+- Run it as a dedicated **non-admin** account that owns nothing else (Linux: a system user with
+  no sudo, as a systemd service — `./svc.sh install <user>`; Windows: a local standard user,
+  `config.cmd --runasservice --windowslogonaccount .\<user>`; macOS: a standard user,
+  `./svc.sh install`), in a folder of your choice outside your own profile.
+- The runner needs `bash` on its `PATH` (Git for Windows on Windows) and nothing else: each job
+  installs the .NET SDK into its temp folder and keeps the NuGet cache in the runner's tool cache.
+- Keep the repository private, its workflows on `workflow_dispatch` only (no `pull_request`), and
+  *Fork pull request workflows* off: a self-hosted runner runs whatever code the workflow
+  checks out. If the repository ever goes public, remove its runners first.
+- On WSL, the distribution stops a few seconds after its last open shell, taking the runner
+  with it: keep a `wsl -d <distro> -- sleep infinity` open, or enable systemd and keep the
+  distribution running, while CI should be reachable.
 
 ### Build token
 
@@ -182,7 +198,7 @@ the token is never printed or written anywhere):
 The GitHub login comes from `D3SKCOMMANDER_PACKAGES_USER`, else the Bitwarden item's username, else
 `gh api user`. In PowerShell, to set the first way for one session:
 `$env:NuGetPackageSourceCredentials_github = "Username=<login>;Password=<token>"`.
-`check-desktop.yml` passes the job's `GITHUB_TOKEN` (`packages: read`) the same way.
+`ci.yml` passes the job's `GITHUB_TOKEN` (`packages: read`) the same way, for the gate step only.
 
 
 ## Keyboard

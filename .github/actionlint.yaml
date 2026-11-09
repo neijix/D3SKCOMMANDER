@@ -1,0 +1,4 @@
+self-hosted-runner:
+  # The owner's self-hosted runners that ci.yml targets by OS label: the WSL Ubuntu one (also
+  # labelled kyber), this PC's Windows one and the Mac's.
+  labels: [kyber, Linux, Windows, macOS]

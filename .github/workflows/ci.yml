@@ -1,0 +1,59 @@
+# The gate (csharp/check.sh) on the owner's own machines, on demand only:
+# `gh workflow run ci.yml` (every OS) or `-f os='["Windows"]'`, then `gh run watch`.
+# Never on GitHub-hosted runners (owner's rule): each job runs on any online self-hosted runner
+# of its OS — the WSL Ubuntu one and the Windows one on the owner's PC, the Mac's — so CI runs
+# on whichever of the owner's machines is up. A job whose OS has no runner online waits in the
+# queue until one comes up (cancel it with `gh run cancel`).
+# Security: workflow_dispatch only (no pull_request: a stranger's fork never runs here); the
+# runners are persistent and run as a dedicated non-admin account, so every job keeps the SDK,
+# its caches and the token inside $RUNNER_TEMP and the runner's tool cache, never the account's
+# profile. Runner setup: README "CI".
+# Packages are never built on GitHub: ./release.sh builds them locally into dist/.
+name: ci
+
+on:
+  workflow_dispatch:
+    inputs:
+      os:
+        description: 'Runner OSes, a JSON list of Linux, Windows, macOS'
+        type: string
+        default: '["Linux","Windows","macOS"]'
+
+permissions:
+  contents: read
+  packages: read
+
+concurrency:
+  group: ci
+  cancel-in-progress: true
+
+jobs:
+  check:
+    strategy:
+      fail-fast: false
+      matrix:
+        os: ${{ fromJSON(inputs.os) }}
+    runs-on: [self-hosted, "${{ matrix.os }}"]
+    # A hung test must end the job (its log then names the long-running test).
+    timeout-minutes: 30
+    steps:
+      - uses: actions/checkout@v7
+      # The SDK goes under the job's temp folder: the runner account cannot write the system
+      # folders, and nothing stays behind between jobs.
+      - uses: actions/setup-dotnet@v6
+        env:
+          DOTNET_INSTALL_DIR: ${{ runner.temp }}/dotnet
+        with:
+          dotnet-version: 10.0.x
+      # The C# gate, default tier (not --full). Private D3sk.* packages (root nuget.config,
+      # source "github"): the job token with packages: read, for this step only.
+      - run: csharp/check.sh
+        shell: bash
+        env:
+          NuGetPackageSourceCredentials_github: Username=${{ github.actor }};Password=${{ secrets.GITHUB_TOKEN }}
+          DOTNET_CLI_HOME: ${{ runner.temp }}/dotnet-home
+          NUGET_PACKAGES: ${{ runner.tool_cache }}/nuget-packages
+          NUGET_HTTP_CACHE_PATH: ${{ runner.temp }}/nuget-http
+          DOTNET_CLI_TELEMETRY_OPTOUT: '1'
+          DOTNET_NOLOGO: '1'
+          DOTNET_GENERATE_ASPNET_CERTIFICATE: 'false'
