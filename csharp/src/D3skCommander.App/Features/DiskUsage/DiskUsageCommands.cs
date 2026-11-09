@@ -57,11 +57,16 @@ public sealed class DiskUsageCommands
         if (ComputerAddress.IsAddress(snapshot.Path))
         {
             var cursor = snapshot.Cursor >= 0 && snapshot.Cursor < snapshot.Entries.Count ? snapshot.Entries[snapshot.Cursor] : null;
-            var scan = new ComputerFileSystemProvider(_sources, _text).ScanTarget(cursor);
+            // The sources read drives and mounts: off the UI thread.
+            var (scan, mounts) = await Task.Run(() =>
+            {
+                var target = new ComputerFileSystemProvider(_sources, _text).ScanTarget(cursor);
+                return (target, target.Folder is null ? _sources.MountPoints() : []);
+            }).ConfigureAwait(true);
             _tools.Open(ToolKind.DiskUsage);
             await (scan.Folder is { } drive
                 ? _window.BeginAsync(drive)
-                : _window.BeginDrivesAsync(scan.Drives, _sources.MountPoints())).ConfigureAwait(true);
+                : _window.BeginDrivesAsync(scan.Drives, mounts)).ConfigureAwait(true);
             return;
         }
 

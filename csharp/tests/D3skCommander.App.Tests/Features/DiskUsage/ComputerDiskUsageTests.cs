@@ -28,7 +28,7 @@ public class ComputerDiskUsageTests
 
         host.Window.Dispatch(CommandId.DiskUsage);
         var model = host.Provider.GetRequiredService<DiskUsageViewModel>();
-        await model.ScanTask.WaitAsync(Wait, TestContext.Current.CancellationToken);
+        await ScanOf(model);
 
         Assert.Equal(ComputerAddress.Text, model.RootPath);
         Assert.Equal(host.Localizer.Get("computer.title"), model.Root!.Name);
@@ -39,6 +39,22 @@ public class ComputerDiskUsageTests
     }
 
     [AvaloniaFact]
+    public async Task TheSourcesAreReadOffTheUiThread()
+    {
+        using var rig = new Rig();
+        using var host = rig.Host(rig.Panels(cursorOnDrive: null));
+        var uiThread = Environment.CurrentManagedThreadId;
+
+        rig.Sources.Threads.Clear();
+        host.Window.Dispatch(CommandId.DiskUsage);
+        var model = host.Provider.GetRequiredService<DiskUsageViewModel>();
+        await ScanOf(model);
+
+        Assert.NotEmpty(rig.Sources.Threads);
+        Assert.DoesNotContain(uiThread, rig.Sources.Threads);
+    }
+
+    [AvaloniaFact]
     public async Task ADriveRowScansThatFolderAsToday()
     {
         using var rig = new Rig();
@@ -46,7 +62,7 @@ public class ComputerDiskUsageTests
 
         host.Window.Dispatch(CommandId.DiskUsage);
         var model = host.Provider.GetRequiredService<DiskUsageViewModel>();
-        await model.ScanTask.WaitAsync(Wait, TestContext.Current.CancellationToken);
+        await ScanOf(model);
 
         Assert.Equal(rig.DriveB, model.RootPath);
         Assert.Equal(300, model.Root!.Bytes);
@@ -60,7 +76,7 @@ public class ComputerDiskUsageTests
         using var host = rig.Host(panels);
         host.Window.Dispatch(CommandId.DiskUsage);
         var model = host.Provider.GetRequiredService<DiskUsageViewModel>();
-        await model.ScanTask.WaitAsync(Wait, TestContext.Current.CancellationToken);
+        await ScanOf(model);
 
         File.WriteAllBytes(Path.Combine(rig.DriveB, "more.bin"), new byte[50]);
         await model.RescanAsync().WaitAsync(Wait, TestContext.Current.CancellationToken);
@@ -71,6 +87,18 @@ public class ComputerDiskUsageTests
         Assert.True(await model.ShowInPanelAsync());
         Assert.Equal([ComputerAddress.Text], panels.Went);
         Assert.Empty(panels.Revealed);
+    }
+
+    // The command reads its sources on a worker first, so the scan starts a moment after the dispatch.
+    private static async Task ScanOf(DiskUsageViewModel model)
+    {
+        var deadline = DateTime.UtcNow + Wait;
+        while (ReferenceEquals(model.ScanTask, Task.CompletedTask) && DateTime.UtcNow < deadline)
+        {
+            await Task.Delay(10, TestContext.Current.CancellationToken);
+        }
+
+        await model.ScanTask.WaitAsync(Wait, TestContext.Current.CancellationToken);
     }
 
     // A: 1000 bytes plus mount/ (700 bytes, a mount point); B: 300 bytes.
@@ -120,8 +148,13 @@ public class ComputerDiskUsageTests
 
     private sealed class Sources(string a, string b, string mount) : IComputerSources
     {
-        public IReadOnlyList<DriveEntry> MountedDrives() =>
-            [new DriveEntry(a, "A", "ntfs", 1, 2), new DriveEntry(b, "B", "ntfs", 1, 2)];
+        public System.Collections.Concurrent.ConcurrentBag<int> Threads { get; } = [];
+
+        public IReadOnlyList<DriveEntry> MountedDrives()
+        {
+            Threads.Add(Environment.CurrentManagedThreadId);
+            return [new DriveEntry(a, "A", "ntfs", 1, 2), new DriveEntry(b, "B", "ntfs", 1, 2)];
+        }
 
         public IReadOnlyList<ConnectedShare> ConnectedShares() => [];
 
@@ -129,7 +162,11 @@ public class ComputerDiskUsageTests
 
         public IReadOnlyList<HotlistItem> Favorites() => [];
 
-        public IReadOnlyList<string> MountPoints() => [mount];
+        public IReadOnlyList<string> MountPoints()
+        {
+            Threads.Add(Environment.CurrentManagedThreadId);
+            return [mount];
+        }
     }
 
     private sealed class ComputerPanels(List<Entry> entries, int cursor) : IPanelWorkspace
