@@ -19,6 +19,21 @@ public class PanelSessionTests
     }
 
     [Fact]
+    public void ATabSavedAtComputerComesBackWhateverTheExistsCheckSays()
+    {
+        var saved = new SessionPanel
+        {
+            ActiveIndex = 1,
+            Tabs = [new SessionTab { Directory = "/gone" }, new SessionTab { Directory = "Computer:" }],
+        };
+
+        var start = PanelSession.Restore(saved, "/home/me", _ => false);
+
+        Assert.Equal(["Computer:"], start.Paths);
+        Assert.Equal(0, start.Active);
+    }
+
+    [Fact]
     public void AMissingFolderIsDroppedAndTheActiveTabFollowsItsFolder()
     {
         var saved = new SessionPanel

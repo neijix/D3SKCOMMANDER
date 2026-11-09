@@ -135,7 +135,7 @@ public sealed class Panel
         var tabs = new List<Tab>();
         for (var i = 0; i < paths.Count; i++)
         {
-            if (!Directory.Exists(paths[i]))
+            if (!ComputerAddress.IsAddress(paths[i]) && !Directory.Exists(paths[i]))
             {
                 continue;
             }

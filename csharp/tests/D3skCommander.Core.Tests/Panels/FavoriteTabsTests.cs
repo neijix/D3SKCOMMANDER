@@ -194,6 +194,21 @@ public class FavoriteTabsTests : IDisposable
     }
 
     [Fact]
+    public void ComputerIsCapturedAsLocalAndRestoredWithoutAnExistsCheck()
+    {
+        var local = new LocalFileSystemProvider();
+        var tabs = new List<Tab> { new(new Location(ComputerAddress.Text), SortOrder.NameAscending, local) };
+
+        var side = FavoriteTabsPlan.CaptureSide(tabs, active: 0, PanelViewMode.Full);
+        var set = Set("W", side, Side(0));
+        var plan = FavoriteTabsPlan.Restore(set, FavoriteRestoreMode.Replace, 1, 1, _ => false, "/home");
+
+        Assert.Equal([ComputerAddress.Text], side.Tabs.Select(t => t.Directory));
+        Assert.Equal([ComputerAddress.Text], plan.Left.Open.Select(t => t.Path));
+        Assert.Equal(0, plan.Left.Active);
+    }
+
+    [Fact]
     public void AMissingFolderIsSkippedAndTheActiveTabFollowsItsFolder()
     {
         var set = Set("W", Side(2, ("/a", SortKey.Name, "Default"), ("/gone", SortKey.Name, "Default"), ("/c", SortKey.Name, "Default")), Side(0));

@@ -30,7 +30,7 @@ public static class PanelSession
             for (var i = 0; i < saved.Tabs.Count; i++)
             {
                 var tab = saved.Tabs[i];
-                if (string.IsNullOrEmpty(tab.Directory) || !exists(tab.Directory))
+                if (string.IsNullOrEmpty(tab.Directory) || !(ComputerAddress.IsAddress(tab.Directory) || exists(tab.Directory)))
                 {
                     continue;
                 }

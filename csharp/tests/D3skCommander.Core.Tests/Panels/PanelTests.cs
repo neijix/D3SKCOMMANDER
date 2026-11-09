@@ -182,6 +182,22 @@ public class PanelTests
     }
 
     [Fact]
+    public async Task APanelOpensATabAtTheComputerAddressWithoutAFolderCheck()
+    {
+        using var dir = new TempFolder();
+        var panel = await Panel.OpenAsync(
+            [dir.Path, "computer:"],
+            active: 1,
+            SortOrder.NameAscending,
+            showHidden: false,
+            new LocalFileSystemProvider(),
+            TestContext.Current.CancellationToken);
+
+        Assert.Equal([dir.Path, "computer:"], panel.TabDirectories());
+        Assert.Equal(1, panel.ActiveTab);
+    }
+
+    [Fact]
     public async Task BrowseZipLikeAFolder()
     {
         using var dir = new TempFolder();
