@@ -55,6 +55,10 @@
     "en": "Open",
     "fr": "Ouvrir"
   },
+  "cmd.windows_menu": {
+    "en": "More Windows options",
+    "fr": "Autres options Windows"
+  },
   "cmd.open_with": {
     "en": "Open selected with…",
     "fr": "Ouvrir la sélection avec…"

@@ -17,6 +17,7 @@ public enum CommandId
     BackupZip,
     Properties,
     OpenWith,
+    WindowsMenu,
     Quit,
     SelectGroup,
     UnselectGroup,

@@ -27,6 +27,7 @@ using D3skCommander.App.Features.Sync;
 using D3skCommander.App.Features.Toolbar;
 using D3skCommander.App.Features.Tools;
 using D3skCommander.App.Features.Update;
+using D3skCommander.App.Features.WindowsMenu;
 using D3skCommander.App.Smoke;
 using D3skCommander.App.Startup;
 using D3skCommander.App.ToolWindows;
@@ -71,6 +72,7 @@ public static class AppComposition
         ToolbarModule.Register(services);
         ToolsModule.Register(services);
         UpdateModule.Register(services);
+        WindowsMenuModule.Register(services);
         DialogsModule.Register(services);
         ToolWindowsModule.Register(services);
         SmokeModule.Register(services);

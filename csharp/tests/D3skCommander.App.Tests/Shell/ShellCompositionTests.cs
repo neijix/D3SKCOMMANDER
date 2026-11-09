@@ -24,6 +24,7 @@ using D3skCommander.App.Features.Settings;
 using D3skCommander.App.Features.Sync;
 using D3skCommander.App.Features.Tools;
 using D3skCommander.App.Features.Update;
+using D3skCommander.App.Features.WindowsMenu;
 using D3skCommander.App.Shell;
 using D3skCommander.App.Smoke;
 using D3skCommander.App.Startup;
@@ -65,6 +66,7 @@ public class ShellCompositionTests
         Assert.IsType<SyncModule>(provider.GetRequiredService<SyncModule>());
         Assert.IsType<ToolsModule>(provider.GetRequiredService<ToolsModule>());
         Assert.IsType<UpdateModule>(provider.GetRequiredService<UpdateModule>());
+        Assert.IsType<WindowsMenuModule>(provider.GetRequiredService<WindowsMenuModule>());
         Assert.IsType<DialogsModule>(provider.GetRequiredService<DialogsModule>());
         Assert.IsType<ToolWindowsModule>(provider.GetRequiredService<ToolWindowsModule>());
         Assert.IsType<SmokeModule>(provider.GetRequiredService<SmokeModule>());

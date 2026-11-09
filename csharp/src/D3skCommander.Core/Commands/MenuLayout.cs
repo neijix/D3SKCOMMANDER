@@ -40,6 +40,7 @@ internal static class MenuLayout
         null,
         CommandId.Properties,
         CommandId.OpenWith,
+        CommandId.WindowsMenu,
         null,
         CommandId.Quit,
     ]);

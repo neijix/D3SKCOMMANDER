@@ -1,0 +1,10 @@
+{
+  "windowsmenu.windows_only": {
+    "en": "This command is available on Windows only",
+    "fr": "Cette commande n'existe que sous Windows"
+  },
+  "windowsmenu.failed": {
+    "en": "The Windows menu could not be shown",
+    "fr": "Impossible d'afficher le menu Windows"
+  }
+}
