@@ -15,6 +15,7 @@ public sealed partial class PanelWorkspace
         shell.Handle(CommandId.Open, () => Run(() => OpenEntryAsync()));
         shell.Handle(CommandId.OpenInNewTab, () => Run(() => OpenInNewTabAsync()));
         shell.Handle(CommandId.OpenInOtherPanel, () => Run(() => OpenInOtherPanelAsync()));
+        shell.Handle(CommandId.ContextMenu, () => ContextMenuRequested?.Invoke(this, _active));
         shell.Handle(CommandId.Parent, () => Run(() => ParentAsync()));
         shell.Handle(CommandId.Back, () => Run(() => BackAsync()));
         shell.Handle(CommandId.Forward, () => Run(() => ForwardAsync()));

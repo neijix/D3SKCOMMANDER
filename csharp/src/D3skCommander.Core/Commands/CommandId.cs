@@ -18,6 +18,7 @@ public enum CommandId
     Properties,
     OpenWith,
     WindowsMenu,
+    ContextMenu,
     Quit,
     SelectGroup,
     UnselectGroup,

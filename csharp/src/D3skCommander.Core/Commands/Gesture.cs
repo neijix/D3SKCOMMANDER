@@ -22,6 +22,7 @@ public enum GestureKey
     F7,
     F8,
     F9,
+    F10,
     Delete,
     Enter,
     Left,

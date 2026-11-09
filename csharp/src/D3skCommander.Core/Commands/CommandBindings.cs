@@ -24,6 +24,7 @@ internal static class CommandBindings
         Add(list, GestureModifiers.Shift, GestureKey.F8, CommandId.DeletePermanent);
         Add(list, GestureModifiers.Shift, GestureKey.Delete, CommandId.DeletePermanent);
         Add(list, GestureModifiers.Shift, GestureKey.F2, CommandId.ComparePanels);
+        Add(list, GestureModifiers.Shift, GestureKey.F10, CommandId.ContextMenu);
         Add(list, GestureModifiers.Alt, GestureKey.F4, CommandId.Quit);
         Add(list, GestureModifiers.Alt, GestureKey.F5, CommandId.Pack);
         Add(list, GestureModifiers.Alt, GestureKey.F9, CommandId.Unpack);

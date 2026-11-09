@@ -22,6 +22,7 @@ internal static class CommandLabelKeys
         "cmd.properties",
         "cmd.open_with",
         "cmd.windows_menu",
+        "cmd.context_menu",
         "cmd.quit",
         "cmd.select_group",
         "cmd.unselect_group",

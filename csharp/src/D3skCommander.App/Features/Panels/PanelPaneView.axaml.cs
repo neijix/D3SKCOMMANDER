@@ -43,7 +43,9 @@ public sealed partial class PanelPaneView : UserControl
         _files.KeyHandled += (_, _) => model.Sync();
         _files.EnterPressed += (_, _) => _ = model.OpenEntryAsync();
         _files.RowActivated += (_, _) => _ = model.OpenEntryAsync();
-        _files.RowContextRequested += (_, _) => ShowFileMenu(model, _files);
+        _files.RowContextRequested += (_, request) => ShowFileMenu(model, _files, request);
+        model.ContextMenuRequested += (_, _) => ShowCursorMenu(model, _files);
+        model.BindContextMenu(() => _files.RowScreenBottomLeft(_files.List.CursorIndex));
         BindHeader(model, _files);
         ListHost.Content = _files;
         BuildBar(model);

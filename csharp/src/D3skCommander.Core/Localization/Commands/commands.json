@@ -55,6 +55,10 @@
     "en": "Open",
     "fr": "Ouvrir"
   },
+  "cmd.context_menu": {
+    "en": "Context menu",
+    "fr": "Menu contextuel"
+  },
   "cmd.windows_menu": {
     "en": "More Windows options",
     "fr": "Autres options Windows"

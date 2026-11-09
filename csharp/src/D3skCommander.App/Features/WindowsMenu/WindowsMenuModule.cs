@@ -73,7 +73,7 @@ public sealed class WindowsMenuModule : IShellModule
         }
 
         var owner = _owner.Current?.TryGetPlatformHandle()?.Handle ?? IntPtr.Zero;
-        var result = _menu.Show(paths, ScreenPoint?.Invoke(), owner);
+        var result = _menu.Show(paths, ScreenPoint?.Invoke() ?? (_panels as PanelWorkspace)?.MenuScreenPoint, owner);
         switch (result.Outcome)
         {
             case ExplorerMenuOutcome.Invoked:

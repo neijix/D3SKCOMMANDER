@@ -116,6 +116,7 @@ public static class GestureMap
         AddPair(Key.F7, GestureKey.F7);
         AddPair(Key.F8, GestureKey.F8);
         AddPair(Key.F9, GestureKey.F9);
+        AddPair(Key.F10, GestureKey.F10);
     }
 
     private static void AddLetters()

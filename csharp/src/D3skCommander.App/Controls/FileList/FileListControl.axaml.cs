@@ -1,5 +1,6 @@
 using Avalonia;
 using Avalonia.Controls;
+using Avalonia.Controls.Primitives;
 using Avalonia.Controls.Templates;
 using Avalonia.Input;
 using Avalonia.Interactivity;
@@ -50,8 +51,11 @@ public sealed partial class FileListControl : UserControl
     /// <summary>A double-click landed on a row (the row index).</summary>
     public event EventHandler<int>? RowActivated;
 
-    /// <summary>A right-click landed on a row (the row index); the cursor is on it. Marks stay when the row is marked.</summary>
-    public event EventHandler<int>? RowContextRequested;
+    /// <summary>
+    /// A right-click landed on a row (the cursor is on it; marks stay when the row is marked) or on empty space
+    /// (<see cref="FileListContextRequest.Index"/> is -1), with the click in screen coordinates.
+    /// </summary>
+    public event EventHandler<FileListContextRequest>? RowContextRequested;
 
     /// <summary>A key the list handled (it may have moved the cursor or the marks).</summary>
     public event EventHandler<FileListKey>? KeyHandled;
@@ -171,16 +175,24 @@ public sealed partial class FileListControl : UserControl
     {
         var point = e.GetCurrentPoint(this);
         var index = IndexOf(e.Source as Visual);
-        if (point.Properties.IsRightButtonPressed && index >= 0)
+        if (point.Properties.IsRightButtonPressed)
         {
-            Focus();
-            if (!_list.IsRenaming)
+            if (index >= 0 || IsEmptySpace(e.Source as Visual))
             {
-                _list.CursorIndex = index;
-                RowContextRequested?.Invoke(this, index);
+                Focus();
+                if (!_list.IsRenaming)
+                {
+                    if (index >= 0)
+                    {
+                        _list.CursorIndex = index;
+                    }
+
+                    RowContextRequested?.Invoke(this, new FileListContextRequest(index, this.PointToScreen(e.GetPosition(this))));
+                }
+
+                e.Handled = true;
             }
 
-            e.Handled = true;
             return;
         }
 
@@ -203,6 +215,20 @@ public sealed partial class FileListControl : UserControl
 
         e.Handled = true;
     }
+
+    // A click on the lists but on no row and no scroll bar (the space below the last row).
+    private static bool IsEmptySpace(Visual? source) =>
+        source is not null && source.FindAncestorOfType<ScrollBar>(true) is null && source.FindAncestorOfType<TextBox>(true) is null;
+
+    /// <summary>The bottom-left of a realized row or tile in screen coordinates, or null when it is not realized.</summary>
+    public PixelPoint? RowScreenBottomLeft(int index)
+    {
+        var anchor = RowAnchor(index);
+        return anchor is null ? null : anchor.PointToScreen(new Point(0, anchor.Bounds.Height));
+    }
+
+    /// <summary>The realized row view or tile of an index (a context menu opens under it), or null.</summary>
+    public Control? RowAnchor(int index) => _list.ThumbsActive ? TileAt(index) : RowViewAt(index);
 
     private int IndexOf(Visual? source)
     {
@@ -299,3 +325,6 @@ public sealed partial class FileListControl : UserControl
         }
     }
 }
+
+/// <summary>A right-click in the list: the row index (-1 on empty space) and the click in screen coordinates.</summary>
+public sealed record FileListContextRequest(int Index, PixelPoint ScreenPoint);
