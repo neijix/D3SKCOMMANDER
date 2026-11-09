@@ -1,4 +1,5 @@
 using D3skCommander.Core.FileSystem;
+using D3skCommander.Core.NetDrives;
 using D3skCommander.Core.Panels;
 using D3skCommander.Core.Providers;
 using Xunit;
@@ -125,6 +126,30 @@ public class ListProviderTests
             Assert.Equal(["b2.txt", "z1.txt", "a2.txt", "m1.txt"], tab.VisibleEntries.Where(e => !e.IsParent).Select(e => e.Name).ToList());
             tab.SelectAllButFirstOfGroups();
             Assert.Equal(["z1.txt", "m1.txt"], tab.Targets().Select(e => e.Name).ToList());
+        }
+        finally
+        {
+            Directory.Delete(root, recursive: true);
+        }
+    }
+
+    [Fact]
+    public async Task SelectAllButFirstChangesNothingAtTheComputerAddress()
+    {
+        var root = Directory.CreateTempSubdirectory("d3sk-computer-").FullName;
+        try
+        {
+            var sources = new StubComputerSources
+            {
+                Drives = [new DriveEntry(root, "One", "ext4", 1, 2), new DriveEntry(Path.Combine(root, "b"), "Two", "ext4", 1, 2)],
+            };
+            var provider = PanelProviderFixture.Build(sources, null);
+            var tab = new Tab(new Location(ComputerAddress.Text, provider), SortOrder.NameAscending, provider);
+            await tab.ReloadAsync(true, TestContext.Current.CancellationToken);
+
+            Assert.Contains(tab.VisibleEntries, entry => entry.Group > 0);
+            tab.SelectAllButFirstOfGroups();
+            Assert.All(tab.VisibleEntries, entry => Assert.False(tab.IsSelected(entry.Path)));
         }
         finally
         {

@@ -1,5 +1,6 @@
 using D3skCommander.Core.Common;
 using D3skCommander.Core.FileSystem;
+using D3skCommander.Core.Localization;
 using D3skCommander.Core.NetDrives;
 using D3skCommander.Core.Panels;
 using D3skCommander.Core.Providers;
@@ -21,6 +22,19 @@ public class PanelProviderTests
         Assert.Equal("..", parents[0].Name);
         Assert.True(parents[0].IsDirectory);
         Assert.True(rows[0].IsParent);
+    }
+
+    [Fact]
+    public async Task AnEmptyRootStillGetsOneParentRowToComputer()
+    {
+        var root = Path.GetPathRoot(Path.GetTempPath())!;
+        var sources = new StubComputerSources();
+        var text = Localizer.Load(Language.En, Language.En);
+        var provider = new PanelFileSystemProvider(new EmptyProvider(), new ComputerFileSystemProvider(sources, text), sources);
+        var rows = await List(provider, root);
+        var parent = Assert.Single(rows);
+        Assert.True(parent.IsParent);
+        Assert.Equal(ComputerAddress.Text, parent.Path);
     }
 
     [Fact]
@@ -161,6 +175,33 @@ public class PanelProviderTests
         }
 
         return rows;
+    }
+
+    // A local provider whose every listing succeeds with no rows.
+    private sealed class EmptyProvider : IFileSystemProvider
+    {
+        public bool IsReadOnly => false;
+
+        public async IAsyncEnumerable<FileResult<Entry>> ListAsync(
+            string directory,
+            bool showHidden,
+            [System.Runtime.CompilerServices.EnumeratorCancellation] CancellationToken cancellationToken)
+        {
+            await Task.CompletedTask;
+            yield break;
+        }
+
+        public Task<FileResult<Entry>> GetEntryAsync(string path, CancellationToken cancellationToken) => throw new NotSupportedException();
+
+        public Task<FileResult<Stream>> OpenReadAsync(string path, CancellationToken cancellationToken) => throw new NotSupportedException();
+
+        public Task<FileResult<Stream>> OpenWriteAsync(string path, CancellationToken cancellationToken) => throw new NotSupportedException();
+
+        public Task<FileStatus> CreateFolderAsync(string path, CancellationToken cancellationToken) => throw new NotSupportedException();
+
+        public Task<FileResult<string>> RenameAsync(string path, string newName, CancellationToken cancellationToken) => throw new NotSupportedException();
+
+        public Task<FileStatus> DeleteAsync(string path, CancellationToken cancellationToken) => throw new NotSupportedException();
     }
 
     private sealed class TempDir : IDisposable

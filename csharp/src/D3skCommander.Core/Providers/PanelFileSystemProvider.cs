@@ -69,22 +69,33 @@ public sealed class PanelFileSystemProvider : IFileSystemProvider
             yield break;
         }
 
-        // The ".." row to Computer comes first and stands in for the local one; a failed listing gets none.
+        // The ".." row to Computer comes first and stands in for the local one; a failed listing gets none,
+        // and a listing with no rows still gets the one.
         var first = true;
+        var failed = false;
         await foreach (var item in listing.ConfigureAwait(false))
         {
             if (first && item.IsSuccess)
             {
-                yield return FileResult<Entry>.Ok(new Entry("..", ComputerAddress.Text, true, false, true, 0, null, false, false, ""));
+                yield return ParentRow();
             }
 
             first = false;
+            failed |= !item.IsSuccess;
             if (!item.IsSuccess || !item.Value.IsParent)
             {
                 yield return item;
             }
         }
+
+        if (first && !failed)
+        {
+            yield return ParentRow();
+        }
     }
+
+    private static FileResult<Entry> ParentRow() =>
+        FileResult<Entry>.Ok(new Entry("..", ComputerAddress.Text, true, false, true, 0, null, false, false, ""));
 
     public Task<FileResult<Entry>> GetEntryAsync(string path, CancellationToken cancellationToken) =>
         Route(path).GetEntryAsync(path, cancellationToken);

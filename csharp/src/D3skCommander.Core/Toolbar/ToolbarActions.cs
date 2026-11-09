@@ -1,5 +1,7 @@
 using D3skCommander.Core.Commands;
+using D3skCommander.Core.FileSystem;
 using D3skCommander.Core.Launch;
+using D3skCommander.Core.Panels;
 
 namespace D3skCommander.Core.Toolbar;
 
@@ -65,8 +67,16 @@ public static class ToolbarActions
         return new ToolbarAction(null, [request]);
     }
 
-    private static string Folder(string? directory) =>
-        string.IsNullOrEmpty(directory) ? Environment.CurrentDirectory : directory;
+    // The Computer address is not a folder a process can start in: it maps to Home, like the command line.
+    private static string Folder(string? directory)
+    {
+        if (ComputerAddress.IsAddress(directory))
+        {
+            return LocalFileSystem.HomeDirectory();
+        }
+
+        return string.IsNullOrEmpty(directory) ? Environment.CurrentDirectory : directory;
+    }
 
     private static ProcessRequest Start(LaunchCommand built, string directory) =>
         new ProcessRequest.Argv(built.Program, built.Arguments, directory, false, false);

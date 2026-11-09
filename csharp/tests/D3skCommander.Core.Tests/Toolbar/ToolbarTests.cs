@@ -1,5 +1,7 @@
 using D3skCommander.Core.Commands;
+using D3skCommander.Core.FileSystem;
 using D3skCommander.Core.Launch;
+using D3skCommander.Core.Panels;
 using D3skCommander.Core.Settings;
 using D3skCommander.Core.SettingsLocation;
 using D3skCommander.Core.Toolbar;
@@ -174,6 +176,19 @@ public class ToolbarTests
         Assert.True(ToolbarActions.Resolve(ToolbarItem.ForUserCommand("gone"), context).IsNothing);
         Assert.True(ToolbarActions.Resolve(ToolbarItem.Separator, context).IsNothing);
         Assert.True(ToolbarActions.Resolve(ToolbarItem.ForProgram(" "), context).IsNothing);
+    }
+
+    [Fact]
+    public void AtComputerAUserCommandAndAProgramStartInHome()
+    {
+        var context = new ToolbarContext(["a.txt"], ComputerAddress.Text, [new UserCommand("List", "ls %s", true)]);
+        var home = LocalFileSystem.HomeDirectory();
+
+        var userCommand = ToolbarActions.Resolve(ToolbarItem.ForUserCommand("list"), context);
+        Assert.Equal(home, ((ProcessRequest.Argv)Assert.Single(userCommand.Processes)).WorkingDirectory);
+
+        var program = ToolbarActions.Resolve(ToolbarItem.ForProgram("tool"), context);
+        Assert.Equal(home, ((ProcessRequest.Argv)Assert.Single(program.Processes)).WorkingDirectory);
     }
 
     [Fact]

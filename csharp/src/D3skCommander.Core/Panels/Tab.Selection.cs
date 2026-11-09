@@ -117,11 +117,12 @@ public sealed partial class Tab
 
     /// <summary>
     /// In a duplicates listing: marks every row except the first of each group (in the order shown), so a
-    /// delete removes the extra copies. Elsewhere it changes nothing.
+    /// delete removes the extra copies. Elsewhere it changes nothing, and so at the Computer address, whose
+    /// group numbers are display groups, not duplicates.
     /// </summary>
     public void SelectAllButFirstOfGroups()
     {
-        if (!VisibleEntries.Any(entry => entry.Group > 0))
+        if (ComputerAddress.IsAddress(Location.Path) || !VisibleEntries.Any(entry => entry.Group > 0))
         {
             return;
         }
