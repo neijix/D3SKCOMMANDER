@@ -85,7 +85,13 @@ public class ComputerViewTests
         using var rig = await Rig.Open();
         var pane = new PanelPaneModel(
             PanelSide.Left, rig.Panels, rig.Services.GetRequiredService<ILocalizer>(), rig.Services.GetRequiredService<IDialogService>());
-        rig.Panels.ToggleTree(PanelSide.Left);
+        // The tree choice lives in the settings folder the other tests share: turn it on only when it is off.
+        var turnedOn = !rig.Panels.ShowTree(PanelSide.Left);
+        if (turnedOn)
+        {
+            rig.Panels.ToggleTree(PanelSide.Left);
+        }
+
         try
         {
             pane.Tick();
@@ -107,8 +113,10 @@ public class ComputerViewTests
         }
         finally
         {
-            // The choice is saved into the settings folder the other tests share: put the tree back off.
-            rig.Panels.ToggleTree(PanelSide.Left);
+            if (turnedOn)
+            {
+                rig.Panels.ToggleTree(PanelSide.Left);
+            }
         }
     }
 
