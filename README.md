@@ -138,7 +138,9 @@ the signature does not match the public key in `release.json`.
 
 `dist/` (git-ignored) gets the Windows zip and setup, the macOS `.dmg` and `.tar.gz`, the Linux
 `.tar.gz`, `SHA256SUMS` and `SHA256SUMS.sig`. The signing key is the PEM file named by
-`D3SKCOMMANDER_RELEASE_KEY_FILE`, else `~/.d3skcommander-release/release-signing-key.pem`; without
+`D3SKCOMMANDER_RELEASE_KEY_FILE`, else `.release-keys/release-signing-key.pem` in the checkout (git-ignored;
+`csharp/packaging/restore-release-key.sh` puts it back from its Bitwarden secure note, item name in
+`D3SKCOMMANDER_RELEASE_KEY_ITEM`; a key that git tracks or does not ignore is refused); without
 either the build stops and says so. A missing tool also stops it with its install command.
 Building on Windows needs, besides the .NET SDK:
 

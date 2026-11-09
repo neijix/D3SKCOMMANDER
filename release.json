@@ -19,7 +19,7 @@
   "tagPrefix": "v",
   "signing": {
     "keyEnv": "D3SKCOMMANDER_RELEASE_KEY_FILE",
-    "defaultKeyPath": "~/.d3skcommander-release/release-signing-key.pem",
+    "defaultKeyPath": ".release-keys/release-signing-key.pem",
     "publicKeyPem": "-----BEGIN PUBLIC KEY-----\nMFkwEwYHKoZIzj0CAQYIKoZIzj0DAQcDQgAEpFkqu2s/vvxjjf5F31T7IXV1PZ3B\nE1NedRteqMAgfy5GYhijY6XM2+u1vHemElKTeAXZrAZ8N1a8l51PG7DJSQ==\n-----END PUBLIC KEY-----\n"
   },
   "nsis": { "script": "csharp/packaging/nsis/setup.nsi", "icon": "packaging/icons/icon.ico", "license": "LICENSE" },

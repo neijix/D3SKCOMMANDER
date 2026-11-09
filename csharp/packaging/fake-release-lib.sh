@@ -15,6 +15,7 @@ case "${OSTYPE:-}" in msys* | cygwin*) tmpn="$(cygpath -m "$tmp")" ;; esac
 cat > "$tmp/fake-release" <<'SHIM'
 #!/usr/bin/env bash
 printf '%s\n' "$@" > "${FAKE_LOG:?}"
+[ -z "${FAKE_ENV_LOG:-}" ] || printf '%s\n' "${D3SKCOMMANDER_RELEASE_KEY_FILE:-}" > "$FAKE_ENV_LOG"
 exit "${FAKE_EXIT:-0}"
 SHIM
 export FAKE_LOG="$tmpn/args"

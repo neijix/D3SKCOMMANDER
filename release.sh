@@ -37,6 +37,25 @@ done
 . "$ROOT/csharp/packaging/release-env.sh"
 d3sk_load_env
 
+# The signing key: D3SKCOMMANDER_RELEASE_KEY_FILE, else release-signing-key.pem in this checkout's gitignored
+# .release-keys/ (D3SKCOMMANDER_RELEASE_KEY_HOME moves that folder; csharp/packaging/restore-release-key.sh fills it
+# from its Bitwarden backup). A key inside a git checkout must be ignored there and never tracked.
+if [ -z "${D3SKCOMMANDER_RELEASE_KEY_FILE:-}" ]; then
+  D3SKCOMMANDER_RELEASE_KEY_FILE="${D3SKCOMMANDER_RELEASE_KEY_HOME:-$ROOT/.release-keys}/release-signing-key.pem"
+  case "${OSTYPE:-}" in msys* | cygwin*) D3SKCOMMANDER_RELEASE_KEY_FILE="$(cygpath -m "$D3SKCOMMANDER_RELEASE_KEY_FILE")" ;; esac
+  export D3SKCOMMANDER_RELEASE_KEY_FILE
+fi
+if [ -f "$D3SKCOMMANDER_RELEASE_KEY_FILE" ]; then
+  key_dir="$(cd "$(dirname "$D3SKCOMMANDER_RELEASE_KEY_FILE")" && pwd)" key_base="$(basename "$D3SKCOMMANDER_RELEASE_KEY_FILE")"
+  if key_top="$(git -C "$key_dir" rev-parse --show-toplevel 2>/dev/null)"; then
+    if git -C "$key_dir" ls-files --error-unmatch -- "$key_base" >/dev/null 2>&1; then
+      echo "ERROR: $D3SKCOMMANDER_RELEASE_KEY_FILE is tracked by git in $key_top: git rm --cached it and rotate the key" >&2; exit 1
+    fi
+    git -C "$key_dir" check-ignore -q --no-index -- "$key_base" \
+      || { echo "ERROR: $D3SKCOMMANDER_RELEASE_KEY_FILE is inside the git checkout $key_top and not ignored: add it to .gitignore first" >&2; exit 1; }
+  fi
+fi
+
 if [ "$CHECK" = 1 ]; then
   echo "== gate: ${D3SK_GATE:-csharp/check.sh}"
   ${D3SK_GATE:-csharp/check.sh}
