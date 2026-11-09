@@ -1,6 +1,7 @@
 using System.Globalization;
 using CommunityToolkit.Mvvm.Input;
 using D3skCommander.Core.FileSystem;
+using D3skCommander.Core.FileOps;
 using D3skCommander.Core.Jobs;
 using D3skCommander.Core.Localization;
 using D3skCommander.Core.Sync;
@@ -24,6 +25,11 @@ public sealed partial class SyncViewModel
     public void Compare()
     {
         if (IsBusy)
+        {
+            return;
+        }
+
+        if (RefuseComputer())
         {
             return;
         }
@@ -55,11 +61,28 @@ public sealed partial class SyncViewModel
             return;
         }
 
+        if (RefuseComputer())
+        {
+            return;
+        }
+
         Failures.Clear();
         OnPropertyChanged(nameof(HasFailures));
         _apply = new SyncService(_jobs).Apply(LeftPath, RightPath, _items, _text.Get("sync.job.run"));
         StatusLine = _text.Get("sync.running");
         SetBusy(true);
+    }
+
+    /// <summary>Shows the read-only line and answers true when either side is Computer or under it.</summary>
+    private bool RefuseComputer()
+    {
+        if (!FileOpGuard.IsTargetRefused(LeftPath) && !FileOpGuard.IsTargetRefused(RightPath))
+        {
+            return false;
+        }
+
+        StatusLine = _text.Get("computer.readonly");
+        return true;
     }
 
     /// <summary>Cancels the scan or the run in progress.</summary>

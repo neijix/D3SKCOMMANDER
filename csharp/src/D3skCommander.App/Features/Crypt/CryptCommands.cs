@@ -3,6 +3,7 @@ using D3skCommander.App.Features.Panels;
 using D3skCommander.App.Shell;
 using D3skCommander.App.ToolWindows;
 using D3skCommander.Core.Commands;
+using D3skCommander.Core.FileOps;
 using D3skCommander.Core.Common;
 using D3skCommander.Core.Crypt;
 using D3skCommander.Core.FileSystem;
@@ -126,6 +127,12 @@ public sealed class CryptCommands
         }
 
         var folder = dest.Path.Trim();
+        if (FileOpGuard.IsTargetRefused(folder))
+        {
+            await _dialogs.ShowMessageAsync(title, _text.Get("computer.readonly"));
+            return;
+        }
+
         var pairs = Pairs(files, folder, encrypt);
         if (HasExisting(pairs) && !await _dialogs.ConfirmAsync(title, _text.Get("crypt.overwrite")))
         {

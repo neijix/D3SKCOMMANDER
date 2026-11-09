@@ -56,6 +56,11 @@ public sealed partial class ArchiveCommands
             return;
         }
 
+        if (await Refused(title, folder.Path.Trim()).ConfigureAwait(false))
+        {
+            return;
+        }
+
         var archive = Path.Combine(folder.Path.Trim(), name.Text.Trim());
         var job = _archives.Pack(archive, kinds[format.SelectedIndex], sources, level.SelectedIndex, cancellationToken);
         await FinishJob(job.Job).ConfigureAwait(false);
@@ -92,6 +97,11 @@ public sealed partial class ArchiveCommands
         var fields = new DialogField[] { new NoteDialogField(archives[0]), dest };
         var form = new DialogForm(title, fields, UnpackReady);
         if (!await _dialogs.ShowFormAsync(form).ConfigureAwait(false))
+        {
+            return;
+        }
+
+        if (await Refused(title, dest.Path.Trim()).ConfigureAwait(false))
         {
             return;
         }

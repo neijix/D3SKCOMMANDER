@@ -3,6 +3,7 @@ using D3skCommander.App.Features.Panels;
 using D3skCommander.App.Shell;
 using D3skCommander.Core.Archives;
 using D3skCommander.Core.Commands;
+using D3skCommander.Core.FileOps;
 using D3skCommander.Core.Jobs;
 using D3skCommander.Core.Localization;
 
@@ -79,6 +80,11 @@ public sealed partial class ArchiveCommands
             return;
         }
 
+        if (await Refused(_text.Get("cmd.backup"), capture.OtherDirectory).ConfigureAwait(false))
+        {
+            return;
+        }
+
         var job = _archives.Backup(
             capture.OtherDirectory,
             sources,
@@ -100,6 +106,18 @@ public sealed partial class ArchiveCommands
         }
 
         return found;
+    }
+
+    /// <summary>Shows the read-only line and answers true when <paramref name="folder"/> is Computer or under it.</summary>
+    private async Task<bool> Refused(string title, string? folder)
+    {
+        if (!FileOpGuard.IsTargetRefused(folder))
+        {
+            return false;
+        }
+
+        await _dialogs.ShowMessageAsync(title, _text.Get("computer.readonly")).ConfigureAwait(false);
+        return true;
     }
 
     private Task None(string title) => _dialogs.ShowMessageAsync(title, _text.Get("dlg.no_selection"));

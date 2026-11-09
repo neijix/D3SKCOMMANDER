@@ -4,6 +4,7 @@ using D3skCommander.App.Host;
 using D3skCommander.App.Shell;
 using D3skCommander.Core.Catalog;
 using D3skCommander.Core.Commands;
+using D3skCommander.Core.FileOps;
 using D3skCommander.Core.Localization;
 
 namespace D3skCommander.App.Features.Catalog;
@@ -53,9 +54,21 @@ public sealed class CatalogCommands
                 return;
             }
 
+            if (FileOpGuard.IsTargetRefused(capture.ActiveDirectory))
+            {
+                await Readonly().ConfigureAwait(false);
+                return;
+            }
+
             var output = await AskOutput(capture).ConfigureAwait(false);
             if (output is null)
             {
+                return;
+            }
+
+            if (FileOpGuard.IsTargetRefused(Path.GetDirectoryName(output)))
+            {
+                await Readonly().ConfigureAwait(false);
                 return;
             }
 
@@ -83,6 +96,8 @@ public sealed class CatalogCommands
         _window = new CatalogWindow(_dialog, _text);
         _ = _window.ShowDialog(main);
     }
+
+    private Task Readonly() => _dialogs.ShowMessageAsync(_text.Get("cmd.catalog"), _text.Get("computer.readonly"));
 
     private async Task<string?> AskOutput(PanelCapture capture)
     {

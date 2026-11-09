@@ -2,6 +2,7 @@ using System.Globalization;
 using System.Text;
 using D3skCommander.App.Dialogs;
 using D3skCommander.Core.Checksums;
+using D3skCommander.Core.FileOps;
 
 namespace D3skCommander.App.Features.Tools;
 
@@ -12,6 +13,12 @@ public sealed partial class ToolsCommands
         var title = _text.Get("cmd.checksum_create");
         if (!TryExpand(out var capture, out var files) || capture is null)
         {
+            return;
+        }
+
+        if (FileOpGuard.IsTargetRefused(capture.ActiveDirectory))
+        {
+            await _dialogs.ShowMessageAsync(title, _text.Get("computer.readonly")).ConfigureAwait(false);
             return;
         }
 
