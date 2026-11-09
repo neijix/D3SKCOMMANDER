@@ -121,6 +121,39 @@ public class CommandLineTests
         Assert.Equal("/home/me", decision.WorkingDirectory);
     }
 
+    [Theory]
+    [InlineData("computer:")]
+    [InlineData("Computer:")]
+    public void ShellAtComputerRunsInHome(string address)
+    {
+        using var tree = new Tree();
+        var decision = CommandLine.Interpret("echo hi", address, tree.Home);
+        Assert.Equal(CommandLineKind.Shell, decision.Kind);
+        Assert.Equal(tree.Home, decision.WorkingDirectory);
+    }
+
+    [Fact]
+    public void CdRelativeAtComputerResolvesAgainstHome()
+    {
+        using var tree = new Tree();
+        var docs = Directory.CreateDirectory(Path.Combine(tree.Home, "Documents")).FullName;
+        var decision = CommandLine.Interpret("cd Documents", "computer:", tree.Home);
+        Assert.Equal(CommandLineKind.Navigate, decision.Kind);
+        Assert.Equal(Full(docs), decision.Path);
+    }
+
+    [Theory]
+    [InlineData("cd computer:")]
+    [InlineData("cd Computer:")]
+    [InlineData("cd \"COMPUTER:\"")]
+    public void CdComputerOpensTheComputerView(string line)
+    {
+        using var tree = new Tree();
+        var decision = CommandLine.Interpret(line, tree.Active, tree.Home);
+        Assert.Equal(CommandLineKind.Navigate, decision.Kind);
+        Assert.Equal("computer:", decision.Path);
+    }
+
     private static string Full(string path) => new DirectoryInfo(path).FullName;
 
     private sealed class Tree : IDisposable

@@ -1,5 +1,6 @@
 using D3skCommander.Core.Common;
 using D3skCommander.Core.FileSystem;
+using D3skCommander.Core.Panels;
 
 namespace D3skCommander.Core.Launch;
 
@@ -75,7 +76,8 @@ public static class CommandLine
     public static CommandLineDecision Interpret(string? line, string? activeDirectory, string? homeDirectory = null)
     {
         var home = string.IsNullOrEmpty(homeDirectory) ? LocalFileSystem.HomeDirectory() : homeDirectory;
-        var active = string.IsNullOrEmpty(activeDirectory) ? home : activeDirectory;
+        // Computer is no folder: a shell runs, and a relative cd resolves, in Home.
+        var active = string.IsNullOrEmpty(activeDirectory) || ComputerAddress.IsAddress(activeDirectory) ? home : activeDirectory;
         var text = (line ?? "").Trim();
         if (text.Length == 0)
         {
@@ -92,7 +94,13 @@ public static class CommandLine
 
     private static CommandLineDecision ChangeDirectory(string line, string active, string home)
     {
-        var target = Target(Argument(line), active, home);
+        var argument = Argument(line);
+        if (ComputerAddress.IsAddress(argument))
+        {
+            return CommandLineDecision.Navigate(ComputerAddress.Text);
+        }
+
+        var target = Target(argument, active, home);
         if (!Directory.Exists(target) && !File.Exists(target))
         {
             return CommandLineDecision.Missing(OperationError.NotFound(target, FolderMessage(target)));

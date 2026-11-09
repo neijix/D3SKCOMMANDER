@@ -115,6 +115,57 @@ public class ComputerCommandsTests
         Assert.Equal(0, rig.Menu.Shown);
     }
 
+    [AvaloniaFact]
+    public async Task AShellLineAtComputerRunsInHomeAndKeepsThePrompt()
+    {
+        using var rig = await Rig.Open();
+        var line = new CommandLineModel(rig.Panels, rig.Runner, rig.Dialogs, rig.Text) { Line = "echo hi" };
+
+        line.Refresh();
+        Assert.Equal("computer:>", line.Prompt);
+        await line.RunAsync();
+
+        var shell = Assert.IsType<ProcessRequest.Shell>(Assert.Single(rig.Runner.Started));
+        Assert.Equal(LocalFileSystem.HomeDirectory(), shell.WorkingDirectory);
+        Assert.Equal(ComputerAddress.Text, rig.Panels.Read(PanelSide.Left).Path);
+    }
+
+    [AvaloniaFact]
+    public async Task CdRelativeAtComputerOpensUnderHomeAndCdComputerComesBack()
+    {
+        using var rig = await Rig.Open();
+        var home = LocalFileSystem.HomeDirectory();
+        var child = Directory.EnumerateDirectories(home).FirstOrDefault();
+        if (child is null)
+        {
+            return;
+        }
+
+        var line = new CommandLineModel(rig.Panels, rig.Runner, rig.Dialogs, rig.Text)
+        {
+            Line = "cd " + Path.GetFileName(child),
+        };
+        await line.RunAsync();
+
+        Assert.Equal(new DirectoryInfo(child).FullName, rig.Panels.Read(PanelSide.Left).Path);
+        Assert.Empty(rig.Runner.Started);
+
+        line.Line = "cd COMPUTER:";
+        await line.RunAsync();
+
+        Assert.Equal(ComputerAddress.Text, rig.Panels.Read(PanelSide.Left).Path);
+        Assert.Equal(0, rig.Dialogs.ShownCount);
+    }
+
+    private sealed class RecordingRunner : D3skCommander.Core.Launch.IProcessRunner
+    {
+        public List<ProcessRequest> Started { get; } = [];
+
+        public int Requests => Started.Count;
+
+        public void Start(ProcessRequest request) => Started.Add(request);
+    }
+
     private sealed class CountingMenu : IExplorerMenu
     {
         public int Shown { get; private set; }
@@ -130,7 +181,7 @@ public class ComputerCommandsTests
     {
         private readonly string _root;
 
-        private Rig(string root, ServiceProvider services, FakeDialogService dialogs, CountingMenu menu, TestComposition.NoProcesses runner)
+        private Rig(string root, ServiceProvider services, FakeDialogService dialogs, CountingMenu menu, RecordingRunner runner)
         {
             _root = root;
             Services = services;
@@ -147,7 +198,7 @@ public class ComputerCommandsTests
 
         public CountingMenu Menu { get; }
 
-        public TestComposition.NoProcesses Runner { get; }
+        public RecordingRunner Runner { get; }
 
         public PanelWorkspace Panels { get; }
 
@@ -159,7 +210,7 @@ public class ComputerCommandsTests
             var mount = Directory.CreateDirectory(Path.Combine(root, "usb")).FullName;
             var dialogs = new FakeDialogService();
             var menu = new CountingMenu();
-            var runner = new TestComposition.NoProcesses();
+            var runner = new RecordingRunner();
             var services = TestComposition.Build(configure: s =>
             {
                 s.AddSingleton<IComputerSources>(new OneDrive(mount));
