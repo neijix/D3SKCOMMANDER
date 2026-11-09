@@ -6,7 +6,7 @@ operating system's light or dark setting.
 
 ## Status
 
-The app is being rebuilt in C# (version 0.2.1, in progress). The first version, written in
+The app is being rebuilt in C# (version 0.3.0, in progress). The first version, written in
 Rust, is no longer in this tree; its last release is v0.1.x on the releases page and its code
 stays in the git history.
 
@@ -52,25 +52,45 @@ What is planned beyond that: [docs/ROADMAP.md](docs/ROADMAP.md).
 
 ## Install
 
-Build the packages on your own machine with `./release.sh` (one click: `release.bat` on Windows,
-`release.command` on macOS and Linux; see [Packaging](#packages) below): they land in `dist/`,
-which git ignores. Nothing is built or published on GitHub. Unpack the archive for your system
-and run the program inside (`D3skCommander.exe` on Windows, `D3skCommander` elsewhere). Nothing
-else is needed: the .NET runtime is included.
+Take the file for your system from the releases page (the packages are built on the owner's
+machine, see [Packages](#packages); nothing is built on GitHub). The .NET runtime is included.
 
 | System | File |
 |---|---|
-| Windows (x64), portable | `d3skcommander-<version>-windows-x86_64.zip` |
 | Windows (x64), setup | `d3skcommander-<version>-windows-x86_64-setup.exe` |
-| Linux (x64) | `d3skcommander-<version>-linux-x86_64.tar.gz` |
-| macOS (Apple silicon) | `d3skcommander-<version>-macos-aarch64.tar.gz` |
+| Windows (x64), portable | `d3skcommander-<version>-windows-x86_64.zip` |
+| macOS (Apple silicon), disk image | `d3skcommander-<version>-macos-aarch64.dmg` |
+| macOS (Apple silicon), archive | `d3skcommander-<version>-macos-aarch64.tar.gz` (holds `D3skCommander.app`) |
+| Linux (x64) | `d3skcommander-<version>-linux-x86_64.tar.gz` (holds `install.sh`) |
 
-The setup installs for the current user (no administrator) and asks where to keep settings.
-The proposed folder is `config` inside the install folder. That choice is written to
-`config-location.txt` next to the program; an upgrade leaves an existing choice alone.
-The programs are not signed yet: Windows SmartScreen asks once (More info, then Run anyway);
-on macOS, right-click the program, then Open. Linux and macOS installers (.deb, AppImage, .dmg)
-are not built yet.
+Every release also lists `SHA256SUMS` and `SHA256SUMS.sig`; the app checks that signature itself
+before it installs an update.
+
+- **Windows setup**: a wizard with a folder page: you choose where the program goes (the default
+  is per user, no administrator; a folder that needs administrator rights, such as
+  `Program Files`, makes Windows ask) and where settings are kept (proposed: `config` inside the
+  install folder, written to `config-location.txt`; an upgrade leaves an existing choice alone).
+  The zip needs no install: unpack it and run `D3skCommander.exe`. Windows SmartScreen asks once
+  (More info, then Run anyway).
+- **macOS**: open the `.dmg` and drag `D3skCommander.app` to any folder you like. The app is
+  ad-hoc signed, not notarized, so the first launch is blocked: open System Settings > Privacy &
+  Security and press Open Anyway (on macOS 14 and older, right-click the app, then Open).
+- **Linux**: unpack the archive and run `./install.sh <folder>` (without a folder it asks, default
+  `~/.local/share/d3skcommander`). It copies the program there and adds a menu entry and an icon;
+  `uninstall.sh` removes them again.
+
+**From v0.2.1:** that version cannot update itself (its release feed is private), so reinstall
+v0.3.0 or later by hand once; from then on Update (below) works in place.
+
+### Update and sign-in
+
+The Update window (also checked at start unless `D3SK_NO_UPDATE_CHECK=1`) looks for a newer
+release, downloads it and installs it in the folder the program already lives in. The repository
+is private, so the first time it asks you to sign in to GitHub: press Sign in, the window shows a
+device code, you enter it at `https://github.com/login/device`, and the token is kept in the
+system keychain (never in a file). The release signature (`SHA256SUMS.sig`) is verified against the
+public key built into the app; a bad signature refuses the update. The sign-in uses the shared
+"D3SK Updates" GitHub App; set `D3SKCOMMANDER_GITHUB_CLIENT_ID` to use another client ID.
 
 If the window stays black, flickers or crashes at start (a broken GPU driver, a virtual machine,
 a remote desktop), start it with `D3SK_RENDERING=software` in the environment: the window is then
@@ -93,7 +113,7 @@ No GPU or OpenGL is required.
 can set `DOTNET_ROOT`, `DOTNET_CLI_HOME`, `NUGET_PACKAGES` and a `PATH` prefix
 (`.env.example`). `./check.sh --full` adds the slow tests.
 
-Building needs a GitHub Packages read token, see Build token.
+Building needs a GitHub Packages read token, see [Build token](#build-token).
 
 The sources are in `csharp/`: `src/D3skCommander.Core` holds every rule and has no UI
 dependency; `src/D3skCommander.App` is the Avalonia window layer; each has its test project under
@@ -102,31 +122,38 @@ dependency; `src/D3skCommander.App` is the Avalonia window layer; each has its t
 ### Packages
 
 ```sh
-./release.sh                            # all of them at once, as a release builds them (below)
-                                        #   one click: release.bat (Windows), release.command (macOS, Linux)
-csharp/packaging/publish.sh win-x64     # dist/d3skcommander-<version>-windows-x86_64.zip
-csharp/packaging/publish.sh linux-x64   # dist/d3skcommander-<version>-linux-x86_64.tar.gz
-csharp/packaging/publish.sh osx-arm64   # dist/d3skcommander-<version>-macos-aarch64.tar.gz
-csharp/packaging/setup-windows.sh       # dist/d3skcommander-<version>-windows-x86_64-setup.exe
+./release.sh                  # gate, then every package into dist/ (release.bat, release.command: one click)
+./release.sh --dry-run        # list the steps and artifacts, write nothing, skip the gate
+./release.sh --no-setup       # skip the Windows setup;  --no-dmg skips the .dmg
+./release.sh --verbose        # show each external command;  --json: machine-readable output
+csharp/packaging/github-release.sh --dry-run   # publish: tag, draft upload, verify the signature, publish
 ```
 
-Each archive is a self-contained build: one executable with Avalonia's native Skia and HarfBuzz
-libraries beside it, plus a `.sha256` file. Any of them builds from any OS. The setup needs NSIS 3
-(`makensis`) and packs the Windows publish; it builds that publish first when the folder is
-not already there. The version is in `csharp/Directory.Build.props`.
+Both scripts are thin wrappers on `d3sk-release`, the private .NET tool of the D3sk.Update
+repository (restored with the [build token](#build-token)); `release.json` at the root holds the
+app's settings. Other options: `--no-check` (skip the gate), `--version V` (default: `<Version>` in
+`csharp/Directory.Build.props`), `--out DIR` (default `dist/`). Nothing is built or uploaded on
+GitHub: `github-release.sh` is the owner's step (needs `gh` signed in) and refuses to publish when
+the signature does not match the public key in `release.json`.
 
-`./release.sh` builds every package locally, into `dist/` (ignored by git), and uploads nothing:
-no GitHub workflow builds them. It runs the gate (`csharp/check.sh`), then the three archives and
-the Windows setup, and writes `dist/SHA256SUMS`. Without NSIS it skips the setup with a warning.
-Options: `--no-check` skips the gate, `--no-setup` skips the setup.
+`dist/` (git-ignored) gets the Windows zip and setup, the macOS `.dmg` and `.tar.gz`, the Linux
+`.tar.gz`, `SHA256SUMS` and `SHA256SUMS.sig`. The signing key is the PEM file named by
+`D3SKCOMMANDER_RELEASE_KEY_FILE`, else `~/.d3skcommander-release/release-signing-key.pem`; without
+either the build stops and says so. A missing tool also stops it with its install command.
+Building on Windows needs, besides the .NET SDK:
 
-To build them with a double-click, use `release.bat` on Windows or `release.command` on macOS. On Linux, run `release.command` from the file manager ("Run as a program") or a terminal. Both run `./release.sh` with the same options, open `dist/` when it worked and wait for a key before closing the window. `release.bat` needs Git for Windows, whose bash runs the script.
+- NSIS 3: `winget install NSIS.NSIS --location <folder>`, then set `NSISDIR` to that folder.
+- WSL with Ubuntu, for the `.dmg`: `wsl --install -d Ubuntu --location <folder>`, then
+  `wsl -d Ubuntu -u root -- apt-get install -y build-essential cmake git zlib1g-dev libbz2-dev libssl-dev hfsprogs`.
+  The libdmg-hfsplus tool is built into `.tools/libdmg-hfsplus` (git-ignored), or the folder in
+  `D3SKCOMMANDER_DMG_TOOLS_DIR`.
+- `rcodesign` (apple-codesign): unpack its release zip into a folder of your choice and set
+  `RCODESIGN` to the full path of the executable (else it is found on `PATH`).
 
-To share a version, attach the files of `dist/` to a release by hand, for example
-`gh release create v<version> dist/*` (optional; the version is the one in
-`csharp/Directory.Build.props`). The logo and app icon come from the brand kit in
-`d3skcommander_logo/`; `packaging/make_icon.py` (Python with Pillow) turns its PNGs into
-`packaging/icons/`.
+`release.command` / `release.bat` run `./release.sh` with the same options, open `dist/` when it
+worked and wait for a key. `release.bat` needs Git for Windows, whose bash runs the script.
+The logo and app icon come from `d3skcommander_logo/`; `packaging/make_icon.py` (Python with
+Pillow) turns its PNGs into `packaging/icons/`.
 
 ### CI
 

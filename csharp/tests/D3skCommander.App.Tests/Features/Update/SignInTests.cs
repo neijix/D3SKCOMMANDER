@@ -7,11 +7,14 @@ using D3sk.Update.Keychain;
 using D3skCommander.App.Features.Update;
 using D3skCommander.App.Features.Update.SignIn;
 using D3skCommander.App.Shell;
+using D3skCommander.App.Startup;
 using D3skCommander.App.ToolWindows;
 using D3skCommander.Core.Jobs;
 using D3skCommander.Core.Localization;
 using D3skCommander.Core.Settings;
+using D3skCommander.Core.SettingsLocation;
 using D3skCommander.Core.Update;
+using Microsoft.Extensions.DependencyInjection;
 using Xunit;
 
 namespace D3skCommander.App.Tests.Features.Update;
@@ -108,6 +111,34 @@ public class SignInTests
         Assert.Null(rig.Keychain.Get(RefreshEntry));
     }
 
+    [AvaloniaFact]
+    public async Task TheSignInJobIsInTheAppsJobService()
+    {
+        var rig = new Rig();
+        var jobs = new JobService();
+        var folder = Directory.CreateTempSubdirectory("d3sk-signin-").FullName;
+        using var settings = new AppSettings(new SettingsFolder(folder, SettingsSource.Env));
+        var services = new ServiceCollection();
+        services.AddSingleton<IJobService>(jobs);
+        services.AddSingleton<IToolWindowHost>(new NoTools());
+        services.AddSingleton<ILocalizer>(English);
+        services.AddSingleton(settings);
+        services.AddSingleton<IUrlOpener>(rig.Opener);
+        UpdateModule.Register(services);
+        services.AddSingleton<IUpdateRestarter>(new RecordingRestarter());
+        services.AddSingleton(rig.Service);
+        services.AddSingleton(rig.Environment);
+        using var provider = services.BuildServiceProvider();
+        var model = provider.GetRequiredService<UpdateCommands>().CreateView();
+        var window = rig.Show(model);
+        await WaitFor(() => model.SignInPanel!.IsOffered);
+
+        await model.SignInPanel!.SignInAsync();
+
+        Assert.Contains(model.SignInPanel.Flow.Job, jobs.Jobs);
+        window.Close();
+    }
+
     private static T Find<T>(Window window, string name)
         where T : Control =>
         window.GetVisualDescendants().OfType<T>().First(c => c.Name == name);
@@ -153,6 +184,10 @@ public class SignInTests
                 setting: _ => null,
                 time: Time);
         }
+
+        public UpdateService Service => _service;
+
+        public UpdateEnvironment Environment => _environment;
 
         public ManualTime Time { get; } = new();
 

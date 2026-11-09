@@ -29,8 +29,23 @@ public class CoreArchitectureTests
         var core = Assembly.Load("D3skCommander.Core");
         var version = core.GetCustomAttribute<AssemblyInformationalVersionAttribute>()!.InformationalVersion;
         var url = core.GetCustomAttributes<AssemblyMetadataAttribute>().Single(a => a.Key == "RepositoryUrl").Value;
-        Assert.Equal("0.2.1", version);
+        Assert.Equal(PropsVersion(), version);
         Assert.Equal("https://github.com/neijix/D3SKCOMMANDER", url);
+    }
+
+    // The expected version comes from the props file, not from the assembly under test.
+    private static string PropsVersion()
+    {
+        for (var dir = new DirectoryInfo(AppContext.BaseDirectory); dir is not null; dir = dir.Parent)
+        {
+            var props = Path.Combine(dir.FullName, "Directory.Build.props");
+            if (File.Exists(props))
+            {
+                return System.Text.RegularExpressions.Regex.Match(File.ReadAllText(props), "<Version>([^<]+)</Version>").Groups[1].Value;
+            }
+        }
+
+        throw new FileNotFoundException("Directory.Build.props not found above " + AppContext.BaseDirectory);
     }
 
     [Fact]

@@ -1,6 +1,7 @@
 using D3sk.Update.Keychain;
 using D3sk.Update.Keychain.Unix;
 using D3skCommander.App.Dialogs;
+using D3skCommander.App.Features.Update.SignIn;
 using D3skCommander.App.Shell;
 using D3skCommander.App.Smoke;
 using D3skCommander.App.Startup;
@@ -38,7 +39,9 @@ public sealed class UpdateModule : IShellModule
             provider.GetRequiredService<ILocalizer>(),
             provider.GetRequiredService<AppSettings>().Preferences,
             () => provider.GetRequiredService<SmokeModule>().IsActive,
-            () => !string.IsNullOrEmpty(Environment.GetEnvironmentVariable(UpdateCommands.DisableVariable))));
+            () => !string.IsNullOrEmpty(Environment.GetEnvironmentVariable(UpdateCommands.DisableVariable)),
+            provider.GetRequiredService<IJobService>(),
+            provider.GetService<IUrlOpener>()));
         services.AddSingleton<UpdateModule>();
         services.AddSingleton<IShellModule>(provider => provider.GetRequiredService<UpdateModule>());
     }

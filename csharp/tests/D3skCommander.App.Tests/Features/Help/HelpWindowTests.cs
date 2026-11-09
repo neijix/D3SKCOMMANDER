@@ -81,11 +81,26 @@ public class HelpWindowTests
 
         var shown = await dialogs.WaitShownAsync();
         Assert.Equal(host.Localizer.Get("cmd.about"), shown.Title);
-        Assert.Contains("0.2.1", shown.Text, StringComparison.Ordinal);
+        Assert.Contains(PropsVersion(), shown.Text, StringComparison.Ordinal);
         Assert.Contains("https://github.com/neijix/D3SKCOMMANDER", shown.Text, StringComparison.Ordinal);
         Assert.Contains("MIT", shown.Text, StringComparison.Ordinal);
         Assert.Contains(".NET", shown.Text, StringComparison.Ordinal);
         Assert.Contains("Avalonia", shown.Text, StringComparison.Ordinal);
         dialogs.Answer(DialogResult.Picked(0));
+    }
+
+    // The expected version comes from the props file, not from the app under test.
+    private static string PropsVersion()
+    {
+        for (var dir = new DirectoryInfo(AppContext.BaseDirectory); dir is not null; dir = dir.Parent)
+        {
+            var props = Path.Combine(dir.FullName, "Directory.Build.props");
+            if (File.Exists(props))
+            {
+                return System.Text.RegularExpressions.Regex.Match(File.ReadAllText(props), "<Version>([^<]+)</Version>").Groups[1].Value;
+            }
+        }
+
+        throw new FileNotFoundException("Directory.Build.props not found above " + AppContext.BaseDirectory);
     }
 }
