@@ -13,7 +13,7 @@ public sealed partial class LaunchCommands
     public LaunchPlatform Platform { get; set; } = LaunchPlatforms.Current;
 
     /// <summary>The full path of a program (<c>wt</c>, <c>pwsh</c>) found on PATH, else null; tests replace it.</summary>
-    public Func<string, string?> ResolveProgram { get; set; } = ExecutablePath.Resolve;
+    public Func<string, string?> ResolveProgram { get; set; } = program => ExecutablePath.Resolve(program);
 
     /// <summary>
     /// Opens a terminal or PowerShell in the context target's folder (the active folder outside a context menu).
@@ -45,18 +45,18 @@ public sealed partial class LaunchCommands
         var platform = Platform;
         var resolve = ResolveProgram;
         var result = await Task.Run(() => TerminalLaunch.Open(kind, elevated, directory, configured, resolve, _runner, platform)).ConfigureAwait(true);
+        Report(result);
+    }
+
+    /// <summary>The status text of a cancelled or refused start; null for a success or a failure (a dialog).</summary>
+    private string? StatusFor(LaunchResult result)
+    {
         if (result.IsCancelled)
         {
-            ShowStatus?.Invoke(_text.Get("launch.cancelled"));
+            return _text.Get("launch.cancelled");
         }
-        else if (result.IsRefused)
-        {
-            ShowStatus?.Invoke(_text.Get("launch.refused") + ": " + _text.Get(RefusalKey(result.Refusal!.Value)));
-        }
-        else
-        {
-            Report(result);
-        }
+
+        return result.IsRefused ? _text.Get("launch.refused") + ": " + _text.Get(RefusalKey(result.Refusal!.Value)) : null;
     }
 
     private static string RefusalKey(LaunchRefusal refusal) => refusal switch
@@ -72,18 +72,15 @@ public sealed partial class LaunchCommands
     /// </summary>
     private string? TargetFolder()
     {
-        if (_panels.ContextTarget is PanelContextTarget target)
-        {
-            return target.HereFolder;
-        }
-
-        if (_panels.ContextTargetFor(_panels.ActiveSide, false) is { Provider: not (PanelProviderKind.Local or PanelProviderKind.FlatList) })
+        // A context target is checked like the active panel; none at all fails closed.
+        var target = _panels.ContextTarget ?? _panels.ContextTargetFor(_panels.ActiveSide, false);
+        if (target is not { Provider: PanelProviderKind.Local or PanelProviderKind.FlatList })
         {
             ShowStatus?.Invoke(_text.Get("launch.panel_unavailable"));
             return null;
         }
 
-        return _panels.Capture()?.ActiveDirectory;
+        return _panels.ContextTarget is not null ? target.HereFolder : _panels.Capture()?.ActiveDirectory;
     }
 }
 
@@ -92,26 +89,34 @@ internal static class ExecutablePath
 {
     public static bool IsOnPath(string program) => Resolve(program) is not null;
 
-    /// <summary>The full path of the first match on PATH (relative PATH entries are ignored), else null.</summary>
-    public static string? Resolve(string program)
+    /// <summary>The full path of the first match on the process PATH (see the overload), else null.</summary>
+    public static string? Resolve(string program) =>
+        Resolve(program, Environment.GetEnvironmentVariable("PATH"), Environment.GetEnvironmentVariable("PATHEXT"), OperatingSystem.IsWindows());
+
+    /// <summary>
+    /// The full path of the first match in <paramref name="path"/>, else null. Only fully qualified PATH entries count (a relative or
+    /// drive-relative one would depend on the current folder). On Windows only a PATHEXT extension makes a match, in PATHEXT order, unless
+    /// <paramref name="program"/> already ends in one: an extensionless file is no program there. Elsewhere the plain name is tried.
+    /// </summary>
+    public static string? Resolve(string program, string? path, string? pathExt, bool windows)
     {
-        var path = Environment.GetEnvironmentVariable("PATH");
         if (string.IsNullOrEmpty(path))
         {
             return null;
         }
 
         string[] extensions = [""];
-        if (OperatingSystem.IsWindows())
+        if (windows)
         {
-            var pathext = Environment.GetEnvironmentVariable("PATHEXT") ?? ".EXE;.CMD;.BAT;.COM";
-            extensions = ["", .. pathext.Split(';', StringSplitOptions.RemoveEmptyEntries)];
+            string[] known = (pathExt ?? ".EXE;.CMD;.BAT;.COM").Split(';', StringSplitOptions.RemoveEmptyEntries);
+            var given = Path.GetExtension(program);
+            extensions = given.Length > 0 && known.Contains(given, StringComparer.OrdinalIgnoreCase) ? [""] : known;
         }
 
         foreach (var folder in path.Split(Path.PathSeparator, StringSplitOptions.RemoveEmptyEntries))
         {
             var directory = folder.Trim('"');
-            if (!Path.IsPathRooted(directory))
+            if (!Path.IsPathFullyQualified(directory))
             {
                 continue;
             }

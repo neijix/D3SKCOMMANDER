@@ -39,7 +39,7 @@ public sealed class LaunchResult
     /// <summary>The user declined the elevation prompt (Win32 error 1223).</summary>
     public bool IsCancelled { get; }
 
-    /// <summary>Nothing was started because the request is unsafe to pass on; <see cref="Refusal"/> says why.</summary>
+    /// <summary>Nothing was started on purpose (an unsafe request, a missing program or terminal); <see cref="Refusal"/> is the typed reason the UI shows as a status.</summary>
     public bool IsRefused => Refusal is not null;
 
     public LaunchRefusal? Refusal { get; }

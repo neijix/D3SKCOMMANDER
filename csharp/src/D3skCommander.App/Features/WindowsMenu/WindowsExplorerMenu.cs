@@ -6,7 +6,7 @@ namespace D3skCommander.App.Features.WindowsMenu;
 
 /// <summary>
 /// The native Explorer menu through COM: SHParseDisplayName, SHBindToParent, GetUIObjectOf(IContextMenu),
-/// QueryContextMenu, TrackPopupMenuEx, InvokeCommand. Off Windows it fails with a plain message.
+/// QueryContextMenu, TrackPopupMenuEx, InvokeCommand. Off Windows it fails with the typed reason <see cref="ExplorerMenuFailure.WindowsOnly"/>.
 /// </summary>
 public sealed class WindowsExplorerMenu : IExplorerMenu
 {

@@ -224,8 +224,8 @@ public class LauncherTests
         var runner = new RecordingRunner { FailAll = true };
         var result = Launcher.OpenTerminal(null, "/work", runner, LaunchPlatform.Linux);
         Assert.False(result.IsSuccess);
-        Assert.Equal(ErrorKind.InvalidData, result.Error!.Kind);
-        Assert.Equal("No terminal found: set one in the settings.", result.Error.Message);
+        Assert.Null(result.Error);
+        Assert.Equal(LaunchRefusal.NoTerminalFound, result.Refusal);
         Assert.Equal(Launcher.LinuxTerminals, Programs(runner));
     }
 

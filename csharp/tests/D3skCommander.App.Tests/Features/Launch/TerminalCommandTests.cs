@@ -27,7 +27,7 @@ public class TerminalCommandTests
 
         await pending;
         var request = Assert.IsType<ProcessRequest.Argv>(Assert.Single(harness.Runner.Started));
-        Assert.Equal("wt", request.Program);
+        Assert.Equal(Path.Combine(Path.GetTempPath(), "wt.exe"), request.Program);
         Assert.Equal(["-d", sub], request.Arguments);
         Assert.Empty(harness.Status);
     }
@@ -42,7 +42,7 @@ public class TerminalCommandTests
         await harness.Commands.OpenTerminalHereAsync(TerminalKind.Terminal, elevated: false);
 
         var request = Assert.IsType<ProcessRequest.Argv>(Assert.Single(harness.Runner.Started));
-        Assert.Equal("cmd", request.Program);
+        Assert.Equal(Path.Combine(Environment.SystemDirectory, "cmd.exe"), request.Program);
         Assert.Equal(harness.Left, request.WorkingDirectory);
     }
 
@@ -56,7 +56,7 @@ public class TerminalCommandTests
         await harness.Commands.OpenTerminalHereAsync(TerminalKind.PowerShell, elevated: false);
 
         var request = Assert.IsType<ProcessRequest.Argv>(Assert.Single(harness.Runner.Started));
-        Assert.Equal("pwsh", request.Program);
+        Assert.Equal(Path.Combine(Path.GetTempPath(), "pwsh.exe"), request.Program);
         Assert.Contains("-WorkingDirectory", request.Arguments);
     }
 
@@ -177,6 +177,39 @@ public class TerminalCommandTests
         Assert.Equal(harness.Text.Get("launch.failed"), shown.Title);
         Assert.Empty(harness.Status);
         harness.Dialogs.Answer(DialogResult.Ok());
+    }
+
+    [AvaloniaTheory]
+    [InlineData(PanelProviderKind.Archive)]
+    [InlineData(PanelProviderKind.Remote)]
+    public async Task AContextTargetOfAnArchiveOrRemotePanelOpensNoTerminalAndShowsAStatus(PanelProviderKind provider)
+    {
+        using var harness = await LaunchHarness.Open();
+        harness.Commands.Platform = LaunchPlatform.Windows;
+        harness.Commands.ResolveProgram = _ => null;
+
+        Task pending;
+        using (harness.Workspace.UseContextTarget(new PanelContextTarget(ContextTargetKind.Folder, provider, harness.Left, harness.Left, [])))
+        {
+            pending = harness.Commands.OpenTerminalHereAsync(TerminalKind.Terminal, elevated: false);
+        }
+
+        await pending;
+        Assert.Equal(harness.Text.Get("launch.panel_unavailable"), Assert.Single(harness.Status));
+        Assert.Empty(harness.Runner.Started);
+    }
+
+    [AvaloniaFact]
+    public async Task ThePlainTerminalCommandShowsTheLocalizedStatusWhenNoTerminalStarts()
+    {
+        Assert.SkipUnless(OperatingSystem.IsLinux(), "The terminal candidate list is the Linux default");
+        using var harness = await LaunchHarness.Open();
+        harness.Runner.FailWith = new FileNotFoundException("nope");
+
+        harness.Commands.OpenTerminal();
+
+        Assert.Equal(harness.Text.Get("launch.refused") + ": " + harness.Text.Get("launch.refused.no_terminal"), Assert.Single(harness.Status));
+        Assert.Equal(0, harness.Dialogs.ShownCount);
     }
 
     private static PanelContextTarget Target(ContextTargetKind kind, string panelFolder, string entry) =>

@@ -104,13 +104,36 @@ public class WindowsMenuTests
         Assert.Single(rig.Menu.Shown);
     }
 
+    [Theory]
+    [InlineData(PanelProviderKind.Archive)]
+    [InlineData(PanelProviderKind.Remote)]
+    public void AContextTargetOfAnArchiveOrRemotePanelShowsAStatusAndNoMenu(PanelProviderKind provider)
+    {
+        using var rig = new Rig();
+        rig.Workspace.Context = new PanelContextTarget(ContextTargetKind.File, provider, "C:\\d", "C:\\d\\a.txt", []);
+
+        rig.Run();
+
+        Assert.Empty(rig.Menu.Shown);
+        Assert.Equal(["Not available for this panel (archive or remote folder)"], rig.Status);
+    }
+
+    [Fact]
+    public void WithNoTargetAtAllTheCommandFailsClosedWithAStatus()
+    {
+        using var rig = new Rig();
+        rig.Workspace.NoTarget = true;
+
+        rig.Run();
+
+        Assert.Empty(rig.Menu.Shown);
+        Assert.Equal(["Not available for this panel (archive or remote folder)"], rig.Status);
+    }
+
     [Fact]
     public void AnInvalidPathFailsWithATypedReasonInsteadOfThrowing()
     {
-        if (!OperatingSystem.IsWindows())
-        {
-            return;
-        }
+        Assert.SkipUnless(OperatingSystem.IsWindows(), "The Explorer menu exists on Windows only");
 
         var result = new WindowsExplorerMenu().Show(["bad\0path"], null, IntPtr.Zero);
 
@@ -255,8 +278,10 @@ public class WindowsMenuTests
 
         public PanelProviderKind Active { get; set; } = PanelProviderKind.Local;
 
+        public bool NoTarget { get; set; }
+
         public PanelContextTarget? ContextTargetFor(PanelSide side, bool emptySpace) =>
-            new(ContextTargetKind.EmptySpace, Active, "C:\\d", null, []);
+            NoTarget ? null : new(ContextTargetKind.EmptySpace, Active, "C:\\d", null, []);
 
         public PanelSide ActiveSide => PanelSide.Left;
 

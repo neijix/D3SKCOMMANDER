@@ -67,21 +67,16 @@ public sealed class WindowsMenuModule : IShellModule
         }
 
         // The target is read first: a context menu's scope ends with its dispatch.
-        IReadOnlyList<string>? paths;
-        if (_panels.ContextTarget is { } target)
+        var context = _panels.ContextTarget;
+        var checkedTarget = context ?? _panels.ContextTargetFor(_panels.ActiveSide, false);
+        if (checkedTarget is not { Provider: PanelProviderKind.Local or PanelProviderKind.FlatList })
         {
-            paths = ContextTargetPaths.Of(target);
-        }
-        else if (_panels.ContextTargetFor(_panels.ActiveSide, false) is { Provider: not (PanelProviderKind.Local or PanelProviderKind.FlatList) })
-        {
-            // An archive or remote panel holds provider paths, not paths of this machine.
+            // An archive or remote panel holds provider paths, not paths of this machine; no target at all fails closed.
             _status?.Invoke(_text.Get("windowsmenu.panel_unavailable"));
             return;
         }
-        else
-        {
-            paths = _panels.Capture()?.Sources;
-        }
+
+        IReadOnlyList<string>? paths = context is { } target ? ContextTargetPaths.Of(target) : _panels.Capture()?.Sources;
 
         if (paths is not { Count: > 0 })
         {

@@ -24,12 +24,12 @@ public class TerminalLaunchTests
         var runner = new RecordingRunner();
         Assert.True(Open(runner, TerminalKind.Terminal, false, @"C:\My Docs;x", OnPath("wt")).IsSuccess);
         var wt = Assert.IsType<ProcessRequest.Argv>(runner.Requests[0]);
-        Assert.Equal("wt", wt.Program);
+        Assert.Equal(Path.Combine(Path.GetTempPath(), "wt.exe"), wt.Program);
         Assert.Equal(["-d", @"C:\My Docs\;x"], wt.Arguments);
 
         Assert.True(Open(runner, TerminalKind.Terminal, false, @"C:\a&b^c%d!e'f’g(h)", OnPath()).IsSuccess);
         var cmd = Assert.IsType<ProcessRequest.Argv>(runner.Requests[1]);
-        Assert.Equal("cmd", cmd.Program);
+        Assert.Equal(Path.Combine(Environment.SystemDirectory, "cmd.exe"), cmd.Program);
         Assert.Equal(["/c", "start", "cmd"], cmd.Arguments);
         Assert.Equal(@"C:\a&b^c%d!e'f’g(h)", cmd.WorkingDirectory);
     }
@@ -46,7 +46,7 @@ public class TerminalLaunchTests
         Open(runner, TerminalKind.Terminal, true, @"C:\d", OnPath(), configured: "mytty");
         Assert.IsType<ProcessRequest.Elevated>(runner.Requests[1]);
         Open(runner, TerminalKind.PowerShell, false, @"C:\d", OnPath("pwsh"), configured: "mytty");
-        Assert.Equal("pwsh", Assert.IsType<ProcessRequest.Argv>(runner.Requests[2]).Program);
+        Assert.Equal("pwsh.exe", Path.GetFileName(Assert.IsType<ProcessRequest.Argv>(runner.Requests[2]).Program));
     }
 
     [Fact]
@@ -55,13 +55,13 @@ public class TerminalLaunchTests
         var runner = new RecordingRunner();
         Open(runner, TerminalKind.PowerShell, false, @"C:\My Docs", OnPath("pwsh"));
         var pwsh = Assert.IsType<ProcessRequest.Argv>(runner.Requests[0]);
-        Assert.Equal("pwsh", pwsh.Program);
+        Assert.Equal(Path.Combine(Path.GetTempPath(), "pwsh.exe"), pwsh.Program);
         Assert.Equal(["-NoExit", "-WorkingDirectory", @"C:\My Docs"], pwsh.Arguments);
 
         const string dir = @"C:\a b&^%!'’‘‚‛();x";
         Open(runner, TerminalKind.PowerShell, false, dir, OnPath());
         var legacy = Assert.IsType<ProcessRequest.Argv>(runner.Requests[1]);
-        Assert.Equal("powershell.exe", legacy.Program);
+        Assert.Equal(Path.Combine(Environment.SystemDirectory, "WindowsPowerShell", "v1.0", "powershell.exe"), legacy.Program);
         Assert.Equal(["-NoExit", "-EncodedCommand"], legacy.Arguments.Take(2));
         Assert.Equal(@"Set-Location -LiteralPath 'C:\a b&^%!''’’‘‘‚‚‛‛();x'", Decode(legacy.Arguments[2]));
     }
@@ -84,8 +84,9 @@ public class TerminalLaunchTests
     }
 
     [Fact]
-    public void EveryElevatedRequestHasARootedProgram()
+    public void EveryElevatedRequestHasAFullyQualifiedProgram()
     {
+        Assert.SkipUnless(OperatingSystem.IsWindows(), "The elevated forms and the system cmd.exe folder exist on Windows only");
         foreach (var kind in new[] { TerminalKind.Terminal, TerminalKind.PowerShell })
         {
             foreach (var path in new[] { OnPath(), OnPath("wt"), OnPath("pwsh"), OnPath("wt", "pwsh") })
@@ -93,8 +94,23 @@ public class TerminalLaunchTests
                 var runner = new RecordingRunner();
                 Assert.True(Open(runner, kind, true, @"C:\d", path).IsSuccess);
                 var request = Assert.IsType<ProcessRequest.Elevated>(Assert.Single(runner.Requests));
-                // Off Windows there is no system folder to root cmd.exe in; the elevated forms never run there.
-                Assert.True(Path.IsPathRooted(request.Program) || !OperatingSystem.IsWindows(), request.Program);
+                Assert.True(Path.IsPathFullyQualified(request.Program), request.Program);
+            }
+        }
+    }
+
+    [Fact]
+    public void EveryNonElevatedWindowsRequestHasAFullyQualifiedProgram()
+    {
+        Assert.SkipUnless(OperatingSystem.IsWindows(), "The system cmd.exe folder exists on Windows only");
+        foreach (var kind in new[] { TerminalKind.Terminal, TerminalKind.PowerShell })
+        {
+            foreach (var path in new[] { OnPath(), OnPath("wt"), OnPath("pwsh"), OnPath("wt", "pwsh") })
+            {
+                var runner = new RecordingRunner();
+                Assert.True(Open(runner, kind, false, @"C:\d", path).IsSuccess);
+                var request = Assert.IsType<ProcessRequest.Argv>(Assert.Single(runner.Requests));
+                Assert.True(Path.IsPathFullyQualified(request.Program), request.Program);
             }
         }
     }

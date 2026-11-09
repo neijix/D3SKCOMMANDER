@@ -30,7 +30,7 @@ public static class TerminalLaunch
     /// <summary>
     /// Opens <paramref name="kind"/> in <paramref name="directory"/>. <paramref name="configured"/> (the Settings
     /// terminal) applies only to a non-elevated <see cref="TerminalKind.Terminal"/>; <paramref name="resolve"/>
-    /// answers the full path of a program (<c>wt</c>, <c>pwsh</c>) found on PATH, else null; an elevated start passes that full path.
+    /// answers the full path of a program (<c>wt</c>, <c>pwsh</c>) found on PATH, else null; every Windows start passes a full path (that one, or the system cmd.exe / powershell.exe).
     /// </summary>
     public static LaunchResult Open(
         TerminalKind kind,
@@ -74,8 +74,8 @@ public static class TerminalLaunch
         if (!elevated)
         {
             ProcessRequest plain = wt
-                ? new ProcessRequest.Argv("wt", ["-d", directory.Replace(";", "\\;", StringComparison.Ordinal)], directory, true, false)
-                : new ProcessRequest.Argv("cmd", ["/c", "start", "cmd"], directory, true, false);
+                ? new ProcessRequest.Argv(wtPath!, ["-d", directory.Replace(";", "\\;", StringComparison.Ordinal)], directory, true, false)
+                : new ProcessRequest.Argv(CmdPath(), ["/c", "start", "cmd"], directory, true, false);
             return Launcher.Start(plain, runner, null);
         }
 
@@ -97,11 +97,14 @@ public static class TerminalLaunch
         }
         else
         {
-            request = new ProcessRequest.Elevated(Path.Combine(Environment.SystemDirectory, "cmd.exe"), "/k cd /d \"" + directory + "\"", directory);
+            request = new ProcessRequest.Elevated(CmdPath(), "/k cd /d \"" + directory + "\"", directory);
         }
 
         return Launcher.Start(request, runner, null);
     }
+
+    /// <summary>The system cmd.exe by full path, so a same-named file on PATH or in the folder never wins.</summary>
+    private static string CmdPath() => Path.Combine(Environment.SystemDirectory, "cmd.exe");
 
     private static LaunchRefusal? VerbatimRefusal(string directory)
     {
@@ -129,13 +132,12 @@ public static class TerminalLaunch
                 : LaunchResult.Refused(LaunchRefusal.PowerShellNotFound);
         }
 
-        var program = pwsh ? "pwsh" : "powershell.exe";
+        // A full path either way, so a planted name in the current folder is never run (as administrator, too).
+        var program = pwshPath
+            ?? resolve("powershell.exe")
+            ?? Path.Combine(Environment.SystemDirectory, "WindowsPowerShell", "v1.0", "powershell.exe");
         if (elevated)
         {
-            // Elevated: a rooted program, so a planted name in the current folder is never run as administrator.
-            program = pwshPath
-                ?? resolve("powershell.exe")
-                ?? Path.Combine(Environment.SystemDirectory, "WindowsPowerShell", "v1.0", "powershell.exe");
             var arguments = "-NoExit -EncodedCommand " + EncodedSetLocation(directory);
             return Launcher.Start(new ProcessRequest.Elevated(program, arguments, directory), runner, null);
         }

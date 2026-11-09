@@ -183,7 +183,11 @@ public sealed partial class LaunchCommands : IFileLauncher
 
     private LaunchResult Report(LaunchResult result)
     {
-        if (result.Error is not null)
+        if (StatusFor(result) is { } status)
+        {
+            ShowStatus?.Invoke(status);
+        }
+        else if (result.Error is not null)
         {
             _ = ShowFailureAsync(result.Error);
         }

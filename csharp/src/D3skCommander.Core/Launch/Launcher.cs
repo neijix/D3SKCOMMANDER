@@ -182,7 +182,7 @@ public static class Launcher
             }
         }
 
-        return LaunchResult.Fail(OperationError.InvalidData("No terminal found: set one in the settings."));
+        return LaunchResult.Refused(LaunchRefusal.NoTerminalFound);
     }
 
     internal static LaunchResult Start(ProcessRequest request, IProcessRunner runner, string? prefix)
