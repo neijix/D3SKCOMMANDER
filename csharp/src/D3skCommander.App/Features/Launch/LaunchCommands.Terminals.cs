@@ -96,7 +96,8 @@ internal static class ExecutablePath
 
     /// <summary>
     /// The full path of the first match in <paramref name="path"/>, else null. Only fully qualified PATH entries count (a relative or
-    /// drive-relative one would depend on the current folder). On Windows only a PATHEXT extension makes a match, in PATHEXT order, unless
+    /// drive-relative one would depend on the current folder), and the returned candidate must itself be fully
+    /// qualified (a rooted or drive-relative <paramref name="program"/> would depend on the current folder: null). On Windows only a PATHEXT extension makes a match, in PATHEXT order, unless
     /// <paramref name="program"/> already ends in one: an extensionless file is no program there. Elsewhere the plain name is tried.
     /// </summary>
     public static string? Resolve(string program, string? path, string? pathExt, bool windows)

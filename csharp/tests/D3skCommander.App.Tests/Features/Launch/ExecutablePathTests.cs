@@ -26,9 +26,27 @@ public class ExecutablePathTests : IDisposable
     [Fact]
     public void ARootedOrDriveRelativeTokenResolvesToNull()
     {
-        var dir = Dir("bin", "wt.exe");
-        Assert.Null(ExecutablePath.Resolve(@"\wt", dir, ".exe", windows: true));
-        Assert.Null(ExecutablePath.Resolve("C:wt.exe", dir, ".exe", windows: true));
+        Assert.SkipUnless(OperatingSystem.IsWindows(), "Rooted and drive-relative tokens exist on Windows only");
+        // A real tool.exe below the current folder that both tokens reach, so only the fully-qualified candidate rule can reject them.
+        var real = Path.Combine(Environment.CurrentDirectory, "d3sk-token-" + Guid.NewGuid().ToString("N"));
+        Directory.CreateDirectory(real);
+        try
+        {
+            File.WriteAllText(Path.Combine(real, "tool.exe"), "x");
+            var root = Path.GetPathRoot(real)!;
+            var rooted = "\\" + Path.GetRelativePath(root, real) + "\\tool";
+            var driveRelative = root[..2] + Path.GetRelativePath(Environment.CurrentDirectory, real) + @"\tool";
+            Assert.True(File.Exists(rooted + ".exe"));
+            Assert.True(File.Exists(driveRelative + ".exe"));
+
+            var dir = Dir("bin");
+            Assert.Null(ExecutablePath.Resolve(rooted, dir, ".exe", windows: true));
+            Assert.Null(ExecutablePath.Resolve(driveRelative, dir, ".exe", windows: true));
+        }
+        finally
+        {
+            Directory.Delete(real, recursive: true);
+        }
     }
 
     [Fact]

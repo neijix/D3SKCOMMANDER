@@ -114,8 +114,8 @@ public static class Launcher
 
     /// <summary>
     /// A non-empty configured command runs in the shell in <paramref name="directory"/>; on Windows its first
-    /// program is first replaced by its full path from <paramref name="resolve"/> (one that does not resolve
-    /// is refused), so a file of the folder never wins over PATH.
+    /// program is first replaced by its full path from <paramref name="resolve"/> (a fully qualified one is kept;
+    /// one that does not resolve, contains a <c>%</c> or is not fully qualified is refused), so a file of the folder never wins over PATH.
     /// Otherwise the platform default: the system <c>cmd.exe /c start</c>, <c>open -a Terminal</c>,
     /// or the first Linux candidate that starts.
     /// </summary>
@@ -146,7 +146,8 @@ public static class Launcher
 
     /// <summary>
     /// The command line with its first token (double-quoted or bare) as a quoted full path, the rest kept as is.
-    /// A fully qualified token keeps the line; null when the token does not resolve.
+    /// A fully qualified token is wrapped like a resolved one (not looked up); null when the token does not resolve,
+    /// contains a <c>%</c>, or is not a fully qualified path once resolved.
     /// </summary>
     private static string? QualifyFirstProgram(string line, Func<string, string?> resolve)
     {
