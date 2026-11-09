@@ -47,5 +47,9 @@ public interface IPanelWorkspace
     /// <summary>The context target for the cursor entry of a side (callers read its provider kind); null when the workspace cannot say (no folder yet, or a test double).</summary>
     PanelContextTarget? ContextTargetFor(PanelSide side, bool emptySpace) => null;
 
+    /// <summary>Opens the Computer view in the tab of <paramref name="side"/> (a workspace without one goes to its address).</summary>
+    Task ComputerAsync(PanelSide side, CancellationToken cancellationToken = default) =>
+        GoAsync(side, ComputerAddress.Text, cancellationToken);
+
     Task RefreshAsync(CancellationToken cancellationToken = default);
 }

@@ -86,22 +86,30 @@ public class ComputerViewTests
         var pane = new PanelPaneModel(
             PanelSide.Left, rig.Panels, rig.Services.GetRequiredService<ILocalizer>(), rig.Services.GetRequiredService<IDialogService>());
         rig.Panels.ToggleTree(PanelSide.Left);
-        pane.Tick();
-        await Until(() => pane.Tree.Selected is not null);
-        var selected = pane.Tree.Selected;
+        try
+        {
+            pane.Tick();
+            await Until(() => pane.Tree.Selected is not null);
+            var selected = pane.Tree.Selected;
 
-        await rig.Panels.ParentAsync(TestContext.Current.CancellationToken);
-        pane.Tick();
-        await Task.Delay(100, TestContext.Current.CancellationToken);
+            await rig.Panels.ParentAsync(TestContext.Current.CancellationToken);
+            pane.Tick();
+            await Task.Delay(100, TestContext.Current.CancellationToken);
 
-        Assert.Same(selected, pane.Tree.Selected);
-        var empty = rig.Panels.ContextTargetFor(PanelSide.Left, emptySpace: true)!;
-        Assert.Equal(PanelProviderKind.Remote, empty.Provider);
-        var row = rig.Panels.ContextTargetFor(PanelSide.Left, emptySpace: false)!;
-        Assert.Equal(PanelProviderKind.Remote, row.Provider);
-        var entries = PanelContextMenu.Build(empty, MenuPlatform.Windows, clipboardHasFiles: true, pwshFound: true);
-        Assert.Contains(entries, entry => entry.Command == CommandId.MkDir);
-        Assert.DoesNotContain(entries, entry => entry.Command is CommandId.TerminalHere or CommandId.AddToFavorites or CommandId.EditNew);
+            Assert.Same(selected, pane.Tree.Selected);
+            var empty = rig.Panels.ContextTargetFor(PanelSide.Left, emptySpace: true)!;
+            Assert.Equal(PanelProviderKind.Remote, empty.Provider);
+            var row = rig.Panels.ContextTargetFor(PanelSide.Left, emptySpace: false)!;
+            Assert.Equal(PanelProviderKind.Remote, row.Provider);
+            var entries = PanelContextMenu.Build(empty, MenuPlatform.Windows, clipboardHasFiles: true, pwshFound: true);
+            Assert.Contains(entries, entry => entry.Command == CommandId.MkDir);
+            Assert.DoesNotContain(entries, entry => entry.Command is CommandId.TerminalHere or CommandId.AddToFavorites or CommandId.EditNew);
+        }
+        finally
+        {
+            // The choice is saved into the settings folder the other tests share: put the tree back off.
+            rig.Panels.ToggleTree(PanelSide.Left);
+        }
     }
 
     [AvaloniaFact]

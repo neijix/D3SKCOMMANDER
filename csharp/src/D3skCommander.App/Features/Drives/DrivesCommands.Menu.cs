@@ -57,7 +57,7 @@ public sealed partial class DrivesCommands
         {
             case DriveMenuKind.Computer:
                 // The method the Computer command runs, for this menu's side.
-                await (_panels is PanelWorkspace workspace ? workspace.ComputerAsync(side) : _panels.GoAsync(side, ComputerAddress.Text)).ConfigureAwait(false);
+                await _panels.ComputerAsync(side).ConfigureAwait(false);
                 break;
             case DriveMenuKind.Unmounted:
                 await MountAsync(side, item.Target).ConfigureAwait(false);
