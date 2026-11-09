@@ -98,6 +98,9 @@ public class ContextMenuTests
         Assert.True(rig.Has(menu, CommandId.MkDir));
         Assert.True(rig.Has(menu, CommandId.Refresh));
         Assert.False(rig.Has(menu, CommandId.Open));
+        Assert.True(rig.Has(menu, CommandId.TerminalHere));
+        Assert.NotNull(rig.Item(menu, CommandId.TerminalHere).Icon);
+        Assert.Null(rig.Item(menu, CommandId.MkDir).Icon);
         rig.Item(menu, CommandId.Properties).RaiseEvent(new Avalonia.Interactivity.RoutedEventArgs(MenuItem.ClickEvent));
         Assert.Equal(ContextTargetKind.EmptySpace, rig.Seen.Single().Target!.Kind);
         Assert.Equal(rig.Directory, rig.Seen.Single().Target!.PanelFolder);

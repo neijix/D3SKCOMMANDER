@@ -1,6 +1,7 @@
 using Avalonia;
 using Avalonia.Controls;
 using D3skCommander.App.Controls.FileList;
+using D3skCommander.App.Icons;
 using D3skCommander.App.Shell;
 
 namespace D3skCommander.App.Features.Panels;
@@ -55,7 +56,7 @@ public sealed partial class PanelPaneView
             return new Separator();
         }
 
-        var item = new MenuItem { Header = action.Header, Tag = action };
+        var item = new MenuItem { Header = action.Header, Tag = action, Icon = MenuIcons.For(action.Command) };
         if (action.Children is not null)
         {
             foreach (var child in action.Children)

@@ -84,7 +84,7 @@ public sealed partial class PanelPaneModel
             header += "    " + gesture.Format();
         }
 
-        return new ShellAction(header, () => RunInContext(command, target, point));
+        return new ShellAction(header, () => RunInContext(command, target, point), Command: command);
     }
 
     // Today's association items, then the Open with dialog command: the submenu is never empty.
