@@ -102,6 +102,37 @@ public class ComputerToolTargetsTests
         rig.AssertNothingStarted();
     }
 
+    [AvaloniaFact]
+    public async Task AChecksumPerFileIgnoresTheTypedOutputPathSoAComputerTextThereIsNotRefused()
+    {
+        using var rig = await Rig.Open(targetAtComputer: true);
+
+        var running = rig.Run("checksum");
+        var asked = await rig.Dialogs.WaitShownAsync();
+        Assert.NotNull(asked.Form);
+        foreach (var field in asked.Form.Fields)
+        {
+            if (field is CheckDialogField perFile)
+            {
+                perFile.IsChecked = true;
+            }
+        }
+
+        foreach (var field in asked.Form.Fields)
+        {
+            if (field is TextDialogField { Label: var label } entry && label == rig.Text.Get("dlg.out_file"))
+            {
+                entry.Text = "computer:sums";
+            }
+        }
+
+        rig.Dialogs.Answer(DialogResult.Ok());
+        await running.WaitAsync(TimeSpan.FromSeconds(15), TestContext.Current.CancellationToken);
+
+        Assert.Equal(1, rig.Dialogs.ShownCount);
+        Assert.NotEmpty(rig.Services.GetRequiredService<IJobService>().Jobs);
+    }
+
     [Theory]
     [InlineData(true)]
     [InlineData(false)]

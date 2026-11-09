@@ -3,8 +3,10 @@ using D3skCommander.App.Features.Panels;
 using D3skCommander.App.Shell;
 using D3skCommander.App.Startup;
 using D3skCommander.Core.Common;
+using D3skCommander.Core.FileSystem;
 using D3skCommander.Core.Launch;
 using D3skCommander.Core.Localization;
+using D3skCommander.Core.Panels;
 using D3skCommander.Core.Toolbar;
 
 namespace D3skCommander.App.Features.Launch;
@@ -79,7 +81,14 @@ public sealed partial class LaunchCommands : IFileLauncher
         }
 
         var files = LocalFiles(capture);
-        return Report(Launcher.Launch(command, files, capture.ActiveDirectory, _runner));
+        return Report(Launcher.Launch(command, files, WorkingDirectory(capture), _runner));
+    }
+
+    /// <summary>The folder a user command starts in: the active folder, or Home while the active panel shows the Computer view.</summary>
+    internal static string WorkingDirectory(PanelCapture capture)
+    {
+        ArgumentNullException.ThrowIfNull(capture);
+        return ComputerAddress.IsAddress(capture.ActiveDirectory) ? LocalFileSystem.HomeDirectory() : capture.ActiveDirectory;
     }
 
     /// <summary>Starts the processes of a toolbar button; a failure is shown to the user.</summary>

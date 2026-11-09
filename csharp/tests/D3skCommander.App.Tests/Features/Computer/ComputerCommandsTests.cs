@@ -38,6 +38,9 @@ public class ComputerCommandsTests
     {
         using var rig = await Rig.Open();
         var commands = rig.Services.GetRequiredService<EditorCommands>();
+        var home = LocalFileSystem.HomeDirectory();
+        var cwdBefore = Names(Environment.CurrentDirectory);
+        var homeBefore = Names(home);
 
         var running = commands.EditNewAsync();
         var shown = await rig.Dialogs.WaitShownAsync();
@@ -49,6 +52,18 @@ public class ComputerCommandsTests
         Assert.False(rig.Services.GetRequiredService<IToolWindowHost>().IsOpen(ToolKind.Editor));
         Assert.Equal(["usb"], Directory.GetFileSystemEntries(rig.Root).Select(path => Path.GetFileName(path)).Order().ToArray());
         Assert.Empty(Directory.GetFileSystemEntries(Path.Combine(rig.Root, "usb")));
+        AssertNothingAdded(cwdBefore, Names(Environment.CurrentDirectory));
+        AssertNothingAdded(homeBefore, Names(home));
+    }
+
+    private static HashSet<string> Names(string folder) =>
+        Directory.GetFileSystemEntries(folder).Select(path => Path.GetFileName(path)).ToHashSet(StringComparer.Ordinal);
+
+    private static void AssertNothingAdded(HashSet<string> before, HashSet<string> after)
+    {
+        var added = after.Where(name => !before.Contains(name)).ToList();
+        Assert.Empty(added);
+        Assert.DoesNotContain(after, name => name.StartsWith("computer", StringComparison.OrdinalIgnoreCase));
     }
 
     [AvaloniaFact]
@@ -162,8 +177,27 @@ public class ComputerCommandsTests
         }
         finally
         {
-            child.Delete(true);
+            try
+            {
+                child.Delete(true);
+            }
+            catch (IOException)
+            {
+                // A cleanup failure must not mask the assertion that failed first.
+            }
         }
+    }
+
+    [AvaloniaFact]
+    public async Task AUserCommandWithTheActivePanelAtComputerStartsInHome()
+    {
+        using var rig = await Rig.Open();
+        var capture = rig.Panels.Capture();
+
+        Assert.NotNull(capture);
+        Assert.Equal(ComputerAddress.Text, capture.ActiveDirectory);
+        Assert.Equal(LocalFileSystem.HomeDirectory(), LaunchCommands.WorkingDirectory(capture));
+        Assert.Equal(0, rig.Runner.Requests);
     }
 
     [AvaloniaFact]
