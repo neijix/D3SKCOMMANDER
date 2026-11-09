@@ -46,11 +46,26 @@ public class ExecutablePathTests : IDisposable
     public void ADriveRelativeOrRootedButNotQualifiedEntryIsSkipped()
     {
         Assert.SkipUnless(OperatingSystem.IsWindows(), "Drive-relative paths exist on Windows only");
-        Dir("bin", "tool.exe");
-        var driveRelative = Path.GetPathRoot(_root)![..2] + "bin";
-        var rooted = @"\bin";
+        // A folder with tool.exe that the entries really point at (below the current folder, on its own drive), so only
+        // the fully-qualified rule can reject them.
+        var real = Path.Combine(Environment.CurrentDirectory, "d3sk-drive-" + Guid.NewGuid().ToString("N"));
+        Directory.CreateDirectory(real);
+        try
+        {
+            File.WriteAllText(Path.Combine(real, "tool.exe"), "x");
+            var root = Path.GetPathRoot(real)!;
+            var driveRelative = root[..2] + Path.GetRelativePath(Environment.CurrentDirectory, real);
+            var rooted = @"\" + Path.GetRelativePath(root, real);
+            Assert.True(File.Exists(Path.Combine(driveRelative, "tool.exe")));
+            Assert.True(File.Exists(Path.Combine(rooted, "tool.exe")));
 
-        Assert.Null(ExecutablePath.Resolve("tool", Join(driveRelative, rooted), ".exe", windows: true));
+            Assert.Null(ExecutablePath.Resolve("tool", Join(driveRelative, rooted), ".exe", windows: true));
+            Assert.Equal(Path.Combine(real, "tool.exe"), ExecutablePath.Resolve("tool", Join(driveRelative, rooted, real), ".exe", windows: true));
+        }
+        finally
+        {
+            Directory.Delete(real, recursive: true);
+        }
     }
 
     [Fact]

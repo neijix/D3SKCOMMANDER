@@ -30,7 +30,7 @@ public static class TerminalLaunch
     /// <summary>
     /// Opens <paramref name="kind"/> in <paramref name="directory"/>. <paramref name="configured"/> (the Settings
     /// terminal) applies only to a non-elevated <see cref="TerminalKind.Terminal"/>; <paramref name="resolve"/>
-    /// answers the full path of a program (<c>wt</c>, <c>pwsh</c>) found on PATH, else null; every Windows start passes a full path (that one, or the system cmd.exe / powershell.exe).
+    /// answers the full path of a program (<c>wt</c>, <c>pwsh</c>) found on PATH, else null. Every Windows start passes a full path (a resolved one, or the system cmd.exe / powershell.exe); a configured terminal's first program is replaced by its resolved full path.
     /// </summary>
     public static LaunchResult Open(
         TerminalKind kind,
@@ -56,12 +56,12 @@ public static class TerminalLaunch
 
         if (!elevated && !string.IsNullOrWhiteSpace(configured))
         {
-            return Launcher.OpenTerminal(configured, directory, runner, platform);
+            return Launcher.OpenTerminal(configured, directory, runner, platform, resolve);
         }
 
         if (platform != LaunchPlatform.Windows)
         {
-            return Launcher.OpenTerminal(null, directory, runner, platform);
+            return Launcher.OpenTerminal(null, directory, runner, platform, resolve);
         }
 
         return OpenWindowsTerminal(elevated, directory, resolve, runner);

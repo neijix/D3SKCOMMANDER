@@ -63,6 +63,7 @@ public sealed partial class LaunchCommands
     {
         LaunchRefusal.UnsafeFolderName => "launch.refused.unsafe_folder",
         LaunchRefusal.PowerShellNotFound => "launch.refused.pwsh_missing",
+        LaunchRefusal.ProgramNotFound => "launch.refused.program_missing",
         _ => "launch.refused.no_terminal",
     };
 

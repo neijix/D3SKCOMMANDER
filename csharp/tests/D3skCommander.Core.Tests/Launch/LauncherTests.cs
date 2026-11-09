@@ -208,7 +208,7 @@ public class LauncherTests
         var runner = new RecordingRunner();
         runner.FailPrograms.UnionWith(
             ["x-terminal-emulator", "gnome-terminal", "konsole", "xfce4-terminal", "alacritty"]);
-        var result = Launcher.OpenTerminal("  ", "/work", runner, LaunchPlatform.Linux);
+        var result = Launcher.OpenTerminal("  ", "/work", runner, LaunchPlatform.Linux, NoResolve);
         Assert.True(result.IsSuccess);
         Assert.Equal(
             ["x-terminal-emulator", "gnome-terminal", "konsole", "xfce4-terminal", "alacritty", "kitty"],
@@ -222,7 +222,7 @@ public class LauncherTests
     public void LinuxTerminalReportsWhenNoneStart()
     {
         var runner = new RecordingRunner { FailAll = true };
-        var result = Launcher.OpenTerminal(null, "/work", runner, LaunchPlatform.Linux);
+        var result = Launcher.OpenTerminal(null, "/work", runner, LaunchPlatform.Linux, NoResolve);
         Assert.False(result.IsSuccess);
         Assert.Null(result.Error);
         Assert.Equal(LaunchRefusal.NoTerminalFound, result.Refusal);
@@ -233,7 +233,7 @@ public class LauncherTests
     public void ConfiguredTerminalRunsInTheShell()
     {
         var runner = new RecordingRunner();
-        var result = Launcher.OpenTerminal("  kitty -1  ", "/work", runner, LaunchPlatform.Linux);
+        var result = Launcher.OpenTerminal("  kitty -1  ", "/work", runner, LaunchPlatform.Linux, NoResolve);
         Assert.True(result.IsSuccess);
         var shell = Assert.IsType<ProcessRequest.Shell>(Assert.Single(runner.Requests));
         Assert.Equal("kitty -1", shell.CommandLine);
@@ -241,24 +241,77 @@ public class LauncherTests
     }
 
     [Fact]
-    public void WindowsDefaultTerminalIsCmdStart()
+    public void WindowsDefaultTerminalIsTheSystemCmdStartedByFullPath()
     {
         var runner = new RecordingRunner();
-        var result = Launcher.OpenTerminal("", "C:\\work", runner, LaunchPlatform.Windows);
+        var result = Launcher.OpenTerminal("", @"C:\work", runner, LaunchPlatform.Windows, NoResolve);
         Assert.True(result.IsSuccess);
         var argv = Assert.IsType<ProcessRequest.Argv>(Assert.Single(runner.Requests));
-        Assert.Equal("cmd", argv.Program);
-        Assert.Equal(["/c", "start", "cmd"], argv.Arguments);
+        var cmd = Path.Combine(Environment.SystemDirectory, "cmd.exe");
+        Assert.Equal(cmd, argv.Program);
+        Assert.Equal(["/c", "start", cmd], argv.Arguments);
         Assert.True(argv.InheritStdio);
         Assert.False(argv.UseShellExecute);
-        Assert.Equal("C:\\work", argv.WorkingDirectory);
+        Assert.Equal(@"C:\work", argv.WorkingDirectory);
+    }
+
+    [Fact]
+    public void WindowsOverrideBareProgramIsReplacedByItsFullPathAndTheRestIsKept()
+    {
+        var runner = new RecordingRunner();
+        var asked = new List<string>();
+        var result = Launcher.OpenTerminal("  wt  -d  \"a b\" ", @"C:\work", runner, LaunchPlatform.Windows, name =>
+        {
+            asked.Add(name);
+            return @"C:\Tools\wt.cmd";
+        });
+        Assert.True(result.IsSuccess);
+        Assert.Equal(["wt"], asked);
+        var shell = Assert.IsType<ProcessRequest.Shell>(Assert.Single(runner.Requests));
+        Assert.Equal(@"""""C:\Tools\wt.cmd""  -d  ""a b""""", shell.CommandLine);
+        Assert.Equal(@"C:\work", shell.WorkingDirectory);
+    }
+
+    [Fact]
+    public void WindowsOverrideQuotedProgramIsResolvedWithoutItsQuotes()
+    {
+        var runner = new RecordingRunner();
+        var asked = new List<string>();
+        Launcher.OpenTerminal("\"my term\" --x", @"C:\work", runner, LaunchPlatform.Windows, name =>
+        {
+            asked.Add(name);
+            return @"C:\Tools\my term.exe";
+        });
+        Assert.Equal(["my term"], asked);
+        var shell = Assert.IsType<ProcessRequest.Shell>(Assert.Single(runner.Requests));
+        Assert.Equal(@"""""C:\Tools\my term.exe"" --x""", shell.CommandLine);
+    }
+
+    [Fact]
+    public void WindowsOverrideWithAFullyQualifiedProgramIsKeptAsIs()
+    {
+        var runner = new RecordingRunner();
+        var result = Launcher.OpenTerminal(@"""C:\Tools\my term.exe"" --x", @"C:\work", runner, LaunchPlatform.Windows, _ => throw new InvalidOperationException("no lookup"));
+        Assert.True(result.IsSuccess);
+        var shell = Assert.IsType<ProcessRequest.Shell>(Assert.Single(runner.Requests));
+        Assert.Equal(@"""C:\Tools\my term.exe"" --x", shell.CommandLine);
+    }
+
+    [Fact]
+    public void WindowsOverrideWhoseProgramDoesNotResolveIsRefusedAndNothingStarts()
+    {
+        var runner = new RecordingRunner();
+        var result = Launcher.OpenTerminal("nosuchterm --x", @"C:\work", runner, LaunchPlatform.Windows, NoResolve);
+        Assert.True(result.IsRefused);
+        Assert.Equal(LaunchRefusal.ProgramNotFound, result.Refusal);
+        Assert.Empty(runner.Requests);
     }
 
     [Fact]
     public void MacDefaultTerminalIsOpenTerminal()
     {
         var runner = new RecordingRunner();
-        var result = Launcher.OpenTerminal(null, "/work", runner, LaunchPlatform.MacOS);
+        var result = Launcher.OpenTerminal(null, "/work", runner, LaunchPlatform.MacOS, NoResolve);
         Assert.True(result.IsSuccess);
         var argv = Assert.IsType<ProcessRequest.Argv>(Assert.Single(runner.Requests));
         Assert.Equal("open", argv.Program);
@@ -272,6 +325,8 @@ public class LauncherTests
     {
         new ProcessRunner().Start(new ProcessRequest.Shell("exit 0", Environment.CurrentDirectory));
     }
+
+    private static string? NoResolve(string program) => null;
 
     private static List<string> Programs(RecordingRunner runner)
     {

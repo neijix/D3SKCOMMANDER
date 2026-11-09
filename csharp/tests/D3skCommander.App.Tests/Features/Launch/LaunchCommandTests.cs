@@ -78,6 +78,7 @@ public class LaunchCommandTests
         using var harness = await LaunchHarness.Open();
         var prefs = harness.Settings.Preferences.Current;
         prefs.Terminal = "myterm --here";
+        harness.Commands.Platform = LaunchPlatform.Linux;
 
         harness.Commands.OpenTerminal();
 

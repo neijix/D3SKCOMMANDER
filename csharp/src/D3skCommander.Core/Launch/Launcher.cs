@@ -112,25 +112,77 @@ public static class Launcher
         throw new ArgumentOutOfRangeException(nameof(platform), platform, "Unknown platform.");
     }
 
-    public static LaunchResult OpenTerminal(string? configured, string directory, IProcessRunner runner) =>
-        OpenTerminal(configured, directory, runner, LaunchPlatforms.Current);
-
     /// <summary>
-    /// A non-empty configured command runs in the shell in <paramref name="directory"/>.
-    /// Otherwise the platform default: <c>cmd /c start cmd</c>, <c>open -a Terminal</c>,
+    /// A non-empty configured command runs in the shell in <paramref name="directory"/>; on Windows its first
+    /// program is first replaced by its full path from <paramref name="resolve"/> (one that does not resolve
+    /// is refused), so a file of the folder never wins over PATH.
+    /// Otherwise the platform default: the system <c>cmd.exe /c start</c>, <c>open -a Terminal</c>,
     /// or the first Linux candidate that starts.
     /// </summary>
-    public static LaunchResult OpenTerminal(string? configured, string directory, IProcessRunner runner, LaunchPlatform platform)
+    public static LaunchResult OpenTerminal(
+        string? configured,
+        string directory,
+        IProcessRunner runner,
+        LaunchPlatform platform,
+        Func<string, string?> resolve)
     {
         ArgumentException.ThrowIfNullOrEmpty(directory);
         ArgumentNullException.ThrowIfNull(runner);
+        ArgumentNullException.ThrowIfNull(resolve);
         var custom = (configured ?? "").Trim();
-        if (custom.Length > 0)
+        if (custom.Length == 0)
+        {
+            return DefaultTerminal(directory, runner, platform);
+        }
+
+        if (platform != LaunchPlatform.Windows)
         {
             return RunInShell(custom, directory, runner);
         }
 
-        return DefaultTerminal(directory, runner, platform);
+        var line = QualifyFirstProgram(custom, resolve);
+        return line is null ? LaunchResult.Refused(LaunchRefusal.ProgramNotFound) : RunInShell(line, directory, runner);
+    }
+
+    /// <summary>
+    /// The command line with its first token (double-quoted or bare) as a quoted full path, the rest kept as is.
+    /// A fully qualified token keeps the line; null when the token does not resolve.
+    /// </summary>
+    private static string? QualifyFirstProgram(string line, Func<string, string?> resolve)
+    {
+        string token;
+        string rest;
+        var close = line[0] == '"' ? line.IndexOf('"', 1) : -1;
+        if (close > 0)
+        {
+            token = line[1..close];
+            rest = line[(close + 1)..];
+        }
+        else
+        {
+            var end = line.IndexOfAny([' ', '\t']);
+            token = end < 0 ? line : line[..end];
+            rest = end < 0 ? "" : line[end..];
+        }
+
+        if (token.Length == 0)
+        {
+            return null;
+        }
+
+        if (Path.IsPathFullyQualified(token))
+        {
+            return line;
+        }
+
+        var full = resolve(token);
+        if (string.IsNullOrEmpty(full))
+        {
+            return null;
+        }
+
+        // cmd /C drops the outer quotes of a line that starts with one, so the whole line is wrapped in one more pair.
+        return "\"\"" + full + "\"" + rest + "\"";
     }
 
     public static LaunchResult RunInShell(string? commandLine, string workingDirectory, IProcessRunner runner)
@@ -149,7 +201,8 @@ public static class Launcher
     {
         if (platform == LaunchPlatform.Windows)
         {
-            var cmd = new ProcessRequest.Argv("cmd", ["/c", "start", "cmd"], directory, true, false);
+            var cmdExe = Path.Combine(Environment.SystemDirectory, "cmd.exe");
+            var cmd = new ProcessRequest.Argv(cmdExe, ["/c", "start", cmdExe], directory, true, false);
             return Start(cmd, runner, null);
         }
 

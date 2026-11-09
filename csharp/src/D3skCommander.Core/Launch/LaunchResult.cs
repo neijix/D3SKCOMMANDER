@@ -13,6 +13,9 @@ public enum LaunchRefusal
 
     /// <summary>No terminal emulator started.</summary>
     NoTerminalFound,
+
+    /// <summary>The program a terminal setting starts is not on PATH (Windows).</summary>
+    ProgramNotFound,
 }
 
 /// <summary>

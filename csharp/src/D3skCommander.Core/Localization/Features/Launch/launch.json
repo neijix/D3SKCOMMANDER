@@ -47,6 +47,10 @@
     "en": "No terminal found: set one in the settings",
     "fr": "Aucun terminal trouvé : choisissez-en un dans les paramètres"
   },
+  "launch.refused.program_missing": {
+    "en": "The terminal program set in the settings was not found",
+    "fr": "Le programme de terminal défini dans les paramètres est introuvable"
+  },
   "launch.failed": {
     "en": "Could not start the program",
     "fr": "Impossible de lancer le programme"

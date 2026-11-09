@@ -46,14 +46,14 @@ public sealed partial class LaunchCommands : IFileLauncher
     /// <summary>The Terminal command: the preference when set, else the platform default, in the active folder.</summary>
     public void OpenTerminal()
     {
-        var capture = _panels.Capture();
-        if (capture is null)
+        var directory = TargetFolder();
+        if (directory is null)
         {
             return;
         }
 
         var configured = _settings.Preferences.Current.Terminal;
-        Report(Launcher.OpenTerminal(configured, capture.ActiveDirectory, _runner));
+        Report(Launcher.OpenTerminal(configured, directory, _runner, Platform, ResolveProgram));
     }
 
     /// <summary>The Tools-menu items of the user commands set in the settings, read when the menu opens.</summary>

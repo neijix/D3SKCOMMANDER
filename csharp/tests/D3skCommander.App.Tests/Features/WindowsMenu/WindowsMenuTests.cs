@@ -22,7 +22,7 @@ public class WindowsMenuTests
         rig.Run();
 
         Assert.Empty(rig.Menu.Shown);
-        Assert.Equal(["This command is available on Windows only"], rig.Status);
+        Assert.Equal([rig.Text.Get("windowsmenu.windows_only")], rig.Status);
     }
 
     [Fact]
@@ -74,7 +74,7 @@ public class WindowsMenuTests
         rig.Run();
 
         var request = await rig.Dialogs.WaitShownAsync();
-        Assert.StartsWith("Windows refused to build the menu", request.Text, StringComparison.Ordinal);
+        Assert.StartsWith(rig.Text.Get("windowsmenu.reason.shell"), request.Text, StringComparison.Ordinal);
         Assert.Contains("0x80004005", request.Text);
         Assert.Equal(0, rig.Workspace.Refreshes);
     }
@@ -90,7 +90,7 @@ public class WindowsMenuTests
         rig.Run();
 
         Assert.Empty(rig.Menu.Shown);
-        Assert.Equal(["Not available for this panel (archive or remote folder)"], rig.Status);
+        Assert.Equal([rig.Text.Get("windowsmenu.panel_unavailable")], rig.Status);
     }
 
     [Fact]
@@ -115,7 +115,7 @@ public class WindowsMenuTests
         rig.Run();
 
         Assert.Empty(rig.Menu.Shown);
-        Assert.Equal(["Not available for this panel (archive or remote folder)"], rig.Status);
+        Assert.Equal([rig.Text.Get("windowsmenu.panel_unavailable")], rig.Status);
     }
 
     [Fact]
@@ -127,7 +127,7 @@ public class WindowsMenuTests
         rig.Run();
 
         Assert.Empty(rig.Menu.Shown);
-        Assert.Equal(["Not available for this panel (archive or remote folder)"], rig.Status);
+        Assert.Equal([rig.Text.Get("windowsmenu.panel_unavailable")], rig.Status);
     }
 
     [Fact]
@@ -222,11 +222,13 @@ public class WindowsMenuTests
     {
         public Rig()
         {
-            var text = Localizer.Load(settingsLanguage: Language.En, systemLanguage: Language.En);
+            Text = Localizer.Load(settingsLanguage: Language.En, systemLanguage: Language.En);
             Dialogs = new FakeDialogService();
-            Module = new WindowsMenuModule(Workspace, Menu, new NoOwner(), Dialogs, text);
+            Module = new WindowsMenuModule(Workspace, Menu, new NoOwner(), Dialogs, Text);
             Module.Contribute(new StatusShell(Status.Add));
         }
+
+        public ILocalizer Text { get; }
 
         public bool IsWindows
         {
