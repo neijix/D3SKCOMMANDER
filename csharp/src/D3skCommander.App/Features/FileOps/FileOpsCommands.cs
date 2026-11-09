@@ -64,6 +64,11 @@ public sealed partial class FileOpsCommands
         shell.Handle(CommandId.Delete, () => _ = DeleteAsync());
         shell.Handle(CommandId.DeletePermanent, () => _ = DeleteAsync(CommandId.DeletePermanent));
         shell.Handle(CommandId.RenameInPlace, BeginRename);
+        if (_panels is PanelWorkspace workspace)
+        {
+            workspace.ClipboardHasFiles = () => !Clipboard.IsEmpty;
+        }
+
         if (_panels is IInPlaceRename rename)
         {
             rename.Commit = RenameAsync;

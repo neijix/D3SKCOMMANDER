@@ -9,6 +9,7 @@ using D3skCommander.App.Dialogs;
 using D3skCommander.App.Features.Panels;
 using D3skCommander.App.Shell;
 using D3skCommander.App.Tests.Dialogs;
+using D3skCommander.App.Tests.Features.FileOps;
 using D3skCommander.Core.Commands;
 using D3skCommander.Core.Localization;
 using D3skCommander.Core.Panels;
@@ -116,6 +117,21 @@ public class ContextMenuTests
         Assert.False(rig.Has(rig.View.FileMenu!, CommandId.ClipPaste));
 
         rig.Workspace.ClipboardHasFiles = () => true;
+        rig.RightClickEmptySpace();
+        Assert.True(rig.Has(rig.View.FileMenu!, CommandId.ClipPaste));
+    }
+
+    [AvaloniaFact]
+    public async Task TheFileOpsModuleWiresPasteToTheRealClipboard()
+    {
+        using var rig = await Rig.Opened();
+        FileOpsCommandTests.Commands(rig.Workspace, new FileOpsCommandTests.ScriptedDialogs()).Bind(rig.Shell);
+        rig.RightClickEmptySpace();
+        Assert.False(rig.Has(rig.View.FileMenu!, CommandId.ClipPaste));
+
+        rig.RightClick(rig.Index("a.txt"));
+        Click(rig.Item(rig.View.FileMenu!, CommandId.ClipCopy));
+
         rig.RightClickEmptySpace();
         Assert.True(rig.Has(rig.View.FileMenu!, CommandId.ClipPaste));
     }

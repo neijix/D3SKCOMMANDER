@@ -1,8 +1,11 @@
 using System.Runtime.InteropServices;
 using Avalonia;
 using Avalonia.Controls;
+using Avalonia.Media;
 using Avalonia.Media.Imaging;
 using Avalonia.Platform;
+using Avalonia.VisualTree;
+using D3skCommander.App.Features.Panels;
 
 namespace D3skCommander.App.Smoke;
 
@@ -19,8 +22,9 @@ internal static class SmokeShot
         ArgumentNullException.ThrowIfNull(platformSave);
         window.UpdateLayout();
         var size = SizeOf(window);
-        using var bitmap = new RenderTargetBitmap(size, new Vector(96 * Scale(window), 96 * Scale(window)));
-        bitmap.Render(window);
+        var main = new RenderTargetBitmap(size, new Vector(96 * Scale(window), 96 * Scale(window)));
+        main.Render(window);
+        using var bitmap = WithOpenMenus(window, main);
         var directory = Path.GetDirectoryName(path);
         if (!string.IsNullOrEmpty(directory))
         {
@@ -35,6 +39,67 @@ internal static class SmokeShot
         }
 
         WritePixels(bitmap, path);
+    }
+
+    // An open menu lives in its own popup window, which rendering the main window leaves out:
+    // draw every open context menu at its screen position, growing the shot to hold a tall menu.
+    private static RenderTargetBitmap WithOpenMenus(Window window, RenderTargetBitmap main)
+    {
+        var scale = Scale(window);
+        var dpi = new Vector(96 * scale, 96 * scale);
+        var popups = new List<(RenderTargetBitmap Shot, PixelPoint Origin)>();
+        foreach (var menu in OpenMenus(window))
+        {
+            if (menu.Items.OfType<Visual>().FirstOrDefault() is not { } item || TopLevel.GetTopLevel(item) is not { } popup
+                || ReferenceEquals(popup, window) || popup.Bounds.Width <= 0)
+            {
+                continue;
+            }
+
+            var size = new PixelSize(Math.Max(1, Pixels(popup.Bounds.Width, scale)), Math.Max(1, Pixels(popup.Bounds.Height, scale)));
+            var shot = new RenderTargetBitmap(size, dpi);
+            shot.Render(popup);
+            var origin = popup.PointToScreen(default) - window.PointToScreen(default);
+            popups.Add((shot, new PixelPoint(origin.X, origin.Y)));
+        }
+
+        if (popups.Count == 0)
+        {
+            return main;
+        }
+
+        var width = popups.Select(p => p.Origin.X + p.Shot.PixelSize.Width).Append(main.PixelSize.Width).Max();
+        var height = popups.Select(p => p.Origin.Y + p.Shot.PixelSize.Height).Append(main.PixelSize.Height).Max();
+        var combined = new RenderTargetBitmap(new PixelSize(width, height), dpi);
+        using (var context = combined.CreateDrawingContext())
+        {
+            DrawPixels(context, main, new PixelPoint(0, 0));
+            foreach (var (shot, origin) in popups)
+            {
+                DrawPixels(context, shot, origin);
+                shot.Dispose();
+            }
+        }
+
+        main.Dispose();
+        return combined;
+    }
+
+    private static void DrawPixels(DrawingContext context, Bitmap bitmap, PixelPoint at)
+    {
+        var size = bitmap.PixelSize;
+        context.DrawImage(bitmap, new Rect(0, 0, size.Width, size.Height), new Rect(at.X, at.Y, size.Width, size.Height));
+    }
+
+    private static IEnumerable<ContextMenu> OpenMenus(Window window)
+    {
+        foreach (var pane in window.GetVisualDescendants().OfType<PanelPaneView>())
+        {
+            if (pane.FileMenu is { IsOpen: true } menu)
+            {
+                yield return menu;
+            }
+        }
     }
 
     private static void TryPlatformSave(Action<Bitmap, string> platformSave, Bitmap bitmap, string path)
