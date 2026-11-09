@@ -394,5 +394,13 @@
   "cmd.edit_file_associations": {
     "en": "File associations…",
     "fr": "Associations de fichiers…"
+  },
+  "cmd.open_in_new_tab": {
+    "en": "Open in new tab",
+    "fr": "Ouvrir dans un nouvel onglet"
+  },
+  "cmd.open_in_other_panel": {
+    "en": "Open in other panel",
+    "fr": "Ouvrir dans l'autre panneau"
   }
 }

@@ -12,6 +12,9 @@ public sealed partial class PanelWorkspace
     {
         ArgumentNullException.ThrowIfNull(shell);
         shell.Handle(CommandId.SwitchPanel, Switch);
+        shell.Handle(CommandId.Open, () => Run(() => OpenEntryAsync()));
+        shell.Handle(CommandId.OpenInNewTab, () => Run(() => OpenInNewTabAsync()));
+        shell.Handle(CommandId.OpenInOtherPanel, () => Run(() => OpenInOtherPanelAsync()));
         shell.Handle(CommandId.Parent, () => Run(() => ParentAsync()));
         shell.Handle(CommandId.Back, () => Run(() => BackAsync()));
         shell.Handle(CommandId.Forward, () => Run(() => ForwardAsync()));

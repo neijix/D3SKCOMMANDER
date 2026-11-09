@@ -1,4 +1,5 @@
 using D3skCommander.App.Dialogs;
+using D3skCommander.App.Features.Panels;
 using D3skCommander.Core.FileSystem;
 
 namespace D3skCommander.App.Features.Drives;
@@ -17,13 +18,14 @@ public sealed partial class DrivesCommands
         {
             var title = _text.Get("cmd.properties");
             var capture = _panels.Capture();
-            if (capture is null || capture.Sources.Count == 0)
+            var sources = _panels.ContextTarget is { } target ? ContextTargetPaths.Of(target) : capture?.Sources;
+            if (capture is null || sources is null || sources.Count == 0)
             {
                 await _dialogs.ShowMessageAsync(title, _text.Get("props.none")).ConfigureAwait(false);
                 return;
             }
 
-            var lines = await Describe(title, capture.Sources, capture.ActiveDirectory).ConfigureAwait(false);
+            var lines = await Describe(title, sources, capture.ActiveDirectory).ConfigureAwait(false);
             if (lines is not null)
             {
                 var notes = lines.Select(line => (DialogField)new NoteDialogField(line)).ToList();

@@ -1,4 +1,6 @@
+using D3skCommander.App.Features.Panels;
 using D3skCommander.Core.FileOps;
+using D3skCommander.Core.Panels;
 
 namespace D3skCommander.App.Features.FileOps;
 
@@ -17,7 +19,7 @@ public sealed partial class FileOpsCommands
             return;
         }
 
-        Clipboard.Set(capture.Sources, cut);
+        Clipboard.Set(_panels.ContextTarget is { } target ? ContextTargetPaths.Of(target) : capture.Sources, cut);
     }
 
     /// <summary>Copies or moves the clipboard into the active folder; a copy into its own folder gets a numbered name.</summary>
@@ -28,6 +30,8 @@ public sealed partial class FileOpsCommands
             return;
         }
 
+        // "Paste into" on a folder row goes into that folder; empty space pastes into the panel folder.
+        var into = _panels.ContextTarget is { Kind: ContextTargetKind.Folder, EntryPath: { } folder } ? folder : null;
         try
         {
             var capture = _panels.Capture();
@@ -36,7 +40,7 @@ public sealed partial class FileOpsCommands
                 return;
             }
 
-            var directory = capture.ActiveDirectory;
+            var directory = into ?? capture.ActiveDirectory;
             var plan = await Task.Run(() => Clipboard.Plan(directory, path => File.Exists(path) || Directory.Exists(path), Directory.Exists))
                 .ConfigureAwait(false);
             if (plan.IsEmpty)

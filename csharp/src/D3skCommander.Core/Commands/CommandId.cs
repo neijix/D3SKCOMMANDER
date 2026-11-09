@@ -101,4 +101,7 @@ public enum CommandId
     RestoreFavoriteTabs1,
     ManageFavoriteTabs,
     EditFileAssociations,
+    Open,
+    OpenInNewTab,
+    OpenInOtherPanel,
 }

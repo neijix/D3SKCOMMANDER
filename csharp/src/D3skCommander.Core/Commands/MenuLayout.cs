@@ -17,6 +17,10 @@ internal static class MenuLayout
 
     private static MenuDefinition Files() => Menu("menu.files",
     [
+        CommandId.Open,
+        CommandId.OpenInNewTab,
+        CommandId.OpenInOtherPanel,
+        null,
         CommandId.View,
         CommandId.Edit,
         CommandId.EditNew,

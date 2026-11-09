@@ -1,4 +1,5 @@
 using D3skCommander.App.Shell;
+using D3skCommander.Core.Panels;
 
 namespace D3skCommander.App.Features.Panels;
 
@@ -39,6 +40,9 @@ public interface IPanelWorkspace
         var parent = Path.GetDirectoryName(Path.TrimEndingDirectorySeparator(path));
         return GoAsync(ActiveSide, string.IsNullOrEmpty(parent) ? path : parent, cancellationToken);
     }
+
+    /// <summary>The target of the context menu whose command is being dispatched, or null outside one (a workspace without a context menu has none).</summary>
+    PanelContextTarget? ContextTarget => null;
 
     Task RefreshAsync(CancellationToken cancellationToken = default);
 }
