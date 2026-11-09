@@ -32,20 +32,20 @@
     "fr": "Tailles des dossiers"
   },
   "panels.hotlist": {
-    "en": "Saved folders",
-    "fr": "Dossiers favoris"
+    "en": "Favorites",
+    "fr": "Favoris"
   },
   "panels.hotlistEmpty": {
-    "en": "No saved folders yet. Use Add current folder.",
-    "fr": "Aucun dossier favori. Utilisez Ajouter le dossier courant."
+    "en": "No favorites yet. Use Add current folder to favorites.",
+    "fr": "Aucun favori. Utilisez Ajouter le dossier courant aux favoris."
   },
   "panels.hotlistPick": {
-    "en": "Choose a folder",
-    "fr": "Choisissez un dossier"
+    "en": "Choose a favorite",
+    "fr": "Choisissez un favori"
   },
   "panels.hotlistAdd": {
-    "en": "Save this folder",
-    "fr": "Enregistrer ce dossier"
+    "en": "Add this folder to favorites",
+    "fr": "Ajouter ce dossier aux favoris"
   },
   "panels.name": {
     "en": "Name",

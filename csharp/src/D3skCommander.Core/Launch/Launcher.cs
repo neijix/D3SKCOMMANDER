@@ -1,3 +1,4 @@
+using System.ComponentModel;
 using D3skCommander.Core.Common;
 
 namespace D3skCommander.Core.Launch;
@@ -19,6 +20,8 @@ public static class Launcher
         "kitty",
         "xterm",
     ];
+
+    private const int ErrorCancelled = 1223;
 
     public static LaunchResult Launch(
         string command,
@@ -182,12 +185,16 @@ public static class Launcher
         return LaunchResult.Fail(OperationError.InvalidData("No terminal found: set one in the settings."));
     }
 
-    private static LaunchResult Start(ProcessRequest request, IProcessRunner runner, string? prefix)
+    internal static LaunchResult Start(ProcessRequest request, IProcessRunner runner, string? prefix)
     {
         try
         {
             runner.Start(request);
             return LaunchResult.Ok(1);
+        }
+        catch (Win32Exception ex) when (ex.NativeErrorCode == ErrorCancelled)
+        {
+            return LaunchResult.Cancelled;
         }
         catch (Exception ex)
         {

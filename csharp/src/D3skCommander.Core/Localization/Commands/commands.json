@@ -272,12 +272,12 @@
     "fr": "Trier par taille"
   },
   "cmd.hotlist": {
-    "en": "Directory hotlist",
-    "fr": "Dossiers favoris"
+    "en": "Favorites",
+    "fr": "Favoris"
   },
   "cmd.add_hotlist": {
-    "en": "Add current folder",
-    "fr": "Ajouter le dossier courant"
+    "en": "Add current folder to favorites",
+    "fr": "Ajouter le dossier courant aux favoris"
   },
   "cmd.history": {
     "en": "Folder history",

@@ -61,4 +61,24 @@ public abstract class ProcessRequest
 
         public string CommandLine { get; }
     }
+
+    /// <summary>
+    /// An elevated start: ShellExecute with verb <c>runas</c> (the UAC prompt). The arguments are one string
+    /// passed verbatim, the one exception to argv; the caller quotes them (<see cref="TerminalLaunch"/>).
+    /// </summary>
+    public sealed class Elevated : ProcessRequest
+    {
+        public Elevated(string program, string arguments, string workingDirectory)
+            : base(workingDirectory)
+        {
+            ArgumentException.ThrowIfNullOrEmpty(program);
+            ArgumentNullException.ThrowIfNull(arguments);
+            Program = program;
+            Arguments = arguments;
+        }
+
+        public string Program { get; }
+
+        public string Arguments { get; }
+    }
 }

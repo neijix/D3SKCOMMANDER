@@ -34,6 +34,18 @@ public sealed class ProcessRunner : IProcessRunner
             return ArgvInfo(argv);
         }
 
+        if (request is ProcessRequest.Elevated elevated)
+        {
+            return new ProcessStartInfo
+            {
+                FileName = elevated.Program,
+                Arguments = elevated.Arguments,
+                WorkingDirectory = elevated.WorkingDirectory,
+                UseShellExecute = true,
+                Verb = "runas",
+            };
+        }
+
         throw new ArgumentException("Unknown process request.", nameof(request));
     }
 

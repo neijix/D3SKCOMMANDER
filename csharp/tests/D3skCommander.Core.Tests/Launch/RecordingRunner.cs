@@ -11,10 +11,18 @@ internal sealed class RecordingRunner : IProcessRunner
 
     public bool FailAll { get; set; }
 
+    /// <summary>When set, every start throws it (a Win32Exception 1223, say).</summary>
+    public Exception? Throw { get; set; }
+
     public void Start(ProcessRequest request)
     {
         ArgumentNullException.ThrowIfNull(request);
         Requests.Add(request);
+        if (Throw is not null)
+        {
+            throw Throw;
+        }
+
         if (FailAll)
         {
             throw new IOException("not found");

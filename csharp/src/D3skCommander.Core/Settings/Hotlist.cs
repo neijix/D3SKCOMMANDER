@@ -1,6 +1,6 @@
 namespace D3skCommander.Core.Settings;
 
-/// <summary>v0.1 <c>HotlistItem</c>: a name and a folder.</summary>
+/// <summary>v0.1 <c>HotlistItem</c>: a name and a path; the path may name a folder or a file (probed, never stored).</summary>
 public sealed class HotlistItem
 {
     private string _name = "";
@@ -40,5 +40,13 @@ public sealed class Hotlist
     {
         get => _items;
         set => _items = value ?? [];
+    }
+
+    /// <summary>Adds <paramref name="item"/>; an item already listed under the same path is replaced.</summary>
+    public void Add(HotlistItem item)
+    {
+        ArgumentNullException.ThrowIfNull(item);
+        _items.RemoveAll(existing => string.Equals(existing.Path, item.Path, StringComparison.Ordinal));
+        _items.Add(item);
     }
 }
