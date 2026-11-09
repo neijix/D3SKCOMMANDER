@@ -1,7 +1,7 @@
 using System.Globalization;
 using CommunityToolkit.Mvvm.Input;
-using D3skCommander.Core.FileSystem;
 using D3skCommander.Core.FileOps;
+using D3skCommander.Core.FileSystem;
 using D3skCommander.Core.Jobs;
 using D3skCommander.Core.Localization;
 using D3skCommander.Core.Sync;

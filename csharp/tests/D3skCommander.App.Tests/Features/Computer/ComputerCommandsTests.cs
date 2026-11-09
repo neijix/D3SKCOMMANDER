@@ -1,5 +1,6 @@
 using Avalonia;
 using Avalonia.Headless.XUnit;
+using D3skCommander.App.Dialogs;
 using D3skCommander.App.Features.Computer;
 using D3skCommander.App.Features.Drives;
 using D3skCommander.App.Features.Editor;
@@ -18,7 +19,6 @@ using D3skCommander.Core.NetDrives;
 using D3skCommander.Core.Panels;
 using D3skCommander.Core.Providers;
 using D3skCommander.Core.Settings;
-using D3skCommander.App.Dialogs;
 using Microsoft.Extensions.DependencyInjection;
 using Xunit;
 

@@ -18,14 +18,14 @@ public class ComputerProviderTests
         using var temp = new TempDir();
         var sources = new FakeSources
         {
-            Drives = [new DriveEntry(@"C:\", "System", "NTFS", 5UL << 30, 100UL << 30), new DriveEntry(@"D:\", "", "NTFS", 1, 2)],
+            Drives = [new DriveEntry("C:\\", "System", "NTFS", 5UL << 30, 100UL << 30), new DriveEntry("D:\\", "", "NTFS", 1, 2)],
             Shares = [new ConnectedShare("nas", @"\\nas\share")],
             Place = [new UserPlace("places.home", temp.Path)],
             Favs = [new HotlistItem("proj", temp.Path)],
         };
         var rows = await List(Provider(sources, windows: true));
         Assert.Equal([1, 1, 2, 3, 4], rows.Select(r => r.Group).ToArray());
-        Assert.Equal([@"C:\", @"D:\", @"\\nas\share", temp.Path, temp.Path], rows.Select(r => r.Path).ToArray());
+        Assert.Equal(["C:\\", "D:\\", @"\\nas\share", temp.Path, temp.Path], rows.Select(r => r.Path).ToArray());
         Assert.All(rows, r => Assert.True(r.IsDirectory && !r.IsParent));
         Assert.Equal(@"System (C:\) - 5.0 GB free", rows[0].Name);
         Assert.Equal(100UL << 30, rows[0].Size);
@@ -38,11 +38,11 @@ public class ComputerProviderTests
     {
         var sources = new FakeSources
         {
-            Drives = [new DriveEntry(@"C:\", "", "NTFS", 1, 2), new DriveEntry(@"Z:\", "nas", "NTFS", 1, 7)],
+            Drives = [new DriveEntry("C:\\", "", "NTFS", 1, 2), new DriveEntry("Z:\\", "nas", "NTFS", 1, 7)],
             Shares = [new ConnectedShare("nas", "z:")],
         };
         var rows = await List(Provider(sources, windows: true));
-        Assert.Equal([@"C:\", @"Z:\"], rows.Select(r => r.Path).ToArray());
+        Assert.Equal(["C:\\", "Z:\\"], rows.Select(r => r.Path).ToArray());
         Assert.Equal([1, 2], rows.Select(r => r.Group).ToArray());
         Assert.Equal(7UL, rows[1].Size);
     }
