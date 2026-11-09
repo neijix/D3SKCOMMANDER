@@ -1,6 +1,7 @@
 using Avalonia.Headless.XUnit;
 using D3skCommander.App.Dialogs;
 using D3skCommander.App.Features.Computer;
+using D3skCommander.App.Features.Drives;
 using D3skCommander.App.Features.Panels;
 using D3skCommander.App.Shell;
 using D3skCommander.Core.Commands;
@@ -84,7 +85,8 @@ public class ComputerViewTests
     {
         using var rig = await Rig.Open();
         var pane = new PanelPaneModel(
-            PanelSide.Left, rig.Panels, rig.Services.GetRequiredService<ILocalizer>(), rig.Services.GetRequiredService<IDialogService>());
+            PanelSide.Left, rig.Panels, rig.Services.GetRequiredService<ILocalizer>(), rig.Services.GetRequiredService<IDialogService>(),
+            null, new FakeDrives(new DriveEntry(rig.Mount, "USB", "ntfs", 1, 2))); // a tree root that holds the mount even when temp is outside home
         // The tree choice lives in the settings folder the other tests share: turn it on only when it is off.
         var turnedOn = !rig.Panels.ShowTree(PanelSide.Left);
         if (turnedOn)
@@ -197,6 +199,11 @@ public class ComputerViewTests
                 Directory.Delete(_root, true);
             }
         }
+    }
+
+    private sealed class FakeDrives(params DriveEntry[] list) : IDriveSource
+    {
+        public IReadOnlyList<DriveEntry> Mounted() => list;
     }
 
     private sealed class CountingSources(string mount) : IComputerSources
