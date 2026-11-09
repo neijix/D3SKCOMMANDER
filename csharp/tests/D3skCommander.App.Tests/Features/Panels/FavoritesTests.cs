@@ -107,6 +107,56 @@ public class FavoritesTests
         Assert.Single(rig.Settings.Hotlist.Current.Items);
     }
 
+    [AvaloniaFact]
+    public async Task AFileOfAResultsListIsAddedAndPickingItRevealsIt()
+    {
+        using var rig = await Rig.Open("a.txt", "report.pdf");
+        var file = rig.Of("report.pdf");
+        Assert.True(await rig.Workspace.OpenResultsAsync(PanelSide.Left, rig.Root, "Results", [file], null, TestContext.Current.CancellationToken));
+
+        rig.Dialogs.Enqueue(DialogResult.Ok("Report"));
+        using (rig.Workspace.UseContextTarget(Target(ContextTargetKind.File, rig.Root, file) with { Provider = PanelProviderKind.FlatList }))
+        {
+            await rig.Commands.AddToFavoritesAsync();
+        }
+
+        Assert.Equal(file, Assert.Single(rig.Settings.Hotlist.Current.Items).Path);
+
+        rig.Dialogs.Enqueue(DialogResult.Picked(0));
+        rig.Dialogs.Enqueue(DialogResult.Picked(0));
+        await rig.Commands.HotlistAsync();
+        var snap = rig.Workspace.Read(PanelSide.Left);
+        Assert.Equal(rig.Root, snap.Path);
+        Assert.Equal(file, snap.Entries[snap.Cursor].Path);
+    }
+
+    [AvaloniaFact]
+    public async Task FromTheMenuBarAResultsListAddsTheCursorFileAndAnArchivePanelAddsNothing()
+    {
+        using var rig = await Rig.Open("report.pdf");
+        var file = rig.Of("report.pdf");
+        await rig.Workspace.OpenResultsAsync(PanelSide.Left, rig.Root, "Results", [file], null, TestContext.Current.CancellationToken);
+        var entries = rig.Workspace.Read(PanelSide.Left).Entries.ToList();
+        rig.Workspace.ApplySelection(PanelSide.Left, entries.FindIndex(entry => entry.Path == file), []);
+
+        rig.Dialogs.Enqueue(DialogResult.Ok("Report"));
+        await rig.Commands.AddToFavoritesAsync();
+        Assert.Equal(file, Assert.Single(rig.Settings.Hotlist.Current.Items).Path);
+
+        var zip = Path.Combine(rig.Root, "pack.zip");
+        using (var stream = File.Create(zip))
+        using (var archive = new System.IO.Compression.ZipArchive(stream, System.IO.Compression.ZipArchiveMode.Create))
+        {
+            archive.CreateEntry("in.txt");
+        }
+
+        await rig.Workspace.GoAsync(PanelSide.Left, zip, TestContext.Current.CancellationToken);
+        var shown = rig.Dialogs.ShownCount;
+        await rig.Commands.AddToFavoritesAsync();
+        Assert.Equal(shown, rig.Dialogs.ShownCount);
+        Assert.Single(rig.Settings.Hotlist.Current.Items);
+    }
+
     private static PanelContextTarget Target(ContextTargetKind kind, string folder, string? entry) =>
         new(kind, PanelProviderKind.Local, folder, entry, []);
 

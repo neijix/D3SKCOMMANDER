@@ -158,17 +158,20 @@ public sealed partial class PanelWorkspace
 /// <summary>What a command dispatched from a context menu works on.</summary>
 public static class ContextTargetPaths
 {
-    /// <summary>The marked set if any, else the row under the click, else (empty space) the panel folder.</summary>
+    /// <summary>Empty space (and the parent row) is the panel folder whatever is marked; else the marked set if any, else the row under the click.</summary>
     public static IReadOnlyList<string> Of(PanelContextTarget target)
     {
         ArgumentNullException.ThrowIfNull(target);
+        if (target.Kind == ContextTargetKind.EmptySpace)
+        {
+            return [target.PanelFolder];
+        }
+
         if (target.MarkedPaths.Count > 0)
         {
             return target.MarkedPaths;
         }
 
-        return target.Kind != ContextTargetKind.EmptySpace && !string.IsNullOrEmpty(target.EntryPath)
-            ? [target.EntryPath]
-            : [target.PanelFolder];
+        return !string.IsNullOrEmpty(target.EntryPath) ? [target.EntryPath] : [target.PanelFolder];
     }
 }

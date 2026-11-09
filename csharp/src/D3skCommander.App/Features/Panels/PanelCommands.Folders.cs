@@ -87,27 +87,20 @@ public sealed partial class PanelCommands
 
     /// <summary>
     /// Saves the context target (the item under the cursor, or the panel folder for empty space) as a favorite under a
-    /// name the user types. Local paths only: a remote, archive or results listing adds nothing.
+    /// name the user types. Local paths only (also the files of a results or branch list): a remote or archive panel adds nothing.
     /// </summary>
     public async Task AddToFavoritesAsync()
     {
-        var context = _panels.ContextTarget;
-        string? path;
-        if (context is not null)
+        var context = _panels.ContextTarget ?? _panels.ContextTargetFor(_panels.ActiveSide, false);
+        if (context is null || context.Provider is not (PanelProviderKind.Local or PanelProviderKind.FlatList))
         {
-            if (context.Provider != PanelProviderKind.Local)
-            {
-                return;
-            }
+            return;
+        }
 
-            path = context.Kind == ContextTargetKind.EmptySpace ? context.PanelFolder : context.EntryPath;
-        }
-        else
-        {
-            var snap = _panels.Read(_panels.ActiveSide);
-            var entry = snap.Cursor >= 0 && snap.Cursor < snap.Entries.Count ? snap.Entries[snap.Cursor] : null;
-            path = entry is null || entry.IsParent ? snap.Path : entry.Path;
-        }
+        // A flat list's pseudo folder is no place: only its entries (real local paths) can be saved.
+        var path = context.Kind == ContextTargetKind.EmptySpace
+            ? context.Provider == PanelProviderKind.Local ? context.PanelFolder : null
+            : context.EntryPath;
 
         if (string.IsNullOrEmpty(path))
         {

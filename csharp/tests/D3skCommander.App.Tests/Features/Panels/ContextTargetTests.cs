@@ -180,6 +180,15 @@ public class ContextTargetTests
     }
 
     [Fact]
+    public void EmptySpaceTargetsThePanelFolderEvenWithMarks()
+    {
+        var folder = Path.Combine("x", "left");
+        var target = Target(ContextTargetKind.EmptySpace, folder, null, Path.Combine(folder, "a"), Path.Combine(folder, "b"));
+
+        Assert.Equal([folder], ContextTargetPaths.Of(target));
+    }
+
+    [Fact]
     public void TheNewCommandsAreHandledByThePanelWorkspace()
     {
         var shell = new ShellContributions();
