@@ -72,6 +72,7 @@ public enum CommandId
     Parent,
     Root,
     Home,
+    Computer,
     Terminal,
     TerminalHere,
     TerminalAdmin,

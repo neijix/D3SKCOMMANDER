@@ -86,6 +86,7 @@ internal static class MenuLayout
         CommandId.Parent,
         CommandId.Root,
         CommandId.Home,
+        CommandId.Computer,
         null,
         CommandId.SameDir,
         CommandId.Swap,

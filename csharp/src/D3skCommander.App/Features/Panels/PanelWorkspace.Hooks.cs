@@ -75,7 +75,9 @@ public sealed partial class PanelWorkspace : IInPlaceRename
         var entry = snap.Cursor >= 0 && snap.Cursor < snap.Entries.Count ? snap.Entries[snap.Cursor] : null;
         if (emptySpace || entry is null || entry.IsParent)
         {
-            return new PanelContextTarget(ContextTargetKind.EmptySpace, provider, snap.Path, null, snap.Marked);
+            // The ".." row carries its own path: at a drive or removable mount it leads to Computer, not to the path's parent.
+            var own = !emptySpace && entry is { IsParent: true } ? entry.Path : null;
+            return new PanelContextTarget(ContextTargetKind.EmptySpace, provider, snap.Path, own, snap.Marked);
         }
 
         var kind = ContextTargetKind.File;
@@ -104,7 +106,8 @@ public sealed partial class PanelWorkspace : IInPlaceRename
             return PanelProviderKind.FlatList;
         }
 
-        if (location.Provider is not null)
+        // Computer is read-only and not a folder: the Remote rules (no favorites, terminals or Windows menu) fit it.
+        if (location.Provider is not null || ComputerAddress.IsAddress(location.Path))
         {
             return PanelProviderKind.Remote;
         }

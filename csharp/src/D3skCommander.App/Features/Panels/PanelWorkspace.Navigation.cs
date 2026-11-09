@@ -67,6 +67,10 @@ public sealed partial class PanelWorkspace
     public Task HomeAsync(CancellationToken cancellationToken = default) =>
         GoAsync(_active, LocalFileSystem.HomeDirectory(), cancellationToken);
 
+    /// <summary>Opens the Computer view in the tab of <paramref name="side"/> (the command and the drive menu line).</summary>
+    public Task ComputerAsync(PanelSide side, CancellationToken cancellationToken = default) =>
+        GoAsync(side, ComputerAddress.Text, cancellationToken);
+
     public async Task RootAsync(CancellationToken cancellationToken = default)
     {
         var path = Read(_active).Path;
@@ -407,6 +411,11 @@ public sealed partial class PanelWorkspace
     internal static string Resolve(string current, string typed)
     {
         var text = typed.Trim();
+        if (ComputerAddress.IsAddress(text))
+        {
+            return ComputerAddress.Text;
+        }
+
         if (text == "~")
         {
             return LocalFileSystem.HomeDirectory();
@@ -420,7 +429,8 @@ public sealed partial class PanelWorkspace
 
         if (!Path.IsPathRooted(text))
         {
-            text = Path.Combine(current, text);
+            // Computer has no folder to join to: a relative name opens under Home.
+            text = Path.Combine(ComputerAddress.IsAddressOrUnder(current) ? home : current, text);
         }
 
         return Path.GetFullPath(text);

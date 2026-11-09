@@ -315,6 +315,10 @@
     "en": "Home",
     "fr": "Dossier personnel"
   },
+  "cmd.computer": {
+    "en": "Computer",
+    "fr": "Ordinateur"
+  },
   "cmd.terminal": {
     "en": "Open terminal here",
     "fr": "Terminal ici"

@@ -20,6 +20,7 @@ public sealed partial class PanelWorkspace
         shell.Handle(CommandId.Back, () => Run(() => BackAsync()));
         shell.Handle(CommandId.Forward, () => Run(() => ForwardAsync()));
         shell.Handle(CommandId.Home, () => Run(() => HomeAsync()));
+        shell.Handle(CommandId.Computer, () => Run(() => ComputerAsync(_active)));
         shell.Handle(CommandId.Root, () => Run(() => RootAsync()));
         shell.Handle(CommandId.Refresh, () => Run(() => RefreshAsync()));
         shell.Handle(CommandId.BrowseFolder, () => Run(() => BrowseAsync(_active)));

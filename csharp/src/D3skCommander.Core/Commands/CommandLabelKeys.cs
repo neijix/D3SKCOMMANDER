@@ -80,6 +80,7 @@ internal static class CommandLabelKeys
         "cmd.parent",
         "cmd.root",
         "cmd.home",
+        "cmd.computer",
         "cmd.terminal",
         "cmd.terminal_here",
         "cmd.terminal_admin",

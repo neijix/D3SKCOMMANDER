@@ -126,7 +126,7 @@ public sealed partial class PanelWorkspace
             return target.Kind switch
             {
                 ContextTargetKind.Folder => target.EntryPath,
-                ContextTargetKind.EmptySpace => ParentOf(Read(side).Path),
+                ContextTargetKind.EmptySpace => target.EntryPath ?? ParentOf(Read(side).Path),
                 _ => null,
             };
         }
@@ -140,7 +140,7 @@ public sealed partial class PanelWorkspace
         var entry = snap.Entries[snap.Cursor];
         if (entry.IsParent)
         {
-            return ParentOf(snap.Path);
+            return entry.Path.Length > 0 ? entry.Path : ParentOf(snap.Path);
         }
 
         return entry.IsDirectory ? entry.Path : null;

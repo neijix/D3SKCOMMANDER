@@ -276,7 +276,7 @@ public sealed partial class PanelWorkspace : IPanelWorkspace, IDisposable
         try
         {
             var tab = TabOf(side);
-            if (tab is null)
+            if (tab is null || ComputerAddress.IsAddress(tab.Location.Path))
             {
                 return null;
             }

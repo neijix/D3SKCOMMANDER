@@ -3,6 +3,7 @@ using D3skCommander.App.Features.Drives;
 using D3skCommander.App.Features.Tree;
 using D3skCommander.App.Shell;
 using D3skCommander.Core.Localization;
+using D3skCommander.Core.Panels;
 using D3skCommander.Core.Settings;
 
 namespace D3skCommander.App.Features.Panels;
@@ -54,6 +55,12 @@ public sealed partial class PanelPaneModel
     {
         ShowTree = _panels.ShowTree(_side);
         TreeWidth = _panels.TreeWidth(_side);
+        if (ComputerAddress.IsAddress(snap.Path))
+        {
+            // Computer is no tree node: the tree keeps the last folder selected.
+            return;
+        }
+
         if (!ShowTree || snap.Path.Length == 0)
         {
             _treeShown = false;
