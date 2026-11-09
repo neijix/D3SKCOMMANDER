@@ -136,7 +136,7 @@ public static class FileListEntryRows
             return text.Get("filelist.directory");
         }
 
-        return LocalFileSystem.FormatGrouped(entry.Size);
+        return LocalFileSystem.FormatSize(entry.Size);
     }
 
     private static string DateOf(Entry entry)

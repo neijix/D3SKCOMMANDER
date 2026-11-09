@@ -44,7 +44,7 @@ public class FileListTests
             AssertFlags(h);
             Assert.Equal(h.List.CellText(1, 0), h.Control.RenderedCells(1)[0]);
             Assert.Equal("txt", h.Control.RenderedCells(1)[1]);
-            Assert.Contains(LocalFileSystem.FormatGrouped(1_234_567), h.Control.RenderedCells(1));
+            Assert.Contains(LocalFileSystem.FormatSize(1_234_567), h.Control.RenderedCells(1));
         }, localizer: text);
     }
 
@@ -468,14 +468,14 @@ public class FileListTests
         Assert.Equal("", list.CellText(0, date));
         Assert.Equal("report", list.CellText(1, name));
         Assert.Equal("txt", list.CellText(1, ext));
-        Assert.Equal(LocalFileSystem.FormatGrouped(1_234_567), list.CellText(1, size));
+        Assert.Equal(LocalFileSystem.FormatSize(1_234_567), list.CellText(1, size));
         Assert.Equal(LocalFileSystem.FormatTime(FileListSamples.Stamp), list.CellText(1, date));
         Assert.Equal("rw-r--r--", list.CellText(1, attr));
         Assert.Equal("docs", list.CellText(2, name));
         Assert.Equal("", list.CellText(2, ext));
         Assert.Equal(text.Get("filelist.directory"), list.CellText(2, size));
-        Assert.Equal("0", list.CellText(3, size));
-        Assert.Equal(LocalFileSystem.FormatGrouped(2048), list.CellText(4, size));
+        Assert.Equal("0 B", list.CellText(3, size));
+        Assert.Equal(LocalFileSystem.FormatSize(2048), list.CellText(4, size));
     }
 
     private static void AssertFlags(FileListHarness h)

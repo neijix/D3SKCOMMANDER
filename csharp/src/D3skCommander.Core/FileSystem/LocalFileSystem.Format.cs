@@ -25,7 +25,7 @@ public static partial class LocalFileSystem
         return value.ToString("0.0", CultureInfo.InvariantCulture) + " " + SizeUnits[unit];
     }
 
-    /// <summary>"1 234 567", grouped with a space, as the size column shows it.</summary>
+    /// <summary>"1 234 567", grouped with a space (counts, and exact byte totals beside a short size).</summary>
     public static string FormatGrouped(ulong value)
     {
         var digits = value.ToString(CultureInfo.InvariantCulture);
