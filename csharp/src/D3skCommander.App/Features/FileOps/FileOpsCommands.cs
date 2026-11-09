@@ -94,6 +94,11 @@ public sealed partial class FileOpsCommands
                 return;
             }
 
+            if (await Refused(GuardedOp.NewFolder, capture.ActiveDirectory, null, _text.Get("cmd.mkdir")).ConfigureAwait(false))
+            {
+                return;
+            }
+
             var name = await _dialogs.AskTextAsync(_text.Get("cmd.mkdir"), _text.Get("dlg.mkdir")).ConfigureAwait(false);
             if (string.IsNullOrEmpty(name))
             {
@@ -119,6 +124,12 @@ public sealed partial class FileOpsCommands
         {
             var title = _text.Get(kind == FileOpKind.Move ? "cmd.move" : "cmd.copy");
             var capture = _panels.Capture();
+            var op = kind == FileOpKind.Move ? GuardedOp.Move : GuardedOp.Copy;
+            if (capture is not null && await Refused(op, capture.ActiveDirectory, null, title).ConfigureAwait(false))
+            {
+                return;
+            }
+
             if (capture is null || capture.Sources.Count == 0)
             {
                 await None(title).ConfigureAwait(false);
@@ -127,6 +138,11 @@ public sealed partial class FileOpsCommands
 
             var target = await AskTarget(kind, title, capture).ConfigureAwait(false);
             if (target is null)
+            {
+                return;
+            }
+
+            if (await Refused(op, capture.ActiveDirectory, target, title).ConfigureAwait(false))
             {
                 return;
             }
@@ -210,6 +226,18 @@ public sealed partial class FileOpsCommands
             ConflictPrompt.Choices(_text),
             cancellationToken).ConfigureAwait(false);
         return ConflictPrompt.Map(choice);
+    }
+
+    /// <summary>Shows the read-only line and answers true when Computer refuses <paramref name="op"/>.</summary>
+    private async Task<bool> Refused(GuardedOp op, string active, string? target, string title)
+    {
+        if (!FileOpGuard.IsRefused(op, active, target))
+        {
+            return false;
+        }
+
+        await _dialogs.ShowMessageAsync(title, _text.Get("computer.readonly")).ConfigureAwait(false);
+        return true;
     }
 
     private Task None(string title) => _dialogs.ShowMessageAsync(title, _text.Get("dlg.no_selection"));

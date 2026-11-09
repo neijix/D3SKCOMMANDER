@@ -13,6 +13,11 @@ public sealed partial class FileOpsCommands
     public async Task ClipAsync(bool cut)
     {
         var capture = _panels.Capture();
+        if (cut && capture is not null && await Refused(GuardedOp.Cut, capture.ActiveDirectory, null, _text.Get("cmd.clip_cut")).ConfigureAwait(false))
+        {
+            return;
+        }
+
         if (capture is null || capture.Sources.Count == 0)
         {
             await None(_text.Get(cut ? "cmd.clip_cut" : "cmd.clip_copy")).ConfigureAwait(false);
@@ -41,6 +46,11 @@ public sealed partial class FileOpsCommands
             }
 
             var directory = into ?? capture.ActiveDirectory;
+            if (await Refused(GuardedOp.Paste, capture.ActiveDirectory, into, _text.Get("cmd.clip_paste")).ConfigureAwait(false))
+            {
+                return;
+            }
+
             var plan = await Task.Run(() => Clipboard.Plan(directory, path => File.Exists(path) || Directory.Exists(path), Directory.Exists))
                 .ConfigureAwait(false);
             if (plan.IsEmpty)

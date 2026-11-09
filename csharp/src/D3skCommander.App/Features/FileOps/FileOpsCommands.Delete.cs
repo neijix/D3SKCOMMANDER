@@ -22,6 +22,11 @@ public sealed partial class FileOpsCommands
         {
             var title = _text.Get(command == CommandId.DeletePermanent ? "cmd.delete_perm" : "cmd.delete");
             var capture = _panels.Capture();
+            if (capture is not null && await Refused(GuardedOp.Delete, capture.ActiveDirectory, null, title).ConfigureAwait(false))
+            {
+                return;
+            }
+
             if (capture is null || capture.Sources.Count == 0)
             {
                 await None(title).ConfigureAwait(false);
@@ -62,6 +67,11 @@ public sealed partial class FileOpsCommands
             return;
         }
 
+        if (_panels.Capture() is { } at && await Refused(GuardedOp.Rename, at.ActiveDirectory, null, _text.Get("cmd.rename")).ConfigureAwait(false))
+        {
+            return;
+        }
+
         var renamed = await _provider.RenameAsync(path, name, CancellationToken.None).ConfigureAwait(false);
         if (!renamed.IsSuccess)
         {
@@ -75,10 +85,18 @@ public sealed partial class FileOpsCommands
 
     private void BeginRename()
     {
-        if (_panels is IInPlaceRename rename)
+        if (_panels is not IInPlaceRename rename)
         {
-            rename.Begin();
+            return;
         }
+
+        if (_panels.Capture() is { } at && FileOpGuard.IsRefused(GuardedOp.Rename, at.ActiveDirectory))
+        {
+            _ = Refused(GuardedOp.Rename, at.ActiveDirectory, null, _text.Get("cmd.rename"));
+            return;
+        }
+
+        rename.Begin();
     }
 
     private async Task TrashAsync(string title, IReadOnlyList<string> sources)
