@@ -12,7 +12,7 @@ using D3skCommander.Core.Providers;
 namespace D3skCommander.App.Features.FileOps;
 
 /// <summary>F5, F6, F7, F8, Shift+F8 and F2. Work runs on the job service; the panels refresh when it ends.</summary>
-public sealed partial class FileOpsCommands
+public sealed partial class FileOpsCommands : IPathDeleter
 {
     private readonly IPanelWorkspace _panels;
     private readonly FileOperationService _files;

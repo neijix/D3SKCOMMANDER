@@ -26,6 +26,8 @@ public partial class DiskUsageView : UserControl
         DataContext = model;
         Label(text);
         Chart.Describe = model.Describe;
+        Chart.Label = model.LabelOf;
+        RowList.ContextMenu = DeleteMenu(text);
         Chart.SegmentClicked += (_, segment) => model.ClickSegment(segment);
         Chart.CenterClicked += (_, _) => model.Up();
         UpButton.Click += (_, _) => model.Up();
@@ -65,6 +67,22 @@ public partial class DiskUsageView : UserControl
         {
             e.Handled = true;
         }
+        else if (e.Key == Key.Delete && _model.CanDeleteSelected)
+        {
+            _ = _model.DeleteSelectedAsync();
+            e.Handled = true;
+        }
+    }
+
+    // Right-click on a row: Delete, as the Delete key; nothing opens on a drive or the "smaller files" row.
+    private ContextMenu DeleteMenu(ILocalizer text)
+    {
+        var delete = new MenuItem { Name = "DeleteItem", Header = text.Get("diskusage.delete") };
+        delete.Click += (_, _) => _ = _model.DeleteSelectedAsync();
+        var menu = new ContextMenu();
+        menu.Items.Add(delete);
+        menu.Opening += (_, e) => e.Cancel = !_model.CanDeleteSelected;
+        return menu;
     }
 
     private void OnModelChanged(object? sender, PropertyChangedEventArgs e)

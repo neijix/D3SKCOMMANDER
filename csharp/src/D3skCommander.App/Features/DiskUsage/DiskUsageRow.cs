@@ -5,23 +5,25 @@ using D3skCommander.Core.Localization;
 
 namespace D3skCommander.App.Features.DiskUsage;
 
-/// <summary>One line of the list: a child of the node on show, with its size, share of the parent and heat bar.</summary>
+/// <summary>One line of the list: a child of the node on show, with its size, share of the parent and a bar in its ring colour.</summary>
 public sealed class DiskUsageRow
 {
     public const double BarMax = 110;
 
-    public DiskUsageRow(SizeNode node, SizeNode parent, ILocalizer text)
+    /// <param name="swatch">The bar colour: the one the ring gives this child (<see cref="DiskUsageHeat.Other"/> when it is merged).</param>
+    public DiskUsageRow(SizeNode node, SizeNode parent, ILocalizer text, IBrush swatch)
     {
         ArgumentNullException.ThrowIfNull(node);
         ArgumentNullException.ThrowIfNull(parent);
         ArgumentNullException.ThrowIfNull(text);
+        ArgumentNullException.ThrowIfNull(swatch);
         Node = node;
         Name = NameOf(node, text);
         SizeText = LocalFileSystem.FormatSize((ulong)node.Bytes);
         PercentText = SizeShares.PercentText(node.Bytes, parent.Bytes);
         var fraction = SizeShares.Percent(node.Bytes, parent.Bytes) / 100;
         BarWidth = node.Bytes > 0 ? Math.Max(2, fraction * BarMax) : 0;
-        Heat = DiskUsageHeat.ForShare(fraction);
+        Swatch = swatch;
         Marker = node.Kind == SizeNodeKind.Folder ? "▸" : "";
     }
 
@@ -35,7 +37,8 @@ public sealed class DiskUsageRow
 
     public double BarWidth { get; }
 
-    public IBrush Heat { get; }
+    /// <summary>The bar colour, the same as this child's segment in the ring.</summary>
+    public IBrush Swatch { get; }
 
     /// <summary>A small arrow in front of the folders, the rows Enter opens.</summary>
     public string Marker { get; }

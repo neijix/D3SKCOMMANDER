@@ -13,42 +13,56 @@ public sealed partial class FileOpsCommands
     /// <summary>Delete follows the preferences; DeletePermanent always removes the files.</summary>
     public async Task DeleteAsync(CommandId command = CommandId.Delete)
     {
+        var capture = _panels.Capture();
+        await DeleteAsync(command, capture?.ActiveDirectory, capture?.Sources ?? []).ConfigureAwait(false);
+    }
+
+    /// <inheritdoc/>
+    public Task<bool> DeletePathsAsync(IReadOnlyList<string> paths)
+    {
+        ArgumentNullException.ThrowIfNull(paths);
+        var folder = paths.Count == 0 ? null : Path.GetDirectoryName(paths[0]);
+        return DeleteAsync(CommandId.Delete, folder, paths);
+    }
+
+    private async Task<bool> DeleteAsync(CommandId command, string? folder, IReadOnlyList<string> sources)
+    {
         if (!Begin())
         {
-            return;
+            return false;
         }
 
         try
         {
             var title = _text.Get(command == CommandId.DeletePermanent ? "cmd.delete_perm" : "cmd.delete");
-            var capture = _panels.Capture();
-            if (capture is not null && await Refused(GuardedOp.Delete, capture.ActiveDirectory, null, title).ConfigureAwait(false))
+            if (folder is not null && await Refused(GuardedOp.Delete, folder, null, title).ConfigureAwait(false))
             {
-                return;
+                return false;
             }
 
-            if (capture is null || capture.Sources.Count == 0)
+            if (sources.Count == 0)
             {
                 await None(title).ConfigureAwait(false);
-                return;
+                return false;
             }
 
             var preferences = _settings.Preferences.Current;
             var decision = DeletePolicy.Decide(new DeleteSettings(preferences.UseTrash, preferences.ConfirmDelete), command);
             if (decision.NeedsConfirmation
-                && !await _dialogs.ConfirmAsync(title, Count(_text.Get(decision.PromptKey), capture.Sources.Count))
+                && !await _dialogs.ConfirmAsync(title, Count(_text.Get(decision.PromptKey), sources.Count))
                     .ConfigureAwait(false))
             {
-                return;
+                return false;
             }
 
             if (decision.GoesToTrash)
             {
-                await TrashAsync(title, capture.Sources).ConfigureAwait(false);
-                return;
+                await TrashAsync(title, sources).ConfigureAwait(false);
+                return true;
             }
 
-            await Finish(_files.Delete(_provider, capture.Sources)).ConfigureAwait(false);
+            await Finish(_files.Delete(_provider, sources)).ConfigureAwait(false);
+            return true;
         }
         finally
         {

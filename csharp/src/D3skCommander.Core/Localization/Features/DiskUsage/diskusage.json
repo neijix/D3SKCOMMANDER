@@ -19,6 +19,18 @@
     "en": "Scanning… {0} files",
     "fr": "Analyse… {0} fichiers"
   },
+  "diskusage.scanning_of": {
+    "en": "Scanning… {0} of {1} files · {2} %",
+    "fr": "Analyse… {0} fichiers sur {1} · {2} %"
+  },
+  "diskusage.scanning_bytes": {
+    "en": "Scanning… {0} files · {1} of {2} · {3} %",
+    "fr": "Analyse… {0} fichiers · {1} sur {2} · {3} %"
+  },
+  "diskusage.delete": {
+    "en": "Delete",
+    "fr": "Supprimer"
+  },
   "diskusage.cancelled": {
     "en": "Scan cancelled.",
     "fr": "Analyse annulée."

@@ -20,6 +20,7 @@ public sealed class FileOpsModule : IShellModule
         services.AddSingleton<FileOperationService>();
         services.AddSingleton<ITrash, SystemTrash>();
         services.AddSingleton<FileOpsCommands>();
+        services.AddSingleton<IPathDeleter>(provider => provider.GetRequiredService<FileOpsCommands>());
         services.AddSingleton<FileOpsModule>();
         services.AddSingleton<IShellModule>(provider => provider.GetRequiredService<FileOpsModule>());
     }

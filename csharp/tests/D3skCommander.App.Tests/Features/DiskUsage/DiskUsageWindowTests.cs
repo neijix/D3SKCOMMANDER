@@ -19,7 +19,7 @@ using Scripted = D3skCommander.App.Tests.Features.FileOps.FileOpsCommandTests.Sc
 
 namespace D3skCommander.App.Tests.Features.DiskUsage;
 
-public class DiskUsageWindowTests
+public partial class DiskUsageWindowTests
 {
     private static readonly TimeSpan Wait = TimeSpan.FromSeconds(15);
 

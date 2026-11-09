@@ -1,7 +1,9 @@
 using System.Collections.ObjectModel;
 using System.Globalization;
 using Avalonia.Controls;
+using Avalonia.Media;
 using CommunityToolkit.Mvvm.ComponentModel;
+using D3skCommander.App.Features.FileOps;
 using D3skCommander.App.Features.Panels;
 using D3skCommander.App.Shell;
 using D3skCommander.Core.DiskUsage;
@@ -19,6 +21,9 @@ public sealed partial class DiskUsageViewModel : ObservableObject, IShellWidget
 {
     private readonly ILocalizer _text;
     private readonly IPanelWorkspace _panels;
+    private readonly IPathDeleter? _deleter;
+    private readonly Dictionary<string, ScanEstimate> _lastScans = new(StringComparer.Ordinal);
+    private ScanEstimate _estimate;
     private CancellationTokenSource? _cancel;
     private SizeNode? _root;
     private long _generation;
@@ -43,18 +48,27 @@ public sealed partial class DiskUsageViewModel : ObservableObject, IShellWidget
     [ObservableProperty]
     private bool _isScanning;
 
+    /// <summary>How far the scan is (0 to 99) when <see cref="HasEstimate"/>; the bar runs without an end otherwise.</summary>
+    [ObservableProperty]
+    private double _progressPercent;
+
+    [ObservableProperty]
+    private bool _hasEstimate;
+
     [ObservableProperty]
     private bool _canGoUp;
 
     [ObservableProperty]
     private IReadOnlyList<RingSegment> _segments = [];
 
-    public DiskUsageViewModel(ILocalizer text, IPanelWorkspace panels)
+    /// <param name="deleter">What the list's Delete runs; null: the list offers no delete.</param>
+    public DiskUsageViewModel(ILocalizer text, IPanelWorkspace panels, IPathDeleter? deleter = null)
     {
         ArgumentNullException.ThrowIfNull(text);
         ArgumentNullException.ThrowIfNull(panels);
         _text = text;
         _panels = panels;
+        _deleter = deleter;
     }
 
     public string? Name => "DiskUsage";
@@ -111,9 +125,13 @@ public sealed partial class DiskUsageViewModel : ObservableObject, IShellWidget
         PathText = folder;
         TotalsText = "";
         IsScanning = true;
+        _estimate = ScanEstimate.None;
+        HasEstimate = false;
+        ProgressPercent = 0;
         Status = string.Format(CultureInfo.InvariantCulture, _text.Get("diskusage.scanning"), "0");
         var progress = new Progress<ScanProgress>(value => OnProgress(generation, value));
         ScanTask = RunAsync(folder, progress, generation, cancel.Token);
+        _ = EstimateAsync(folder, _drives, generation, cancel.Token);
         return ScanTask;
     }
 
@@ -186,6 +204,74 @@ public sealed partial class DiskUsageViewModel : ObservableObject, IShellWidget
         return await _panels.RevealAsync(path).ConfigureAwait(true);
     }
 
+    /// <summary>Whether the list's Delete can run on the selected row: a real file or folder, not a drive of an all-drives scan.</summary>
+    public bool CanDeleteSelected => _deleter is not null && !IsScanning && DeletablePath(Selected?.Node) is not null;
+
+    /// <summary>
+    /// Deletes the selected row's file or folder through the usual Delete (trash and confirmation follow the
+    /// preferences), then drops it from the tree on show without scanning again.
+    /// </summary>
+    public async Task<bool> DeleteSelectedAsync()
+    {
+        if (_deleter is null || IsScanning || Selected is not { } row || DeletablePath(row.Node) is not { } path)
+        {
+            return false;
+        }
+
+        var index = Rows.IndexOf(row);
+        var root = _root;
+        if (!await _deleter.DeletePathsAsync([path]).ConfigureAwait(true))
+        {
+            return false;
+        }
+
+        // Cancelled, failed, or a rescan replaced the tree meanwhile: leave the list as it is.
+        if (File.Exists(path) || Directory.Exists(path) || root is null || !ReferenceEquals(root, _root) || !IsUnder(row.Node, root))
+        {
+            return false;
+        }
+
+        var (rebuilt, parent) = SizeTree.Remove(root, row.Node);
+        _root = rebuilt;
+        if (RootPath is { } scanned)
+        {
+            _lastScans[scanned] = new ScanEstimate(rebuilt.Files, rebuilt.Bytes);
+        }
+
+        Show(parent);
+        Selected = Rows.Count == 0 ? null : Rows[Math.Clamp(index, 0, Rows.Count - 1)];
+        return true;
+    }
+
+    private string? DeletablePath(SizeNode? node)
+    {
+        if (node is null || _root is null || node.Kind == SizeNodeKind.SmallFiles || node.Parent is null
+            || ComputerAddress.IsAddress(node.Path))
+        {
+            return null;
+        }
+
+        // An all-drives scan lists the drives themselves under its root: never offer to delete a drive.
+        return _drives is not null && ReferenceEquals(node.Parent, _root) ? null : node.Path;
+    }
+
+    private static bool IsUnder(SizeNode node, SizeNode root)
+    {
+        for (var at = node.Parent; at is not null; at = at.Parent)
+        {
+            if (ReferenceEquals(at, root))
+            {
+                return true;
+            }
+        }
+
+        return false;
+    }
+
+    partial void OnSelectedChanged(DiskUsageRow? value) => OnPropertyChanged(nameof(CanDeleteSelected));
+
+    partial void OnIsScanningChanged(bool value) => OnPropertyChanged(nameof(CanDeleteSelected));
+
     private async Task RunAsync(string folder, IProgress<ScanProgress> progress, long generation, CancellationToken cancel)
     {
         try
@@ -205,6 +291,7 @@ public sealed partial class DiskUsageViewModel : ObservableObject, IShellWidget
             }
 
             _root = tree;
+            _lastScans[folder] = new ScanEstimate(tree.Files, tree.Bytes);
             Status = "";
             Show(tree);
         }
@@ -231,15 +318,71 @@ public sealed partial class DiskUsageViewModel : ObservableObject, IShellWidget
         }
     }
 
+    // Before the scan's own count is known: the last scan of the same folder, else the used space of the drive(s).
+    private async Task EstimateAsync(string folder, IReadOnlyList<string>? drives, long generation, CancellationToken cancel)
+    {
+        try
+        {
+            var estimate = _lastScans.TryGetValue(folder, out var last)
+                ? last
+                : await Task.Run(() => ScanEstimate.FromDrives(folder, drives, UsedBytes), cancel).ConfigureAwait(true);
+            if (generation == _generation && IsScanning && estimate.IsKnown)
+            {
+                _estimate = estimate;
+                HasEstimate = true;
+            }
+        }
+        catch (OperationCanceledException)
+        {
+            // A newer scan or Cancel: the bar stays without an end.
+        }
+    }
+
+    private static long? UsedBytes(string root)
+    {
+        try
+        {
+            var drive = new DriveInfo(root);
+            return drive.IsReady ? drive.TotalSize - drive.TotalFreeSpace : null;
+        }
+        catch (Exception ex) when (ex is IOException or UnauthorizedAccessException or ArgumentException)
+        {
+            return null;
+        }
+    }
+
     private void OnProgress(long generation, ScanProgress value)
     {
-        if (generation == _generation && IsScanning)
+        if (generation != _generation || !IsScanning)
         {
-            Status = string.Format(
-                CultureInfo.InvariantCulture,
-                _text.Get("diskusage.scanning"),
-                LocalFileSystem.FormatGrouped((ulong)value.Files));
+            return;
         }
+
+        var files = LocalFileSystem.FormatGrouped((ulong)value.Files);
+        if (_estimate.Percent(value) is not { } percent)
+        {
+            Status = string.Format(CultureInfo.InvariantCulture, _text.Get("diskusage.scanning"), files);
+            return;
+        }
+
+        ProgressPercent = percent;
+        var shown = percent.ToString("0", CultureInfo.InvariantCulture);
+        Status = _estimate.Files > 0
+            ? string.Format(CultureInfo.InvariantCulture, _text.Get("diskusage.scanning_of"), files, LocalFileSystem.FormatGrouped((ulong)_estimate.Files), shown)
+            : string.Format(
+                CultureInfo.InvariantCulture,
+                _text.Get("diskusage.scanning_bytes"),
+                files,
+                LocalFileSystem.FormatSize((ulong)value.Bytes),
+                LocalFileSystem.FormatSize((ulong)_estimate.Bytes),
+                shown);
+    }
+
+    /// <summary>The name a ring segment shows inside it when it fits; empty for a merged "other" segment.</summary>
+    public string LabelOf(RingSegment segment)
+    {
+        ArgumentNullException.ThrowIfNull(segment);
+        return segment.Node is { Kind: not SizeNodeKind.SmallFiles } node ? DiskUsageRow.NameOf(node, _text) : "";
     }
 
     private void Show(SizeNode node)
@@ -247,14 +390,19 @@ public sealed partial class DiskUsageViewModel : ObservableObject, IShellWidget
         Current = node;
         PathText = node.Path;
         CanGoUp = !ReferenceEquals(node, _root) && node.Parent is not null;
+        var segments = RingLayout.Build(node);
+        var firsts = segments.Where(segment => segment.Level == 1).ToList();
         Rows.Clear();
         foreach (var child in node.Children)
         {
-            Rows.Add(new DiskUsageRow(child, node, _text));
+            // The bar takes the colour of the child's ring segment, so the list and the ring read together.
+            var branch = firsts.FindIndex(segment => ReferenceEquals(segment.Node, child));
+            var color = branch < 0 ? DiskUsageHeat.Other : DiskUsageHeat.ForBranch(branch, 1);
+            Rows.Add(new DiskUsageRow(child, node, _text, new SolidColorBrush(color)));
         }
 
         Selected = Rows.FirstOrDefault();
-        Segments = RingLayout.Build(node);
+        Segments = segments;
         TotalsText = Totals(node);
     }
 

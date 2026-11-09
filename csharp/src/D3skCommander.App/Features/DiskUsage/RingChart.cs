@@ -19,6 +19,8 @@ public sealed class RingChart : Control
     public static readonly StyledProperty<IBrush?> SeparatorProperty =
         AvaloniaProperty.Register<RingChart, IBrush?>(nameof(Separator));
 
+    private const double LabelSize = 10;
+
     private IReadOnlyList<RingSegment> _segments = [];
     private int[] _branches = [];
     private RingSegment? _hot;
@@ -34,6 +36,9 @@ public sealed class RingChart : Control
 
     /// <summary>The text of a segment's tooltip.</summary>
     public Func<RingSegment, string>? Describe { get; set; }
+
+    /// <summary>The short name drawn inside a segment when it fits; null or empty draws none.</summary>
+    public Func<RingSegment, string>? Label { get; set; }
 
     public IBrush? Foreground
     {
@@ -128,6 +133,7 @@ public sealed class RingChart : Control
             context.DrawGeometry(fill, pen, Arc(center, inner + ((segment.Level - 1) * width), width, segment));
         }
 
+        DrawLabels(context, center, inner, width);
         DrawCenter(context, center, inner, separator);
     }
 
@@ -174,6 +180,60 @@ public sealed class RingChart : Control
         var top = center.Y - ((title.Height + subtitle.Height) / 2);
         context.DrawText(title, new Point(center.X - (title.Width / 2), top));
         context.DrawText(subtitle, new Point(center.X - (subtitle.Width / 2), top + title.Height));
+    }
+
+    /// <summary>Whether a <paramref name="textWidth"/> by <paramref name="textHeight"/> label fits upright in the segment.</summary>
+    internal static bool Fits(RingSegment segment, double inner, double width, double textWidth, double textHeight)
+    {
+        var middle = inner + ((segment.Level - 0.5) * width);
+        var radians = segment.Sweep * Math.PI / 180;
+
+        // Along the ring: the arc, never more than its chord once the arc bends a lot.
+        var along = Math.Min(radians * middle, 2 * middle * Math.Sin(Math.Min(radians, Math.PI) / 2)) * 0.85;
+        var across = width * 0.85;
+        var angle = (segment.StartAngle + (segment.Sweep / 2)) * Math.PI / 180;
+        var sin = Math.Abs(Math.Sin(angle));
+        var cos = Math.Abs(Math.Cos(angle));
+
+        // The ring runs left-right at twelve and six o'clock, up-down at three and nine.
+        var roomX = (cos * along) + (sin * across);
+        var roomY = (sin * along) + (cos * across);
+        return textWidth <= roomX && textHeight <= roomY;
+    }
+
+    // A name goes inside its segment only when the whole of it fits, upright, in the room the arc leaves.
+    private void DrawLabels(DrawingContext context, Point center, double inner, double width)
+    {
+        if (Label is null)
+        {
+            return;
+        }
+
+        for (var i = 0; i < _segments.Count; i++)
+        {
+            var segment = _segments[i];
+            var name = segment.IsOther ? "" : Label(segment);
+            if (string.IsNullOrEmpty(name))
+            {
+                continue;
+            }
+
+            var color = DiskUsageHeat.ForBranch(_branches[i], segment.Level);
+            var text = new FormattedText(
+                name,
+                System.Globalization.CultureInfo.CurrentUICulture,
+                FlowDirection.LeftToRight,
+                Typeface.Default,
+                LabelSize,
+                new SolidColorBrush(DiskUsageHeat.TextOn(color)));
+            if (!Fits(segment, inner, width, text.Width, text.Height))
+            {
+                continue;
+            }
+
+            var (x, y) = RingGeometry.MiddleOf(segment, inner, width);
+            context.DrawText(text, new Point(center.X + x - (text.Width / 2), center.Y + y - (text.Height / 2)));
+        }
     }
 
     private static FormattedText Text(string text, double size, IBrush brush, FontWeight weight, double maxWidth) =>

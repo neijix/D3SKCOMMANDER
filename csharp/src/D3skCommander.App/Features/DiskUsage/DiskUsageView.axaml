@@ -13,7 +13,8 @@
       <TextBlock x:Name="TotalsText" Grid.Column="0" Text="{Binding TotalsText}" VerticalAlignment="Center"
                  TextWrapping="Wrap" Opacity="0.85"/>
       <StackPanel Grid.Column="1" Orientation="Horizontal" Spacing="8" IsVisible="{Binding HasStatus}">
-        <ProgressBar IsIndeterminate="{Binding IsScanning}" IsVisible="{Binding IsScanning}" Width="90" VerticalAlignment="Center"/>
+        <ProgressBar x:Name="ScanBar" IsIndeterminate="{Binding !HasEstimate}" Value="{Binding ProgressPercent}" Minimum="0" Maximum="100"
+                     IsVisible="{Binding IsScanning}" Width="120" VerticalAlignment="Center"/>
         <TextBlock x:Name="StatusText" Text="{Binding Status}" VerticalAlignment="Center"/>
         <Button x:Name="CancelButton" IsVisible="{Binding IsScanning}"/>
       </StackPanel>
@@ -37,7 +38,7 @@
                 <Border Grid.Column="4" Margin="12,0,0,0" Height="10" VerticalAlignment="Center" CornerRadius="2"
                         Background="#22808080" HorizontalAlignment="Stretch">
                   <Border Height="10" CornerRadius="2" HorizontalAlignment="Left" Width="{Binding BarWidth}"
-                          Background="{Binding Heat}"/>
+                          Background="{Binding Swatch}"/>
                 </Border>
               </Grid>
             </DataTemplate>
