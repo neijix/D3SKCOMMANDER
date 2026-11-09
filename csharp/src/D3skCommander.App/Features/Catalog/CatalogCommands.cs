@@ -66,7 +66,7 @@ public sealed class CatalogCommands
                 return;
             }
 
-            if (FileOpGuard.IsTargetRefused(Path.GetDirectoryName(output)))
+            if (FileOpGuard.IsTargetRefused(output) || FileOpGuard.IsTargetRefused(Path.GetDirectoryName(output)))
             {
                 await Readonly().ConfigureAwait(false);
                 return;

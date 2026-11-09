@@ -41,6 +41,12 @@ public sealed partial class ToolsCommands
         }
 
         var once = perFile is not null && perFile.IsChecked;
+        if (FileOpGuard.IsTargetRefused(output.Text.Trim()))
+        {
+            await _dialogs.ShowMessageAsync(title, _text.Get("computer.readonly")).ConfigureAwait(false);
+            return;
+        }
+
         var target = output.Text.Trim();
         if (!once && target.Length == 0)
         {

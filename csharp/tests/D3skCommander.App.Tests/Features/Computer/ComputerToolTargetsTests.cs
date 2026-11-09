@@ -72,6 +72,36 @@ public class ComputerToolTargetsTests
         rig.AssertNothingStarted();
     }
 
+    [AvaloniaTheory]
+    [InlineData("catalog", "computer:cat.dcat")]
+    [InlineData("checksum", "computer:sums")]
+    public async Task ATypedOutputPathUnderComputerIsRefusedWithTheReadOnlyLineAndStartsNoJob(string tool, string typed)
+    {
+        using var rig = await Rig.Open(targetAtComputer: true);
+
+        var running = rig.Run(tool);
+        var asked = await rig.Dialogs.WaitShownAsync();
+        if (asked.Form is { } form)
+        {
+            foreach (var field in form.Fields)
+            {
+                if (field is TextDialogField { Label: var label } entry && label == rig.Text.Get("dlg.out_file"))
+                {
+                    entry.Text = typed;
+                }
+            }
+        }
+
+        rig.Dialogs.Answer(DialogResult.Ok(typed));
+        var shown = await rig.Dialogs.WaitShownAsync();
+        rig.Dialogs.Answer(DialogResult.Ok());
+        await running.WaitAsync(TimeSpan.FromSeconds(15), TestContext.Current.CancellationToken);
+
+        Assert.Equal(DialogKind.Message, shown.Kind);
+        Assert.Equal(rig.Text.Get("computer.readonly"), shown.Text);
+        rig.AssertNothingStarted();
+    }
+
     [Theory]
     [InlineData(true)]
     [InlineData(false)]

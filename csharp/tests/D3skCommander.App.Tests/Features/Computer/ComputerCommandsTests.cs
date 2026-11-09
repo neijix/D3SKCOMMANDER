@@ -4,15 +4,21 @@ using D3skCommander.App.Dialogs;
 using D3skCommander.App.Features.Computer;
 using D3skCommander.App.Features.Drives;
 using D3skCommander.App.Features.Editor;
+using D3skCommander.App.Features.Ftp;
 using D3skCommander.App.Features.Launch;
 using D3skCommander.App.Features.Panels;
+using D3skCommander.App.Features.Search;
 using D3skCommander.App.Features.WindowsMenu;
 using D3skCommander.App.Shell;
 using D3skCommander.App.Startup;
 using D3skCommander.App.Tests.Dialogs;
+using D3skCommander.App.Tests.Features.Ftp;
+using D3skCommander.App.Tests.Features.Search;
 using D3skCommander.App.ToolWindows;
 using D3skCommander.Core.Commands;
 using D3skCommander.Core.FileSystem;
+using D3skCommander.Core.Ftp;
+using D3skCommander.Core.Jobs;
 using D3skCommander.Core.Launch;
 using D3skCommander.Core.Localization;
 using D3skCommander.Core.NetDrives;
@@ -41,6 +47,8 @@ public class ComputerCommandsTests
         Assert.Equal(rig.Text.Get("computer.readonly"), shown.Text);
         Assert.Equal(1, rig.Dialogs.ShownCount);
         Assert.False(rig.Services.GetRequiredService<IToolWindowHost>().IsOpen(ToolKind.Editor));
+        Assert.Equal(["usb"], Directory.GetFileSystemEntries(rig.Root).Select(path => Path.GetFileName(path)).Order().ToArray());
+        Assert.Empty(Directory.GetFileSystemEntries(Path.Combine(rig.Root, "usb")));
     }
 
     [AvaloniaFact]
@@ -134,27 +142,85 @@ public class ComputerCommandsTests
     public async Task CdRelativeAtComputerOpensUnderHomeAndCdComputerComesBack()
     {
         using var rig = await Rig.Open();
-        var home = LocalFileSystem.HomeDirectory();
-        var child = Directory.EnumerateDirectories(home).FirstOrDefault();
-        if (child is null)
+        var child = Directory.CreateDirectory(Path.Combine(LocalFileSystem.HomeDirectory(), "d3sk-computer-cd-" + Guid.NewGuid().ToString("N")));
+        try
         {
-            return;
+            var line = new CommandLineModel(rig.Panels, rig.Runner, rig.Dialogs, rig.Text)
+            {
+                Line = "cd " + child.Name,
+            };
+            await line.RunAsync();
+
+            Assert.Equal(child.FullName, rig.Panels.Read(PanelSide.Left).Path);
+            Assert.Empty(rig.Runner.Started);
+
+            line.Line = "cd COMPUTER:";
+            await line.RunAsync();
+
+            Assert.Equal(ComputerAddress.Text, rig.Panels.Read(PanelSide.Left).Path);
+            Assert.Equal(0, rig.Dialogs.ShownCount);
         }
-
-        var line = new CommandLineModel(rig.Panels, rig.Runner, rig.Dialogs, rig.Text)
+        finally
         {
-            Line = "cd " + Path.GetFileName(child),
-        };
-        await line.RunAsync();
+            child.Delete(true);
+        }
+    }
 
-        Assert.Equal(new DirectoryInfo(child).FullName, rig.Panels.Read(PanelSide.Left).Path);
-        Assert.Empty(rig.Runner.Started);
+    [AvaloniaFact]
+    public async Task ADropOntoAPaneAtComputerShowsTheReadOnlyMessageAndCopiesNothing()
+    {
+        using var rig = await Rig.Open();
+        var outside = Path.Combine(rig.Root, "dropped.txt");
+        await File.WriteAllTextAsync(outside, "x", TestContext.Current.CancellationToken);
+        var commands = rig.Services.GetRequiredService<DrivesCommands>();
 
-        line.Line = "cd COMPUTER:";
-        await line.RunAsync();
+        var running = commands.DropAsync(PanelSide.Left, [outside]);
+        var shown = await rig.Dialogs.WaitShownAsync();
+        rig.Dialogs.Answer(DialogResult.Ok());
+        await running;
 
-        Assert.Equal(ComputerAddress.Text, rig.Panels.Read(PanelSide.Left).Path);
-        Assert.Equal(0, rig.Dialogs.ShownCount);
+        Assert.Equal(rig.Text.Get("computer.readonly"), shown.Text);
+        Assert.Equal(1, rig.Dialogs.ShownCount);
+        Assert.Equal(["dropped.txt", "usb"], Directory.GetFileSystemEntries(rig.Root).Select(path => Path.GetFileName(path)).Order().ToArray());
+        Assert.Empty(Directory.GetFileSystemEntries(Path.Combine(rig.Root, "usb")));
+    }
+
+    [AvaloniaFact]
+    public async Task AnFtpDownloadWithTheActivePanelAtComputerIsRefusedBeforeAnyJobStarts()
+    {
+        using var rig = await Rig.Open();
+        var dir = Directory.CreateTempSubdirectory("d3sk-computer-ftp-").FullName;
+        try
+        {
+            using var store = new FtpSiteStore(dir);
+            var jobs = new JobService();
+            var model = new FtpViewModel(rig.Text, store, new FakeGateway(new FakeSession()), new FakeVault(), rig.Dialogs, jobs, rig.Panels);
+
+            var running = model.DownloadAsync();
+            var shown = await rig.Dialogs.WaitShownAsync();
+            rig.Dialogs.Answer(DialogResult.Ok());
+            var job = await running;
+
+            Assert.Null(job);
+            Assert.Equal(rig.Text.Get("computer.readonly"), shown.Text);
+            Assert.Empty(jobs.Jobs);
+        }
+        finally
+        {
+            Directory.Delete(dir, true);
+        }
+    }
+
+    [AvaloniaFact]
+    public async Task SearchOpenedAtComputerPreparesHomeAsItsRoot()
+    {
+        using var rig = await Rig.Open();
+        var model = rig.Services.GetRequiredService<SearchViewModel>();
+        var commands = new SearchCommands(rig.Panels, new SearchTools(), model);
+
+        commands.Open();
+
+        Assert.Equal(LocalFileSystem.HomeDirectory(), model.Roots);
     }
 
     private sealed class RecordingRunner : D3skCommander.Core.Launch.IProcessRunner
@@ -191,6 +257,8 @@ public class ComputerCommandsTests
             Panels = services.GetRequiredService<PanelWorkspace>();
             Text = services.GetRequiredService<ILocalizer>();
         }
+
+        public string Root => _root;
 
         public ServiceProvider Services { get; }
 

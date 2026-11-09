@@ -12,6 +12,12 @@ public sealed partial class DrivesCommands
     {
         ArgumentNullException.ThrowIfNull(paths);
         var folder = _panels.Read(side).Path;
+        if (FileOpGuard.IsTargetRefused(folder))
+        {
+            await _dialogs.ShowMessageAsync(_text.Get("cmd.copy"), _text.Get("computer.readonly")).ConfigureAwait(false);
+            return;
+        }
+
         var sources = await Task.Run(() => Existing(paths)).ConfigureAwait(false);
         if (sources.Count == 0 || !await Task.Run(() => Directory.Exists(folder)).ConfigureAwait(false))
         {

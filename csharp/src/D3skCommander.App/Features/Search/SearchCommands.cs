@@ -2,6 +2,8 @@ using D3skCommander.App.Features.Panels;
 using D3skCommander.App.Shell;
 using D3skCommander.App.ToolWindows;
 using D3skCommander.Core.Commands;
+using D3skCommander.Core.FileSystem;
+using D3skCommander.Core.Panels;
 
 namespace D3skCommander.App.Features.Search;
 
@@ -31,7 +33,8 @@ public sealed class SearchCommands
 
     public void Open()
     {
-        _window.Prepare(_panels.Read(_panels.ActiveSide).Path);
+        var folder = _panels.Read(_panels.ActiveSide).Path;
+        _window.Prepare(ComputerAddress.IsAddressOrUnder(folder) ? LocalFileSystem.HomeDirectory() : folder);
         _tools.Open(ToolKind.Search);
     }
 }

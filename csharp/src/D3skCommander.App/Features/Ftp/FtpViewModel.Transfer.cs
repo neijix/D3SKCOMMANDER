@@ -1,3 +1,4 @@
+using D3skCommander.Core.FileOps;
 using D3skCommander.Core.FileSystem;
 using D3skCommander.Core.Ftp;
 using D3skCommander.Core.Jobs;
@@ -28,14 +29,20 @@ public sealed partial class FtpViewModel
     }
 
     /// <summary>Downloads the selected remote entries into the active panel's folder, as a job.</summary>
-    public Task<IJob?> DownloadAsync()
+    public async Task<IJob?> DownloadAsync()
     {
         var session = _session;
         var chosen = SelectedRemote();
         var capture = _panels.Capture();
+        if (capture is not null && FileOpGuard.IsTargetRefused(capture.ActiveDirectory))
+        {
+            await _dialogs.ShowMessageAsync(_text.Get("ftp.job.download"), _text.Get("computer.readonly")).ConfigureAwait(true);
+            return null;
+        }
+
         if (session is null || chosen.Count == 0 || capture is null)
         {
-            return Task.FromResult<IJob?>(null);
+            return null;
         }
 
         var transfers = new FtpTransfers(session);
@@ -46,7 +53,7 @@ public sealed partial class FtpViewModel
             _text.Get("ftp.job.download"),
             items,
             (item, progress, token) => transfers.DownloadAsync(byName[item.Name], capture.ActiveDirectory, done++, items.Count, progress, token));
-        return Finish(job);
+        return await Finish(job).ConfigureAwait(true);
     }
 
     /// <summary>Uploads the active panel's selection into the remote folder on screen, as a job.</summary>

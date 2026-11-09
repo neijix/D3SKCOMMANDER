@@ -92,7 +92,12 @@ public sealed partial class FileOpsCommands
 
         if (_panels.Capture() is { } at && FileOpGuard.IsRefused(GuardedOp.Rename, at.ActiveDirectory))
         {
-            _ = Refused(GuardedOp.Rename, at.ActiveDirectory, null, _text.Get("cmd.rename"));
+            var shown = Refused(GuardedOp.Rename, at.ActiveDirectory, null, _text.Get("cmd.rename"));
+            _ = shown.ContinueWith(
+                task => _ = task.Exception,
+                CancellationToken.None,
+                TaskContinuationOptions.OnlyOnFaulted,
+                TaskScheduler.Default);
             return;
         }
 
