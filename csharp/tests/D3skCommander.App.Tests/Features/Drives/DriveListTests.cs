@@ -36,7 +36,7 @@ public class DriveListTests
 
         var first = harness.Menu.Shown[0];
         Assert.Equal(DriveMenuKind.Computer, first.Kind);
-        Assert.Equal("Computer", first.Text);
+        Assert.Equal("Home", first.Text);
         Assert.False(first.IsCurrent);
         Assert.DoesNotContain(harness.Menu.Shown.Skip(1), item => item.Section == first.Section);
         Assert.Equal(harness.Left, harness.Workspace.Read(PanelSide.Left).Path);

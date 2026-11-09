@@ -126,6 +126,11 @@ public static class FileListEntryRows
             return "";
         }
 
+        if (entry.SizeText is { } shown)
+        {
+            return shown;
+        }
+
         if (entry.IsDirectory && entry.Size == 0)
         {
             return text.Get("filelist.directory");
@@ -141,6 +146,6 @@ public static class FileListEntryRows
             return "";
         }
 
-        return LocalFileSystem.FormatTime(entry.Modified);
+        return entry.FillText ?? LocalFileSystem.FormatTime(entry.Modified);
     }
 }

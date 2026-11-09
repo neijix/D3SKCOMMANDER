@@ -104,6 +104,9 @@ public sealed class FileListRow : INotifyPropertyChanged
         }
     }
 
+    /// <summary>How full the drive this row names is, for the bar under its name; null on other rows.</summary>
+    public double? UsedFraction => Source is Entry entry ? entry.UsedFraction : null;
+
     public bool IsParent => Source is Entry entry && entry.IsParent;
 
     public bool IsLink => Source is Entry entry && entry.IsLink;

@@ -29,8 +29,8 @@ public sealed class ComputerModuleTests
             rows.Add(item.Value);
         }
 
-        Assert.Equal([1, 2, 3, 4], rows.Select(row => row.Group).ToArray());
-        Assert.Equal(["X:\\", "Y:\\", home, home], rows.Select(row => row.Path).ToArray());
+        Assert.Equal([1, 2, 4], rows.Select(row => row.Group).ToArray());
+        Assert.Equal(["X:\\", "Y:\\", home], rows.Select(row => row.Path).ToArray());
     }
 
     [Fact]

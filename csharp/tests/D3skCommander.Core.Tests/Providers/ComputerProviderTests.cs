@@ -13,24 +13,30 @@ public class ComputerProviderTests
     private static readonly Localizer Text = Localizer.Load(Language.En, Language.En);
 
     [Fact]
-    public async Task GroupsListInOrderDrivesNetworkPlacesFavorites()
+    public async Task GroupsListInOrderDrivesNetworkFavoritesWithoutPlaces()
     {
         using var temp = new TempDir();
         var sources = new FakeSources
         {
             Drives = [new DriveEntry("C:\\", "System", "NTFS", 5UL << 30, 100UL << 30), new DriveEntry("D:\\", "", "NTFS", 1, 2)],
-            Shares = [new ConnectedShare("nas", @"\\nas\share")],
+            Shares = [new ConnectedShare("nas", @"\nas\share")],
             Place = [new UserPlace("places.home", temp.Path)],
             Favs = [new HotlistItem("proj", temp.Path)],
         };
         var rows = await List(Provider(sources, windows: true));
-        Assert.Equal([1, 1, 2, 3, 4], rows.Select(r => r.Group).ToArray());
-        Assert.Equal(["C:\\", "D:\\", @"\\nas\share", temp.Path, temp.Path], rows.Select(r => r.Path).ToArray());
+        Assert.Equal([1, 1, 2, 4], rows.Select(r => r.Group).ToArray());
+        Assert.Equal(["C:\\", "D:\\", @"\nas\share", temp.Path], rows.Select(r => r.Path).ToArray());
         Assert.All(rows, r => Assert.True(r.IsDirectory && !r.IsParent));
-        Assert.Equal(@"System (C:\) - 5.0 GB free", rows[0].Name);
+        Assert.Equal("System (C:)", rows[0].Name);
+        Assert.Equal("Local disk (D:)", rows[1].Name);
         Assert.Equal(100UL << 30, rows[0].Size);
-        Assert.Equal("Home", rows[3].Name);
-        Assert.Equal("proj", rows[4].Name);
+        Assert.Equal(0.95, rows[0].UsedFraction!.Value, 3);
+        Assert.Equal("100.0 GB", rows[0].SizeText);
+        Assert.Equal("5.0 GB free of 100.0 GB", rows[0].FillText);
+        Assert.Null(rows[2].UsedFraction);
+        Assert.Equal("", rows[2].SizeText);
+        Assert.Equal("proj", rows[3].Name);
+        Assert.Null(rows[3].SizeText);
     }
 
     [Fact]
@@ -70,10 +76,10 @@ public class ComputerProviderTests
     public async Task ThrowingSourceIsLeftOutAndTheRestStillList()
     {
         using var temp = new TempDir();
-        var sources = new FakeSources { Place = [new UserPlace("places.home", temp.Path)], ThrowDrives = true, ThrowShares = true };
+        var sources = new FakeSources { Favs = [new HotlistItem("proj", temp.Path)], ThrowDrives = true, ThrowShares = true };
         var rows = await List(Provider(sources, windows: true));
         Assert.Single(rows);
-        Assert.Equal(3, rows[0].Group);
+        Assert.Equal(4, rows[0].Group);
     }
 
     [Fact]
@@ -150,7 +156,7 @@ public class ComputerProviderTests
         var sources = new FakeSources
         {
             Drives = [new DriveEntry("/", "", "ext4", 1, 2), new DriveEntry("/mnt/nas", "", "cifs", 1, 2)],
-            Place = [new UserPlace("places.home", temp.Path)],
+            Favs = [new HotlistItem("proj", temp.Path)],
         };
         var provider = Provider(sources, windows: false);
         var rows = await List(provider);

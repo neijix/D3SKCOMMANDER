@@ -1,14 +1,14 @@
 {
   "computer.menu": {
-    "en": "Computer",
-    "fr": "Ordinateur"
+    "en": "Home",
+    "fr": "Accueil"
   },
   "computer.readonly": {
-    "en": "Computer is read-only: nothing can be created, copied or changed here.",
-    "fr": "Ordinateur est en lecture seule : rien ne peut y être créé, copié ou modifié."
+    "en": "Home is read-only: nothing can be created, copied or changed here.",
+    "fr": "Accueil est en lecture seule : rien ne peut y être créé, copié ou modifié."
   },
   "computer.title": {
-    "en": "Computer",
-    "fr": "Ordinateur"
+    "en": "Home",
+    "fr": "Accueil"
   }
 }

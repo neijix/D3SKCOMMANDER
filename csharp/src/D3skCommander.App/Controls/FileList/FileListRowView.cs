@@ -17,7 +17,16 @@ public sealed class FileListRowView : Grid
     private static readonly IBrush MarkedBrush = new SolidColorBrush(Color.FromRgb(200, 30, 20));
     private static readonly IBrush CursorBrush = new SolidColorBrush(Color.FromArgb(110, 70, 140, 255));
 
+    private static readonly IBrush TrackBrush = new SolidColorBrush(Color.FromArgb(70, 128, 128, 128));
+    private static readonly IBrush FillBrush = new SolidColorBrush(Color.FromRgb(38, 160, 218));
+    private static readonly IBrush FullBrush = new SolidColorBrush(Color.FromRgb(218, 38, 38));
+
+    // A drive this full turns its bar red, as the OS file explorer does.
+    private const double FullFraction = 0.9;
+
     private readonly List<TextBlock> _blocks = [];
+    private Border? _fillTrack;
+    private Border? _fill;
     private FileListRow? _row;
     private TextBox? _editor;
     private FileKindIconControl? _icon;
@@ -148,6 +157,8 @@ public sealed class FileListRowView : Grid
         _blocks.Clear();
         _editor = null;
         _icon = null;
+        _fillTrack = null;
+        _fill = null;
         for (var i = 0; i < columns.Count; i++)
         {
             AddCell(columns[i], i);
@@ -169,7 +180,45 @@ public sealed class FileListRowView : Grid
         if (index == 0)
         {
             AddIcon();
+            AddFillBar();
             AddEditor();
+        }
+    }
+
+    // The thin line under a drive's name, as the OS file explorer shows how full a disk is.
+    private void AddFillBar()
+    {
+        _fill = new Border { Background = FillBrush, HorizontalAlignment = HorizontalAlignment.Left, CornerRadius = new CornerRadius(1.5) };
+        _fillTrack = new Border
+        {
+            Name = "DriveFill",
+            IsVisible = false,
+            Height = 3,
+            CornerRadius = new CornerRadius(1.5),
+            Background = TrackBrush,
+            VerticalAlignment = VerticalAlignment.Bottom,
+            Margin = new Thickness(FileListLayout.IconLeft + FileListLayout.IconSize + 4, 0, 8, 1),
+            Child = _fill,
+        };
+        _fillTrack.SizeChanged += (_, _) => ApplyFill();
+        Grid.SetColumn(_fillTrack, 0);
+        Children.Add(_fillTrack);
+    }
+
+    private void ApplyFill()
+    {
+        if (_fillTrack is null || _fill is null || _blocks.Count == 0)
+        {
+            return;
+        }
+
+        var used = _row?.UsedFraction;
+        _fillTrack.IsVisible = used is not null;
+        _blocks[0].VerticalAlignment = used is null ? VerticalAlignment.Center : VerticalAlignment.Top;
+        if (used is { } fraction)
+        {
+            _fill.Width = Math.Max(0, _fillTrack.Bounds.Width * fraction);
+            _fill.Background = fraction >= FullFraction ? FullBrush : FillBrush;
         }
     }
 
@@ -222,6 +271,7 @@ public sealed class FileListRowView : Grid
         }
 
         ApplyIcon();
+        ApplyFill();
         ApplyFlags();
         ApplyEditor(false);
         ToolTip.SetTip(this, _row.Key.Length == 0 ? null : _row.Key);

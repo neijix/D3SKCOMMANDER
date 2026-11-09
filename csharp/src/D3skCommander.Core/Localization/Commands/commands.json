@@ -312,12 +312,12 @@
     "fr": "Racine"
   },
   "cmd.home": {
-    "en": "Home",
+    "en": "Home folder",
     "fr": "Dossier personnel"
   },
   "cmd.computer": {
-    "en": "Computer",
-    "fr": "Ordinateur"
+    "en": "Home",
+    "fr": "Accueil"
   },
   "cmd.terminal": {
     "en": "Open terminal here",

@@ -37,8 +37,8 @@ public class PanelPaneTests
     {
         using var rig = await Rig.Opened();
         CommandId[] shared = [CommandId.Parent, CommandId.Hotlist, CommandId.History, CommandId.NetConnect, CommandId.Ftp];
-        Assert.Equal([CommandId.DrivesLeft, .. shared], rig.LeftView.BarButtons.Select(b => (CommandId)b.Tag!));
-        Assert.Equal([CommandId.DrivesRight, .. shared], rig.RightView.BarButtons.Select(b => (CommandId)b.Tag!));
+        Assert.Equal([CommandId.Computer, .. shared], rig.LeftView.BarButtons.Select(b => (CommandId)b.Tag!));
+        Assert.Equal([CommandId.Computer, .. shared], rig.RightView.BarButtons.Select(b => (CommandId)b.Tag!));
         Assert.All(rig.LeftView.BarButtons, b => Assert.True(b.Bounds.Width > 0));
         Assert.Equal($"Favorites ({(OperatingSystem.IsMacOS() ? "Cmd" : "Ctrl")}+D)", ToolTip.GetTip(rig.LeftView.BarButtons[2]));
         Assert.Equal(PanelSide.Left, rig.Workspace.ActiveSide);

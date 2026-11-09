@@ -4,12 +4,13 @@ using Avalonia.Layout;
 using Avalonia.Threading;
 using Avalonia.VisualTree;
 using D3skCommander.App.Dialogs;
+using D3skCommander.App.Features.Panels;
 using D3skCommander.App.Shell;
 using D3skCommander.Core.Commands;
 
 namespace D3skCommander.App.Features.Drives;
 
-/// <summary>The drop-down under the panel's drive icon; the modal list when that button is not on screen.</summary>
+/// <summary>The drop-down under the panel's Home button (or a toolbar drive button); the modal list when neither is on screen.</summary>
 public sealed class FlyoutDriveMenuPresenter : IDriveMenuPresenter
 {
     private readonly IDialogOwner _owner;
@@ -47,12 +48,22 @@ public sealed class FlyoutDriveMenuPresenter : IDriveMenuPresenter
         return await result.Task.ConfigureAwait(false);
     }
 
+    // The drive button when a toolbar carries one, else the first button of that side's panel bar (Home).
     private Button? FindAnchor(PanelSide side)
     {
         var command = side == PanelSide.Left ? CommandId.DrivesLeft : CommandId.DrivesRight;
         var window = _owner.Current;
-        return window?.GetVisualDescendants().OfType<Button>()
-            .FirstOrDefault(button => button.Tag is CommandId id && id == command && button.IsEffectivelyVisible);
+        if (window is null)
+        {
+            return null;
+        }
+
+        return window.GetVisualDescendants().OfType<Button>()
+                .FirstOrDefault(button => button.Tag is CommandId id && id == command && button.IsEffectivelyVisible)
+            ?? window.GetVisualDescendants().OfType<PanelPaneView>()
+                .Where(pane => pane.DataContext is PanelPaneModel model && model.Side == side)
+                .SelectMany(pane => pane.BarButtons)
+                .FirstOrDefault(button => button.IsEffectivelyVisible);
     }
 
     private static List<Control> BuildItems(IReadOnlyList<DriveMenuItem> items, Action<DriveMenuItem> pick, ContextMenu menu)

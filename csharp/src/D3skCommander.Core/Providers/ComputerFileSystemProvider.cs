@@ -116,7 +116,6 @@ public sealed class ComputerFileSystemProvider : FileSystemProvider
         var rows = new List<Entry>();
         var drives = Read(_sources.MountedDrives);
         var shares = Read(_sources.ConnectedShares);
-        var free = _text.Get("drives.free");
         var network = new List<Entry>();
         var sharePaths = shares.Select(share => Normalize(share.Path)).ToList();
 
@@ -127,11 +126,11 @@ public sealed class ComputerFileSystemProvider : FileSystemProvider
             {
                 var label = shares.FirstOrDefault(share => PathComparer().Equals(Normalize(share.Path), Normalize(drive.Path)))?.Label;
                 var shown = isShare && !string.IsNullOrEmpty(label) ? drive with { Label = label } : drive;
-                network.Add(Row(DriveList.Line(shown, free), drive.Path, drive.TotalBytes, 2));
+                network.Add(DriveRow(shown, 2));
             }
             else
             {
-                rows.Add(Row(DriveList.Line(drive, free), drive.Path, drive.TotalBytes, 1));
+                rows.Add(DriveRow(drive, 1));
             }
         }
 
@@ -142,16 +141,11 @@ public sealed class ComputerFileSystemProvider : FileSystemProvider
                 continue;
             }
 
-            var path = SharePath(share.Path);
-            network.Add(Row(DriveList.Line(new DriveEntry(path, share.Label, "", 0, 0), free), path, 0, 2));
+            network.Add(DriveRow(new DriveEntry(SharePath(share.Path), share.Label, "", 0, 0), 2));
         }
 
+        // Home lists drives and favorites only: the user places (Desktop, Documents...) stay in the drive menu.
         rows.AddRange(network);
-        foreach (var place in Read(_sources.Places))
-        {
-            rows.Add(Row(_text.Get(place.Key), place.Path, 0, 3));
-        }
-
         foreach (var favorite in Read(_sources.Favorites))
         {
             if (FolderExists(favorite.Path))
@@ -161,6 +155,29 @@ public sealed class ComputerFileSystemProvider : FileSystemProvider
         }
 
         return rows;
+    }
+
+    /// <summary>
+    /// A drive as the OS file explorer shows it: "Local disk (C:)" (or its label), how full it is for the bar under the
+    /// name, "802.8 GB free of 999.0 GB" in the Date column (<see cref="Entry.FillText"/>) and the total in the Size column.
+    /// </summary>
+    private Entry DriveRow(DriveEntry drive, int group)
+    {
+        var shortName = DriveList.ShortName(drive.Path);
+        var label = drive.Label.Length == 0 || drive.Label == drive.Path ? (group == 1 ? _text.Get("drives.local_disk") : "") : drive.Label;
+        var name = label.Length == 0 ? drive.Path : label + " (" + shortName + ")";
+        var row = Row(name, drive.Path, drive.TotalBytes, group);
+        row.SizeText = "";
+        if (drive.TotalBytes > 0)
+        {
+            row.UsedFraction = Math.Clamp(1.0 - ((double)drive.FreeBytes / drive.TotalBytes), 0, 1);
+            row.SizeText = LocalFileSystem.FormatSize(drive.TotalBytes);
+            row.FillText = _text.Get("drives.free_of")
+                .Replace("{0}", LocalFileSystem.FormatSize(drive.FreeBytes), StringComparison.Ordinal)
+                .Replace("{1}", LocalFileSystem.FormatSize(drive.TotalBytes), StringComparison.Ordinal);
+        }
+
+        return row;
     }
 
     private static Entry Row(string name, string path, ulong size, int group)

@@ -48,10 +48,19 @@ public sealed class Entry
 
     /// <summary>
     /// Group number (1-based) of a row in a duplicates listing; 0 outside one. Rows of a group stay together
-    /// whatever the sort column. The Computer view numbers its rows too: drives 1, network drives 2,
-    /// places 3, favorites 4 (display groups, not duplicates: select-all-but-first ignores them there).
+    /// whatever the sort column. The Computer view numbers its rows too: drives 1, network drives 2 and
+    /// favorites 4 (display groups, not duplicates: select-all-but-first ignores them there).
     /// </summary>
     public int Group { get; internal set; }
+
+    /// <summary>How full the drive this row names is (0 to 1); null on every row but a Home-view drive of known size.</summary>
+    public double? UsedFraction { get; internal set; }
+
+    /// <summary>What the Size column shows instead of the grouped byte count (a Home-view drive: "999 GB", or empty); null: the size.</summary>
+    public string? SizeText { get; internal set; }
+
+    /// <summary>What the Date column shows for a Home-view drive ("802 GB free of 999 GB"); null on other rows.</summary>
+    public string? FillText { get; internal set; }
 
     public string Path { get; }
 
