@@ -44,5 +44,8 @@ public interface IPanelWorkspace
     /// <summary>The target of the context menu whose command is being dispatched, or null outside one (a workspace without a context menu has none).</summary>
     PanelContextTarget? ContextTarget => null;
 
+    /// <summary>The context target for the cursor entry of a side (callers read its provider kind); null when the workspace cannot say (no folder yet, or a test double).</summary>
+    PanelContextTarget? ContextTargetFor(PanelSide side, bool emptySpace) => null;
+
     Task RefreshAsync(CancellationToken cancellationToken = default);
 }

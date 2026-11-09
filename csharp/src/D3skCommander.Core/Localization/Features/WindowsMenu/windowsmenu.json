@@ -3,6 +3,30 @@
     "en": "This command is available on Windows only",
     "fr": "Cette commande n'existe que sous Windows"
   },
+  "windowsmenu.panel_unavailable": {
+    "en": "Not available for this panel (archive or remote folder)",
+    "fr": "Indisponible pour ce panneau (archive ou dossier distant)"
+  },
+  "windowsmenu.reason.nothing": {
+    "en": "There is nothing to show the menu for",
+    "fr": "Il n'y a rien pour afficher le menu"
+  },
+  "windowsmenu.reason.invalid_path": {
+    "en": "A path is not valid on this computer",
+    "fr": "Un chemin n'est pas valide sur cet ordinateur"
+  },
+  "windowsmenu.reason.not_one_folder": {
+    "en": "The items are not all in one folder",
+    "fr": "Les éléments ne sont pas tous dans le même dossier"
+  },
+  "windowsmenu.reason.host_window": {
+    "en": "The menu window could not be created",
+    "fr": "Impossible de créer la fenêtre du menu"
+  },
+  "windowsmenu.reason.shell": {
+    "en": "Windows refused to build the menu",
+    "fr": "Windows a refusé de construire le menu"
+  },
   "windowsmenu.failed": {
     "en": "The Windows menu could not be shown",
     "fr": "Impossible d'afficher le menu Windows"

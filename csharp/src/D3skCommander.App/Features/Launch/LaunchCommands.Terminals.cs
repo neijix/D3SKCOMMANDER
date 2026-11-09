@@ -12,8 +12,8 @@ public sealed partial class LaunchCommands
     /// <summary>The platform the terminal commands decide for; tests change it.</summary>
     public LaunchPlatform Platform { get; set; } = LaunchPlatforms.Current;
 
-    /// <summary>Whether a program (<c>wt</c>, <c>pwsh</c>) is found on PATH; tests replace it.</summary>
-    public Func<string, bool> IsOnPath { get; set; } = ExecutablePath.IsOnPath;
+    /// <summary>The full path of a program (<c>wt</c>, <c>pwsh</c>) found on PATH, else null; tests replace it.</summary>
+    public Func<string, string?> ResolveProgram { get; set; } = ExecutablePath.Resolve;
 
     /// <summary>
     /// Opens a terminal or PowerShell in the context target's folder (the active folder outside a context menu).
@@ -43,15 +43,15 @@ public sealed partial class LaunchCommands
         // Only a plain Terminal uses the Settings override.
         var configured = kind == TerminalKind.Terminal && !elevated ? _settings.Preferences.Current.Terminal : null;
         var platform = Platform;
-        var isOnPath = IsOnPath;
-        var result = await Task.Run(() => TerminalLaunch.Open(kind, elevated, directory, configured, isOnPath, _runner, platform)).ConfigureAwait(true);
+        var resolve = ResolveProgram;
+        var result = await Task.Run(() => TerminalLaunch.Open(kind, elevated, directory, configured, resolve, _runner, platform)).ConfigureAwait(true);
         if (result.IsCancelled)
         {
             ShowStatus?.Invoke(_text.Get("launch.cancelled"));
         }
         else if (result.IsRefused)
         {
-            ShowStatus?.Invoke(_text.Get("launch.refused") + ": " + result.Refusal);
+            ShowStatus?.Invoke(_text.Get("launch.refused") + ": " + _text.Get(RefusalKey(result.Refusal!.Value)));
         }
         else
         {
@@ -59,11 +59,28 @@ public sealed partial class LaunchCommands
         }
     }
 
+    private static string RefusalKey(LaunchRefusal refusal) => refusal switch
+    {
+        LaunchRefusal.UnsafeFolderName => "launch.refused.unsafe_folder",
+        LaunchRefusal.PowerShellNotFound => "launch.refused.pwsh_missing",
+        _ => "launch.refused.no_terminal",
+    };
+
+    /// <summary>
+    /// The folder to open: the context target's, else the active folder; null (and a status text) when the active panel is an
+    /// archive or a remote one, whose paths are no folders of this machine.
+    /// </summary>
     private string? TargetFolder()
     {
         if (_panels.ContextTarget is PanelContextTarget target)
         {
             return target.HereFolder;
+        }
+
+        if (_panels.ContextTargetFor(_panels.ActiveSide, false) is { Provider: not (PanelProviderKind.Local or PanelProviderKind.FlatList) })
+        {
+            ShowStatus?.Invoke(_text.Get("launch.panel_unavailable"));
+            return null;
         }
 
         return _panels.Capture()?.ActiveDirectory;
@@ -73,12 +90,15 @@ public sealed partial class LaunchCommands
 /// <summary>Finds a program on PATH, the way a shell would (PATHEXT on Windows; a Windows app alias such as <c>wt.exe</c> counts).</summary>
 internal static class ExecutablePath
 {
-    public static bool IsOnPath(string program)
+    public static bool IsOnPath(string program) => Resolve(program) is not null;
+
+    /// <summary>The full path of the first match on PATH (relative PATH entries are ignored), else null.</summary>
+    public static string? Resolve(string program)
     {
         var path = Environment.GetEnvironmentVariable("PATH");
         if (string.IsNullOrEmpty(path))
         {
-            return false;
+            return null;
         }
 
         string[] extensions = [""];
@@ -90,16 +110,23 @@ internal static class ExecutablePath
 
         foreach (var folder in path.Split(Path.PathSeparator, StringSplitOptions.RemoveEmptyEntries))
         {
+            var directory = folder.Trim('"');
+            if (!Path.IsPathRooted(directory))
+            {
+                continue;
+            }
+
             foreach (var extension in extensions)
             {
-                if (ExistsSafe(Path.Combine(folder.Trim('"'), program + extension)))
+                var candidate = Path.Combine(directory, program + extension);
+                if (ExistsSafe(candidate))
                 {
-                    return true;
+                    return candidate;
                 }
             }
         }
 
-        return false;
+        return null;
     }
 
     private static bool ExistsSafe(string file)

@@ -2,6 +2,19 @@ using D3skCommander.Core.Common;
 
 namespace D3skCommander.Core.Launch;
 
+/// <summary>Why nothing was started on purpose; the app turns it into a localized text.</summary>
+public enum LaunchRefusal
+{
+    /// <summary>The folder name holds a character (% ! or a quote) that an elevated cmd or Windows Terminal line cannot carry safely.</summary>
+    UnsafeFolderName,
+
+    /// <summary>PowerShell 7 (<c>pwsh</c>) is not on PATH where it is required (Linux).</summary>
+    PowerShellNotFound,
+
+    /// <summary>No terminal emulator started.</summary>
+    NoTerminalFound,
+}
+
 /// <summary>
 /// How many processes started, or the typed error from the one that did not. Two outcomes are neither:
 /// <see cref="Cancelled"/> (the user declined the UAC prompt) and <see cref="Refused"/> (nothing was
@@ -9,7 +22,7 @@ namespace D3skCommander.Core.Launch;
 /// </summary>
 public sealed class LaunchResult
 {
-    private LaunchResult(int started, OperationError? error, bool isCancelled = false, string? refusal = null)
+    private LaunchResult(int started, OperationError? error, bool isCancelled = false, LaunchRefusal? refusal = null)
     {
         Started = started;
         Error = error;
@@ -29,7 +42,7 @@ public sealed class LaunchResult
     /// <summary>Nothing was started because the request is unsafe to pass on; <see cref="Refusal"/> says why.</summary>
     public bool IsRefused => Refusal is not null;
 
-    public string? Refusal { get; }
+    public LaunchRefusal? Refusal { get; }
 
     public static LaunchResult Cancelled { get; } = new(0, null, isCancelled: true);
 
@@ -45,9 +58,8 @@ public sealed class LaunchResult
         return new LaunchResult(0, error);
     }
 
-    public static LaunchResult Refused(string reason)
+    public static LaunchResult Refused(LaunchRefusal reason)
     {
-        ArgumentException.ThrowIfNullOrEmpty(reason);
         return new LaunchResult(0, null, refusal: reason);
     }
 }

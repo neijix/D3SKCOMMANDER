@@ -15,22 +15,22 @@ public sealed class WindowsExplorerMenu : IExplorerMenu
         ArgumentNullException.ThrowIfNull(paths);
         if (!OperatingSystem.IsWindows())
         {
-            return ExplorerMenuResult.Failed("Windows only");
+            return ExplorerMenuResult.Failed(ExplorerMenuFailure.WindowsOnly);
         }
 
         try
         {
-            using var session = ShellMenuSession.Open(paths, ownerWindow, out var error);
+            using var session = ShellMenuSession.Open(paths, ownerWindow, out var failure);
             if (session is null)
             {
-                return ExplorerMenuResult.Failed(error ?? "unknown error");
+                return failure ?? ExplorerMenuResult.Failed(ExplorerMenuFailure.Shell);
             }
 
             return session.Track(screenPoint);
         }
         catch (Exception ex) when (ex is COMException or InvalidComObjectException or InvalidCastException or DllNotFoundException or EntryPointNotFoundException)
         {
-            return ExplorerMenuResult.Failed(ex.Message);
+            return ExplorerMenuResult.Failed(ExplorerMenuFailure.Shell, ex.Message);
         }
     }
 }
@@ -62,40 +62,65 @@ internal sealed class ShellMenuSession : IDisposable
     /// <summary>The number of top-level items the shell filled in (0 before a successful open).</summary>
     public int ItemCount => _hmenu == IntPtr.Zero ? 0 : ShellNative.GetMenuItemCount(_hmenu);
 
-    /// <summary>Binds the paths and fills the menu. Null with <paramref name="error"/> when the shell refuses; nothing leaks then.</summary>
-    public static ShellMenuSession? Open(IReadOnlyList<string> paths, IntPtr owner, out string? error)
+    /// <summary>Binds the paths and fills the menu. Null with <paramref name="failure"/> when the shell refuses; nothing leaks then.</summary>
+    public static ShellMenuSession? Open(IReadOnlyList<string> paths, IntPtr owner, out ExplorerMenuResult? failure)
     {
-        error = null;
+        failure = null;
         if (paths.Count == 0)
         {
-            error = "nothing to show";
+            failure = ExplorerMenuResult.Failed(ExplorerMenuFailure.NothingToShow);
             return null;
         }
 
-        var full = paths.Select(Path.GetFullPath).ToList();
+        if (!TryFullPaths(paths, out var full, out var bad))
+        {
+            failure = ExplorerMenuResult.Failed(ExplorerMenuFailure.InvalidPath, bad);
+            return null;
+        }
+
         var folder = Path.GetDirectoryName(Path.TrimEndingDirectorySeparator(full[0])) ?? full[0];
         if (full.Any(p => !string.Equals(Path.GetDirectoryName(Path.TrimEndingDirectorySeparator(p)) ?? p, folder, StringComparison.OrdinalIgnoreCase)))
         {
-            error = "the items are not all in one folder";
+            failure = ExplorerMenuResult.Failed(ExplorerMenuFailure.NotOneFolder);
             return null;
         }
 
         var host = MenuHostWindow.Create(owner);
         if (host is null)
         {
-            error = "could not create the menu window";
+            failure = ExplorerMenuResult.Failed(ExplorerMenuFailure.HostWindow);
             return null;
         }
 
         var session = new ShellMenuSession(host, folder);
-        error = session.Bind(full);
-        if (error is not null)
+        failure = session.Bind(full);
+        if (failure is not null)
         {
             session.Dispose();
             return null;
         }
 
         return session;
+    }
+
+    private static bool TryFullPaths(IReadOnlyList<string> paths, out List<string> full, out string? bad)
+    {
+        full = [];
+        bad = null;
+        foreach (var path in paths)
+        {
+            try
+            {
+                full.Add(Path.GetFullPath(path));
+            }
+            catch (Exception ex) when (ex is ArgumentException or NotSupportedException or PathTooLongException)
+            {
+                bad = path;
+                return false;
+            }
+        }
+
+        return true;
     }
 
     /// <summary>Shows the menu, waits, runs the chosen command. <paramref name="screenPoint"/> null = the mouse.</summary>
@@ -151,14 +176,14 @@ internal sealed class ShellMenuSession : IDisposable
         }
     }
 
-    private string? Bind(List<string> full)
+    private ExplorerMenuResult? Bind(List<string> full)
     {
         foreach (var path in full)
         {
             var hr = ShellNative.SHParseDisplayName(path, IntPtr.Zero, out var pidl, 0, out _);
             if (hr < 0)
             {
-                return $"SHParseDisplayName 0x{hr:X8}: {path}";
+                return ExplorerMenuResult.Failed(ExplorerMenuFailure.Shell, $"SHParseDisplayName 0x{hr:X8}: {path}");
             }
 
             _pidls.Add(pidl);
@@ -171,7 +196,7 @@ internal sealed class ShellMenuSession : IDisposable
             var hr = ShellNative.SHBindToParent(_pidls[i], ref iid, out var folderPointer, out children[i]);
             if (hr < 0)
             {
-                return $"SHBindToParent 0x{hr:X8}";
+                return ExplorerMenuResult.Failed(ExplorerMenuFailure.Shell, $"SHBindToParent 0x{hr:X8}");
             }
 
             if (i > 0)
@@ -188,7 +213,7 @@ internal sealed class ShellMenuSession : IDisposable
         var result = ((IShellFolder)_parentObject!).GetUIObjectOf(_host.Handle, (uint)children.Length, children, ref menuIid, IntPtr.Zero, out var menuPointer);
         if (result < 0 || menuPointer == IntPtr.Zero)
         {
-            return $"GetUIObjectOf 0x{result:X8}";
+            return ExplorerMenuResult.Failed(ExplorerMenuFailure.Shell, $"GetUIObjectOf 0x{result:X8}");
         }
 
         _menuObject = Marshal.GetObjectForIUnknown(menuPointer);
@@ -199,12 +224,12 @@ internal sealed class ShellMenuSession : IDisposable
         _hmenu = ShellNative.CreatePopupMenu();
         if (_hmenu == IntPtr.Zero)
         {
-            return "CreatePopupMenu failed";
+            return ExplorerMenuResult.Failed(ExplorerMenuFailure.Shell, "CreatePopupMenu");
         }
 
         var flags = ShellNative.CmfNormal | (ShellNative.GetKeyState(ShellNative.VkShift) < 0 ? ShellNative.CmfExtendedVerbs : 0);
         result = _menu.QueryContextMenu(_hmenu, 0, FirstCommand, LastCommand, flags);
-        return result < 0 ? $"QueryContextMenu 0x{result:X8}" : null;
+        return result < 0 ? ExplorerMenuResult.Failed(ExplorerMenuFailure.Shell, $"QueryContextMenu 0x{result:X8}") : null;
     }
 
     private ExplorerMenuResult Invoke(uint command, int x, int y)
@@ -233,7 +258,7 @@ internal sealed class ShellMenuSession : IDisposable
 
             return hr == ShellNative.HrCancelled
                 ? ExplorerMenuResult.Dismissed
-                : ExplorerMenuResult.Failed($"InvokeCommand 0x{hr:X8}");
+                : ExplorerMenuResult.Failed(ExplorerMenuFailure.Shell, $"InvokeCommand 0x{hr:X8}");
         }
         finally
         {

@@ -31,6 +31,22 @@
     "en": "Not started",
     "fr": "Non lancé"
   },
+  "launch.panel_unavailable": {
+    "en": "Not available for this panel (archive or remote folder)",
+    "fr": "Indisponible pour ce panneau (archive ou dossier distant)"
+  },
+  "launch.refused.unsafe_folder": {
+    "en": "the folder name has a character (% ! or a quote) that cannot be passed safely to an elevated terminal",
+    "fr": "le nom du dossier contient un caractère (% ! ou guillemet) qui ne peut pas être transmis sans risque à un terminal administrateur"
+  },
+  "launch.refused.pwsh_missing": {
+    "en": "PowerShell (pwsh) was not found",
+    "fr": "PowerShell (pwsh) est introuvable"
+  },
+  "launch.refused.no_terminal": {
+    "en": "No terminal found: set one in the settings",
+    "fr": "Aucun terminal trouvé : choisissez-en un dans les paramètres"
+  },
   "launch.failed": {
     "en": "Could not start the program",
     "fr": "Impossible de lancer le programme"

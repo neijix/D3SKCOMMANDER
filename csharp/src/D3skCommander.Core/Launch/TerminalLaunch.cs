@@ -1,5 +1,4 @@
 using System.Text;
-using D3skCommander.Core.Common;
 
 namespace D3skCommander.Core.Launch;
 
@@ -30,20 +29,20 @@ public static class TerminalLaunch
 
     /// <summary>
     /// Opens <paramref name="kind"/> in <paramref name="directory"/>. <paramref name="configured"/> (the Settings
-    /// terminal) applies only to a non-elevated <see cref="TerminalKind.Terminal"/>; <paramref name="isOnPath"/>
-    /// answers whether a program (<c>wt</c>, <c>pwsh</c>) is found on PATH.
+    /// terminal) applies only to a non-elevated <see cref="TerminalKind.Terminal"/>; <paramref name="resolve"/>
+    /// answers the full path of a program (<c>wt</c>, <c>pwsh</c>) found on PATH, else null; an elevated start passes that full path.
     /// </summary>
     public static LaunchResult Open(
         TerminalKind kind,
         bool elevated,
         string directory,
         string? configured,
-        Func<string, bool> isOnPath,
+        Func<string, string?> resolve,
         IProcessRunner runner,
         LaunchPlatform platform)
     {
         ArgumentException.ThrowIfNullOrEmpty(directory);
-        ArgumentNullException.ThrowIfNull(isOnPath);
+        ArgumentNullException.ThrowIfNull(resolve);
         ArgumentNullException.ThrowIfNull(runner);
         if (elevated && platform != LaunchPlatform.Windows)
         {
@@ -52,7 +51,7 @@ public static class TerminalLaunch
 
         if (kind == TerminalKind.PowerShell)
         {
-            return OpenPowerShell(elevated, directory, isOnPath, runner, platform);
+            return OpenPowerShell(elevated, directory, resolve, runner, platform);
         }
 
         if (!elevated && !string.IsNullOrWhiteSpace(configured))
@@ -65,12 +64,13 @@ public static class TerminalLaunch
             return Launcher.OpenTerminal(null, directory, runner, platform);
         }
 
-        return OpenWindowsTerminal(elevated, directory, isOnPath, runner);
+        return OpenWindowsTerminal(elevated, directory, resolve, runner);
     }
 
-    private static LaunchResult OpenWindowsTerminal(bool elevated, string directory, Func<string, bool> isOnPath, IProcessRunner runner)
+    private static LaunchResult OpenWindowsTerminal(bool elevated, string directory, Func<string, string?> resolve, IProcessRunner runner)
     {
-        var wt = isOnPath("wt");
+        var wtPath = resolve("wt");
+        var wt = wtPath is not null;
         if (!elevated)
         {
             ProcessRequest plain = wt
@@ -79,8 +79,7 @@ public static class TerminalLaunch
             return Launcher.Start(plain, runner, null);
         }
 
-        var unsafeReason = VerbatimRefusal(directory);
-        if (unsafeReason is not null)
+        if (VerbatimRefusal(directory) is { } unsafeReason)
         {
             return LaunchResult.Refused(unsafeReason);
         }
@@ -94,44 +93,49 @@ public static class TerminalLaunch
                 dir += "\\";
             }
 
-            request = new ProcessRequest.Elevated("wt", "-d \"" + dir + "\"", directory);
+            request = new ProcessRequest.Elevated(wtPath!, "-d \"" + dir + "\"", directory);
         }
         else
         {
-            request = new ProcessRequest.Elevated("cmd", "/k cd /d \"" + directory + "\"", directory);
+            request = new ProcessRequest.Elevated(Path.Combine(Environment.SystemDirectory, "cmd.exe"), "/k cd /d \"" + directory + "\"", directory);
         }
 
         return Launcher.Start(request, runner, null);
     }
 
-    private static string? VerbatimRefusal(string directory)
+    private static LaunchRefusal? VerbatimRefusal(string directory)
     {
         if (directory.Contains('%') || directory.Contains('!') || directory.Contains('"'))
         {
-            return "folder name has a character (% ! or a quote) that cannot be passed safely to an elevated terminal";
+            return LaunchRefusal.UnsafeFolderName;
         }
 
         return null;
     }
 
-    private static LaunchResult OpenPowerShell(bool elevated, string directory, Func<string, bool> isOnPath, IProcessRunner runner, LaunchPlatform platform)
+    private static LaunchResult OpenPowerShell(bool elevated, string directory, Func<string, string?> resolve, IProcessRunner runner, LaunchPlatform platform)
     {
         if (platform == LaunchPlatform.MacOS)
         {
             throw new ArgumentException("PowerShell has no terminal entry on macOS.", nameof(platform));
         }
 
-        var pwsh = isOnPath("pwsh");
+        var pwshPath = resolve("pwsh");
+        var pwsh = pwshPath is not null;
         if (platform == LaunchPlatform.Linux)
         {
             return pwsh
                 ? LinuxPowerShell(directory, runner)
-                : LaunchResult.Fail(OperationError.InvalidData("pwsh not found"));
+                : LaunchResult.Refused(LaunchRefusal.PowerShellNotFound);
         }
 
         var program = pwsh ? "pwsh" : "powershell.exe";
         if (elevated)
         {
+            // Elevated: a rooted program, so a planted name in the current folder is never run as administrator.
+            program = pwshPath
+                ?? resolve("powershell.exe")
+                ?? Path.Combine(Environment.SystemDirectory, "WindowsPowerShell", "v1.0", "powershell.exe");
             var arguments = "-NoExit -EncodedCommand " + EncodedSetLocation(directory);
             return Launcher.Start(new ProcessRequest.Elevated(program, arguments, directory), runner, null);
         }
@@ -160,7 +164,7 @@ public static class TerminalLaunch
             }
         }
 
-        return LaunchResult.Fail(OperationError.InvalidData("No terminal found: set one in the settings."));
+        return LaunchResult.Refused(LaunchRefusal.NoTerminalFound);
     }
 
     /// <summary>Base64 of UTF-16LE <c>Set-Location -LiteralPath '&lt;dir&gt;'</c>, every PowerShell quote doubled.</summary>

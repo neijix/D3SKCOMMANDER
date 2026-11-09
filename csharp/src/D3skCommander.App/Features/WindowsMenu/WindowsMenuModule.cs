@@ -4,6 +4,7 @@ using D3skCommander.App.Features.Panels;
 using D3skCommander.App.Shell;
 using D3skCommander.Core.Commands;
 using D3skCommander.Core.Localization;
+using D3skCommander.Core.Panels;
 using Microsoft.Extensions.DependencyInjection;
 
 namespace D3skCommander.App.Features.WindowsMenu;
@@ -66,7 +67,22 @@ public sealed class WindowsMenuModule : IShellModule
         }
 
         // The target is read first: a context menu's scope ends with its dispatch.
-        var paths = _panels.ContextTarget is { } target ? ContextTargetPaths.Of(target) : _panels.Capture()?.Sources;
+        IReadOnlyList<string>? paths;
+        if (_panels.ContextTarget is { } target)
+        {
+            paths = ContextTargetPaths.Of(target);
+        }
+        else if (_panels.ContextTargetFor(_panels.ActiveSide, false) is { Provider: not (PanelProviderKind.Local or PanelProviderKind.FlatList) })
+        {
+            // An archive or remote panel holds provider paths, not paths of this machine.
+            _status?.Invoke(_text.Get("windowsmenu.panel_unavailable"));
+            return;
+        }
+        else
+        {
+            paths = _panels.Capture()?.Sources;
+        }
+
         if (paths is not { Count: > 0 })
         {
             return;
@@ -80,8 +96,23 @@ public sealed class WindowsMenuModule : IShellModule
                 _ = _panels.RefreshAsync();
                 break;
             case ExplorerMenuOutcome.Failed:
-                _ = _dialogs.ShowMessageAsync(_text.Get("windowsmenu.failed"), result.Detail ?? string.Empty);
+                _ = _dialogs.ShowMessageAsync(_text.Get("windowsmenu.failed"), FailureText(result));
                 break;
         }
+    }
+
+    private string FailureText(ExplorerMenuResult result)
+    {
+        var key = result.Reason switch
+        {
+            ExplorerMenuFailure.WindowsOnly => "windowsmenu.windows_only",
+            ExplorerMenuFailure.NothingToShow => "windowsmenu.reason.nothing",
+            ExplorerMenuFailure.InvalidPath => "windowsmenu.reason.invalid_path",
+            ExplorerMenuFailure.NotOneFolder => "windowsmenu.reason.not_one_folder",
+            ExplorerMenuFailure.HostWindow => "windowsmenu.reason.host_window",
+            _ => "windowsmenu.reason.shell",
+        };
+        var text = _text.Get(key);
+        return string.IsNullOrEmpty(result.Detail) ? text : text + "\n" + result.Detail;
     }
 }

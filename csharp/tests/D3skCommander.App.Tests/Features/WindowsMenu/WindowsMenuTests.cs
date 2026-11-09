@@ -69,13 +69,53 @@ public class WindowsMenuTests
     public async Task AFailedMenuShowsAnErrorDialogWithTheDetailAndDoesNotRefresh()
     {
         using var rig = new Rig();
-        rig.Menu.Result = ExplorerMenuResult.Failed("GetUIObjectOf 0x80004005");
+        rig.Menu.Result = ExplorerMenuResult.Failed(ExplorerMenuFailure.Shell, "GetUIObjectOf 0x80004005");
 
         rig.Run();
 
         var request = await rig.Dialogs.WaitShownAsync();
+        Assert.StartsWith("Windows refused to build the menu", request.Text, StringComparison.Ordinal);
         Assert.Contains("0x80004005", request.Text);
         Assert.Equal(0, rig.Workspace.Refreshes);
+    }
+
+    [Theory]
+    [InlineData(PanelProviderKind.Archive)]
+    [InlineData(PanelProviderKind.Remote)]
+    public void FromTheMenuBarAnArchiveOrRemotePanelShowsAStatusAndNoMenu(PanelProviderKind provider)
+    {
+        using var rig = new Rig();
+        rig.Workspace.Active = provider;
+
+        rig.Run();
+
+        Assert.Empty(rig.Menu.Shown);
+        Assert.Equal(["Not available for this panel (archive or remote folder)"], rig.Status);
+    }
+
+    [Fact]
+    public void AFlatListPanelStillShowsTheMenuFromTheMenuBar()
+    {
+        using var rig = new Rig();
+        rig.Workspace.Active = PanelProviderKind.FlatList;
+
+        rig.Run();
+
+        Assert.Single(rig.Menu.Shown);
+    }
+
+    [Fact]
+    public void AnInvalidPathFailsWithATypedReasonInsteadOfThrowing()
+    {
+        if (!OperatingSystem.IsWindows())
+        {
+            return;
+        }
+
+        var result = new WindowsExplorerMenu().Show(["bad\0path"], null, IntPtr.Zero);
+
+        Assert.Equal(ExplorerMenuOutcome.Failed, result.Outcome);
+        Assert.Equal(ExplorerMenuFailure.InvalidPath, result.Reason);
     }
 
     [Fact]
@@ -108,7 +148,7 @@ public class WindowsMenuTests
             var second = Path.Combine(folder, "b.txt");
             File.WriteAllText(second, "y");
             var counts = new List<int>();
-            string? error = null;
+            ExplorerMenuResult? failure = null;
 
             // Shell extensions want an STA thread; the menu is built, never shown.
             var thread = new Thread(() =>
@@ -120,7 +160,7 @@ public class WindowsMenuTests
 
                 foreach (var paths in new[] { new[] { file }, new[] { file, second }, new[] { folder } })
                 {
-                    using var session = ShellMenuSession.Open(paths, IntPtr.Zero, out error);
+                    using var session = ShellMenuSession.Open(paths, IntPtr.Zero, out failure);
                     counts.Add(session?.ItemCount ?? -1);
                 }
             });
@@ -128,7 +168,7 @@ public class WindowsMenuTests
             thread.Start();
             thread.Join();
 
-            Assert.Null(error);
+            Assert.Null(failure);
             Assert.All(counts, count => Assert.True(count > 0, "the shell filled no items"));
             Assert.Equal(3, counts.Count);
         }
@@ -146,10 +186,10 @@ public class WindowsMenuTests
             return;
         }
 
-        var session = ShellMenuSession.Open(["C:\\one\\a.txt", "C:\\two\\b.txt"], IntPtr.Zero, out var error);
+        var session = ShellMenuSession.Open(["C:\\one\\a.txt", "C:\\two\\b.txt"], IntPtr.Zero, out var failure);
 
         Assert.Null(session);
-        Assert.NotNull(error);
+        Assert.Equal(ExplorerMenuFailure.NotOneFolder, failure?.Reason);
     }
 
     private static PanelContextTarget Target(ContextTargetKind kind, string entry, params string[] marked) =>
@@ -212,6 +252,11 @@ public class WindowsMenuTests
         public int Refreshes { get; private set; }
 
         public PanelContextTarget? ContextTarget => Context;
+
+        public PanelProviderKind Active { get; set; } = PanelProviderKind.Local;
+
+        public PanelContextTarget? ContextTargetFor(PanelSide side, bool emptySpace) =>
+            new(ContextTargetKind.EmptySpace, Active, "C:\\d", null, []);
 
         public PanelSide ActiveSide => PanelSide.Left;
 

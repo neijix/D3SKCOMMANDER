@@ -1,6 +1,7 @@
 using System.ComponentModel;
 using Avalonia.Headless.XUnit;
 using D3skCommander.App.Dialogs;
+using D3skCommander.App.Shell;
 using D3skCommander.Core.Launch;
 using D3skCommander.Core.Panels;
 using Xunit;
@@ -14,7 +15,7 @@ public class TerminalCommandTests
     {
         using var harness = await LaunchHarness.Open();
         harness.Commands.Platform = LaunchPlatform.Windows;
-        harness.Commands.IsOnPath = program => program == "wt";
+        harness.Commands.ResolveProgram = program => program == "wt" ? Path.Combine(Path.GetTempPath(), "wt.exe") : null;
         var sub = Path.Combine(harness.Left, "sub");
         var file = Path.Combine(sub, "a.txt");
 
@@ -36,7 +37,7 @@ public class TerminalCommandTests
     {
         using var harness = await LaunchHarness.Open();
         harness.Commands.Platform = LaunchPlatform.Windows;
-        harness.Commands.IsOnPath = _ => false;
+        harness.Commands.ResolveProgram = _ => null;
 
         await harness.Commands.OpenTerminalHereAsync(TerminalKind.Terminal, elevated: false);
 
@@ -50,7 +51,7 @@ public class TerminalCommandTests
     {
         using var harness = await LaunchHarness.Open();
         harness.Commands.Platform = LaunchPlatform.Windows;
-        harness.Commands.IsOnPath = program => program == "pwsh";
+        harness.Commands.ResolveProgram = program => program == "pwsh" ? Path.Combine(Path.GetTempPath(), "pwsh.exe") : null;
 
         await harness.Commands.OpenTerminalHereAsync(TerminalKind.PowerShell, elevated: false);
 
@@ -64,7 +65,7 @@ public class TerminalCommandTests
     {
         using var harness = await LaunchHarness.Open();
         harness.Commands.Platform = LaunchPlatform.Windows;
-        harness.Commands.IsOnPath = _ => false;
+        harness.Commands.ResolveProgram = _ => null;
         harness.Runner.FailWith = new Win32Exception(1223);
 
         await harness.Commands.OpenTerminalHereAsync(TerminalKind.Terminal, elevated: true);
@@ -78,7 +79,7 @@ public class TerminalCommandTests
     {
         using var harness = await LaunchHarness.Open();
         harness.Commands.Platform = LaunchPlatform.Windows;
-        harness.Commands.IsOnPath = _ => false;
+        harness.Commands.ResolveProgram = _ => null;
         var odd = Path.Combine(harness.Left, "50%");
         Directory.CreateDirectory(odd);
 
@@ -93,6 +94,46 @@ public class TerminalCommandTests
         Assert.StartsWith(harness.Text.Get("launch.refused"), text, StringComparison.Ordinal);
         Assert.Empty(harness.Runner.Started);
         Assert.Equal(0, harness.Dialogs.ShownCount);
+    }
+
+    [AvaloniaFact]
+    public async Task FromTheMenuBarAnArchivePanelOpensNoTerminalAndShowsAStatus()
+    {
+        using var harness = await LaunchHarness.Open();
+        harness.Commands.Platform = LaunchPlatform.Windows;
+        harness.Commands.ResolveProgram = _ => null;
+        var zip = Path.Combine(harness.Left, "pack.zip");
+        using (var stream = File.Create(zip))
+        using (var archive = new System.IO.Compression.ZipArchive(stream, System.IO.Compression.ZipArchiveMode.Create))
+        {
+            archive.CreateEntry("in.txt");
+        }
+
+        Assert.True(await harness.Workspace.GoAsync(PanelSide.Left, zip, TestContext.Current.CancellationToken));
+        await harness.Commands.OpenTerminalHereAsync(TerminalKind.Terminal, elevated: false);
+        await harness.Commands.OpenTerminalHereAsync(TerminalKind.PowerShell, elevated: true);
+
+        Assert.Equal([harness.Text.Get("launch.panel_unavailable"), harness.Text.Get("launch.panel_unavailable")], harness.Status);
+        Assert.Empty(harness.Runner.Started);
+    }
+
+    [AvaloniaFact]
+    public async Task ARefusedElevatedStartShowsTheLocalizedReason()
+    {
+        using var harness = await LaunchHarness.Open();
+        harness.Commands.Platform = LaunchPlatform.Windows;
+        harness.Commands.ResolveProgram = _ => null;
+        var odd = Path.Combine(harness.Left, "50%");
+        Directory.CreateDirectory(odd);
+
+        Task pending;
+        using (harness.Workspace.UseContextTarget(Target(ContextTargetKind.Folder, harness.Left, odd)))
+        {
+            pending = harness.Commands.OpenTerminalHereAsync(TerminalKind.Terminal, elevated: true);
+        }
+
+        await pending;
+        Assert.Equal(harness.Text.Get("launch.refused") + ": " + harness.Text.Get("launch.refused.unsafe_folder"), Assert.Single(harness.Status));
     }
 
     [AvaloniaTheory]
@@ -127,7 +168,7 @@ public class TerminalCommandTests
     {
         using var harness = await LaunchHarness.Open();
         harness.Commands.Platform = LaunchPlatform.Windows;
-        harness.Commands.IsOnPath = _ => true;
+        harness.Commands.ResolveProgram = _ => Path.Combine(Path.GetTempPath(), "x.exe");
         harness.Runner.FailWith = new FileNotFoundException("nope");
 
         await harness.Commands.OpenTerminalHereAsync(TerminalKind.Terminal, elevated: false);
