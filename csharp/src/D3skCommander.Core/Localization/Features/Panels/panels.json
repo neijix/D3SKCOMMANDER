@@ -47,6 +47,22 @@
     "en": "Add this folder to favorites",
     "fr": "Ajouter ce dossier aux favoris"
   },
+  "panels.favoriteAdd": {
+    "en": "Add to favorites",
+    "fr": "Ajouter aux favoris"
+  },
+  "panels.favoriteFile": {
+    "en": "file",
+    "fr": "fichier"
+  },
+  "panels.favoriteFolder": {
+    "en": "folder",
+    "fr": "dossier"
+  },
+  "panels.favoriteMissing": {
+    "en": "Not found: {0}",
+    "fr": "Introuvable : {0}"
+  },
   "panels.name": {
     "en": "Name",
     "fr": "Nom"

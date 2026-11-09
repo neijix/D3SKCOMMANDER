@@ -71,6 +71,7 @@ internal static class CommandLabelKeys
         "cmd.next_tab",
         "cmd.hotlist",
         "cmd.add_hotlist",
+        "cmd.add_to_favorites",
         "cmd.history",
         "cmd.back",
         "cmd.forward",

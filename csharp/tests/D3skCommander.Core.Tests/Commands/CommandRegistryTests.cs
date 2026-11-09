@@ -12,7 +12,7 @@ public class CommandRegistryTests
         Assert.Equal(CommandId.Sync, CommandCatalog.FromName("sync"));
         Assert.Equal(CommandId.Sync, CommandCatalog.FromName("  SYNC  "));
         Assert.Null(CommandCatalog.FromName("Nope"));
-        Assert.Equal(101, CommandCatalog.All.Count);
+        Assert.Equal(102, CommandCatalog.All.Count);
         var seen = new HashSet<string>(StringComparer.Ordinal);
         foreach (var command in CommandCatalog.All)
         {
@@ -43,7 +43,7 @@ public class CommandRegistryTests
             seen[key] = command;
         }
 
-        Assert.Equal(101, seen.Count);
+        Assert.Equal(102, seen.Count);
         Assert.Equal("View file", localizer.Get(CommandCatalog.LabelKey(CommandId.View), Language.En));
         Assert.Equal("Quitter", localizer.Get(CommandCatalog.LabelKey(CommandId.Quit), Language.Fr));
         AssertEarlyKeys();
@@ -181,6 +181,7 @@ public class CommandRegistryTests
         AssertKey(CommandId.NextTab, "cmd.next_tab");
         AssertKey(CommandId.Hotlist, "cmd.hotlist");
         AssertKey(CommandId.AddHotlist, "cmd.add_hotlist");
+        AssertKey(CommandId.AddToFavorites, "cmd.add_to_favorites");
         AssertKey(CommandId.History, "cmd.history");
         AssertKey(CommandId.Back, "cmd.back");
         AssertKey(CommandId.Forward, "cmd.forward");

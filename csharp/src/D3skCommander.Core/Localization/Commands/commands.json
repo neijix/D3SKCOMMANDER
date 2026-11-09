@@ -279,6 +279,10 @@
     "en": "Add current folder to favorites",
     "fr": "Ajouter le dossier courant aux favoris"
   },
+  "cmd.add_to_favorites": {
+    "en": "Add to favorites",
+    "fr": "Ajouter aux favoris"
+  },
   "cmd.history": {
     "en": "Folder history",
     "fr": "Historique"

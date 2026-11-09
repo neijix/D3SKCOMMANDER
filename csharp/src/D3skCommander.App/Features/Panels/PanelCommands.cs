@@ -56,6 +56,7 @@ public sealed partial class PanelCommands
         shell.Handle(CommandId.DirSizes, () => _ = DirSizesAsync());
         shell.Handle(CommandId.Hotlist, () => _ = HotlistAsync());
         shell.Handle(CommandId.AddHotlist, () => _ = AddHotlistAsync());
+        shell.Handle(CommandId.AddToFavorites, () => _ = AddToFavoritesAsync());
         shell.Handle(CommandId.History, () => _ = HistoryAsync());
     }
 

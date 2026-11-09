@@ -63,6 +63,7 @@ public enum CommandId
     NextTab,
     Hotlist,
     AddHotlist,
+    AddToFavorites,
     History,
     Back,
     Forward,
