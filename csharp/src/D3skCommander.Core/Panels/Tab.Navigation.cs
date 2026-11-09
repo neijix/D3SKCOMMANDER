@@ -40,7 +40,17 @@ public sealed partial class Tab
     public Task ForwardAsync(bool showHidden, CancellationToken cancellationToken = default) =>
         MoveHistoryAsync(_forward, _back, showHidden, cancellationToken);
 
-    public Location? ParentLocation() => Location.Parent();
+    /// <summary>Where "up" leads: the listing's ".." row when it has one, so Up and that row agree, else the location's parent.</summary>
+    public Location? ParentLocation()
+    {
+        var row = _entries.Find(entry => entry.IsParent);
+        if (row is not null)
+        {
+            return new Location(row.Path);
+        }
+
+        return Location.Parent();
+    }
 
     /// <summary>Where Enter on <paramref name="entry"/> leads. An archive file opens as a folder. Any other file leads nowhere.</summary>
     public Location? EnterLocation(Entry entry)

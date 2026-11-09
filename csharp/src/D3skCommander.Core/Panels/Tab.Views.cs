@@ -14,7 +14,7 @@ public sealed partial class Tab
     public async Task SetBranchAsync(bool on, bool showHidden, CancellationToken cancellationToken = default)
     {
         var before = Branch;
-        Branch = on;
+        Branch = on && !(Location.Provider is null && ComputerAddress.IsAddressOrUnder(Location.Path));
         await ReloadAsync(showHidden, cancellationToken).ConfigureAwait(false);
         if (Error is not null)
         {

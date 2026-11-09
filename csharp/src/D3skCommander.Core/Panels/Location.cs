@@ -51,13 +51,21 @@ public sealed class Location : IEquatable<Location>
 
     public override string ToString() => Path;
 
-    /// <summary>The folder above this one, or null at a root.</summary>
+    /// <summary>
+    /// The folder above this one. A path root gives the Computer address, which has none; a
+    /// location with its own provider (results, branch) ends at its real root as before.
+    /// </summary>
     public Location? Parent()
     {
+        if (Provider is null && ComputerAddress.IsAddressOrUnder(Path))
+        {
+            return ComputerAddress.IsAddress(Path) ? null : new Location(ComputerAddress.Text);
+        }
+
         var parent = ParentPath(Path);
         if (string.IsNullOrEmpty(parent))
         {
-            return null;
+            return Provider is null ? new Location(ComputerAddress.Text) : null;
         }
 
         return new Location(parent);
