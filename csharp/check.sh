@@ -32,7 +32,10 @@ SLN=D3skCommander.sln
 . "$ROOT/csharp/packaging/sdk-env.sh"
 if d3sk_uses_private_packages "$ROOT/csharp"; then d3sk_packages_credentials || exit 1; fi
 
-dotnet format "$SLN" --verify-no-changes
+# Restore on its own first: `dotnet format` hides the restore error (NU1301, 401) behind
+# "Restore operation failed".
+dotnet restore "$SLN" --nologo -v q
+dotnet format "$SLN" --verify-no-changes --no-restore
 dotnet build "$SLN" -warnaserror --nologo -v q
 
 # No Avalonia view over 600 lines (*.axaml, *.axaml.cs, *View.cs).
