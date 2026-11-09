@@ -1,5 +1,7 @@
+using D3skCommander.App.Features.Panels;
 using D3skCommander.App.Shell;
 using D3skCommander.Core.FileSystem;
+using D3skCommander.Core.Panels;
 
 namespace D3skCommander.App.Features.Drives;
 
@@ -53,6 +55,10 @@ public sealed partial class DrivesCommands
     {
         switch (item.Kind)
         {
+            case DriveMenuKind.Computer:
+                // The method the Computer command runs, for this menu's side.
+                await (_panels is PanelWorkspace workspace ? workspace.ComputerAsync(side) : _panels.GoAsync(side, ComputerAddress.Text)).ConfigureAwait(false);
+                break;
             case DriveMenuKind.Unmounted:
                 await MountAsync(side, item.Target).ConfigureAwait(false);
                 break;

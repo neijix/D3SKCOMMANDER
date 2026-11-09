@@ -1,12 +1,14 @@
 using D3skCommander.Core.FileSystem;
 using D3skCommander.Core.Localization;
 using D3skCommander.Core.NetDrives;
+using D3skCommander.Core.Panels;
 
 namespace D3skCommander.App.Features.Drives;
 
 /// <summary>What a drive menu line does when chosen.</summary>
 public enum DriveMenuKind
 {
+    Computer,
     Volume,
     Place,
     Share,
@@ -34,7 +36,10 @@ public static class DriveMenu
     {
         ArgumentNullException.ThrowIfNull(text);
         ArgumentNullException.ThrowIfNull(currentPath);
-        var items = new List<DriveMenuItem>();
+        var items = new List<DriveMenuItem>
+        {
+            new(DriveMenuKind.Computer, text.Get("computer.menu"), ComputerAddress.Text, null, ComputerAddress.IsAddress(currentPath)),
+        };
         var free = text.Get("drives.free");
         var holding = DriveList.Holding(volumes, currentPath);
         foreach (var drive in volumes)

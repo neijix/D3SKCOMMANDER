@@ -1,8 +1,11 @@
 using Avalonia.Headless.XUnit;
 using D3skCommander.App.Dialogs;
 using D3skCommander.App.Features.Drives;
+using D3skCommander.App.Features.Panels;
 using D3skCommander.App.Shell;
 using D3skCommander.Core.Commands;
+using D3skCommander.Core.Panels;
+using Microsoft.Extensions.DependencyInjection;
 using Xunit;
 
 namespace D3skCommander.App.Tests.Features.Drives;
@@ -22,6 +25,46 @@ public class DriveListTests
         Assert.Equal(0.75, volume.UsedFraction);
         Assert.True(volume.IsCurrent);
         Assert.Equal(harness.Left, harness.Workspace.Read(PanelSide.Left).Path);
+    }
+
+    [AvaloniaFact]
+    public async Task TheComputerLineComesFirstAndOpensComputerOnTheMenusSide()
+    {
+        using var harness = await DrivesHarness.Open();
+        harness.Menu.Pick = DriveMenuKind.Computer;
+        await harness.Commands.ChooseDriveAsync(PanelSide.Right);
+
+        var first = harness.Menu.Shown[0];
+        Assert.Equal(DriveMenuKind.Computer, first.Kind);
+        Assert.Equal("Computer", first.Text);
+        Assert.False(first.IsCurrent);
+        Assert.DoesNotContain(harness.Menu.Shown.Skip(1), item => item.Section == first.Section);
+        Assert.Equal(harness.Left, harness.Workspace.Read(PanelSide.Left).Path);
+    }
+
+    [AvaloniaFact]
+    public async Task TheComputerLineOpensTheRealComputerView()
+    {
+        var menu = new FakeMenu { Pick = DriveMenuKind.Computer };
+        using var services = TestComposition.Build(configure: s => s.AddSingleton<IDriveMenuPresenter>(menu));
+        var workspace = services.GetRequiredService<PanelWorkspace>();
+        var home = Path.GetTempPath();
+        await workspace.OpenAsync(home, home, TestContext.Current.CancellationToken);
+        try
+        {
+            var commands = services.GetRequiredService<DrivesCommands>();
+            await commands.ChooseDriveAsync(PanelSide.Right);
+
+            Assert.Equal(ComputerAddress.Text, workspace.Read(PanelSide.Right).Path);
+            Assert.Equal(home, workspace.Read(PanelSide.Left).Path);
+            await commands.ChooseDriveAsync(PanelSide.Right);
+            Assert.True(menu.Shown[0].IsCurrent);
+            Assert.DoesNotContain(menu.Shown.Skip(1), item => item.IsCurrent);
+        }
+        finally
+        {
+            workspace.Dispose();
+        }
     }
 
     [AvaloniaFact]
