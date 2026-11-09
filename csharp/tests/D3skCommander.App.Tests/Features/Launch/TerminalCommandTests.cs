@@ -283,6 +283,7 @@ public class TerminalCommandTests
     [AvaloniaFact]
     public async Task AWindowsOverrideProgramComesFromPathNeverFromTheTargetFolder()
     {
+        Assert.SkipUnless(OperatingSystem.IsWindows(), "The override resolves real files to Windows full paths");
         using var harness = await LaunchHarness.Open();
         var tools = Directory.CreateDirectory(Path.Combine(harness.Root, "tools")).FullName;
         await File.WriteAllTextAsync(Path.Combine(tools, "wt.exe"), "x", TestContext.Current.CancellationToken);

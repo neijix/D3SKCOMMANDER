@@ -38,9 +38,10 @@ public class TerminalLaunchTests
     public void TerminalHereRunsTheOverrideInTheShellButAdminAndPowerShellIgnoreIt()
     {
         var runner = new RecordingRunner();
-        Open(runner, TerminalKind.Terminal, false, @"C:\d", OnPath("wt", "mytty"), configured: "mytty --x");
+        // A Windows full path whatever OS runs the test: the override is only qualified for Windows.
+        Open(runner, TerminalKind.Terminal, false, @"C:\d", name => name == "mytty" ? @"C:\Tools\mytty.exe" : null, configured: "mytty --x");
         var shell = Assert.IsType<ProcessRequest.Shell>(runner.Requests[0]);
-        Assert.Equal("\"\"" + Path.Combine(Path.GetTempPath(), "mytty.exe") + "\" --x\"", shell.CommandLine);
+        Assert.Equal("\"\"" + @"C:\Tools\mytty.exe" + "\" --x\"", shell.CommandLine);
         Assert.Equal(@"C:\d", shell.WorkingDirectory);
 
         Open(runner, TerminalKind.Terminal, true, @"C:\d", OnPath(), configured: "mytty");
