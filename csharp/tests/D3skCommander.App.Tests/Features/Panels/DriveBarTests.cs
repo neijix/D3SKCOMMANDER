@@ -91,6 +91,21 @@ public class DriveBarTests
         Assert.False(bar.Update("/a", favorites));
     }
 
+    [Fact]
+    public async Task ANetworkDriveIsMarkedSoItShowsTheNetworkGlyph()
+    {
+        var bar = new DriveBarModel(
+            new FakeDrives(new DriveEntry("/", "/", "ext4", 10, 100), new DriveEntry("/mnt/nas", "nas", "cifs", 10, 100, Network: true)),
+            TextCatalog.Load(Language.En, Language.En));
+        for (var i = 0; i < 200 && bar.Buttons.Count < 2; i++)
+        {
+            bar.Update("/");
+            await Task.Delay(10, TestContext.Current.CancellationToken);
+        }
+
+        Assert.Equal([false, true], bar.Buttons.Select(b => b.Network));
+    }
+
     private sealed class FakeDrives(params DriveEntry[] list) : IDriveSource
     {
         public IReadOnlyList<DriveEntry> Mounted() => list;

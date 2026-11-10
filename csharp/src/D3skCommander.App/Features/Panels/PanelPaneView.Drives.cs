@@ -1,8 +1,12 @@
+using Avalonia;
 using Avalonia.Automation;
 using Avalonia.Controls;
+using Avalonia.Controls.Primitives;
+using Avalonia.Controls.Shapes;
 using Avalonia.Input;
 using Avalonia.Interactivity;
 using Avalonia.Layout;
+using Avalonia.Media;
 using D3skCommander.App.Icons;
 
 namespace D3skCommander.App.Features.Panels;
@@ -41,10 +45,12 @@ public sealed partial class PanelPaneView
         DriveStrip.Children.Clear();
         foreach (var item in items)
         {
-            var button = new Button { Tag = item.Path, DataContext = item, Content = ContentOf(item) };
+            var button = new Button { Tag = item.Path, DataContext = item };
+            button.Content = ContentOf(item, button);
             button.Classes.Add("drive");
             button.Classes.Set("held", item.Holds);
             button.Classes.Set("favorite", item.Favorite);
+            button.Classes.Set("network", item.Network);
             ToolTip.SetTip(button, item.Tip);
             AutomationProperties.SetName(button, item.Text);
             var path = item.Path;
@@ -64,20 +70,30 @@ public sealed partial class PanelPaneView
         }
     }
 
-    // A favorite shows the gold star before its name; a drive, its letter.
-    private static object ContentOf(DriveButton item)
+    // A favorite shows the gold star before its name; a drive, a disk or network glyph in the button's colour before its letter.
+    private static StackPanel ContentOf(DriveButton item, Button button)
     {
-        if (!item.Favorite)
+        Control icon;
+        if (item.Favorite)
         {
-            return item.Text;
+            icon = MenuIcons.FavoriteStar();
+        }
+        else
+        {
+            var glyph = new Avalonia.Controls.Shapes.Path { Data = PanelBarIcons.DriveGlyph(item.Network), Width = 16, Height = 16, Stretch = Stretch.None };
+            glyph.Bind(Shape.FillProperty, button.GetObservable(TemplatedControl.ForegroundProperty));
+            icon = glyph;
         }
 
-        var star = new Viewbox { Width = 12, Height = 12, VerticalAlignment = VerticalAlignment.Center, Child = MenuIcons.FavoriteStar() };
         return new StackPanel
         {
             Orientation = Orientation.Horizontal,
             Spacing = 4,
-            Children = { star, new TextBlock { Text = item.Text, VerticalAlignment = VerticalAlignment.Center } },
+            Children =
+            {
+                new Viewbox { Width = 12, Height = 12, VerticalAlignment = VerticalAlignment.Center, Child = icon },
+                new TextBlock { Text = item.Text, VerticalAlignment = VerticalAlignment.Center },
+            },
         };
     }
 
@@ -87,7 +103,7 @@ public sealed partial class PanelPaneView
         public static readonly SameShape Instance = new();
 
         public bool Equals(DriveButton? x, DriveButton? y) =>
-            x is not null && y is not null && x.Path == y.Path && x.Text == y.Text && x.Holds == y.Holds && x.Favorite == y.Favorite;
+            x is not null && y is not null && x.Path == y.Path && x.Text == y.Text && x.Holds == y.Holds && x.Favorite == y.Favorite && x.Network == y.Network;
 
         public int GetHashCode(DriveButton? obj) => obj?.Path.GetHashCode(StringComparison.Ordinal) ?? 0;
     }

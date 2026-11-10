@@ -3,31 +3,24 @@ using D3skCommander.Core.FileSystem;
 
 namespace D3skCommander.App.Features.Drives;
 
-/// <summary>The drive bar's list: the volumes plus the connected network shares (read off the UI thread).</summary>
+/// <summary>
+/// The drive bar's list: the volumes plus the connected network shares, each drive once and marked network or
+/// local (read off the UI thread).
+/// </summary>
 public sealed class BarDriveSource : IDriveSource
 {
     private readonly IDriveSource _volumes;
     private readonly INetDriveRunner _shares;
+    private readonly bool _windows;
 
-    public BarDriveSource(IDriveSource volumes, INetDriveRunner shares)
+    public BarDriveSource(IDriveSource volumes, INetDriveRunner shares, bool? windows = null)
     {
         ArgumentNullException.ThrowIfNull(volumes);
         ArgumentNullException.ThrowIfNull(shares);
         _volumes = volumes;
         _shares = shares;
+        _windows = windows ?? OperatingSystem.IsWindows();
     }
 
-    public IReadOnlyList<DriveEntry> Mounted()
-    {
-        var list = new List<DriveEntry>(_volumes.Mounted());
-        foreach (var share in _shares.ListConnected())
-        {
-            if (!list.Exists(drive => string.Equals(drive.Path, share.Path, StringComparison.Ordinal)))
-            {
-                list.Add(new DriveEntry(share.Path, share.Label, "", 0, 0));
-            }
-        }
-
-        return list;
-    }
+    public IReadOnlyList<DriveEntry> Mounted() => DriveMerge.Merge(_volumes.Mounted(), _shares.ListConnected(), _windows);
 }

@@ -6,10 +6,11 @@ using D3skCommander.Core.Settings;
 namespace D3skCommander.App.Features.Panels;
 
 /// <summary>
-/// One button of the drive bar: a drive, or a favorite folder when <see cref="Favorite"/> is set. <see cref="Holds"/>
+/// One button of the drive bar: a drive (a network one when <see cref="Network"/> is set), or a favorite folder when
+/// <see cref="Favorite"/> is set. <see cref="Holds"/>
 /// marks the drive that holds the panel's folder.
 /// </summary>
-public sealed record DriveButton(string Path, string Text, string Tip, bool Holds, bool Favorite = false);
+public sealed record DriveButton(string Path, string Text, string Tip, bool Holds, bool Favorite = false, bool Network = false);
 
 /// <summary>
 /// The buttons above a panel. The volumes are polled on a worker every few seconds; <see cref="Update"/>
@@ -62,7 +63,7 @@ public sealed class DriveBarModel
         var next = new List<DriveButton>(drives.Count + favorites.Count);
         foreach (var drive in drives)
         {
-            next.Add(new DriveButton(drive.Path, DriveList.ShortName(drive.Path), TipOf(drive), ReferenceEquals(drive, holder)));
+            next.Add(new DriveButton(drive.Path, DriveList.ShortName(drive.Path), TipOf(drive), ReferenceEquals(drive, holder), Network: drive.Network));
         }
 
         foreach (var (name, place) in _favorites)

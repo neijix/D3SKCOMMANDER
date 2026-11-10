@@ -167,7 +167,8 @@ public static class DriveList
                 label,
                 drive.DriveFormat,
                 (ulong)Math.Max(0, drive.AvailableFreeSpace),
-                (ulong)Math.Max(0, drive.TotalSize));
+                (ulong)Math.Max(0, drive.TotalSize),
+                drive.DriveType == DriveType.Network);
         }
         catch (Exception ex) when (ex is IOException or UnauthorizedAccessException)
         {

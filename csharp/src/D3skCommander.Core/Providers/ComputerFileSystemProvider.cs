@@ -13,8 +13,6 @@ namespace D3skCommander.Core.Providers;
 /// </summary>
 public sealed class ComputerFileSystemProvider : FileSystemProvider
 {
-    private static readonly string[] NetworkFormats = ["cifs", "smb3", "smbfs", "nfs", "nfs4", "afpfs", "webdav", "davfs", "fuse.sshfs"];
-
     private readonly IComputerSources _sources;
     private readonly ILocalizer _text;
     private readonly bool _windows;
@@ -96,9 +94,6 @@ public sealed class ComputerFileSystemProvider : FileSystemProvider
 
     private static OperationError ReadOnly(string path) => OperationError.Unsupported(ReadOnlyMessage, path);
 
-    private static bool IsNetworkFormat(string format) =>
-        NetworkFormats.Contains(format, StringComparer.OrdinalIgnoreCase);
-
     private static T[] Read<T>(Func<IReadOnlyList<T>> source)
     {
         try
@@ -117,31 +112,16 @@ public sealed class ComputerFileSystemProvider : FileSystemProvider
         var drives = Read(_sources.MountedDrives);
         var shares = Read(_sources.ConnectedShares);
         var network = new List<Entry>();
-        var sharePaths = shares.Select(share => Normalize(share.Path)).ToList();
-
-        foreach (var drive in drives)
+        foreach (var drive in DriveMerge.Merge(drives, shares, _windows))
         {
-            var isShare = sharePaths.Contains(Normalize(drive.Path), PathComparer());
-            if (isShare || IsNetworkFormat(drive.Format))
+            if (drive.Network)
             {
-                var label = shares.FirstOrDefault(share => PathComparer().Equals(Normalize(share.Path), Normalize(drive.Path)))?.Label;
-                var shown = isShare && !string.IsNullOrEmpty(label) ? drive with { Label = label } : drive;
-                network.Add(DriveRow(shown, 2));
+                network.Add(DriveRow(drive, 2));
             }
             else
             {
                 rows.Add(DriveRow(drive, 1));
             }
-        }
-
-        foreach (var share in shares)
-        {
-            if (drives.Any(drive => PathComparer().Equals(Normalize(drive.Path), Normalize(share.Path))))
-            {
-                continue;
-            }
-
-            network.Add(DriveRow(new DriveEntry(SharePath(share.Path), share.Label, "", 0, 0), 2));
         }
 
         // Home lists drives and favorites only: the user places (Desktop, Documents...) stay in the drive menu.
@@ -196,18 +176,6 @@ public sealed class ComputerFileSystemProvider : FileSystemProvider
             return false;
         }
     }
-
-    private StringComparer PathComparer() => _windows ? StringComparer.OrdinalIgnoreCase : StringComparer.Ordinal;
-
-    // A bare "Z:" counts as "Z:\"; a trailing separator never matters.
-    private string Normalize(string path)
-    {
-        var text = _windows ? path.Replace('/', '\\') : path;
-        return text.TrimEnd(_windows ? '\\' : '/');
-    }
-
-    private string SharePath(string path) =>
-        _windows && path.Length == 2 && path[1] == ':' ? path + "\\" : path;
 }
 
 /// <summary>What disk usage scans at Computer: one <see cref="Folder"/>, or (when null) every one of <see cref="Drives"/>.</summary>
