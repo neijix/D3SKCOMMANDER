@@ -37,6 +37,10 @@
     <PackageVersion Include="bblanchon.PDFium.Win32" Version="158.0.8125" />
     <PackageVersion Include="bblanchon.PDFium.Linux" Version="158.0.8125" />
     <PackageVersion Include="bblanchon.PDFium.macOS" Version="158.0.8125" />
+    <!-- Video preview: the managed LibVLCSharp only (LGPL-2.1), over the VLC the user installed (Core/Preview/VlcLocator.cs).
+         No VideoLAN.LibVLC.* natives (~150 MB) and no LibVLCSharp.Avalonia (built for Avalonia 11, native child window):
+         frames are drawn into a WriteableBitmap (App/Features/QuickView/VideoPreview.cs). -->
+    <PackageVersion Include="LibVLCSharp" Version="3.10.2" />
   </ItemGroup>
 
   <!-- Signed self-update (GitHub Packages, private; nuget.config maps D3sk.*). -->

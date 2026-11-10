@@ -138,29 +138,11 @@ public class QuickViewEditTests
             return rig;
         }
 
-        public void MoveCursorTo(string name)
-        {
-            var snap = Workspace.Read(PanelSide.Left);
-            var index = snap.Entries.ToList().FindIndex(entry => entry.Name == name);
-            Workspace.ApplySelection(PanelSide.Left, index, []);
-        }
+        public void MoveCursorTo(string name) => QuickViewSteps.MoveCursorTo(Workspace, name);
 
-        public void RestOn(string name)
-        {
-            MoveCursorTo(name);
-            Commands.Tick();
-            Clock.Advance(QuickViewCommands.Debounce + TimeSpan.FromMilliseconds(10));
-            Commands.Tick();
-        }
+        public void RestOn(string name) => QuickViewSteps.RestOn(Workspace, Commands, Clock, name);
 
-        public async Task WaitFor(Func<bool> done)
-        {
-            for (var i = 0; i < 300 && !done(); i++)
-            {
-                await Task.Delay(10, TestContext.Current.CancellationToken);
-                Avalonia.Threading.Dispatcher.UIThread.RunJobs();
-            }
-        }
+        public Task WaitFor(Func<bool> done, int tries = 300) => QuickViewSteps.WaitFor(done, tries);
 
         public void Dispose()
         {

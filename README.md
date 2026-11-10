@@ -27,7 +27,9 @@ What works today:
 - a drive bar above each panel (Show menu to hide it) and a drive menu (Alt+F1, Alt+F2) with
   usage bars, your usual folders, network shares and, on Linux, disks to mount or eject
   (`udisksctl`); Properties (Alt+Enter), and files dropped from the system copied into a panel;
-- quick view (Ctrl+Q) of the file under the cursor in the other panel;
+- quick view (Ctrl+Q) of the file under the cursor in the other panel; videos play there, muted at
+  first, with the [VLC](https://www.videolan.org/vlc/) already installed on the computer
+  (optional: without it the preview says to install it; on Linux, the `libvlc` package);
 - a Home view above the drives (the house button, or Up from a drive root): drives with how full they are, network drives and favorites in one read-only list;
 - column sets: named sets of columns (name, extension, size, modified, created, accessed,
   attributes, owner, group, type) with their order and widths, chosen per tab from the header's

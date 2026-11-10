@@ -7,13 +7,14 @@ using D3skCommander.App.Imaging;
 using D3skCommander.Core.Archives;
 using D3skCommander.Core.FileSystem;
 using D3skCommander.Core.Preview;
+using LibVLCSharp.Shared;
 using CoreDocument = D3skCommander.Core.TextDocument.TextDocument;
 
 namespace D3skCommander.App.Features.QuickView;
 
 /// <summary>
 /// The file the view shows, by what it holds (<see cref="PreviewKinds"/>): text in the editor, a picture or a
-/// camera RAW's embedded preview, the pages of a PDF, the list of an archive, and the lister for the rest.
+/// camera RAW's embedded preview, a video (with the VLC of the machine), the pages of a PDF, the list of an archive, and the lister for the rest.
 /// Every read runs in the background; a result that comes back after the cursor moved on is dropped.
 /// </summary>
 public sealed partial class QuickViewCommands
@@ -25,6 +26,9 @@ public sealed partial class QuickViewCommands
     public const int MaxPages = 50;
 
     private const int PageWidthFallback = 800;
+
+    /// <summary>The libvlc videos play with; null without VLC (tests set their own).</summary>
+    internal Func<LibVLC?> Vlc { get; set; } = VlcRuntime.Shared;
 
     private bool Current(int ticket) => ticket == _ticket && _panel is not null;
 
@@ -52,6 +56,9 @@ public sealed partial class QuickViewCommands
                 break;
             case PreviewKind.Pdf:
                 await ShowPdfAsync(path, ticket).ConfigureAwait(true);
+                break;
+            case PreviewKind.Video:
+                await ShowVideoAsync(path, ticket).ConfigureAwait(true);
                 break;
             default:
                 InLister(path, ticket);
@@ -166,6 +173,27 @@ public sealed partial class QuickViewCommands
                 .Replace("{files}", files.Count.ToString(System.Globalization.CultureInfo.CurrentCulture), StringComparison.Ordinal)
                 .Replace("{size}", LocalFileSystem.FormatSize(size), StringComparison.Ordinal);
             _panel!.ShowArchive(header, rows);
+        });
+    }
+
+    // The first video loads libvlc, which takes a moment: off the UI thread. Without VLC, a line says to install it.
+    private async Task ShowVideoAsync(string path, int ticket)
+    {
+        var vlc = await Task.Run(Vlc).ConfigureAwait(true);
+        UiThread.Post(() =>
+        {
+            if (!Current(ticket))
+            {
+                return;
+            }
+
+            if (vlc is null)
+            {
+                _panel!.ShowSummary(_text.Get("quickview.video_no_vlc"));
+                return;
+            }
+
+            _panel!.ShowVideo(new VideoPreview(vlc, _text, path, PageWidth()));
         });
     }
 

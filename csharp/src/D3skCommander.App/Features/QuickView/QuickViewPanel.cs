@@ -11,7 +11,7 @@ namespace D3skCommander.App.Features.QuickView;
 
 /// <summary>
 /// What the quick view and the preview mode put over a pane: a text editor with line numbers and colours, a
-/// picture, the pages of a PDF, the list of an archive, the lister's own view for any other file, a short
+/// picture, a video, the pages of a PDF, the list of an archive, the lister's own view for any other file, a short
 /// summary for a folder, nothing for the rest. It owns the bitmaps it shows and frees them when they go.
 /// </summary>
 internal sealed class QuickViewPanel : ContentControl
@@ -111,6 +111,12 @@ internal sealed class QuickViewPanel : ContentControl
         _bitmaps.Add(picture);
     }
 
+    /// <summary>The video being played; null when the content is not a video.</summary>
+    public VideoPreview? ShownVideo => Content as VideoPreview;
+
+    /// <summary>Plays <paramref name="video"/>, which the panel now owns: it stops when the content changes.</summary>
+    public void ShowVideo(VideoPreview video) => Replace(video);
+
     /// <summary>An empty page list; <see cref="AddPage"/> fills it while it is still shown.</summary>
     public void StartPages()
     {
@@ -153,7 +159,13 @@ internal sealed class QuickViewPanel : ContentControl
             _editor.Document = new AvaloniaEdit.Document.TextDocument();
         }
 
+        var video = Content as VideoPreview;
         Content = content;
+        if (!ReferenceEquals(video, content))
+        {
+            video?.Dispose();
+        }
+
         foreach (var bitmap in old)
         {
             bitmap.Dispose();

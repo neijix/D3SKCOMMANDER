@@ -23,6 +23,9 @@ public enum PreviewKind
 
     /// <summary>A PDF: its pages.</summary>
     Pdf,
+
+    /// <summary>A film or a clip, played by the VLC installed on the machine.</summary>
+    Video,
 }
 
 /// <summary>
@@ -43,6 +46,15 @@ public static class PreviewKinds
         "x3f", "3fr", "iiq", "rwl", "erf", "mef", "mos", "kdc", "dcr",
     ];
 
+    private static readonly string[] VideoExtensions =
+    [
+        "mp4", "m4v", "mkv", "webm", "avi", "mov", "wmv", "asf", "flv", "mpg", "mpeg", "m2v", "m2ts", "mts",
+        "vob", "3gp", "3g2", "ogv", "divx", "rm", "rmvb", "f4v",
+    ];
+
+    /// <summary>True for a file name whose extension says it is a video.</summary>
+    public static bool IsVideo(string path) => Array.IndexOf(VideoExtensions, ViewerFiles.Extension(path)) >= 0;
+
     public static PreviewKind Of(string path, long size, ReadOnlySpan<byte> head)
     {
         ArgumentNullException.ThrowIfNull(path);
@@ -60,6 +72,11 @@ public static class PreviewKinds
         if (PictureSignature.Of(head) != PictureFormat.Unknown || ViewerFiles.IsImage(path))
         {
             return PreviewKind.Picture;
+        }
+
+        if (IsVideo(path) || (extension == "ts" && IsTransportStream(head)))
+        {
+            return PreviewKind.Video;
         }
 
         if (ArchiveKinds.FromPath(path) is not null)
@@ -87,6 +104,10 @@ public static class PreviewKinds
             return PreviewKind.Other;
         }
     }
+
+    // A .ts file is a TypeScript source as often as an MPEG transport stream: the stream's packets start with 0x47.
+    private static bool IsTransportStream(ReadOnlySpan<byte> head) =>
+        head.Length > 0 && head[0] == 0x47 && (head.Length <= 188 || head[188] == 0x47);
 
     private static bool LooksLikeText(ReadOnlySpan<byte> head) =>
         head.StartsWith((ReadOnlySpan<byte>)[0xFF, 0xFE]) || head.StartsWith((ReadOnlySpan<byte>)[0xFE, 0xFF])

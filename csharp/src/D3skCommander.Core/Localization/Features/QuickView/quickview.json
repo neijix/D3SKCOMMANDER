@@ -18,5 +18,25 @@
   "quickview.pdf_error": {
     "en": "PDF: cannot be shown (damaged, protected or too large)",
     "fr": "PDF : impossible à afficher (abîmé, protégé ou trop gros)"
+  },
+  "quickview.video_no_vlc": {
+    "en": "Install VLC to play videos here (videolan.org): the preview uses the VLC already on the computer.",
+    "fr": "Installe VLC pour lire les vidéos ici (videolan.org) : l'aperçu utilise le VLC déjà présent sur l'ordinateur."
+  },
+  "quickview.video_play": {
+    "en": "Play",
+    "fr": "Lecture"
+  },
+  "quickview.video_pause": {
+    "en": "Pause",
+    "fr": "Pause"
+  },
+  "quickview.video_sound": {
+    "en": "Sound",
+    "fr": "Son"
+  },
+  "quickview.video_open": {
+    "en": "Open in VLC",
+    "fr": "Ouvrir dans VLC"
   }
 }
