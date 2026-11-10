@@ -28,6 +28,7 @@ public static class PreferencesCopy
             ConfirmTrashFallback = source.ConfirmTrashFallback,
             LogOperations = source.LogOperations,
             AutoFolderSizes = source.AutoFolderSizes,
+            PreviewStartSeconds = source.PreviewStartSeconds,
             IndexRoots = source.IndexRoots,
             IndexExcludes = source.IndexExcludes,
             IndexRefreshHours = source.IndexRefreshHours,

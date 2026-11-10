@@ -26,6 +26,9 @@ public enum PreviewKind
 
     /// <summary>A film or a clip, played by the VLC installed on the machine.</summary>
     Video,
+
+    /// <summary>A song or a recording, played by the same VLC (no picture).</summary>
+    Audio,
 }
 
 /// <summary>
@@ -52,8 +55,17 @@ public static class PreviewKinds
         "vob", "3gp", "3g2", "ogv", "divx", "rm", "rmvb", "f4v",
     ];
 
+    private static readonly string[] AudioExtensions =
+    [
+        "mp3", "flac", "wav", "ogg", "oga", "opus", "m4a", "m4b", "aac", "wma", "aif", "aiff", "ape", "wv", "mka",
+        "ac3", "dts", "mid", "midi", "amr", "au",
+    ];
+
     /// <summary>True for a file name whose extension says it is a video.</summary>
     public static bool IsVideo(string path) => Array.IndexOf(VideoExtensions, ViewerFiles.Extension(path)) >= 0;
+
+    /// <summary>True for a file name whose extension says it is a sound.</summary>
+    public static bool IsAudio(string path) => Array.IndexOf(AudioExtensions, ViewerFiles.Extension(path)) >= 0;
 
     public static PreviewKind Of(string path, long size, ReadOnlySpan<byte> head)
     {
@@ -77,6 +89,11 @@ public static class PreviewKinds
         if (IsVideo(path) || (extension == "ts" && IsTransportStream(head)))
         {
             return PreviewKind.Video;
+        }
+
+        if (IsAudio(path))
+        {
+            return PreviewKind.Audio;
         }
 
         if (ArchiveKinds.FromPath(path) is not null)

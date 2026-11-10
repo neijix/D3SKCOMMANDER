@@ -21,6 +21,10 @@
           <CheckBox x:Name="UpdatesBox" Grid.Row="1" Grid.Column="1" Grid.RowSpan="2" VerticalAlignment="Top" Content="{Binding Labels.CheckUpdates}" IsChecked="{Binding CheckUpdates, Mode=TwoWay}"/>
           <CheckBox x:Name="AutoSizesBox" Grid.Row="4" Grid.Column="0" Grid.ColumnSpan="2" Content="{Binding Labels.AutoFolderSizes}" IsChecked="{Binding AutoFolderSizes, Mode=TwoWay}"/>
         </Grid>
+        <Grid ColumnDefinitions="Auto,120" ColumnSpacing="8">
+          <TextBlock Grid.Column="0" VerticalAlignment="Center" Text="{Binding Labels.PreviewStart}"/>
+          <NumericUpDown x:Name="PreviewStartBox" Grid.Column="1" Minimum="0" Maximum="86400" Increment="1" FormatString="0" Value="{Binding PreviewStartSeconds, Mode=TwoWay}"/>
+        </Grid>
         <TextBlock Text="{Binding Labels.Editor}"/>
         <TextBox x:Name="EditorBox" Text="{Binding Editor, Mode=TwoWay}"/>
         <TextBlock Text="{Binding Labels.Terminal}"/>

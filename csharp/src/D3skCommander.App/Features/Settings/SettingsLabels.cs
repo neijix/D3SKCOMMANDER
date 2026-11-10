@@ -20,6 +20,7 @@ public sealed class SettingsLabels
         IndexRoots = text.Get("quickfind.settings.roots");
         IndexExcludes = text.Get("quickfind.settings.excludes");
         IndexHours = text.Get("quickfind.settings.hours");
+        PreviewStart = text.Get("quickview.settings.start");
         Editor = text.Get("editor");
         Terminal = text.Get("terminal");
         CheckUpdates = text.Get("check_updates");
@@ -59,6 +60,8 @@ public sealed class SettingsLabels
     public string IndexExcludes { get; }
 
     public string IndexHours { get; }
+
+    public string PreviewStart { get; }
 
     public string Editor { get; }
 

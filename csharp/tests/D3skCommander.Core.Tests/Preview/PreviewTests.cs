@@ -21,6 +21,9 @@ public class PreviewTests
     [InlineData("Program.cs", "class A {}", PreviewKind.Text)]
     [InlineData("empty.txt", "", PreviewKind.Text)]
     [InlineData("tool.exe", "MZ\0\0", PreviewKind.Other)]
+    [InlineData("song.mp3", "ID3", PreviewKind.Audio)]
+    [InlineData("take.FLAC", "fLaC", PreviewKind.Audio)]
+    [InlineData("voice.wav", "RIFF\0\0\0\0WAVEfmt ", PreviewKind.Audio)]
     public void TheKindComesFromTheNameAndTheFirstBytes(string name, string head, PreviewKind expected)
     {
         Assert.Equal(expected, PreviewKinds.Of(name, head.Length, Encoding.Latin1.GetBytes(head)));

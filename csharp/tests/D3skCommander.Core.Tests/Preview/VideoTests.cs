@@ -54,4 +54,14 @@ public class VideoTests
         Assert.Equal("0:02:03 / 1:30:00", VideoFrames.Clock(TimeSpan.FromSeconds(123), TimeSpan.FromMinutes(90)));
         Assert.Equal("0:05", VideoFrames.Clock(TimeSpan.FromSeconds(5), TimeSpan.Zero));
     }
+
+    [Fact]
+    public void PlayingStartsAtTheSettingUnlessTheFileIsNotLongerThanThat()
+    {
+        Assert.Equal(TimeSpan.Zero, VideoFrames.Start(0, TimeSpan.FromMinutes(3)));
+        Assert.Equal(TimeSpan.FromSeconds(30), VideoFrames.Start(30, TimeSpan.FromMinutes(3)));
+        Assert.Equal(TimeSpan.FromSeconds(30), VideoFrames.Start(30, TimeSpan.Zero));
+        Assert.Equal(TimeSpan.Zero, VideoFrames.Start(30, TimeSpan.FromSeconds(30)));
+        Assert.Equal(TimeSpan.Zero, VideoFrames.Start(-5, TimeSpan.FromMinutes(3)));
+    }
 }

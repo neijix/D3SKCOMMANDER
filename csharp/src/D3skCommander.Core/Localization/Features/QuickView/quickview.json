@@ -38,5 +38,9 @@
   "quickview.video_open": {
     "en": "Open in VLC",
     "fr": "Ouvrir dans VLC"
+  },
+  "quickview.settings.start": {
+    "en": "Start videos and sounds in the preview N seconds in (0: from the start)",
+    "fr": "Démarrer les vidéos et les sons de l'aperçu à N secondes (0 : depuis le début)"
   }
 }

@@ -14,10 +14,11 @@ using LibVLCSharp.Shared;
 namespace D3skCommander.App.Features.QuickView;
 
 /// <summary>
-/// A video played by libvlc in the preview: VLC decodes into a buffer of 32-bit pixels (its video callbacks),
-/// each frame is copied into a bitmap the pane shows, so no native window floats over the app. It starts at
-/// once, without sound; the bar under the picture plays or pauses, seeks, turns the sound on and opens the file
-/// in VLC. Disposing stops the player off the UI thread, then frees the buffer.
+/// A video or a sound played by libvlc in the preview (a sound shows its name instead of a picture): VLC decodes
+/// into a buffer of 32-bit pixels (its video callbacks), each frame is copied into a bitmap the pane shows, so no
+/// native window floats over the app. It starts at once, without sound, <c>startSeconds</c> in when the file is
+/// longer than that (again after it ended); the bar under the picture plays or pauses, seeks, turns the sound on
+/// and opens the file in VLC. Disposing stops the player off the UI thread, then frees the buffer.
 /// </summary>
 internal sealed class VideoPreview : DockPanel, IDisposable
 {
@@ -25,6 +26,7 @@ internal sealed class VideoPreview : DockPanel, IDisposable
     private readonly ILocalizer _text;
     private readonly string _path;
     private readonly int _maxWidth;
+    private readonly int _startSeconds;
     private readonly Media _media;
     private readonly MediaPlayer _player;
     private readonly Lock _frame = new();
@@ -48,15 +50,17 @@ internal sealed class VideoPreview : DockPanel, IDisposable
     private int _drawPending;
     private volatile bool _closed;
     private volatile bool _soundOn;
+    private volatile bool _fromStart = true;
     private bool _showing;
 
-    public VideoPreview(LibVLC vlc, ILocalizer text, string path, int maxWidth)
+    public VideoPreview(LibVLC vlc, ILocalizer text, string path, int maxWidth, int startSeconds = 0, bool audio = false)
     {
         ArgumentNullException.ThrowIfNull(vlc);
         ArgumentNullException.ThrowIfNull(text);
         _text = text;
         _path = path;
         _maxWidth = maxWidth;
+        _startSeconds = startSeconds;
         _format = OnFormat;
         _cleanup = OnCleanup;
         _lock = OnLock;
@@ -67,9 +71,13 @@ internal sealed class VideoPreview : DockPanel, IDisposable
         _player.SetVideoCallbacks(_lock, null, _display);
 
         // libvlc must not be called back from its own event threads: the sound is set from the pool.
-        _player.Playing += (_, _) => ThreadPool.QueueUserWorkItem(_ => KeepSound());
+        _player.Playing += (_, _) => ThreadPool.QueueUserWorkItem(_ =>
+        {
+            KeepSound();
+            Begin();
+        });
         _player.EndReached += (_, _) => Dispatcher.UIThread.Post(Rewind);
-        BuildBar();
+        BuildBar(audio ? Path.GetFileName(path) : null);
         _timer.Tick += (_, _) => ShowState();
         _timer.Start();
         _player.Play();
@@ -84,7 +92,10 @@ internal sealed class VideoPreview : DockPanel, IDisposable
     /// <summary>Done once <see cref="Dispose"/> has stopped the player and VLC closed the file.</summary>
     public Task Stopped { get; private set; } = Task.CompletedTask;
 
-    private void BuildBar()
+    /// <summary>Where the player is in the file.</summary>
+    public TimeSpan Position => TimeSpan.FromMilliseconds(Math.Max(0, _player.Time));
+
+    private void BuildBar(string? name)
     {
         _play.Click += (_, _) => PlayOrPause();
         _sound.Content = _text.Get("quickview.video_sound");
@@ -113,7 +124,24 @@ internal sealed class VideoPreview : DockPanel, IDisposable
         bar.Children.Add(_seek);
         SetDock(bar, Dock.Bottom);
         Children.Add(bar);
-        Children.Add(_image);
+        if (name is null)
+        {
+            Children.Add(_image);
+        }
+        else
+        {
+            Children.Add(new TextBlock
+            {
+                Text = name,
+                FontSize = 18,
+                TextWrapping = TextWrapping.Wrap,
+                TextAlignment = TextAlignment.Center,
+                HorizontalAlignment = HorizontalAlignment.Center,
+                VerticalAlignment = VerticalAlignment.Center,
+                Margin = new Thickness(12),
+            });
+        }
+
         ShowState();
     }
 
@@ -131,12 +159,29 @@ internal sealed class VideoPreview : DockPanel, IDisposable
         ShowState();
     }
 
-    // At the end the player stops: the Play button starts the video again from its start.
+    // At the end the player stops: the Play button starts the file again, at the start setting.
     private void Rewind()
     {
         if (!_closed)
         {
+            _fromStart = true;
             _ = Task.Run(_player.Stop);
+        }
+    }
+
+    // Playing from the top: jump to the start setting, unless the file is not longer than that.
+    private void Begin()
+    {
+        if (_closed || !_fromStart)
+        {
+            return;
+        }
+
+        _fromStart = false;
+        var start = VideoFrames.Start(_startSeconds, TimeSpan.FromMilliseconds(_player.Length));
+        if (start > TimeSpan.Zero)
+        {
+            _player.Time = (long)start.TotalMilliseconds;
         }
     }
 

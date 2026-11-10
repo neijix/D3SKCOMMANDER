@@ -6,6 +6,7 @@ using D3skCommander.App.Features.Lister;
 using D3skCommander.App.Features.Panels;
 using D3skCommander.App.Host;
 using D3skCommander.App.Shell;
+using D3skCommander.App.Startup;
 using D3skCommander.Core.Commands;
 using D3skCommander.Core.FileOps;
 using D3skCommander.Core.Jobs;
@@ -31,6 +32,7 @@ public sealed partial class QuickViewCommands : IFileHolder
     private readonly IJobService _jobs;
     private readonly TimeProvider _clock;
     private readonly IDialogService? _dialogs;
+    private readonly AppSettings? _settings;
     private DispatcherTimer? _timer;
     private ViewerViewModel? _viewer;
     private QuickViewPanel? _panel;
@@ -44,7 +46,7 @@ public sealed partial class QuickViewCommands : IFileHolder
     private EditorViewModel? _edited;
     private bool _asking;
 
-    public QuickViewCommands(PanelWorkspace panels, ILocalizer text, IJobService jobs, TimeProvider? clock = null, IDialogService? dialogs = null)
+    public QuickViewCommands(PanelWorkspace panels, ILocalizer text, IJobService jobs, TimeProvider? clock = null, IDialogService? dialogs = null, AppSettings? settings = null)
     {
         ArgumentNullException.ThrowIfNull(panels);
         ArgumentNullException.ThrowIfNull(text);
@@ -54,6 +56,7 @@ public sealed partial class QuickViewCommands : IFileHolder
         _jobs = jobs;
         _clock = clock ?? TimeProvider.System;
         _dialogs = dialogs;
+        _settings = settings;
     }
 
     public bool IsOn => _panel is not null;

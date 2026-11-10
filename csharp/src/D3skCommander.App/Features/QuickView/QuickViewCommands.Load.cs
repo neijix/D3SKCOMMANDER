@@ -14,7 +14,7 @@ namespace D3skCommander.App.Features.QuickView;
 
 /// <summary>
 /// The file the view shows, by what it holds (<see cref="PreviewKinds"/>): text in the editor, a picture or a
-/// camera RAW's embedded preview, a video (with the VLC of the machine), the pages of a PDF, the list of an archive, and the lister for the rest.
+/// camera RAW's embedded preview, a video or a sound (with the VLC of the machine), the pages of a PDF, the list of an archive, and the lister for the rest.
 /// Every read runs in the background; a result that comes back after the cursor moved on is dropped.
 /// </summary>
 public sealed partial class QuickViewCommands
@@ -29,6 +29,11 @@ public sealed partial class QuickViewCommands
 
     /// <summary>The libvlc videos play with; null without VLC (tests set their own).</summary>
     internal Func<LibVLC?> Vlc { get; set; } = VlcRuntime.Shared;
+
+    /// <summary>Seconds into the file videos and sounds start at (the preferences; tests set their own).</summary>
+    internal Func<int>? StartSecondsOverride { get; set; }
+
+    private int StartSeconds() => StartSecondsOverride?.Invoke() ?? _settings?.Preferences.Current.PreviewStartSeconds ?? 0;
 
     private bool Current(int ticket) => ticket == _ticket && _panel is not null;
 
@@ -58,7 +63,10 @@ public sealed partial class QuickViewCommands
                 await ShowPdfAsync(path, ticket).ConfigureAwait(true);
                 break;
             case PreviewKind.Video:
-                await ShowVideoAsync(path, ticket).ConfigureAwait(true);
+                await ShowVideoAsync(path, ticket, audio: false).ConfigureAwait(true);
+                break;
+            case PreviewKind.Audio:
+                await ShowVideoAsync(path, ticket, audio: true).ConfigureAwait(true);
                 break;
             default:
                 InLister(path, ticket);
@@ -176,8 +184,8 @@ public sealed partial class QuickViewCommands
         });
     }
 
-    // The first video loads libvlc, which takes a moment: off the UI thread. Without VLC, a line says to install it.
-    private async Task ShowVideoAsync(string path, int ticket)
+    // The first video or sound loads libvlc, which takes a moment: off the UI thread. Without VLC, a line says to install it.
+    private async Task ShowVideoAsync(string path, int ticket, bool audio)
     {
         var vlc = await Task.Run(Vlc).ConfigureAwait(true);
         UiThread.Post(() =>
@@ -193,7 +201,7 @@ public sealed partial class QuickViewCommands
                 return;
             }
 
-            _panel!.ShowVideo(new VideoPreview(vlc, _text, path, PageWidth()));
+            _panel!.ShowVideo(new VideoPreview(vlc, _text, path, PageWidth(), StartSeconds(), audio));
         });
     }
 

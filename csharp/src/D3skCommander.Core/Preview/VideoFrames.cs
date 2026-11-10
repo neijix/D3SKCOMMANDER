@@ -43,6 +43,16 @@ public static class VideoFrames
         return length > TimeSpan.Zero ? at + " / " + Format(length, hours) : at;
     }
 
+    /// <summary>
+    /// Where playing starts, <paramref name="startSeconds"/> in: from the start when the setting is 0 or the file is not
+    /// longer than that (an unknown length, 0 or less, trusts the setting).
+    /// </summary>
+    public static TimeSpan Start(int startSeconds, TimeSpan length)
+    {
+        var start = TimeSpan.FromSeconds(Math.Max(0, startSeconds));
+        return length > TimeSpan.Zero && start >= length ? TimeSpan.Zero : start;
+    }
+
     private static string Format(TimeSpan time, bool hours)
     {
         time = time < TimeSpan.Zero ? TimeSpan.Zero : time;

@@ -169,6 +169,20 @@ public class SettingsWindowTests
     }
 
     [AvaloniaFact]
+    public void ThePreviewStartIsSavedAndShownAgain()
+    {
+        using var harness = new SettingsHarness();
+        var model = harness.NewView();
+        Assert.Equal(0, model.PreviewStartSeconds);
+
+        model.PreviewStartSeconds = 45;
+        model.Apply();
+
+        Assert.Equal(45, harness.Settings.Preferences.Current.PreviewStartSeconds);
+        Assert.Equal(45, harness.NewView().PreviewStartSeconds);
+    }
+
+    [AvaloniaFact]
     public void TheLogToggleIsLive()
     {
         using var harness = new SettingsHarness();

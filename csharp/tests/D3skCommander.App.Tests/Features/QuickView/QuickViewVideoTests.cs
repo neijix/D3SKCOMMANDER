@@ -63,6 +63,49 @@ public class QuickViewVideoTests
         Assert.Null(rig.Commands.Panel!.ShownVideo);
     }
 
+    [AvaloniaFact]
+    [Trait("Tier", "Slow")]
+    public async Task ASoundPlaysUnderItsNameFromTheStartSetting()
+    {
+        Assert.SkipWhen(VlcLocator.Find() is null, "VLC is not installed on this machine");
+        using var rig = await Rig.Open(VlcRuntime.Shared, startSeconds: 3);
+        var clock = System.Diagnostics.Stopwatch.StartNew();
+        rig.RestOn("tone.wav");
+
+        await rig.WaitFor(() => rig.Commands.Panel!.ShownVideo is { } shown && shown.FilePath.EndsWith("tone.wav", StringComparison.Ordinal) && shown.Position >= TimeSpan.FromSeconds(3), 1000);
+
+        var sound = rig.Commands.Panel!.ShownVideo;
+        Assert.NotNull(sound);
+        Assert.True(sound.Position >= TimeSpan.FromSeconds(3), $"at {sound.Position}");
+        Assert.True(clock.Elapsed < TimeSpan.FromSeconds(3), $"reached after {clock.Elapsed}: it did not jump");
+        Assert.Contains(sound.Children.OfType<Avalonia.Controls.TextBlock>(), name => name.Text == "tone.wav");
+        Assert.Empty(sound.Children.OfType<Avalonia.Controls.Image>());
+    }
+
+    // Silence: 8 kHz, mono, 16-bit PCM.
+    private static byte[] Wave(int seconds)
+    {
+        const int rate = 8000;
+        var data = rate * 2 * seconds;
+        using var stream = new MemoryStream();
+        using var writer = new BinaryWriter(stream);
+        writer.Write("RIFF"u8);
+        writer.Write(36 + data);
+        writer.Write("WAVEfmt "u8);
+        writer.Write(16);
+        writer.Write((short)1);
+        writer.Write((short)1);
+        writer.Write(rate);
+        writer.Write(rate * 2);
+        writer.Write((short)2);
+        writer.Write((short)16);
+        writer.Write("data"u8);
+        writer.Write(data);
+        writer.Write(new byte[data]);
+        writer.Flush();
+        return stream.ToArray();
+    }
+
     private static Bitmap? Frame(VideoPreview video) =>
         video.Children.OfType<Avalonia.Controls.Image>().FirstOrDefault()?.Source as Bitmap;
 
@@ -84,15 +127,17 @@ public class QuickViewVideoTests
 
         public QuickViewCommands Commands { get; }
 
-        public static async Task<Rig> Open(Func<LibVLC?> vlc)
+        public static async Task<Rig> Open(Func<LibVLC?> vlc, int startSeconds = 0)
         {
             var root = Directory.CreateTempSubdirectory("d3sk-quick-video-").FullName;
             File.Copy(Clip, Path.Combine(root, "clip.ts"));
             File.WriteAllText(Path.Combine(root, "note.txt"), "text\n");
+            File.WriteAllBytes(Path.Combine(root, "tone.wav"), Wave(8));
             var workspace = new PanelWorkspace(new LocalFileSystemProvider(), new FileOps.FileOpsCommandTests.IdlePicker());
             await workspace.OpenAsync(root, root, TestContext.Current.CancellationToken);
             workspace.Activate(PanelSide.Left);
             var rig = new Rig(root, workspace, vlc);
+            rig.Commands.StartSecondsOverride = () => startSeconds;
             rig.MoveCursorTo("clip.ts");
             rig.Commands.Toggle();
             return rig;

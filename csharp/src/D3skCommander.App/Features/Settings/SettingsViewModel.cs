@@ -66,6 +66,9 @@ public sealed partial class SettingsViewModel : ObservableObject, IShellWidget
     private decimal? _indexRefreshHours;
 
     [ObservableProperty]
+    private decimal? _previewStartSeconds;
+
+    [ObservableProperty]
     private string _editor = "";
 
     [ObservableProperty]
@@ -169,6 +172,7 @@ public sealed partial class SettingsViewModel : ObservableObject, IShellWidget
         next.IndexRoots = IndexRoots.Trim();
         next.IndexExcludes = IndexExcludes.Trim();
         next.IndexRefreshHours = (int)Math.Clamp(IndexRefreshHours ?? Preferences.DefaultIndexRefreshHours, 0, Preferences.MaxIndexRefreshHours);
+        next.PreviewStartSeconds = (int)Math.Clamp(PreviewStartSeconds ?? 0, 0, Preferences.MaxPreviewStartSeconds);
         next.Editor = Editor.Trim();
         next.Terminal = Terminal.Trim();
         next.ColumnSets = [.. ColumnSets.Result()];
@@ -279,6 +283,7 @@ public sealed partial class SettingsViewModel : ObservableObject, IShellWidget
         IndexRoots = current.IndexRoots;
         IndexExcludes = current.IndexExcludes;
         IndexRefreshHours = current.IndexRefreshHours;
+        PreviewStartSeconds = current.PreviewStartSeconds;
         Editor = current.Editor;
         Terminal = current.Terminal;
         foreach (var command in current.UserCommands)

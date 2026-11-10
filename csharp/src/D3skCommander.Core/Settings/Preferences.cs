@@ -23,6 +23,8 @@ public sealed class Preferences
 
     public const int MaxIndexRefreshHours = 24 * 365;
 
+    public const int MaxPreviewStartSeconds = 24 * 3600;
+
     public const double DefaultTreeWidth = 220;
 
     public const double MinTreeWidth = 80;
@@ -34,6 +36,7 @@ public sealed class Preferences
     private string _indexRoots = "";
     private string _indexExcludes = IndexOptions.DefaultExcludes;
     private int _indexRefreshHours = DefaultIndexRefreshHours;
+    private int _previewStartSeconds;
     private string _editor = "";
     private string _terminal = "";
     private Columns _columns = Columns.Default;
@@ -105,6 +108,13 @@ public sealed class Preferences
 
     /// <summary>Measure the folders of a listing in the background so the size column fills in (off by default: it reads the disk).</summary>
     public bool AutoFolderSizes { get; set; }
+
+    /// <summary>Videos and sounds in the preview start this many seconds in (0: from the start; a shorter file plays from its start).</summary>
+    public int PreviewStartSeconds
+    {
+        get => _previewStartSeconds;
+        set => _previewStartSeconds = Math.Clamp(value, 0, MaxPreviewStartSeconds);
+    }
 
     /// <summary>Folders the quick-find index covers, separated by ';'. Empty means every mounted volume.</summary>
     public string IndexRoots
