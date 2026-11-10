@@ -78,6 +78,12 @@ internal sealed class VideoPreview : DockPanel, IDisposable
     /// <summary>True while the sound is on (it starts off).</summary>
     public bool SoundOn => _soundOn;
 
+    /// <summary>The file played.</summary>
+    public string FilePath => _path;
+
+    /// <summary>Done once <see cref="Dispose"/> has stopped the player and VLC closed the file.</summary>
+    public Task Stopped { get; private set; } = Task.CompletedTask;
+
     private void BuildBar()
     {
         _play.Click += (_, _) => PlayOrPause();
@@ -270,7 +276,7 @@ internal sealed class VideoPreview : DockPanel, IDisposable
         _timer.Stop();
         var shown = _image.Source as IDisposable;
         _image.Source = null;
-        _ = Task.Run(() =>
+        Stopped = Task.Run(() =>
         {
             _player.Stop();
             lock (_frame)

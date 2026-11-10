@@ -22,6 +22,7 @@ public sealed partial class FileOpsCommands : IPathDeleter
     private readonly IFileSystemProvider _provider;
     private readonly AppSettings _settings;
     private readonly ITrash _trash;
+    private readonly IReadOnlyList<IFileHolder> _holders;
     private int _busy;
 
     public FileOpsCommands(
@@ -32,8 +33,10 @@ public sealed partial class FileOpsCommands : IPathDeleter
         IJobService jobs,
         IFileSystemProvider provider,
         AppSettings settings,
-        ITrash trash)
+        ITrash trash,
+        IEnumerable<IFileHolder>? holders = null)
     {
+        _holders = [.. holders ?? []];
         ArgumentNullException.ThrowIfNull(panels);
         ArgumentNullException.ThrowIfNull(files);
         ArgumentNullException.ThrowIfNull(dialogs);

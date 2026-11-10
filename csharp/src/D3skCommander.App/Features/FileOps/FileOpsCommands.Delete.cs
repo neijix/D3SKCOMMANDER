@@ -55,6 +55,12 @@ public sealed partial class FileOpsCommands
                 return false;
             }
 
+            // A video playing in the preview keeps its file open: stop it before the file goes.
+            foreach (var holder in _holders)
+            {
+                await holder.LetGoAsync(sources).ConfigureAwait(false);
+            }
+
             if (decision.GoesToTrash)
             {
                 await TrashAsync(title, sources).ConfigureAwait(false);

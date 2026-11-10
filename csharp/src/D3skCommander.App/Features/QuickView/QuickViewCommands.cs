@@ -1,11 +1,13 @@
 using Avalonia.Threading;
 using D3skCommander.App.Dialogs;
 using D3skCommander.App.Features.Editor;
+using D3skCommander.App.Features.FileOps;
 using D3skCommander.App.Features.Lister;
 using D3skCommander.App.Features.Panels;
 using D3skCommander.App.Host;
 using D3skCommander.App.Shell;
 using D3skCommander.Core.Commands;
+using D3skCommander.Core.FileOps;
 using D3skCommander.Core.Jobs;
 using D3skCommander.Core.Localization;
 
@@ -19,7 +21,7 @@ namespace D3skCommander.App.Features.QuickView;
 /// With a dialog service, a text file opens in the editor: a change is asked about (save, don't save, cancel)
 /// before the view moves to another file, goes away, or the app quits.
 /// </summary>
-public sealed partial class QuickViewCommands
+public sealed partial class QuickViewCommands : IFileHolder
 {
     public static readonly TimeSpan Debounce = TimeSpan.FromMilliseconds(150);
     private static readonly TimeSpan Beat = TimeSpan.FromMilliseconds(50);
@@ -292,6 +294,26 @@ public sealed partial class QuickViewCommands
         {
             _panel.ShowNothing();
         }
+    }
+
+    /// <summary>
+    /// A video of <paramref name="paths"/> playing in the view stops and its file is closed; the view stays empty
+    /// on it (the cursor moving on shows the next file).
+    /// </summary>
+    public async Task LetGoAsync(IReadOnlyList<string> paths)
+    {
+        ArgumentNullException.ThrowIfNull(paths);
+        var stopped = Task.CompletedTask;
+        await Dispatcher.UIThread.InvokeAsync(() =>
+        {
+            if (_panel?.ShownVideo is { } video && HeldFiles.Covers(paths, video.FilePath))
+            {
+                _ticket++;
+                _panel.ShowNothing();
+                stopped = video.Stopped;
+            }
+        });
+        await stopped.ConfigureAwait(false);
     }
 
     private async Task SummarizeAsync(string path, int ticket)

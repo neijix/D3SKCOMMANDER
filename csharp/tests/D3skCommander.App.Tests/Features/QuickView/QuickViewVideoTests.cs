@@ -47,6 +47,22 @@ public class QuickViewVideoTests
         Assert.Null(rig.Commands.Panel!.ShownVideo);
     }
 
+    [AvaloniaFact]
+    [Trait("Tier", "Slow")]
+    public async Task LettingGoOfAPlayingVideoStopsItSoItsFileCanBeDeleted()
+    {
+        Assert.SkipWhen(VlcLocator.Find() is null, "VLC is not installed on this machine");
+        using var rig = await Rig.Open(VlcRuntime.Shared);
+        await rig.WaitFor(() => rig.Commands.Panel!.ShownVideo is { } shown && Frame(shown) is not null, 1000);
+        var clip = Path.Combine(rig.Root, "clip.ts");
+
+        await rig.Commands.LetGoAsync([rig.Root]);
+        File.Delete(clip);
+
+        Assert.False(File.Exists(clip));
+        Assert.Null(rig.Commands.Panel!.ShownVideo);
+    }
+
     private static Bitmap? Frame(VideoPreview video) =>
         video.Children.OfType<Avalonia.Controls.Image>().FirstOrDefault()?.Source as Bitmap;
 

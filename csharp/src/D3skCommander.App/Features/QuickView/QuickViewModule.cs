@@ -18,6 +18,7 @@ public sealed class QuickViewModule : IShellModule
     {
         ArgumentNullException.ThrowIfNull(services);
         services.AddSingleton<QuickViewCommands>();
+        services.AddSingleton<FileOps.IFileHolder>(provider => provider.GetRequiredService<QuickViewCommands>());
         services.AddSingleton<QuickViewModule>();
         services.AddSingleton<IShellModule>(provider => provider.GetRequiredService<QuickViewModule>());
     }

@@ -68,6 +68,38 @@ public class FileOpsCommandTests
     }
 
     [AvaloniaFact]
+    public async Task DeleteFirstAsksTheHoldersToLetGoOfTheFiles()
+    {
+        using var root = new TempDir();
+        var file = Path.Combine(root.Path, "clip.mp4");
+        File.WriteAllText(file, "x");
+        using var workspace = await Workspace(root.Path, root.Path);
+        var holder = new RecordingHolder();
+        var commands = Commands(workspace, new ScriptedDialogs { Confirm = true }, holder: holder);
+        workspace.ApplySelection(PanelSide.Left, At(workspace.Read(PanelSide.Left), "clip.mp4"), []);
+
+        await commands.DeleteAsync();
+
+        Assert.Equal([file], holder.Asked);
+        Assert.True(holder.ExistedWhenAsked);
+        Assert.False(File.Exists(file));
+    }
+
+    private sealed class RecordingHolder : IFileHolder
+    {
+        public List<string> Asked { get; } = [];
+
+        public bool ExistedWhenAsked { get; private set; }
+
+        public Task LetGoAsync(IReadOnlyList<string> paths)
+        {
+            Asked.AddRange(paths);
+            ExistedWhenAsked = paths.All(File.Exists);
+            return Task.CompletedTask;
+        }
+    }
+
+    [AvaloniaFact]
     public async Task ConflictAnswersApplyOneFileAtATime()
     {
         using var root = new TempDir();
@@ -198,7 +230,8 @@ public class FileOpsCommandTests
         ScriptedDialogs dialogs,
         IFileSystemProvider? provider = null,
         AppSettings? settings = null,
-        ITrash? trash = null)
+        ITrash? trash = null,
+        IFileHolder? holder = null)
     {
         var jobs = new JobService();
         var files = new FileOperationService(jobs, new OperationLog());
@@ -212,7 +245,8 @@ public class FileOpsCommandTests
             jobs,
             provider ?? new LocalFileSystemProvider(),
             prefs,
-            trash ?? new FakeTrash());
+            trash ?? new FakeTrash(),
+            holder is null ? null : [holder]);
     }
 
     internal static async Task<PanelWorkspace> Workspace(string left, string right)
