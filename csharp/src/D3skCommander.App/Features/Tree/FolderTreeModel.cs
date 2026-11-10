@@ -1,6 +1,7 @@
 using System.Collections.ObjectModel;
 using CommunityToolkit.Mvvm.ComponentModel;
 using D3skCommander.App.Features.Drives;
+using D3skCommander.Core.FileKinds;
 using D3skCommander.Core.FileSystem;
 using D3skCommander.Core.Localization;
 using D3skCommander.Core.Tree;
@@ -79,7 +80,7 @@ public sealed partial class FolderTreeModel : ObservableObject
         {
             if (!Roots.Any(r => FolderTree.SamePath(r.Path, root.Path)))
             {
-                Roots.Add(NewNode(root.Name, root.Path));
+                Roots.Add(NewNode(root.Name, root.Path, root.Icon));
             }
         }
 
@@ -118,8 +119,8 @@ public sealed partial class FolderTreeModel : ObservableObject
         await LoadAsync(node).ConfigureAwait(true);
     }
 
-    internal FolderTreeNode NewNode(string name, string path) =>
-        new(name, path, FolderNodeKind.Folder, _text.Get("tree.loading"), node => _ = LoadAsync(node));
+    internal FolderTreeNode NewNode(string name, string path, FileKind icon = FileKind.Folder) =>
+        new(name, path, FolderNodeKind.Folder, _text.Get("tree.loading"), node => _ = LoadAsync(node)) { Icon = icon };
 
     private async Task LoadCoreAsync(FolderTreeNode node)
     {
@@ -176,19 +177,19 @@ public sealed partial class FolderTreeModel : ObservableObject
         }
     }
 
-    private List<(string Name, string Path)> ReadRoots()
+    private List<(string Name, string Path, FileKind Icon)> ReadRoots()
     {
-        var list = new List<(string, string)>();
+        var list = new List<(string, string, FileKind)>();
         if (_home.Length > 0 && Directory.Exists(_home))
         {
-            list.Add((_text.Get("tree.home"), _home));
+            list.Add((_text.Get("tree.home"), _home, FileKind.Folder));
         }
 
         try
         {
             foreach (var drive in _drives?.Mounted() ?? [])
             {
-                list.Add((DriveList.ShortName(drive.Path), drive.Path));
+                list.Add((DriveList.ShortName(drive.Path), drive.Path, drive.Network ? FileKind.NetworkDrive : FileKind.Drive));
             }
         }
         catch (Exception ex) when (ex is IOException or UnauthorizedAccessException)

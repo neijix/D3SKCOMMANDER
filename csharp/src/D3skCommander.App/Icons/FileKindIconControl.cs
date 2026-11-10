@@ -30,14 +30,26 @@ public sealed class FileKindIconControl : Control
     /// <summary>The key of the icon drawn (<c>folder</c>, <c>image</c>, ...), or empty when none.</summary>
     public string IconKey => _icon?.Key ?? "";
 
+    /// <summary>The kind drawn; bindable (the folder tree binds it per node).</summary>
+    public static readonly StyledProperty<FileKind?> KindProperty =
+        AvaloniaProperty.Register<FileKindIconControl, FileKind?>(nameof(Kind));
+
+    static FileKindIconControl()
+    {
+        KindProperty.Changed.AddClassHandler<FileKindIconControl>((control, e) => control.Show(e.GetNewValue<FileKind?>()));
+    }
+
     public FileKind? Kind
     {
-        set
-        {
-            _icon = value.HasValue ? FileKindIcons.For(value.Value) : null;
-            AutomationProperties.SetAutomationId(this, _icon is null ? "" : "icon-" + _icon.Key);
-            InvalidateVisual();
-        }
+        get => GetValue(KindProperty);
+        set => SetValue(KindProperty, value);
+    }
+
+    private void Show(FileKind? kind)
+    {
+        _icon = kind.HasValue ? FileKindIcons.For(kind.Value) : null;
+        AutomationProperties.SetAutomationId(this, _icon is null ? "" : "icon-" + _icon.Key);
+        InvalidateVisual();
     }
 
     public override void Render(DrawingContext context)

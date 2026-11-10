@@ -10,6 +10,8 @@ public enum FileKind
 {
     Parent,
     Folder,
+    Drive,
+    NetworkDrive,
     Link,
     Archive,
     Image,
@@ -77,13 +79,18 @@ public static class FileKindClassifier
 
     private static readonly string[] Text = ["txt", "md", "log", "ini", "cfg", "conf", "nfo", "readme"];
 
-    /// <summary>Flags first: parent, then folder, then link, then the file name.</summary>
+    /// <summary>Flags first: parent, then a Home-view drive, then folder, then link, then the file name.</summary>
     public static FileKind Of(Entry entry)
     {
         ArgumentNullException.ThrowIfNull(entry);
         if (entry.IsParent)
         {
             return FileKind.Parent;
+        }
+
+        if (entry.Drive != DriveKind.None)
+        {
+            return entry.Drive == DriveKind.Network ? FileKind.NetworkDrive : FileKind.Drive;
         }
 
         if (entry.IsDirectory)

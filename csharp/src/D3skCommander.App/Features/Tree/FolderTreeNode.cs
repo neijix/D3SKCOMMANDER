@@ -1,5 +1,6 @@
 using System.Collections.ObjectModel;
 using CommunityToolkit.Mvvm.ComponentModel;
+using D3skCommander.Core.FileKinds;
 
 namespace D3skCommander.App.Features.Tree;
 
@@ -40,6 +41,9 @@ public sealed partial class FolderTreeNode : ObservableObject
     public string Path { get; }
 
     public FolderNodeKind Kind { get; }
+
+    /// <summary>The icon before the name: a folder, or a drive / network drive glyph on a root.</summary>
+    public FileKind Icon { get; init; } = FileKind.Folder;
 
     public bool IsPlaceholder => Kind != FolderNodeKind.Folder;
 

@@ -24,6 +24,8 @@ public static class FileKindIcons
         var table = new Dictionary<FileKind, FileKindIcon>();
         Add(table, FileKind.Parent, "parent", "7C93B5", "M8,2 L14,8.5 L10,8.5 L10,14 L6,14 L6,8.5 L2,8.5 Z", null, null);
         Add(table, FileKind.Folder, "folder", "E8A317", "M1,3 L6,3 L7.5,4.5 L15,4.5 L15,13 L1,13 Z", "M1,6.5 L15,6.5 L15,13 L1,13 Z", null);
+        Add(table, FileKind.Drive, "drive", "6E8496", "M1,3.5 h14 v9 h-14z", "M2.5,5 h11 v3.2 h-11z", "M10.6,9.6 h2.6 v1.5 h-2.6z");
+        Add(table, FileKind.NetworkDrive, "network-drive", "3A86C8", PanelBarIcons.Network, null, null);
         Add(table, FileKind.Link, "link", "2BA4C4", Page, Fold, "M5.5,11 L9,7.5 L7.3,7.5 L7.3,6.5 L11.2,6.5 L11.2,10.4 L10.2,10.4 L10.2,8.7 L6.5,12 Z");
         Add(table, FileKind.Archive, "archive", "C07A2C", Page, Fold, "F1 M7.2,1.5 h1.6 v1.4 h-1.6z M7.2,4.3 h1.6 v1.4 h-1.6z M7.2,7.1 h1.6 v1.4 h-1.6z M6.4,9.6 h3.2 v3.8 h-3.2z M7.4,10.8 h1.2 v1.6 h-1.2z");
         Add(table, FileKind.Image, "image", "2FA97C", Page, Fold, "M4.5,13 L7,8.6 L8.8,11 L10,9.7 L11.5,13 Z M10.6,6.2 A1,1 0 1 1 10.6,8.2 A1,1 0 1 1 10.6,6.2 Z");

@@ -47,7 +47,7 @@ public static class ColumnValues
 
         var extension = entry.Extension.TrimStart('.').ToUpperInvariant();
         var key = "kind." + kind.ToString().ToLowerInvariant();
-        if (extension.Length == 0 && kind is not (FileKind.Folder or FileKind.Link or FileKind.Text))
+        if (extension.Length == 0 && kind is not (FileKind.Folder or FileKind.Drive or FileKind.NetworkDrive or FileKind.Link or FileKind.Text))
         {
             return text.Get("kind.file");
         }

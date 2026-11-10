@@ -15,6 +15,7 @@ using D3skCommander.App.Startup;
 using D3skCommander.App.Tests.Dialogs;
 using D3skCommander.App.Tests.Shell;
 using D3skCommander.Core.Commands;
+using D3skCommander.Core.FileKinds;
 using D3skCommander.Core.FileSystem;
 using D3skCommander.Core.Localization;
 using D3skCommander.Core.Providers;
@@ -168,6 +169,24 @@ public class FolderTreeTests
         var missing = rig.Tree.NewNode("gone", rig.Path("gone"));
         await rig.Tree.LoadAsync(missing);
         Assert.Equal(FolderNodeKind.NoAccess, Assert.Single(missing.Children).Kind);
+    }
+
+    [AvaloniaFact]
+    public async Task DriveRootsShowADriveOrNetworkIconAndTheHomeAFolder()
+    {
+        var home = Directory.CreateTempSubdirectory("d3sk-tree-icons-").FullName;
+        try
+        {
+            var drives = new FakeDrives(new DriveEntry("C:\\", "", "NTFS", 1, 2), new DriveEntry("N:\\", "nas", "NTFS", 1, 2, Network: true));
+            var tree = new FolderTreeModel(
+                new FolderTreeLoader(new LocalFileSystemProvider()), drives, TextCatalog.Load(Language.En, Language.En), () => false, _ => { }, home);
+            await tree.LoadRootsAsync();
+            Assert.Equal([FileKind.Folder, FileKind.Drive, FileKind.NetworkDrive], tree.Roots.Select(r => r.Icon));
+        }
+        finally
+        {
+            Directory.Delete(home, true);
+        }
     }
 
     [AvaloniaFact]

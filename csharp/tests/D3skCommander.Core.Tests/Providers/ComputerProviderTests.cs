@@ -1,7 +1,9 @@
 using D3skCommander.Core.Common;
+using D3skCommander.Core.FileKinds;
 using D3skCommander.Core.FileSystem;
 using D3skCommander.Core.Localization;
 using D3skCommander.Core.NetDrives;
+using D3skCommander.Core.Panels;
 using D3skCommander.Core.Providers;
 using D3skCommander.Core.Settings;
 using Xunit;
@@ -25,6 +27,11 @@ public class ComputerProviderTests
         };
         var rows = await List(Provider(sources, windows: true));
         Assert.Equal([1, 1, 2, 4], rows.Select(r => r.Group).ToArray());
+        Assert.Equal([DriveKind.Local, DriveKind.Local, DriveKind.Network, DriveKind.None], rows.Select(r => r.Drive).ToArray());
+        Assert.Equal(
+            [FileKind.Drive, FileKind.Drive, FileKind.NetworkDrive, FileKind.Folder],
+            rows.Select(FileKindClassifier.Of).ToArray());
+        Assert.Equal("Network drive", ColumnValues.Kind(rows[2], Text));
         Assert.Equal(["C:\\", "D:\\", @"\nas\share", temp.Path], rows.Select(r => r.Path).ToArray());
         Assert.All(rows, r => Assert.True(r.IsDirectory && !r.IsParent));
         Assert.Equal("System (C:)", rows[0].Name);

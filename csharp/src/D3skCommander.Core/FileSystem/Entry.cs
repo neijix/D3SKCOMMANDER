@@ -1,5 +1,13 @@
 namespace D3skCommander.Core.FileSystem;
 
+/// <summary>What drive a Home-view row stands for: none, a local drive or a network one.</summary>
+public enum DriveKind
+{
+    None,
+    Local,
+    Network,
+}
+
 /// <summary>One row of a panel. A link to a folder is both a link and a directory.</summary>
 public sealed class Entry
 {
@@ -52,6 +60,9 @@ public sealed class Entry
     /// favorites 4 (display groups, not duplicates: select-all-but-first ignores them there).
     /// </summary>
     public int Group { get; internal set; }
+
+    /// <summary>The drive a Home-view row names (local or network), for its icon; <see cref="DriveKind.None"/> on other rows.</summary>
+    public DriveKind Drive { get; internal set; }
 
     /// <summary>How full the drive this row names is (0 to 1); null on every row but a Home-view drive of known size.</summary>
     public double? UsedFraction { get; internal set; }

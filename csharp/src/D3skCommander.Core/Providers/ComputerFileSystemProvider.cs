@@ -147,6 +147,7 @@ public sealed class ComputerFileSystemProvider : FileSystemProvider
         var label = drive.Label.Length == 0 || drive.Label == drive.Path ? (group == 1 ? _text.Get("drives.local_disk") : "") : drive.Label;
         var name = label.Length == 0 ? drive.Path : label + " (" + shortName + ")";
         var row = Row(name, drive.Path, drive.TotalBytes, group);
+        row.Drive = drive.Network ? DriveKind.Network : DriveKind.Local;
         row.SizeText = "";
         if (drive.TotalBytes > 0)
         {

@@ -23,7 +23,7 @@
     <TreeView.ItemTemplate>
       <TreeDataTemplate x:DataType="t:FolderTreeNode" ItemsSource="{Binding Children}">
         <Grid ColumnDefinitions="Auto,*" ToolTip.Tip="{Binding Name}">
-          <icons:FileKindIconControl Kind="Folder" Margin="0,0,4,0" VerticalAlignment="Center" IsVisible="{Binding !IsPlaceholder}"/>
+          <icons:FileKindIconControl Kind="{Binding Icon}" Margin="0,0,4,0" VerticalAlignment="Center" IsVisible="{Binding !IsPlaceholder}"/>
           <TextBlock Grid.Column="1" VerticalAlignment="Center" TextTrimming="CharacterEllipsis" Text="{Binding Name}"
                      Classes.placeholder="{Binding IsPlaceholder}"/>
         </Grid>
