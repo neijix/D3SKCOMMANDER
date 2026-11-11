@@ -59,16 +59,3 @@ jobs:
           DOTNET_CLI_TELEMETRY_OPTOUT: '1'
           DOTNET_NOLOGO: '1'
           DOTNET_GENERATE_ASPNET_CERTIFICATE: 'false'
-      # The VSTest console drops the stack trace of a catastrophic failure; xUnit's own runner
-      # (each test project is an executable) prints it. Diagnostic only: the job has failed already.
-      - name: Rerun the tests with xUnit's runner
-        if: failure()
-        shell: bash
-        env:
-          NUGET_PACKAGES: ${{ runner.temp }}/nuget-packages
-          D3SK_NO_UPDATE_CHECK: '1'
-        run: |
-          for dll in csharp/tests/*/bin/Debug/net10.0/D3skCommander.*.Tests.dll; do
-            echo "== $dll"
-            dotnet "$dll" -noColor -trait- Tier=Slow || true
-          done
