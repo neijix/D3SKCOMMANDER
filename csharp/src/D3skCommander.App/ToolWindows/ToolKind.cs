@@ -39,7 +39,7 @@ public sealed class ToolKind
 
     public static ToolKind Ftp { get; } = new("ftp", "tool.ftp.title", 940, 580);
 
-    public static ToolKind Settings { get; } = new("settings", "tool.settings.title", 860, 600, 640, 440);
+    public static ToolKind Settings { get; } = new("settings", "tool.settings.title", 860, 600, 680, 560);
 
     public static ToolKind Log { get; } = new("log", "tool.log.title", 720, 480);
 
