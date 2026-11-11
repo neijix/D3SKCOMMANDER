@@ -10,3 +10,4 @@ CLAUDE.local.md
 /.tools/
 # The release signing key (csharp/packaging/restore-release-key.sh fills it from the Bitwarden backup): never committed
 /.release-keys/
+config.local/

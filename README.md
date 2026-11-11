@@ -89,11 +89,12 @@ v0.3.0 or later by hand once; from then on Update (below) works in place.
 
 The Update window (also checked at start unless `D3SK_NO_UPDATE_CHECK=1`) looks for a newer
 release, downloads it and installs it in the folder the program already lives in. The repository
-is private, so the first time it asks you to sign in to GitHub: press Sign in, the window shows a
-device code, you enter it at `https://github.com/login/device`, and the token is kept in the
-system keychain (never in a file). The release signature (`SHA256SUMS.sig`) is verified against the
-public key built into the app; a bad signature refuses the update. The sign-in uses the shared
-"D3SK Updates" GitHub App; set `D3SKCOMMANDER_GITHUB_CLIENT_ID` to use another client ID.
+is public, so that download needs no sign-in. The release signature (`SHA256SUMS.sig`) is verified
+against the public key built into the app; a bad signature refuses the update. A private release
+feed still asks you to sign in once: press Sign in, the window shows a device code, you enter it
+at `https://github.com/login/device`, and the token is kept in the system keychain (never in a
+file). The sign-in uses the shared "D3SK Updates" GitHub App; set `D3SKCOMMANDER_GITHUB_CLIENT_ID`
+to use another client ID.
 
 If the window stays black, flickers or crashes at start (a broken GPU driver, a virtual machine,
 a remote desktop), start it with `D3SK_RENDERING=software` in the environment: the window is then
@@ -163,27 +164,11 @@ Pillow) turns its PNGs into `packaging/icons/`.
 ### CI
 
 `./check.sh` runs locally before every commit; there is no per-push CI. The same gate runs on
-other operating systems on demand, on **self-hosted runners only** (never GitHub-hosted ones):
-`gh workflow run ci.yml` queues one job per OS (Linux, Windows, macOS) and any online runner of
-that OS picks it up; `-f os='["Windows"]'` picks the OSes. A job whose OS has no runner online
-waits in the queue (`gh run cancel` drops it). Packages are never built by a workflow:
-`./release.sh` builds them locally.
-
-To add a machine as a runner (Settings → Actions → Runners → New self-hosted runner shows the
-download and `config.sh`/`config.cmd` commands with a one-hour registration token):
-
-- Run it as a dedicated **non-admin** account that owns nothing else (Linux: a system user with
-  no sudo, as a systemd service — `./svc.sh install <user>`; Windows: a local standard user,
-  `config.cmd --runasservice --windowslogonaccount .\<user>`; macOS: a standard user,
-  `./svc.sh install`), in a folder of your choice outside your own profile.
-- The runner needs `bash` on its `PATH` (Git for Windows on Windows) and nothing else: each job
-  installs the .NET SDK into its temp folder and keeps the NuGet cache in the runner's tool cache.
-- Keep the repository private, its workflows on `workflow_dispatch` only (no `pull_request`), and
-  *Fork pull request workflows* off: a self-hosted runner runs whatever code the workflow
-  checks out. If the repository ever goes public, remove its runners first.
-- On WSL, the distribution stops a few seconds after its last open shell, taking the runner
-  with it: keep a `wsl -d <distro> -- sleep infinity` open, or enable systemd and keep the
-  distribution running, while CI should be reachable.
+Linux, Windows and macOS on demand, on the standard GitHub-hosted runners (`ubuntu-latest`,
+`windows-latest`, `macos-latest`): `gh workflow run ci.yml`, or `-f os='["Windows"]'` to pick
+the OSes, then `gh run watch`. The repository is public, so those runners are free. The workflow
+stays on `workflow_dispatch` (write access required) and has no `pull_request` trigger. Packages
+are never built by a workflow: `./release.sh` builds them locally.
 
 ### Build token
 
@@ -203,7 +188,7 @@ the token is never printed or written anywhere):
 The GitHub login comes from `D3SKCOMMANDER_PACKAGES_USER`, else the Bitwarden item's username, else
 `gh api user`. In PowerShell, to set the first way for one session:
 `$env:NuGetPackageSourceCredentials_github = "Username=<login>;Password=<token>"`.
-`ci.yml` passes the job's `GITHUB_TOKEN` (`packages: read`) the same way, for the gate step only.
+`ci.yml` passes the repository secret `PACKAGES_READ_TOKEN` (`read:packages`) the same way, for the gate step only. The job's own token cannot read the private packages.
 
 
 ## Keyboard
