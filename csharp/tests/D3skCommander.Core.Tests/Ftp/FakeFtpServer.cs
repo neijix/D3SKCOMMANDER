@@ -73,7 +73,30 @@ public sealed class FakeFtpServer : IDisposable
     public void Dispose()
     {
         _host.StopAsync(CancellationToken.None).GetAwaiter().GetResult();
+        CloseConnections();
         (_services as IDisposable)?.Dispose();
+    }
+
+    /// <summary>
+    /// Stopping the host only stops the listener. Disposing the services then disposes every open
+    /// connection, while one may still be stopping after the client's QUIT: its StopAsync then
+    /// releases a disposed SemaphoreSlim (FubarDev 3.1.2), an ObjectDisposedException that xUnit
+    /// reports as a catastrophic failure. So stop each connection and wait until the server has
+    /// dropped them all (it does so at the end of each StopAsync).
+    /// </summary>
+    private void CloseConnections()
+    {
+        var server = (FubarDev.FtpServer.FtpServer)_services.GetRequiredService<IFtpServer>();
+        foreach (var connection in server.GetConnections())
+        {
+            connection.StopAsync().GetAwaiter().GetResult();
+        }
+
+        var deadline = DateTime.UtcNow.AddSeconds(10);
+        while (server.GetConnections().Any() && DateTime.UtcNow < deadline)
+        {
+            Thread.Sleep(10);
+        }
     }
 
     private static int FreePort()
