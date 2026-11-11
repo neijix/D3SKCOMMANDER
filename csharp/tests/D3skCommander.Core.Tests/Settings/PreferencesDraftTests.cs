@@ -1,4 +1,5 @@
 using D3skCommander.Core.Associations;
+using D3skCommander.Core.Commands;
 using D3skCommander.Core.FileSystem;
 using D3skCommander.Core.Launch;
 using D3skCommander.Core.Localization;
@@ -157,6 +158,11 @@ public class PreferencesDraftTests
         Assert.True(PrefsDiffer(With(p => p.Toolbar = [ToolbarItem.ForUserCommand("Zip"), sep])));
         Assert.True(PrefsDiffer(With(p => p.Toolbar = [sep, ToolbarItem.ForProgram("tool", "-a", "w", "", "tip")])));
         Assert.True(PrefsDiffer(With(p => p.Toolbar = [ToolbarItem.ForProgram("tool", "-a", "w", "", "tip")])));
+        Assert.True(PrefsDiffer(With(p => p.Toolbar[0] = p.Toolbar[0] with { Kind = ToolbarItemKind.Command })));
+        Assert.True(PrefsDiffer(With(p => p.Toolbar[0] = p.Toolbar[0] with { Command = CommandId.Copy })));
+        Assert.True(PrefsDiffer(With(p => p.Toolbar[0] = p.Toolbar[0] with { UserCommandName = "Zip" })));
+        Assert.True(PrefsDiffer(With(p => p.Toolbar[0] = p.Toolbar[0] with { Program = "other" })));
+        Assert.True(PrefsDiffer(With(p => p.Toolbar[0] = p.Toolbar[0] with { Icon = ToolbarIcons.ForCommand(CommandId.Copy) })));
     }
 
     [Fact]
