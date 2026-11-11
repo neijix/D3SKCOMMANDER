@@ -1,9 +1,9 @@
 using Avalonia;
 using Avalonia.Controls;
-using Avalonia.Media.Imaging;
 using Avalonia.Headless;
 using Avalonia.Headless.XUnit;
 using Avalonia.LogicalTree;
+using Avalonia.Media.Imaging;
 using Avalonia.VisualTree;
 using D3skCommander.App.Features.Settings;
 using D3skCommander.App.ToolWindows;
