@@ -116,6 +116,11 @@ public sealed class SettingsEditorChangeTests
         model.MoveDown();
         Assert.True(count > 0);
         count = 0;
+        // A move lists the same row as removed and added; a later field edit must still notify.
+        Assert.NotNull(model.SelectedRow);
+        model.SelectedRow.Masks = "*.moved";
+        Assert.True(count > 0);
+        count = 0;
         model.Remove();
         Assert.True(count > 0);
         count = 0;

@@ -117,14 +117,15 @@ public sealed partial class AssociationsEditorModel : ObservableObject
     private void OnRowsChanged(object? sender, System.Collections.Specialized.NotifyCollectionChangedEventArgs e)
     {
         OnPropertyChanged(nameof(IsEmpty));
-        foreach (var added in e.NewItems?.OfType<AssociationRuleRow>() ?? [])
-        {
-            added.Changed += OnRowChanged;
-        }
-
+        // Move lists the same row in both. Detach first so the re-attach is what remains.
         foreach (var removed in e.OldItems?.OfType<AssociationRuleRow>() ?? [])
         {
             removed.Changed -= OnRowChanged;
+        }
+
+        foreach (var added in e.NewItems?.OfType<AssociationRuleRow>() ?? [])
+        {
+            added.Changed += OnRowChanged;
         }
 
         DraftChanged?.Invoke(this, EventArgs.Empty);
