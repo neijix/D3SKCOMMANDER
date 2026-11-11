@@ -1,44 +1,52 @@
-# D3SKCOMMANDER — kit de marque
+# D3SKCOMMANDER — brand kit
 
-Famille D3SK (th3t). Gestionnaire de fichiers à double panneau, piloté au clavier.
+Part of the D3SK family. A keyboard-driven two-panel file manager.
+
+The D3SKCOMMANDER name and these logo files are **not** covered by the MIT license of the code:
+see [LICENSE](../LICENSE).
 
 ## Logo
-Wordmark `D3SKCOMMANDER` en Archivo 800, capitales, tracking −5 %, **en courbes** (aucune police requise).
-Symbole `/▮▯` : le slash −16° de la famille + deux panneaux inclinés au même angle — panneau actif plein, panneau cible en contour. Arrondi 3 u.
+Wordmark `D3SKCOMMANDER` in Archivo 800, upper case, tracking −5 %, **outlined** (no font needed).
+Symbol `/▮▯`: the family's −16° slash plus two panels slanted at the same angle — the active
+panel filled, the target panel outlined. Corner radius 3 units.
 
-## Fichiers
-- `d3skcommander-couleur-fond-sombre.svg` / `-fond-clair.svg` / `-noir.svg` / `-blanc.svg` — logo complet (calques `wordmark`, `symbole`)
-- `d3skcommander-icone.svg` — icône app (pastille anthracite, slash blanc, panneaux ambre)
-- `d3skcommander-icone-clair.svg` — variante fond clair
-- `d3skcommander-icone-petit.svg` — sous 48 px : deux panneaux seuls, sans slash
-- `symbole-seul.svg` — symbole sans wordmark
-- `png/` — logos 800 / 2400 px, icônes 16 → 1024 px
+## Files
+- `d3skcommander-couleur-fond-sombre.svg` / `-fond-clair.svg` / `-noir.svg` / `-blanc.svg` — full
+  logo for a dark background, a light background, black, white (layers `wordmark`, `symbole`)
+- `d3skcommander-icone.svg` — app icon (anthracite tile, white slash, amber panels)
+- `d3skcommander-icone-clair.svg` — light-background variant
+- `d3skcommander-icone-petit.svg` — under 48 px: the two panels only, no slash
+- `symbole-seul.svg` — the symbol without the wordmark
+- `png/` — logos at 800 / 2400 px, icons from 16 to 1024 px
 
-## Quel fichier utiliser
-- **Illustrator / Figma / print** → les `.svg`
-- **Web, doc, présentation** → `png/d3skcommander-*-800px.png` (2400 px pour Retina)
-- **Dock macOS / app Windows** → `png/icone-1024px.png`
-- **Favicon / barre des tâches** → `png/icone-16px.png` / `icone-32px.png`
+## Which file to use
+- **Illustrator / Figma / print** → the `.svg` files
+- **Web, docs, slides** → `png/d3skcommander-*-800px.png` (2400 px for high-DPI screens)
+- **App icon at large sizes** → `png/icone-1024px.png`
+- **Favicon / taskbar** → `png/icone-16px.png` / `icone-32px.png`
 
-## Dans l’app
-| Endroit | Source |
+## In the app
+| Where | Source |
 |---|---|
-| Icône de la fenêtre (`src/ui/mod.rs`) | `packaging/icons/256x256.png` = `png/icone-1024px.png` réduite |
-| Installeurs (`Cargo.toml`, `[package.metadata.packager]`) : PNG Linux, `icon.icns` macOS, `icon.ico` Windows et icône du setup NSIS | `packaging/icons/`, produits par `python3 packaging/make_icon.py` : `png/icone-16px.png` / `-32px` (icône simplifiée) sous 48 px, l’icône complète au-dessus |
+| Windows executable and window icon (`csharp/src/D3skCommander.App/D3skCommander.App.csproj`, `ApplicationIcon`) | `packaging/icons/icon.ico` |
+| Packages (`release.json`): Windows setup `icon.ico`, macOS bundle `icon.icns`, Linux desktop entry `256x256.png` | `packaging/icons/` |
 
-Nouveau kit → remplacer les fichiers de ce dossier, relancer `packaging/make_icon.py`, commiter `packaging/icons/`.
+`packaging/icons/` is made by `uv run --with pillow python packaging/make_icon.py`, which draws the
+`symbole` group of `d3skcommander-icone.svg` (white slash, amber panels, transparent background)
+at every size. New symbol → update the shapes in `make_icon.py`, rerun it, commit
+`packaging/icons/`.
 
-## Couleurs
-- Ambre `#FFB020` — accent, symbole, panneau actif
-- Ambre foncé `#B86E00` — accent sur fond clair
-- Anthracite `#2A2B30` — pastille, icône
-- Charbon `#121216` — fond principal
-- Blanc cassé `#F4F4F7` — wordmark sur sombre
-- Noir `#111318` — print
+## Colors
+- Amber `#FFB020` — accent, symbol, active panel
+- Dark amber `#B86E00` — accent on a light background
+- Anthracite `#2A2B30` — tile, icon
+- Charcoal `#121216` — main background
+- Off-white `#F4F4F7` — wordmark on dark
+- Black `#111318` — print
 
-## Typographie
-Archivo 800 (wordmark) · Space Grotesk (interface) · JetBrains Mono (chemins, raccourcis F1–F10).
+## Typography
+Archivo 800 (wordmark) · Space Grotesk (interface) · JetBrains Mono (paths, F1–F10 shortcuts).
 
-## Règles
-- Le panneau plein est toujours à gauche (actif), le contour à droite (cible).
-- Sous 48 px, utiliser l'icône simplifiée.
+## Rules
+- The filled panel is always on the left (active), the outlined one on the right (target).
+- Under 48 px, use the simplified icon.

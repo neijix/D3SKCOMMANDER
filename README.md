@@ -159,7 +159,7 @@ Building on Windows needs, besides the .NET SDK:
 `release.command` / `release.bat` run `./release.sh` with the same options, open `dist/` when it
 worked and wait for a key. `release.bat` needs Git for Windows, whose bash runs the script.
 The logo and app icon come from `d3skcommander_logo/`; `packaging/make_icon.py` (Python with
-Pillow) turns its PNGs into `packaging/icons/`.
+Pillow) draws its symbol into `packaging/icons/`.
 
 ### CI
 
@@ -231,4 +231,6 @@ A command whose feature is not built yet shows in its menu, disabled.
 
 ## License
 
-MIT, see [LICENSE](LICENSE).
+The code is MIT, see [LICENSE](LICENSE). The D3SKCOMMANDER name and logo
+(`d3skcommander_logo/`, `packaging/icons/`) are not covered by it: ship them unchanged only with
+the unmodified app, and use your own name and icon for a fork.
