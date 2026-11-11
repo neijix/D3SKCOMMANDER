@@ -54,6 +54,8 @@ jobs:
           DOTNET_CLI_HOME: ${{ runner.temp }}/dotnet-home
           NUGET_PACKAGES: ${{ runner.temp }}/nuget-packages
           NUGET_HTTP_CACHE_PATH: ${{ runner.temp }}/nuget-http
+          # A catastrophic failure's stack trace is an informational message.
+          D3SK_TEST_VERBOSITY: normal
           DOTNET_CLI_TELEMETRY_OPTOUT: '1'
           DOTNET_NOLOGO: '1'
           DOTNET_GENERATE_ASPNET_CERTIFICATE: 'false'

@@ -70,8 +70,12 @@ kill_test_programs() {
 
 FILTER=()
 [ "$FULL" = 1 ] || FILTER=(--filter "Tier!=Slow")
+# D3SK_TEST_VERBOSITY=normal (CI sets it): the console also shows informational messages, where
+# xUnit puts the stack trace of a catastrophic failure. Default: the test runner's own.
+LOGGER=()
+[ -z "${D3SK_TEST_VERBOSITY:-}" ] || LOGGER=(--logger "console;verbosity=$D3SK_TEST_VERBOSITY")
 status=0
-dotnet test "$SLN" --no-build --nologo ${FILTER[@]+"${FILTER[@]}"} "${HANG[@]}" --results-directory "$RESULTS" || status=$?
+dotnet test "$SLN" --no-build --nologo ${FILTER[@]+"${FILTER[@]}"} ${LOGGER[@]+"${LOGGER[@]}"} "${HANG[@]}" --results-directory "$RESULTS" || status=$?
 if [ "$status" != 0 ]; then
   kill_test_programs
   exit "$status"
