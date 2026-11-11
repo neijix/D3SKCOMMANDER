@@ -49,7 +49,7 @@ public sealed class ToolWindowHost : IToolWindowHost
     {
         var screen = ScreenOf(owner);
         var frame = FrameFor(kind, screen);
-        var window = new ToolWindow(TitleOf(kind), ContentFor(kind), owner, remembered => _geometry.Remember(kind, remembered));
+        var window = new ToolWindow(TitleOf(kind), ContentFor(kind), owner, remembered => _geometry.Remember(kind, remembered), kind.MinWidth, kind.MinHeight);
         window.Closed += (_, _) => Forget(kind, window);
         window.Present(frame);
         _open[kind.Id] = window;
@@ -64,7 +64,13 @@ public sealed class ToolWindowHost : IToolWindowHost
             saved = DefaultFrame(kind, screen);
         }
 
-        return ToolWindowFrame.Clamp(saved, screen.Area);
+        // A remembered frame smaller than the kind's minimum grows to it before the screen clamp.
+        var floor = new ToolWindowFrame(
+            saved.X,
+            saved.Y,
+            Math.Max(saved.Width, ToPx(kind.MinWidth, screen.Scale)),
+            Math.Max(saved.Height, ToPx(kind.MinHeight, screen.Scale)));
+        return ToolWindowFrame.Clamp(floor, screen.Area);
     }
 
     private static ToolWindowFrame DefaultFrame(ToolKind kind, PlacedScreen screen)

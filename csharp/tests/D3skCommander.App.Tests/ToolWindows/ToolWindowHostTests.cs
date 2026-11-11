@@ -111,6 +111,46 @@ public class ToolWindowHostTests
     }
 
     [AvaloniaFact]
+    public void SettingsOpensAtItsDefaultSizeWithItsMinimum()
+    {
+        using var app = ToolWindowApp.Open();
+        var tool = app.Tools.Open(ToolKind.Settings);
+
+        Assert.True(ToolKind.Settings.MinWidth > 0 && ToolKind.Settings.MinHeight > 0);
+        Assert.Equal(ToolKind.Settings.MinWidth, tool.MinWidth);
+        Assert.Equal(ToolKind.Settings.MinHeight, tool.MinHeight);
+        Assert.Equal(ToolKind.Settings.DefaultWidth, (int)Math.Round(tool.Width));
+        Assert.Equal(ToolKind.Settings.DefaultHeight, (int)Math.Round(tool.Height));
+        Assert.True(tool.CanResize);
+    }
+
+    [AvaloniaFact]
+    public void ARememberedFrameSmallerThanTheMinimumGrowsToIt()
+    {
+        using var app = ToolWindowApp.Open();
+        var tool = app.Tools.Open(ToolKind.Settings);
+        tool.Width = 100;
+        tool.Height = 100;
+        tool.Close();
+
+        var again = app.Tools.Open(ToolKind.Settings);
+
+        Assert.True(again.Width >= ToolKind.Settings.MinWidth);
+        Assert.True(again.Height >= ToolKind.Settings.MinHeight);
+    }
+
+    [AvaloniaFact]
+    public void AKindWithoutAMinimumHasNone()
+    {
+        using var app = ToolWindowApp.Open();
+        var tool = app.Tools.Open(ToolKind.Log);
+
+        Assert.Equal(0, ToolKind.Log.MinWidth);
+        Assert.Equal(0, tool.MinWidth);
+        Assert.Equal(0, tool.MinHeight);
+    }
+
+    [AvaloniaFact]
     public void EscapeClosesTheToolWindow()
     {
         using var app = ToolWindowApp.Open();

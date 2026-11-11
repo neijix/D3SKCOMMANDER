@@ -7,8 +7,10 @@ namespace D3skCommander.App.ToolWindows;
 public sealed class ToolKind
 {
     // v0.1 egui defaults, in device-independent pixels. The host clamps them onto the screen.
-    private ToolKind(string id, string titleKey, int defaultWidth, int defaultHeight)
+    private ToolKind(string id, string titleKey, int defaultWidth, int defaultHeight, int minWidth = 0, int minHeight = 0)
     {
+        MinWidth = minWidth;
+        MinHeight = minHeight;
         Id = id;
         TitleKey = titleKey;
         DefaultWidth = defaultWidth;
@@ -23,6 +25,12 @@ public sealed class ToolKind
 
     public int DefaultHeight { get; }
 
+    /// <summary>Smallest width in device-independent pixels; 0 when the kind has no minimum.</summary>
+    public int MinWidth { get; }
+
+    /// <summary>Smallest height in device-independent pixels; 0 when the kind has no minimum.</summary>
+    public int MinHeight { get; }
+
     public static ToolKind Search { get; } = new("search", "tool.search.title", 860, 800);
 
     public static ToolKind MultiRename { get; } = new("multirename", "tool.multirename.title", 760, 600);
@@ -31,7 +39,7 @@ public sealed class ToolKind
 
     public static ToolKind Ftp { get; } = new("ftp", "tool.ftp.title", 940, 580);
 
-    public static ToolKind Settings { get; } = new("settings", "tool.settings.title", 560, 420);
+    public static ToolKind Settings { get; } = new("settings", "tool.settings.title", 860, 600, 640, 440);
 
     public static ToolKind Log { get; } = new("log", "tool.log.title", 720, 480);
 

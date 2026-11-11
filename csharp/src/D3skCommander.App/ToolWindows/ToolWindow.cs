@@ -15,7 +15,7 @@ public sealed class ToolWindow : Window, IOwnedWindow
     private bool _approved;
     private bool _asking;
 
-    public ToolWindow(string title, IShellWidget view, MainWindow owner, Action<ToolWindowFrame> remember)
+    public ToolWindow(string title, IShellWidget view, MainWindow owner, Action<ToolWindowFrame> remember, int minWidth = 0, int minHeight = 0)
     {
         ArgumentException.ThrowIfNullOrEmpty(title);
         ArgumentNullException.ThrowIfNull(view);
@@ -26,6 +26,16 @@ public sealed class ToolWindow : Window, IOwnedWindow
         View = view;
         Scale = owner.Screen.Scaling <= 0 ? 1 : owner.Screen.Scaling;
         Title = title;
+        if (minWidth > 0)
+        {
+            MinWidth = minWidth;
+        }
+
+        if (minHeight > 0)
+        {
+            MinHeight = minHeight;
+        }
+
         Content = view.CreateContent();
         WindowStartupLocation = WindowStartupLocation.Manual;
         SizeToContent = SizeToContent.Manual;
