@@ -82,5 +82,29 @@
   "settings.saved": {
     "en": "Settings saved.",
     "fr": "Réglages enregistrés."
+  },
+  "settings.cat_general": {
+    "en": "General",
+    "fr": "Général"
+  },
+  "settings.cat_panels": {
+    "en": "Panels",
+    "fr": "Panneaux"
+  },
+  "settings.cat_file_ops": {
+    "en": "File operations",
+    "fr": "Opérations sur les fichiers"
+  },
+  "settings.cat_programs": {
+    "en": "Programs",
+    "fr": "Programmes"
+  },
+  "settings.cat_columns": {
+    "en": "Columns",
+    "fr": "Colonnes"
+  },
+  "settings.cat_user_commands": {
+    "en": "User commands",
+    "fr": "Commandes utilisateur"
   }
 }
