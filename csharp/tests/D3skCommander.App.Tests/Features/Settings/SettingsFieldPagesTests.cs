@@ -65,6 +65,7 @@ public class SettingsFieldPagesTests
         stored.UseTrash = false;
         stored.ConfirmDelete = false;
         stored.ConfirmTrashFallback = false;
+        stored.LogOperations = false;
         stored.Editor = "kate";
         stored.Terminal = "xterm";
         stored.IndexRoots = "/data";
@@ -83,6 +84,7 @@ public class SettingsFieldPagesTests
         Assert.False(Find<CheckBox>(window, "TrashBox").IsChecked);
         Assert.False(Find<CheckBox>(window, "ConfirmBox").IsChecked);
         Assert.False(Find<CheckBox>(window, "TrashFallbackBox").IsChecked);
+        Assert.False(Find<CheckBox>(window, "LogBox").IsChecked);
         Assert.Equal("kate", Find<TextBox>(window, "EditorBox").Text);
         Assert.Equal("xterm", Find<TextBox>(window, "TerminalBox").Text);
         Assert.Equal("/data", Find<TextBox>(window, "IndexRootsBox").Text);
@@ -106,21 +108,24 @@ public class SettingsFieldPagesTests
         Find<NumericUpDown>(window, "IndexHoursBox").Value = 12;
         Assert.IsType<SettingsViewModel>(window.View).Apply();
 
-        var now = app.Settings.Preferences.Current;
-        Assert.Equal(Language.En, now.Language);
-        Assert.Equal(22f, now.FontSize);
-        Assert.True(now.CheckUpdates);
-        Assert.False(now.ShowHidden);
-        Assert.False(now.AutoFolderSizes);
-        Assert.Equal(45, now.PreviewStartSeconds);
-        Assert.True(now.UseTrash);
-        Assert.True(now.ConfirmDelete);
-        Assert.True(now.ConfirmTrashFallback);
-        Assert.Equal("code", now.Editor);
-        Assert.Equal("wezterm", now.Terminal);
-        Assert.Equal("/home", now.IndexRoots);
-        Assert.Equal("*/cache", now.IndexExcludes);
-        Assert.Equal(12, now.IndexRefreshHours);
+        window.Close();
+        var saved = app.OpenSettings();
+        Assert.NotSame(window, saved);
+        Assert.Equal(0, Find<ComboBox>(saved, "LanguageBox").SelectedIndex);
+        Assert.Equal(22m, Find<NumericUpDown>(saved, "FontBox").Value);
+        Assert.True(Find<CheckBox>(saved, "UpdatesBox").IsChecked);
+        Assert.False(Find<CheckBox>(saved, "HiddenBox").IsChecked);
+        Assert.False(Find<CheckBox>(saved, "AutoSizesBox").IsChecked);
+        Assert.Equal(45m, Find<NumericUpDown>(saved, "PreviewStartBox").Value);
+        Assert.True(Find<CheckBox>(saved, "TrashBox").IsChecked);
+        Assert.True(Find<CheckBox>(saved, "ConfirmBox").IsChecked);
+        Assert.True(Find<CheckBox>(saved, "TrashFallbackBox").IsChecked);
+        Assert.True(Find<CheckBox>(saved, "LogBox").IsChecked);
+        Assert.Equal("code", Find<TextBox>(saved, "EditorBox").Text);
+        Assert.Equal("wezterm", Find<TextBox>(saved, "TerminalBox").Text);
+        Assert.Equal("/home", Find<TextBox>(saved, "IndexRootsBox").Text);
+        Assert.Equal("*/cache", Find<TextBox>(saved, "IndexExcludesBox").Text);
+        Assert.Equal(12m, Find<NumericUpDown>(saved, "IndexHoursBox").Value);
     }
 
     private static T Find<T>(ToolWindow window, string name)
