@@ -24,12 +24,17 @@ public sealed partial class AssociationsEditorModel : ObservableObject
         _text = text;
         foreach (var rule in rules)
         {
-            Rows.Add(new AssociationRuleRow(rule, text.Get("assoc.extra_new")));
+            var row = new AssociationRuleRow(rule, text.Get("assoc.extra_new"));
+            row.Changed += OnRowChanged;
+            Rows.Add(row);
         }
 
         SelectedRow = Rows.FirstOrDefault();
-        Rows.CollectionChanged += (_, _) => OnPropertyChanged(nameof(IsEmpty));
+        Rows.CollectionChanged += OnRowsChanged;
     }
+
+    /// <summary>Raised when the draft changed: a rule added, removed or moved, or any field of a rule edited.</summary>
+    public event EventHandler? DraftChanged;
 
     public ObservableCollection<AssociationRuleRow> Rows { get; } = [];
 
@@ -106,6 +111,24 @@ public sealed partial class AssociationsEditorModel : ObservableObject
 
     [RelayCommand]
     public void MoveDown() => Move(1);
+
+    private void OnRowChanged(object? sender, EventArgs e) => DraftChanged?.Invoke(this, EventArgs.Empty);
+
+    private void OnRowsChanged(object? sender, System.Collections.Specialized.NotifyCollectionChangedEventArgs e)
+    {
+        OnPropertyChanged(nameof(IsEmpty));
+        foreach (var added in e.NewItems?.OfType<AssociationRuleRow>() ?? [])
+        {
+            added.Changed += OnRowChanged;
+        }
+
+        foreach (var removed in e.OldItems?.OfType<AssociationRuleRow>() ?? [])
+        {
+            removed.Changed -= OnRowChanged;
+        }
+
+        DraftChanged?.Invoke(this, EventArgs.Empty);
+    }
 
     private void Move(int delta)
     {

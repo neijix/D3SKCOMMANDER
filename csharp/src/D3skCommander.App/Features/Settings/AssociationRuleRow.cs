@@ -31,11 +31,27 @@ public sealed partial class AssociationRuleRow : ObservableObject
         Edit = AssociationActionRow.From(rule?.Edit);
         foreach (var extra in rule?.Extras ?? [])
         {
-            Extras.Add(AssociationActionRow.From(extra));
+            var row = AssociationActionRow.From(extra);
+            row.PropertyChanged += OnPartChanged;
+            Extras.Add(row);
         }
 
         SelectedExtra = Extras.FirstOrDefault();
+        Open.PropertyChanged += OnPartChanged;
+        View.PropertyChanged += OnPartChanged;
+        Edit.PropertyChanged += OnPartChanged;
+        Extras.CollectionChanged += OnExtrasChanged;
+        PropertyChanged += (_, e) =>
+        {
+            if (e.PropertyName is nameof(Name) or nameof(Masks))
+            {
+                Changed?.Invoke(this, EventArgs.Empty);
+            }
+        };
     }
+
+    /// <summary>Raised when the rule's name, masks, an action or the list of extra actions changed.</summary>
+    public event EventHandler? Changed;
 
     public AssociationActionRow Open { get; }
 
@@ -72,5 +88,22 @@ public sealed partial class AssociationRuleRow : ObservableObject
         var index = Extras.IndexOf(SelectedExtra);
         Extras.RemoveAt(index);
         SelectedExtra = Extras.Count == 0 ? null : Extras[Math.Min(index, Extras.Count - 1)];
+    }
+
+    private void OnPartChanged(object? sender, EventArgs e) => Changed?.Invoke(this, EventArgs.Empty);
+
+    private void OnExtrasChanged(object? sender, System.Collections.Specialized.NotifyCollectionChangedEventArgs e)
+    {
+        foreach (var added in e.NewItems?.OfType<AssociationActionRow>() ?? [])
+        {
+            added.PropertyChanged += OnPartChanged;
+        }
+
+        foreach (var removed in e.OldItems?.OfType<AssociationActionRow>() ?? [])
+        {
+            removed.PropertyChanged -= OnPartChanged;
+        }
+
+        Changed?.Invoke(this, EventArgs.Empty);
     }
 }

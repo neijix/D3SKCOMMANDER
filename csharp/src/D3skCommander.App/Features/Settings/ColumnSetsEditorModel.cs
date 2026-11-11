@@ -32,6 +32,9 @@ public sealed partial class ColumnSetsEditorModel : ObservableObject
         Load(sets);
     }
 
+    /// <summary>Raised when the draft changed: a set added, removed, renamed, or a column shown, moved or resized.</summary>
+    public event EventHandler? DraftChanged;
+
     public ObservableCollection<ColumnSet> Sets { get; } = [];
 
     public ObservableCollection<ColumnRow> Rows { get; } = [];
@@ -70,6 +73,7 @@ public sealed partial class ColumnSetsEditorModel : ObservableObject
         var made = new ColumnSet(unique, [new ColumnSetColumn(ColumnId.Extension), new ColumnSetColumn(ColumnId.Size), new ColumnSetColumn(ColumnId.Modified)]);
         Sets.Add(made);
         SelectedSet = made;
+        RaiseDraftChanged();
         return made;
     }
 
@@ -111,6 +115,7 @@ public sealed partial class ColumnSetsEditorModel : ObservableObject
         var index = Sets.IndexOf(set);
         Sets.Remove(set);
         SelectedSet = Sets[Math.Clamp(index - 1, 0, Sets.Count - 1)];
+        RaiseDraftChanged();
     }
 
     [RelayCommand]
@@ -149,10 +154,17 @@ public sealed partial class ColumnSetsEditorModel : ObservableObject
         var renamed = new ColumnSet(ColumnSetCatalog.UniqueName(others, name), set.Columns);
         Sets[index] = renamed;
         SelectedSet = renamed;
+        RaiseDraftChanged();
     }
 
-    private ColumnRow RowOf(ColumnId id, bool shown, double width) =>
-        new(id, _text.Get(ColumnInfo.HeaderKey(id)), shown, width);
+    private ColumnRow RowOf(ColumnId id, bool shown, double width)
+    {
+        var row = new ColumnRow(id, _text.Get(ColumnInfo.HeaderKey(id)), shown, width);
+        row.PropertyChanged += (_, _) => RaiseDraftChanged();
+        return row;
+    }
+
+    private void RaiseDraftChanged() => DraftChanged?.Invoke(this, EventArgs.Empty);
 
     private void Move(int delta)
     {
@@ -171,6 +183,7 @@ public sealed partial class ColumnSetsEditorModel : ObservableObject
 
         Rows.Move(from, to);
         SelectedRow = row;
+        RaiseDraftChanged();
     }
 
     // Writes the rows back into the set they were made from: the shown ones, in row order.

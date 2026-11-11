@@ -15,6 +15,7 @@ namespace D3skCommander.App.Features.Settings;
 public sealed partial class ToolbarEditorModel : ObservableObject
 {
     private readonly ILocalizer _text;
+    private bool _loading;
 
     [ObservableProperty]
     private ToolbarRow? _selectedRow;
@@ -28,8 +29,12 @@ public sealed partial class ToolbarEditorModel : ObservableObject
         Commands = [.. CommandCatalog.All.Select(id => new CommandChoice(id, text.Get(CommandCatalog.LabelKey(id)))).OrderBy(choice => choice.Label, StringComparer.CurrentCultureIgnoreCase)];
         Icons = [new IconChoice("", text.Get("toolbar.icon_default"), ToolbarGlyphs.For(ToolbarIcons.Generic)), .. ToolbarIcons.Names.Select(name => new IconChoice(name, text.Get("toolbar.icon." + name), ToolbarGlyphs.For(name)))];
         SetUserCommandNames(userCommandNames);
+        Rows.CollectionChanged += OnRowsChanged;
         Load(items);
     }
+
+    /// <summary>Raised when the draft changed: an entry added, removed or moved, the list reset, or a field edited.</summary>
+    public event EventHandler? DraftChanged;
 
     public IReadOnlyList<CommandChoice> Commands { get; }
 
@@ -132,7 +137,11 @@ public sealed partial class ToolbarEditorModel : ObservableObject
     public void MoveDown() => Move(1);
 
     [RelayCommand]
-    public void Reset() => Load(ToolbarDefaults.Items());
+    public void Reset()
+    {
+        Load(ToolbarDefaults.Items());
+        DraftChanged?.Invoke(this, EventArgs.Empty);
+    }
 
     private void Move(int delta)
     {
@@ -144,12 +153,47 @@ public sealed partial class ToolbarEditorModel : ObservableObject
         }
     }
 
+    private void OnRowsChanged(object? sender, System.Collections.Specialized.NotifyCollectionChangedEventArgs e)
+    {
+        foreach (var added in e.NewItems?.OfType<ToolbarRow>() ?? [])
+        {
+            added.PropertyChanged += OnRowPropertyChanged;
+        }
+
+        foreach (var removed in e.OldItems?.OfType<ToolbarRow>() ?? [])
+        {
+            removed.PropertyChanged -= OnRowPropertyChanged;
+        }
+
+        if (!_loading)
+        {
+            DraftChanged?.Invoke(this, EventArgs.Empty);
+        }
+    }
+
+    // Display and Glyph follow the fields: only the fields count as an edit.
+    private void OnRowPropertyChanged(object? sender, System.ComponentModel.PropertyChangedEventArgs e)
+    {
+        if (e.PropertyName is not (nameof(ToolbarRow.Display) or nameof(ToolbarRow.Glyph)))
+        {
+            DraftChanged?.Invoke(this, EventArgs.Empty);
+        }
+    }
+
     private void Load(IEnumerable<ToolbarItem> items)
     {
-        Rows.Clear();
-        foreach (var item in ToolbarItems.Clean(items))
+        _loading = true;
+        try
         {
-            Rows.Add(Row(item));
+            Rows.Clear();
+            foreach (var item in ToolbarItems.Clean(items))
+            {
+                Rows.Add(Row(item));
+            }
+        }
+        finally
+        {
+            _loading = false;
         }
 
         SelectedRow = Rows.FirstOrDefault();

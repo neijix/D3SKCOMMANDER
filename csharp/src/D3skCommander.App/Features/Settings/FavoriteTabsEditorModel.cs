@@ -41,6 +41,9 @@ public sealed partial class FavoriteTabsEditorModel : ObservableObject
         Refresh(null);
     }
 
+    /// <summary>Raised when the draft changed: a set renamed, deleted or moved, or the restore mode changed.</summary>
+    public event EventHandler? DraftChanged;
+
     public ObservableCollection<FavoriteRow> Rows { get; } = [];
 
     /// <summary>True once a set was renamed, deleted or moved: only then does Apply write the file.</summary>
@@ -95,6 +98,7 @@ public sealed partial class FavoriteTabsEditorModel : ObservableObject
 
         Changed = true;
         Refresh(newName.Trim());
+        RaiseDraftChanged();
         return true;
     }
 
@@ -111,6 +115,7 @@ public sealed partial class FavoriteTabsEditorModel : ObservableObject
         _draft.Delete(row.Name);
         Changed = true;
         Refresh(Rows.Count > 1 ? Rows[Math.Clamp(index == Rows.Count - 1 ? index - 1 : index + 1, 0, Rows.Count - 1)].Name : null);
+        RaiseDraftChanged();
     }
 
     [RelayCommand]
@@ -126,8 +131,13 @@ public sealed partial class FavoriteTabsEditorModel : ObservableObject
         {
             Changed = true;
             Refresh(row.Name);
+            RaiseDraftChanged();
         }
     }
+
+    partial void OnModeIndexChanged(int value) => RaiseDraftChanged();
+
+    private void RaiseDraftChanged() => DraftChanged?.Invoke(this, EventArgs.Empty);
 
     private void Refresh(string? select)
     {
