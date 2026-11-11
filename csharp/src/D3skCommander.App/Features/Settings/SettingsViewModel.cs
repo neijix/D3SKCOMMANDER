@@ -80,6 +80,15 @@ public sealed partial class SettingsViewModel : ObservableObject, IShellWidget
     [ObservableProperty]
     private string _note = "";
 
+    [ObservableProperty]
+    private SettingsCategoryItem _selectedCategory;
+
+    [ObservableProperty]
+    [NotifyCanExecuteChangedFor(nameof(ApplyCommand))]
+    private bool _isDirty;
+
+    private bool _ready;
+
     public SettingsViewModel(
         AppSettings settings,
         IOperationLog log,
@@ -103,8 +112,22 @@ public sealed partial class SettingsViewModel : ObservableObject, IShellWidget
         Favorites = new FavoriteTabsEditorModel(text, dialogs, settings.FavoriteTabs.Current, settings.Preferences.Current.FavoriteTabsMode);
         Load(settings.Preferences.Current);
         Toolbar = new ToolbarEditorModel(text, settings.Preferences.Current.Toolbar, UserCommandNames());
-        Commands.CollectionChanged += (_, _) => Toolbar.SetUserCommandNames(UserCommandNames());
+        Categories = [.. SettingsCategories.All.Select(c => new SettingsCategoryItem(c.Id, text.Get(c.NameKey)))];
+        _selectedCategory = Categories[0];
+        Commands.CollectionChanged += (_, _) =>
+        {
+            Toolbar.SetUserCommandNames(UserCommandNames());
+            RefreshDraftState();
+        };
+        ColumnSets.DraftChanged += OnEditorChanged;
+        Associations.DraftChanged += OnEditorChanged;
+        Favorites.DraftChanged += OnEditorChanged;
+        Toolbar.DraftChanged += OnEditorChanged;
+        _ready = true;
+        RefreshDraftState();
     }
+
+    private void OnEditorChanged(object? sender, EventArgs e) => RefreshDraftState();
 
     public string? Name => "settings";
 
@@ -118,31 +141,46 @@ public sealed partial class SettingsViewModel : ObservableObject, IShellWidget
     /// <summary>The File associations section: the rules that open, view and edit files with other programs.</summary>
     public AssociationsEditorModel Associations { get; }
 
-    /// <summary>Raised when something asks the window to scroll the File associations section into view.</summary>
-    public event Action? AssociationsRequested;
-
-    public void RequestAssociations() => AssociationsRequested?.Invoke();
-
     /// <summary>The Favorite tabs section: saved tab sets and the restore mode.</summary>
     public FavoriteTabsEditorModel Favorites { get; }
-
-    /// <summary>Raised when something asks the window to scroll the Favorite tabs section into view.</summary>
-    public event Action? FavoritesRequested;
-
-    public void RequestFavorites() => FavoritesRequested?.Invoke();
 
     /// <summary>The Toolbar section: the buttons of the main toolbar.</summary>
     public ToolbarEditorModel Toolbar { get; }
 
-    /// <summary>Raised when something asks the window to scroll the Toolbar section into view.</summary>
-    public event Action? ToolbarRequested;
+    /// <summary>The pages, in display order, with their localized names.</summary>
+    public IReadOnlyList<SettingsCategoryItem> Categories { get; }
 
-    public void RequestToolbar() => ToolbarRequested?.Invoke();
+    /// <summary>Shows a page by its Core category id; an unknown id changes nothing. The draft is untouched.</summary>
+    public void Select(string categoryId)
+    {
+        var found = Categories.FirstOrDefault(c => c.Id == categoryId);
+        if (found is not null)
+        {
+            SelectedCategory = found;
+        }
+    }
 
-    /// <summary>Raised when something asks the window to scroll the Columns section into view.</summary>
-    public event Action? ColumnsRequested;
+    /// <summary>Compares the draft with the live store again: the window calls this when it is activated.</summary>
+    public void RefreshDraftState()
+    {
+        if (_ready)
+        {
+            IsDirty = PreferencesDraft.Differs(
+                _settings.Preferences.Current,
+                _settings.FavoriteTabs.Current,
+                BuildCandidate(),
+                Favorites.Result());
+        }
+    }
 
-    public void RequestColumns() => ColumnsRequested?.Invoke();
+    protected override void OnPropertyChanged(System.ComponentModel.PropertyChangedEventArgs e)
+    {
+        base.OnPropertyChanged(e);
+        if (e.PropertyName is not (nameof(IsDirty) or nameof(Note) or nameof(SelectedCategory) or nameof(SelectedCommand)))
+        {
+            RefreshDraftState();
+        }
+    }
 
     public IReadOnlyList<string> Languages => [Labels.LanguageEnglish, Labels.LanguageFrench];
 
@@ -153,14 +191,11 @@ public sealed partial class SettingsViewModel : ObservableObject, IShellWidget
 
     public Control CreateContent() => new SettingsView(this);
 
-    /// <summary>Saves the draft over a copy of the stored preferences and applies the live parts.</summary>
-    [RelayCommand]
-    public void Apply()
+    /// <summary>What Apply would store: a copy of the live preferences with the window's fields written over it.</summary>
+    private Preferences BuildCandidate()
     {
         var next = PreferencesCopy.Of(_settings.Preferences.Current);
-        var language = LanguageIndex == 1 ? Language.Fr : Language.En;
-        var languageChanged = language != next.Language;
-        next.Language = language;
+        next.Language = LanguageIndex == 1 ? Language.Fr : Language.En;
         next.FontSize = (float)Math.Clamp(FontSize ?? (decimal)Preferences.DefaultFontSize, MinFontSize, MaxFontSize);
         next.ShowHidden = ShowHidden;
         next.UseTrash = UseTrash;
@@ -179,17 +214,27 @@ public sealed partial class SettingsViewModel : ObservableObject, IShellWidget
         next.Toolbar = [.. Toolbar.Result()];
         next.Associations = [.. Associations.Result()];
         next.FavoriteTabsMode = Favorites.Mode;
+        next.UserCommands = Commands.Select(row => row.Command).ToList();
+        return next;
+    }
+
+    /// <summary>Saves the draft over a copy of the stored preferences and applies the live parts.</summary>
+    [RelayCommand(CanExecute = nameof(IsDirty))]
+    public void Apply()
+    {
+        var next = BuildCandidate();
+        var languageChanged = next.Language != _settings.Preferences.Current.Language;
         if (Favorites.Changed)
         {
             _settings.FavoriteTabs.Save(Favorites.Result());
         }
 
-        next.UserCommands = Commands.Select(row => row.Command).ToList();
         _settings.Preferences.Save(next);
         _log.Enabled = next.LogOperations;
+        RefreshDraftState();
         if (languageChanged)
         {
-            _text.Use(language);
+            _text.Use(next.Language);
             Note = _text.Get("settings.restart_language");
             return;
         }
@@ -197,15 +242,22 @@ public sealed partial class SettingsViewModel : ObservableObject, IShellWidget
         Note = _text.Get("settings.saved");
     }
 
+    /// <summary>OK: with nothing changed it only closes; otherwise Apply, then close.</summary>
     [RelayCommand]
     public void Ok()
     {
-        Apply();
+        RefreshDraftState();
+        if (IsDirty)
+        {
+            Apply();
+        }
+
         CloseRequested?.Invoke();
     }
 
+    /// <summary>Cancel: nothing is saved, the window closes.</summary>
     [RelayCommand]
-    public void Close() => CloseRequested?.Invoke();
+    public void Cancel() => CloseRequested?.Invoke();
 
     [RelayCommand]
     public void ChangeFolder() => _changeFolder();
@@ -292,3 +344,6 @@ public sealed partial class SettingsViewModel : ObservableObject, IShellWidget
         }
     }
 }
+
+/// <summary>One entry of the settings window category list.</summary>
+public sealed record SettingsCategoryItem(string Id, string Name);

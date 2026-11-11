@@ -33,7 +33,6 @@
         <s:FavoriteTabsEditor x:Name="FavoritesSection" DataContext="{Binding Favorites}"/>
         <s:AssociationsEditor x:Name="AssociationsSection" DataContext="{Binding Associations}"/>
         <s:ToolbarEditor x:Name="ToolbarSection" DataContext="{Binding Toolbar}"/>
-        <TextBlock FontWeight="SemiBold" Text="{Binding Labels.IndexTitle}"/>
         <TextBlock Text="{Binding Labels.IndexRoots}"/>
         <TextBox x:Name="IndexRootsBox" Text="{Binding IndexRoots, Mode=TwoWay}"/>
         <TextBlock Text="{Binding Labels.IndexExcludes}"/>
@@ -68,7 +67,7 @@
       <TextBlock x:Name="NoteText" Grid.Column="0" VerticalAlignment="Center" TextWrapping="Wrap" Text="{Binding Note}"/>
       <Button x:Name="OkButton" Grid.Column="1" Content="{Binding Labels.Ok}" Command="{Binding OkCommand}"/>
       <Button x:Name="ApplyButton" Grid.Column="2" Content="{Binding Labels.Apply}" Command="{Binding ApplyCommand}"/>
-      <Button x:Name="CloseButton" Grid.Column="3" Content="{Binding Labels.Close}" Command="{Binding CloseCommand}"/>
+      <Button x:Name="CancelButton" Grid.Column="3" Content="{Binding Labels.Cancel}" Command="{Binding CancelCommand}"/>
     </Grid>
   </Grid>
 </UserControl>

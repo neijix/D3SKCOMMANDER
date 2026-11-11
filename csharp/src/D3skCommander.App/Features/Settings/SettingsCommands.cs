@@ -5,6 +5,7 @@ using D3skCommander.App.ToolWindows;
 using D3skCommander.Core.Commands;
 using D3skCommander.Core.Localization;
 using D3skCommander.Core.OperationLog;
+using D3skCommander.Core.Settings;
 
 namespace D3skCommander.App.Features.Settings;
 
@@ -44,34 +45,18 @@ public sealed class SettingsCommands
     {
         ArgumentNullException.ThrowIfNull(shell);
         shell.Handle(CommandId.Settings, () => _tools.Open(ToolKind.Settings));
-        shell.Handle(CommandId.EditColumnSets, () =>
+        foreach (var command in new[] { CommandId.EditColumnSets, CommandId.CustomizeToolbar, CommandId.ManageFavoriteTabs, CommandId.EditFileAssociations })
         {
-            if (_tools.Open(ToolKind.Settings).View is SettingsViewModel model)
+            var category = SettingsCategories.ForCommand(command)!;
+            shell.Handle(command, () =>
             {
-                model.RequestColumns();
-            }
-        });
-        shell.Handle(CommandId.CustomizeToolbar, () =>
-        {
-            if (_tools.Open(ToolKind.Settings).View is SettingsViewModel model)
-            {
-                model.RequestToolbar();
-            }
-        });
-        shell.Handle(CommandId.ManageFavoriteTabs, () =>
-        {
-            if (_tools.Open(ToolKind.Settings).View is SettingsViewModel model)
-            {
-                model.RequestFavorites();
-            }
-        });
-        shell.Handle(CommandId.EditFileAssociations, () =>
-        {
-            if (_tools.Open(ToolKind.Settings).View is SettingsViewModel model)
-            {
-                model.RequestAssociations();
-            }
-        });
+                if (_tools.Open(ToolKind.Settings).View is SettingsViewModel model)
+                {
+                    model.Select(category.Id);
+                }
+            });
+        }
+
         _tools.Register(ToolKind.Settings, CreateView);
     }
 

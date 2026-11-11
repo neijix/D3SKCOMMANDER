@@ -16,7 +16,6 @@ public sealed class SettingsLabels
         ConfirmTrashFallback = text.Get("confirm_trash_fallback");
         LogOperations = text.Get("log_ops");
         AutoFolderSizes = text.Get("auto_folder_sizes");
-        IndexTitle = text.Get("quickfind.settings.title");
         IndexRoots = text.Get("quickfind.settings.roots");
         IndexExcludes = text.Get("quickfind.settings.excludes");
         IndexHours = text.Get("quickfind.settings.hours");
@@ -32,7 +31,7 @@ public sealed class SettingsLabels
         ChangeFolder = text.Get("settings.folder_change");
         Ok = text.Get("ok");
         Apply = text.Get("apply");
-        Close = text.Get("cancel");
+        Cancel = text.Get("cancel");
         LanguageEnglish = text.Get("settings.language_en");
         LanguageFrench = text.Get("settings.language_fr");
     }
@@ -53,7 +52,6 @@ public sealed class SettingsLabels
 
     public string AutoFolderSizes { get; }
 
-    public string IndexTitle { get; }
 
     public string IndexRoots { get; }
 
@@ -85,7 +83,7 @@ public sealed class SettingsLabels
 
     public string Apply { get; }
 
-    public string Close { get; }
+    public string Cancel { get; }
 
     public string LanguageEnglish { get; }
 
