@@ -3,9 +3,8 @@
              xmlns:s="using:D3skCommander.App.Features.Settings"
              x:Class="D3skCommander.App.Features.Settings.ToolbarEditor"
              x:DataType="s:ToolbarEditorModel">
-  <StackPanel Spacing="4">
-    <TextBlock FontWeight="SemiBold" Text="{Binding Title}"/>
-    <ListBox x:Name="ToolbarList" Height="170" ItemsSource="{Binding Rows}" SelectedItem="{Binding SelectedRow, Mode=TwoWay}">
+  <Grid RowDefinitions="*,Auto,Auto,Auto" RowSpacing="4">
+    <ListBox x:Name="ToolbarList" Grid.Row="0" MinHeight="120" ItemsSource="{Binding Rows}" SelectedItem="{Binding SelectedRow, Mode=TwoWay}">
       <ListBox.ItemTemplate>
         <DataTemplate x:DataType="s:ToolbarRow">
           <StackPanel Orientation="Horizontal" Spacing="8">
@@ -15,19 +14,19 @@
         </DataTemplate>
       </ListBox.ItemTemplate>
     </ListBox>
-    <WrapPanel ItemSpacing="4" LineSpacing="4">
+    <WrapPanel Grid.Row="1" ItemSpacing="4" LineSpacing="4">
       <Button x:Name="AddCommandButton" Content="{Binding AddCommandCaption}" Command="{Binding AddCommandButtonCommand}"/>
       <Button x:Name="AddUserCommandButton" Content="{Binding AddUserCommandCaption}" Command="{Binding AddUserCommandButtonCommand}"/>
       <Button x:Name="AddProgramButton" Content="{Binding AddProgramCaption}" Command="{Binding AddProgramButtonCommand}"/>
       <Button x:Name="AddSeparatorButton" Content="{Binding AddSeparatorCaption}" Command="{Binding AddSeparatorButtonCommand}"/>
     </WrapPanel>
-    <WrapPanel ItemSpacing="4" LineSpacing="4">
+    <WrapPanel Grid.Row="2" ItemSpacing="4" LineSpacing="4">
       <Button x:Name="ToolbarUpButton" Content="{Binding UpCaption}" Command="{Binding MoveUpCommand}"/>
       <Button x:Name="ToolbarDownButton" Content="{Binding DownCaption}" Command="{Binding MoveDownCommand}"/>
       <Button x:Name="ToolbarRemoveButton" Content="{Binding RemoveCaption}" Command="{Binding RemoveCommand}"/>
       <Button x:Name="ToolbarResetButton" Content="{Binding ResetCaption}" Command="{Binding ResetCommand}"/>
     </WrapPanel>
-    <StackPanel x:Name="ToolbarDetails" Spacing="4" Margin="0,4,0,0" IsVisible="{Binding SelectedRow, Converter={x:Static ObjectConverters.IsNotNull}}">
+    <StackPanel x:Name="ToolbarDetails" Grid.Row="3" Spacing="4" Margin="0,4,0,0" IsVisible="{Binding SelectedRow, Converter={x:Static ObjectConverters.IsNotNull}}">
       <Grid ColumnDefinitions="Auto,*" ColumnSpacing="8" IsVisible="{Binding SelectedRow.IsCommand}">
         <TextBlock Grid.Column="0" Width="120" VerticalAlignment="Center" Text="{Binding CommandCaption}"/>
         <ComboBox x:Name="CommandBox" Grid.Column="1" HorizontalAlignment="Stretch" ItemsSource="{Binding Commands}" SelectedItem="{Binding SelectedRow.Command, Mode=TwoWay}"/>
@@ -68,5 +67,5 @@
       </Grid>
       <TextBlock Foreground="Gray" TextWrapping="Wrap" Text="{Binding Hint}"/>
     </StackPanel>
-  </StackPanel>
+  </Grid>
 </UserControl>

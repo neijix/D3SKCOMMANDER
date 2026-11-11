@@ -4,9 +4,8 @@
              xmlns:p="using:D3skCommander.Core.Panels"
              x:Class="D3skCommander.App.Features.Settings.ColumnSetsEditor"
              x:DataType="s:ColumnSetsEditorModel">
-  <StackPanel Spacing="4">
-    <TextBlock FontWeight="SemiBold" Text="{Binding Title}"/>
-    <Grid ColumnDefinitions="*,Auto" ColumnSpacing="8">
+  <Grid RowDefinitions="Auto,Auto,*,Auto" RowSpacing="4">
+    <Grid Grid.Row="0" ColumnDefinitions="*,Auto" ColumnSpacing="8">
       <ListBox x:Name="SetList" Grid.Column="0" Height="84" ItemsSource="{Binding Sets}" SelectedItem="{Binding SelectedSet, Mode=TwoWay}">
         <ListBox.ItemTemplate>
           <DataTemplate x:DataType="p:ColumnSet">
@@ -20,9 +19,9 @@
         <Button x:Name="DeleteSetButton" HorizontalAlignment="Stretch" IsEnabled="{Binding IsCustomSelected}" Content="{Binding DeleteCaption}" Command="{Binding DeleteSetCommand}"/>
       </StackPanel>
     </Grid>
-    <TextBlock Text="{Binding ColumnsCaption}"/>
-    <Grid ColumnDefinitions="*,Auto" ColumnSpacing="8">
-      <ListBox x:Name="ColumnList" Grid.Column="0" Height="190" ItemsSource="{Binding Rows}" SelectedItem="{Binding SelectedRow, Mode=TwoWay}">
+    <TextBlock Grid.Row="1" Text="{Binding ColumnsCaption}"/>
+    <Grid Grid.Row="2" ColumnDefinitions="*,Auto" ColumnSpacing="8">
+      <ListBox x:Name="ColumnList" Grid.Column="0" MinHeight="120" ItemsSource="{Binding Rows}" SelectedItem="{Binding SelectedRow, Mode=TwoWay}">
         <ListBox.ItemTemplate>
           <DataTemplate x:DataType="s:ColumnRow">
             <Grid ColumnDefinitions="*,100" ColumnSpacing="8">
@@ -38,6 +37,6 @@
         <TextBlock Foreground="Gray" Text="{Binding WidthCaption}"/>
       </StackPanel>
     </Grid>
-    <TextBlock Foreground="Gray" TextWrapping="Wrap" Text="{Binding BuiltInNote}"/>
-  </StackPanel>
+    <TextBlock Grid.Row="3" Foreground="Gray" TextWrapping="Wrap" Text="{Binding BuiltInNote}"/>
+  </Grid>
 </UserControl>

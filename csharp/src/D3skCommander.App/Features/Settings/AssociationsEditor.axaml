@@ -3,11 +3,10 @@
              xmlns:s="using:D3skCommander.App.Features.Settings"
              x:Class="D3skCommander.App.Features.Settings.AssociationsEditor"
              x:DataType="s:AssociationsEditorModel">
-  <StackPanel Spacing="4">
-    <TextBlock FontWeight="SemiBold" Text="{Binding Title}"/>
-    <Grid ColumnDefinitions="*,Auto" ColumnSpacing="8">
+  <Grid RowDefinitions="*,Auto" RowSpacing="4">
+    <Grid Grid.Row="0" ColumnDefinitions="*,Auto" ColumnSpacing="8">
       <Panel Grid.Column="0">
-        <ListBox x:Name="AssociationList" Height="110" ItemsSource="{Binding Rows}" SelectedItem="{Binding SelectedRow, Mode=TwoWay}">
+        <ListBox x:Name="AssociationList" MinHeight="120" ItemsSource="{Binding Rows}" SelectedItem="{Binding SelectedRow, Mode=TwoWay}">
           <ListBox.ItemTemplate>
             <DataTemplate x:DataType="s:AssociationRuleRow">
               <TextBlock Text="{Binding Display}"/>
@@ -23,7 +22,8 @@
         <Button x:Name="AssociationDownButton" HorizontalAlignment="Stretch" Content="{Binding DownCaption}" Command="{Binding MoveDownCommand}"/>
       </StackPanel>
     </Grid>
-    <StackPanel x:Name="AssociationDetails" Spacing="4" Margin="0,4,0,0" IsVisible="{Binding SelectedRow, Converter={x:Static ObjectConverters.IsNotNull}}">
+    <ScrollViewer x:Name="AssociationDetailsScroller" Grid.Row="1" MaxHeight="300" VerticalScrollBarVisibility="Auto" IsVisible="{Binding SelectedRow, Converter={x:Static ObjectConverters.IsNotNull}}">
+    <StackPanel x:Name="AssociationDetails" Spacing="4" Margin="0,4,0,0">
       <Grid ColumnDefinitions="Auto,*" ColumnSpacing="8">
         <TextBlock Grid.Column="0" Width="120" VerticalAlignment="Center" Text="{Binding NameCaption}"/>
         <TextBox x:Name="AssociationNameBox" Grid.Column="1" Text="{Binding SelectedRow.Name, Mode=TwoWay}"/>
@@ -70,5 +70,6 @@
       </Grid>
       <TextBlock Foreground="Gray" TextWrapping="Wrap" Text="{Binding Hint}"/>
     </StackPanel>
-  </StackPanel>
+    </ScrollViewer>
+  </Grid>
 </UserControl>
