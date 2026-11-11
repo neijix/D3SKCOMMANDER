@@ -237,6 +237,46 @@ public sealed class SettingsDraftTests
     }
 
     [AvaloniaFact]
+    public void ApplyWritesTheWindowFavoriteSetsOverAnOutsideSave()
+    {
+        using var harness = new SettingsHarness();
+        harness.Settings.FavoriteTabs.Save(Favorites("A", "B"));
+        var model = Clean(harness);
+        harness.Settings.FavoriteTabs.Save(Favorites("C"));
+
+        Assert.False(model.IsDirty);
+        model.RefreshDraftState();
+        Assert.True(model.ApplyCommand.CanExecute(null));
+
+        model.Apply();
+
+        Assert.Equal(["A", "B"], harness.Settings.FavoriteTabs.Current.Sets.Select(set => set.Name));
+        Assert.False(model.IsDirty);
+        Assert.False(model.ApplyCommand.CanExecute(null));
+    }
+
+    [AvaloniaFact]
+    public void ApplyLeavesTheFavoriteFileWhenTheSetsStillMatch()
+    {
+        using var harness = new SettingsHarness();
+        harness.Settings.FavoriteTabs.Save(Favorites("A", "B"));
+        harness.Settings.Flush();
+        var path = Path.Combine(harness.Folder, "favorite-tabs.json");
+        var before = File.ReadAllBytes(path);
+        var live = harness.Settings.FavoriteTabs.Current;
+        var model = Clean(harness);
+        model.Editor = "kate";
+
+        model.Apply();
+        harness.Settings.Flush();
+
+        Assert.Equal("kate", harness.Settings.Preferences.Current.Editor);
+        Assert.Same(live, harness.Settings.FavoriteTabs.Current);
+        Assert.Equal(before, File.ReadAllBytes(path));
+        Assert.False(model.ApplyCommand.CanExecute(null));
+    }
+
+    [AvaloniaFact]
     public void OkWithAnUnchangedDraftOnlyCloses()
     {
         using var harness = new SettingsHarness();

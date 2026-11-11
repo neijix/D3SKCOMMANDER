@@ -224,9 +224,15 @@ public sealed partial class SettingsViewModel : ObservableObject, IShellWidget
     {
         var next = BuildCandidate();
         var languageChanged = next.Language != _settings.Preferences.Current.Language;
-        if (Favorites.Changed)
+        var favorites = Favorites.Result();
+        // Same preferences on both sides, so only the favorite sets can differ. Changed misses an outside save.
+        if (PreferencesDraft.Differs(
+            _settings.Preferences.Current,
+            _settings.FavoriteTabs.Current,
+            _settings.Preferences.Current,
+            favorites))
         {
-            _settings.FavoriteTabs.Save(Favorites.Result());
+            _settings.FavoriteTabs.Save(favorites);
         }
 
         _settings.Preferences.Save(next);
