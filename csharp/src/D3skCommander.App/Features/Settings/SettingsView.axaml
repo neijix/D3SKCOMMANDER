@@ -3,71 +3,114 @@
              xmlns:s="using:D3skCommander.App.Features.Settings"
              x:Class="D3skCommander.App.Features.Settings.SettingsView"
              x:DataType="s:SettingsViewModel">
-  <Grid RowDefinitions="*,Auto" Margin="10" RowSpacing="8">
-    <ScrollViewer x:Name="SettingsScroll">
-      <StackPanel Spacing="4" Margin="0,0,10,0">
-        <Grid ColumnDefinitions="Auto,*,Auto,120" ColumnSpacing="8">
-          <TextBlock Grid.Column="0" VerticalAlignment="Center" Text="{Binding Labels.Language}"/>
-          <ComboBox x:Name="LanguageBox" Grid.Column="1" HorizontalAlignment="Stretch" ItemsSource="{Binding Languages}" SelectedIndex="{Binding LanguageIndex, Mode=TwoWay}"/>
-          <TextBlock Grid.Column="2" VerticalAlignment="Center" Text="{Binding Labels.FontSize}"/>
-          <NumericUpDown x:Name="FontBox" Grid.Column="3" Minimum="8" Maximum="40" Increment="1" FormatString="0" Value="{Binding FontSize, Mode=TwoWay}"/>
+  <UserControl.Styles>
+    <Style Selector="Grid.form > TextBlock.label">
+      <Setter Property="VerticalAlignment" Value="Center"/>
+    </Style>
+    <Style Selector="Grid.form > NumericUpDown">
+      <Setter Property="HorizontalAlignment" Value="Left"/>
+      <Setter Property="Width" Value="140"/>
+    </Style>
+    <Style Selector="Grid.form > CheckBox">
+      <Setter Property="Grid.ColumnSpan" Value="2"/>
+    </Style>
+  </UserControl.Styles>
+  <Grid RowDefinitions="*,Auto" Margin="12" RowSpacing="10">
+    <Grid ColumnDefinitions="190,Auto,*" ColumnSpacing="12">
+      <ListBox x:Name="CategoryList" Grid.Column="0" ItemsSource="{Binding Categories}" SelectedItem="{Binding SelectedCategory, Mode=TwoWay}">
+        <ListBox.ItemTemplate>
+          <DataTemplate x:DataType="s:SettingsCategoryItem">
+            <TextBlock Text="{Binding Name}"/>
+          </DataTemplate>
+        </ListBox.ItemTemplate>
+      </ListBox>
+      <Rectangle Grid.Column="1" Width="1" Fill="{DynamicResource SystemControlForegroundBaseLowBrush}"/>
+      <Grid Grid.Column="2" RowDefinitions="Auto,*" RowSpacing="10">
+        <TextBlock x:Name="PageTitle" Grid.Row="0" FontSize="20" FontWeight="SemiBold" Text="{Binding SelectedCategory.Name}"/>
+        <Grid Grid.Row="1">
+          <ScrollViewer x:Name="GeneralPage" HorizontalScrollBarVisibility="Disabled" IsVisible="{Binding SelectedCategory.Id, Converter={x:Static ObjectConverters.Equal}, ConverterParameter=general}">
+            <Grid Classes="form" ColumnDefinitions="190,*" RowDefinitions="Auto,Auto,Auto" ColumnSpacing="12" RowSpacing="12" Margin="0,0,12,0">
+              <TextBlock Classes="label" Grid.Row="0" Text="{Binding Labels.Language}"/>
+              <ComboBox x:Name="LanguageBox" Grid.Row="0" Grid.Column="1" Width="220" ItemsSource="{Binding Languages}" SelectedIndex="{Binding LanguageIndex, Mode=TwoWay}"/>
+              <TextBlock Classes="label" Grid.Row="1" Text="{Binding Labels.FontSize}"/>
+              <NumericUpDown x:Name="FontBox" Grid.Row="1" Grid.Column="1" Minimum="8" Maximum="40" Increment="1" FormatString="0" Value="{Binding FontSize, Mode=TwoWay}"/>
+              <CheckBox x:Name="UpdatesBox" Grid.Row="2" Content="{Binding Labels.CheckUpdates}" IsChecked="{Binding CheckUpdates, Mode=TwoWay}"/>
+            </Grid>
+          </ScrollViewer>
+          <ScrollViewer x:Name="PanelsPage" HorizontalScrollBarVisibility="Disabled" IsVisible="{Binding SelectedCategory.Id, Converter={x:Static ObjectConverters.Equal}, ConverterParameter=panels}">
+            <Grid Classes="form" ColumnDefinitions="190,*" RowDefinitions="Auto,Auto,Auto" ColumnSpacing="12" RowSpacing="12" Margin="0,0,12,0">
+              <CheckBox x:Name="HiddenBox" Grid.Row="0" Content="{Binding Labels.ShowHidden}" IsChecked="{Binding ShowHidden, Mode=TwoWay}"/>
+              <CheckBox x:Name="AutoSizesBox" Grid.Row="1" Content="{Binding Labels.AutoFolderSizes}" IsChecked="{Binding AutoFolderSizes, Mode=TwoWay}"/>
+              <TextBlock Classes="label" Grid.Row="2" TextWrapping="Wrap" Text="{Binding Labels.PreviewStart}"/>
+              <NumericUpDown x:Name="PreviewStartBox" Grid.Row="2" Grid.Column="1" Minimum="0" Maximum="86400" Increment="1" FormatString="0" Value="{Binding PreviewStartSeconds, Mode=TwoWay}"/>
+            </Grid>
+          </ScrollViewer>
+          <ScrollViewer x:Name="FileOperationsPage" HorizontalScrollBarVisibility="Disabled" IsVisible="{Binding SelectedCategory.Id, Converter={x:Static ObjectConverters.Equal}, ConverterParameter=file-operations}">
+            <Grid Classes="form" ColumnDefinitions="190,*" RowDefinitions="Auto,Auto,Auto,Auto" ColumnSpacing="12" RowSpacing="12" Margin="0,0,12,0">
+              <CheckBox x:Name="TrashBox" Grid.Row="0" Content="{Binding Labels.UseTrash}" IsChecked="{Binding UseTrash, Mode=TwoWay}"/>
+              <CheckBox x:Name="ConfirmBox" Grid.Row="1" Content="{Binding Labels.ConfirmDelete}" IsChecked="{Binding ConfirmDelete, Mode=TwoWay}"/>
+              <CheckBox x:Name="TrashFallbackBox" Grid.Row="2" Content="{Binding Labels.ConfirmTrashFallback}" IsChecked="{Binding ConfirmTrashFallback, Mode=TwoWay}"/>
+              <CheckBox x:Name="LogBox" Grid.Row="3" Content="{Binding Labels.LogOperations}" IsChecked="{Binding LogOperations, Mode=TwoWay}"/>
+            </Grid>
+          </ScrollViewer>
+          <ScrollViewer x:Name="ProgramsPage" HorizontalScrollBarVisibility="Disabled" IsVisible="{Binding SelectedCategory.Id, Converter={x:Static ObjectConverters.Equal}, ConverterParameter=programs}">
+            <Grid Classes="form" ColumnDefinitions="190,*" RowDefinitions="Auto,Auto" ColumnSpacing="12" RowSpacing="12" Margin="0,0,12,0">
+              <TextBlock Classes="label" Grid.Row="0" Text="{Binding Labels.Editor}"/>
+              <TextBox x:Name="EditorBox" Grid.Row="0" Grid.Column="1" Text="{Binding Editor, Mode=TwoWay}"/>
+              <TextBlock Classes="label" Grid.Row="1" Text="{Binding Labels.Terminal}"/>
+              <TextBox x:Name="TerminalBox" Grid.Row="1" Grid.Column="1" Text="{Binding Terminal, Mode=TwoWay}"/>
+            </Grid>
+          </ScrollViewer>
+          <Grid x:Name="ColumnsPage" IsVisible="{Binding SelectedCategory.Id, Converter={x:Static ObjectConverters.Equal}, ConverterParameter=columns}">
+            <s:ColumnSetsEditor x:Name="ColumnSetsSection" DataContext="{Binding ColumnSets}"/>
+          </Grid>
+          <Grid x:Name="FavoriteTabsPage" IsVisible="{Binding SelectedCategory.Id, Converter={x:Static ObjectConverters.Equal}, ConverterParameter=favorite-tabs}">
+            <s:FavoriteTabsEditor x:Name="FavoritesSection" DataContext="{Binding Favorites}"/>
+          </Grid>
+          <Grid x:Name="FileAssociationsPage" IsVisible="{Binding SelectedCategory.Id, Converter={x:Static ObjectConverters.Equal}, ConverterParameter=file-associations}">
+            <s:AssociationsEditor x:Name="AssociationsSection" DataContext="{Binding Associations}"/>
+          </Grid>
+          <Grid x:Name="ToolbarPage" IsVisible="{Binding SelectedCategory.Id, Converter={x:Static ObjectConverters.Equal}, ConverterParameter=toolbar}">
+            <s:ToolbarEditor x:Name="ToolbarSection" DataContext="{Binding Toolbar}"/>
+          </Grid>
+          <Grid x:Name="UserCommandsPage" ColumnDefinitions="*,Auto" ColumnSpacing="8" IsVisible="{Binding SelectedCategory.Id, Converter={x:Static ObjectConverters.Equal}, ConverterParameter=user-commands}">
+            <ListBox x:Name="CommandList" Grid.Column="0" MinHeight="120" ItemsSource="{Binding Commands}" SelectedItem="{Binding SelectedCommand, Mode=TwoWay}">
+              <ListBox.ItemTemplate>
+                <DataTemplate x:DataType="s:UserCommandRow">
+                  <TextBlock Text="{Binding Display}"/>
+                </DataTemplate>
+              </ListBox.ItemTemplate>
+            </ListBox>
+            <StackPanel Grid.Column="1" Spacing="4">
+              <Button x:Name="AddButton" HorizontalAlignment="Stretch" Content="{Binding Labels.Add}" Command="{Binding AddCommandCommand}"/>
+              <Button x:Name="EditButton" HorizontalAlignment="Stretch" Content="{Binding Labels.Edit}" Command="{Binding EditCommandCommand}"/>
+              <Button x:Name="RemoveButton" HorizontalAlignment="Stretch" Content="{Binding Labels.Remove}" Command="{Binding RemoveCommandCommand}"/>
+            </StackPanel>
+          </Grid>
+          <ScrollViewer x:Name="QuickFindIndexPage" HorizontalScrollBarVisibility="Disabled" IsVisible="{Binding SelectedCategory.Id, Converter={x:Static ObjectConverters.Equal}, ConverterParameter=quick-find-index}">
+            <Grid Classes="form" ColumnDefinitions="190,*" RowDefinitions="Auto,Auto,Auto" ColumnSpacing="12" RowSpacing="12" Margin="0,0,12,0">
+              <TextBlock Classes="label" Grid.Row="0" TextWrapping="Wrap" Text="{Binding Labels.IndexRoots}"/>
+              <TextBox x:Name="IndexRootsBox" Grid.Row="0" Grid.Column="1" Text="{Binding IndexRoots, Mode=TwoWay}"/>
+              <TextBlock Classes="label" Grid.Row="1" TextWrapping="Wrap" Text="{Binding Labels.IndexExcludes}"/>
+              <TextBox x:Name="IndexExcludesBox" Grid.Row="1" Grid.Column="1" Text="{Binding IndexExcludes, Mode=TwoWay}"/>
+              <TextBlock Classes="label" Grid.Row="2" TextWrapping="Wrap" Text="{Binding Labels.IndexHours}"/>
+              <NumericUpDown x:Name="IndexHoursBox" Grid.Row="2" Grid.Column="1" Minimum="0" Maximum="8760" Increment="1" FormatString="0" Value="{Binding IndexRefreshHours, Mode=TwoWay}"/>
+            </Grid>
+          </ScrollViewer>
+          <ScrollViewer x:Name="SettingsFolderPage" HorizontalScrollBarVisibility="Disabled" IsVisible="{Binding SelectedCategory.Id, Converter={x:Static ObjectConverters.Equal}, ConverterParameter=settings-folder}">
+            <StackPanel Spacing="12" Margin="0,0,12,0">
+              <TextBlock x:Name="FolderLabel" TextWrapping="Wrap" Text="{Binding FolderText}"/>
+              <Button x:Name="FolderButton" HorizontalAlignment="Left" Content="{Binding Labels.ChangeFolder}" Command="{Binding ChangeFolderCommand}"/>
+            </StackPanel>
+          </ScrollViewer>
         </Grid>
-        <Grid ColumnDefinitions="*,*" RowDefinitions="Auto,Auto,Auto,Auto,Auto">
-          <CheckBox x:Name="HiddenBox" Grid.Row="0" Grid.Column="0" Content="{Binding Labels.ShowHidden}" IsChecked="{Binding ShowHidden, Mode=TwoWay}"/>
-          <CheckBox x:Name="TrashBox" Grid.Row="1" Grid.Column="0" Content="{Binding Labels.UseTrash}" IsChecked="{Binding UseTrash, Mode=TwoWay}"/>
-          <CheckBox x:Name="ConfirmBox" Grid.Row="2" Grid.Column="0" Content="{Binding Labels.ConfirmDelete}" IsChecked="{Binding ConfirmDelete, Mode=TwoWay}"/>
-          <CheckBox x:Name="TrashFallbackBox" Grid.Row="3" Grid.Column="0" Grid.ColumnSpan="2" Content="{Binding Labels.ConfirmTrashFallback}" IsChecked="{Binding ConfirmTrashFallback, Mode=TwoWay}"/>
-          <CheckBox x:Name="LogBox" Grid.Row="0" Grid.Column="1" Content="{Binding Labels.LogOperations}" IsChecked="{Binding LogOperations, Mode=TwoWay}"/>
-          <CheckBox x:Name="UpdatesBox" Grid.Row="1" Grid.Column="1" Grid.RowSpan="2" VerticalAlignment="Top" Content="{Binding Labels.CheckUpdates}" IsChecked="{Binding CheckUpdates, Mode=TwoWay}"/>
-          <CheckBox x:Name="AutoSizesBox" Grid.Row="4" Grid.Column="0" Grid.ColumnSpan="2" Content="{Binding Labels.AutoFolderSizes}" IsChecked="{Binding AutoFolderSizes, Mode=TwoWay}"/>
-        </Grid>
-        <Grid ColumnDefinitions="Auto,120" ColumnSpacing="8">
-          <TextBlock Grid.Column="0" VerticalAlignment="Center" Text="{Binding Labels.PreviewStart}"/>
-          <NumericUpDown x:Name="PreviewStartBox" Grid.Column="1" Minimum="0" Maximum="86400" Increment="1" FormatString="0" Value="{Binding PreviewStartSeconds, Mode=TwoWay}"/>
-        </Grid>
-        <TextBlock Text="{Binding Labels.Editor}"/>
-        <TextBox x:Name="EditorBox" Text="{Binding Editor, Mode=TwoWay}"/>
-        <TextBlock Text="{Binding Labels.Terminal}"/>
-        <TextBox x:Name="TerminalBox" Text="{Binding Terminal, Mode=TwoWay}"/>
-        <s:ColumnSetsEditor x:Name="ColumnSetsSection" DataContext="{Binding ColumnSets}"/>
-        <s:FavoriteTabsEditor x:Name="FavoritesSection" DataContext="{Binding Favorites}"/>
-        <s:AssociationsEditor x:Name="AssociationsSection" DataContext="{Binding Associations}"/>
-        <s:ToolbarEditor x:Name="ToolbarSection" DataContext="{Binding Toolbar}"/>
-        <TextBlock Text="{Binding Labels.IndexRoots}"/>
-        <TextBox x:Name="IndexRootsBox" Text="{Binding IndexRoots, Mode=TwoWay}"/>
-        <TextBlock Text="{Binding Labels.IndexExcludes}"/>
-        <TextBox x:Name="IndexExcludesBox" Text="{Binding IndexExcludes, Mode=TwoWay}"/>
-        <Grid ColumnDefinitions="Auto,120" ColumnSpacing="8">
-          <TextBlock Grid.Column="0" VerticalAlignment="Center" Text="{Binding Labels.IndexHours}"/>
-          <NumericUpDown x:Name="IndexHoursBox" Grid.Column="1" Minimum="0" Maximum="8760" Increment="1" FormatString="0" Value="{Binding IndexRefreshHours, Mode=TwoWay}"/>
-        </Grid>
-        <TextBlock Text="{Binding Labels.UserCommands}"/>
-        <Grid ColumnDefinitions="*,Auto" ColumnSpacing="8">
-          <ListBox x:Name="CommandList" Grid.Column="0" Height="80" ItemsSource="{Binding Commands}" SelectedItem="{Binding SelectedCommand, Mode=TwoWay}">
-            <ListBox.ItemTemplate>
-              <DataTemplate x:DataType="s:UserCommandRow">
-                <TextBlock Text="{Binding Display}"/>
-              </DataTemplate>
-            </ListBox.ItemTemplate>
-          </ListBox>
-          <StackPanel Grid.Column="1" Spacing="4">
-            <Button x:Name="AddButton" Content="{Binding Labels.Add}" Command="{Binding AddCommandCommand}"/>
-            <Button x:Name="EditButton" Content="{Binding Labels.Edit}" Command="{Binding EditCommandCommand}"/>
-            <Button x:Name="RemoveButton" Content="{Binding Labels.Remove}" Command="{Binding RemoveCommandCommand}"/>
-          </StackPanel>
-        </Grid>
-        <Grid ColumnDefinitions="Auto,*,Auto" ColumnSpacing="8">
-          <TextBlock Grid.Column="0" VerticalAlignment="Center" Text="{Binding Labels.Folder}"/>
-          <TextBlock x:Name="FolderLabel" Grid.Column="1" VerticalAlignment="Center" TextTrimming="CharacterEllipsis" Text="{Binding FolderText}"/>
-          <Button x:Name="FolderButton" Grid.Column="2" Content="{Binding Labels.ChangeFolder}" Command="{Binding ChangeFolderCommand}"/>
-        </Grid>
-      </StackPanel>
-    </ScrollViewer>
+      </Grid>
+    </Grid>
     <Grid Grid.Row="1" ColumnDefinitions="*,Auto,Auto,Auto" ColumnSpacing="8">
       <TextBlock x:Name="NoteText" Grid.Column="0" VerticalAlignment="Center" TextWrapping="Wrap" Text="{Binding Note}"/>
-      <Button x:Name="OkButton" Grid.Column="1" Content="{Binding Labels.Ok}" Command="{Binding OkCommand}"/>
-      <Button x:Name="ApplyButton" Grid.Column="2" Content="{Binding Labels.Apply}" Command="{Binding ApplyCommand}"/>
-      <Button x:Name="CancelButton" Grid.Column="3" Content="{Binding Labels.Cancel}" Command="{Binding CancelCommand}"/>
+      <Button x:Name="OkButton" Grid.Column="1" MinWidth="80" HorizontalContentAlignment="Center" Content="{Binding Labels.Ok}" Command="{Binding OkCommand}"/>
+      <Button x:Name="ApplyButton" Grid.Column="2" MinWidth="80" HorizontalContentAlignment="Center" Content="{Binding Labels.Apply}" Command="{Binding ApplyCommand}"/>
+      <Button x:Name="CancelButton" Grid.Column="3" MinWidth="80" HorizontalContentAlignment="Center" Content="{Binding Labels.Cancel}" Command="{Binding CancelCommand}"/>
     </Grid>
   </Grid>
 </UserControl>
