@@ -6,9 +6,8 @@ operating system's light or dark setting.
 
 ## Status
 
-The app is being rebuilt in C# (version 0.3.0, in progress). The first version, written in
-Rust, is no longer in this tree; its last release is v0.1.x on the releases page and its code
-stays in the git history.
+The app is being rebuilt in C# (version 0.3, in progress). The first version, written in Rust,
+is no longer in this tree; its code stays in the git history.
 
 What works today:
 
@@ -55,8 +54,9 @@ What is planned beyond that: [docs/ROADMAP.md](docs/ROADMAP.md).
 
 ## Install
 
-Take the file for your system from the releases page (the packages are built on the owner's
-machine, see [Packages](#packages); nothing is built on GitHub). The .NET runtime is included.
+Take the file for your system from the
+[releases page](https://github.com/neijix/D3SKCOMMANDER/releases/latest) (the packages are built
+on the owner's machine, see [Packages](#packages); GitHub only runs the tests). The .NET runtime is included.
 
 | System | File |
 |---|---|
@@ -163,12 +163,13 @@ Pillow) draws its symbol into `packaging/icons/`.
 
 ### CI
 
-`./check.sh` runs locally before every commit; there is no per-push CI. The same gate runs on
-Linux, Windows and macOS on demand, on the standard GitHub-hosted runners (`ubuntu-latest`,
-`windows-latest`, `macos-latest`): `gh workflow run ci.yml`, or `-f os='["Windows"]'` to pick
-the OSes, then `gh run watch`. The repository is public, so those runners are free. The workflow
-stays on `workflow_dispatch` (write access required) and has no `pull_request` trigger. Packages
-are never built by a workflow: `./release.sh` builds them locally.
+`./check.sh` runs locally before every commit. The same gate runs on Linux, Windows and macOS on
+the standard GitHub-hosted runners (`ubuntu-latest`, `windows-latest`, `macos-latest`) on every
+push to `master`, and on demand: `gh workflow run ci.yml`, or `-f os='["Windows"]'` to pick the
+OSes, then `gh run watch`. The repository is public, so those runners are free. Only a push and
+the Run workflow button (both need write access) start it; there is no `pull_request` trigger,
+so a fork never reaches the `PACKAGES_READ_TOKEN` secret (a `read:packages` token for the private
+`D3sk.*` packages). Packages are never built by a workflow: `./release.sh` builds them locally.
 
 ### Build token
 

@@ -1,13 +1,16 @@
-# The gate (csharp/check.sh) on standard GitHub-hosted runners, on demand:
-# `gh workflow run ci.yml` (every OS) or `-f os='["Windows"]'`, then `gh run watch`.
+# The gate (csharp/check.sh) on standard GitHub-hosted runners, on every push to master
+# (all three OSes) and on demand: `gh workflow run ci.yml` (every OS) or
+# `-f os='["Windows"]'`, then `gh run watch`.
 # The repository is public, so ubuntu-latest, windows-latest and macos-latest are free
 # and do not draw on the account's included compute. No self-hosted runner is used.
-# workflow_dispatch only: the Run workflow button needs write access. There is no
+# Only a push (write access) and the Run workflow button start it. There is no
 # pull_request trigger, so a fork cannot start a job or read PACKAGES_READ_TOKEN.
 # Packages are never built here: ./release.sh builds them locally into dist/.
 name: ci
 
 on:
+  push:
+    branches: [master]
   workflow_dispatch:
     inputs:
       os:
@@ -20,7 +23,7 @@ permissions:
   packages: read
 
 concurrency:
-  group: ci
+  group: ci-${{ github.ref }}
   cancel-in-progress: true
 
 jobs:
@@ -28,7 +31,8 @@ jobs:
     strategy:
       fail-fast: false
       matrix:
-        os: ${{ fromJSON(inputs.os) }}
+        # A push has no inputs: every OS.
+        os: ${{ fromJSON(inputs.os || '["Linux","Windows","macOS"]') }}
     runs-on: ${{ matrix.os == 'Linux' && 'ubuntu-latest' || matrix.os == 'Windows' && 'windows-latest' || 'macos-latest' }}
     # A hung test must end the job (its log then names the long-running test).
     timeout-minutes: 30
