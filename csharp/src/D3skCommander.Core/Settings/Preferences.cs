@@ -48,7 +48,11 @@ public sealed class Preferences
     /// <summary>v0.1 <c>Lang::from_env</c>: the saved language, otherwise the system language.</summary>
     public Language Language { get; set; } = Languages.Detect();
 
+    /// <summary>v0.1 <c>dark_mode</c>, kept so old files load; the window colours follow <see cref="Theme"/>.</summary>
     public bool DarkMode { get; set; } = true;
+
+    /// <summary>Light, dark, or the OS setting (the default).</summary>
+    public ThemeMode Theme { get; set; } = ThemeMode.System;
 
     public float FontSize { get; set; } = DefaultFontSize;
 

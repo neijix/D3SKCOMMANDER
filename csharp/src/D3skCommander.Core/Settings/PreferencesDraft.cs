@@ -31,6 +31,7 @@ public static class PreferencesDraft
 
     private static bool SameScalars(Preferences a, Preferences b) =>
         a.Language == b.Language
+        && a.Theme == b.Theme
         && a.FontSize.Equals(b.FontSize)
         && a.ShowHidden == b.ShowHidden
         && a.UseTrash == b.UseTrash

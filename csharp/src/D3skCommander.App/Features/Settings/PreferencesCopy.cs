@@ -12,6 +12,7 @@ public static class PreferencesCopy
         {
             Language = source.Language,
             DarkMode = source.DarkMode,
+            Theme = source.Theme,
             FontSize = source.FontSize,
             ShowHidden = source.ShowHidden,
             ShowDriveBar = source.ShowDriveBar,

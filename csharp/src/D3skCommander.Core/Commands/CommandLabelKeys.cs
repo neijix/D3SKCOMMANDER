@@ -121,6 +121,9 @@ internal static class CommandLabelKeys
         "cmd.open_in_new_tab",
         "cmd.open_in_other_panel",
         "cmd.preview_panel",
+        "cmd.theme_system",
+        "cmd.theme_light",
+        "cmd.theme_dark",
     ];
 
     private static string[] Merge(string[] early, string[] late)

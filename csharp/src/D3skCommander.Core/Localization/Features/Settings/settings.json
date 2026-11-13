@@ -1,4 +1,20 @@
 {
+  "settings.theme": {
+    "en": "Theme",
+    "fr": "Thème"
+  },
+  "settings.theme_system": {
+    "en": "Follow the system",
+    "fr": "Suivre le système"
+  },
+  "settings.theme_light": {
+    "en": "Light",
+    "fr": "Clair"
+  },
+  "settings.theme_dark": {
+    "en": "Dark",
+    "fr": "Sombre"
+  },
   "settings.language_en": {
     "en": "English",
     "fr": "English"

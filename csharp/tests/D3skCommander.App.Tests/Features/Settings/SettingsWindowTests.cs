@@ -135,6 +135,23 @@ public class SettingsWindowTests
     }
 
     [AvaloniaFact]
+    public void TheThemeChoiceStartsAtTheSavedModeAndIsSaved()
+    {
+        using var harness = new SettingsHarness();
+        var model = harness.NewView();
+        Assert.Equal(0, model.ThemeIndex);
+        Assert.Equal(3, model.Themes.Count);
+
+        model.ThemeIndex = 2;
+        Assert.True(model.IsDirty);
+        model.Apply();
+
+        Assert.Equal(D3skCommander.Core.Settings.ThemeMode.Dark, harness.Settings.Preferences.Current.Theme);
+        Assert.Equal(2, harness.NewView().ThemeIndex);
+        Avalonia.Application.Current!.RequestedThemeVariant = Avalonia.Styling.ThemeVariant.Default;
+    }
+
+    [AvaloniaFact]
     public void TheAutoFolderSizesToggleIsSaved()
     {
         using var harness = new SettingsHarness();

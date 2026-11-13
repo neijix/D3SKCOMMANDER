@@ -29,12 +29,14 @@
         <TextBlock x:Name="PageTitle" Grid.Row="0" FontSize="20" FontWeight="SemiBold" Text="{Binding SelectedCategory.Name}"/>
         <Grid Grid.Row="1">
           <ScrollViewer x:Name="GeneralPage" HorizontalScrollBarVisibility="Disabled" IsVisible="{Binding SelectedCategory.Id, Converter={x:Static ObjectConverters.Equal}, ConverterParameter=general}">
-            <Grid Classes="form" ColumnDefinitions="190,*" RowDefinitions="Auto,Auto,Auto" ColumnSpacing="12" RowSpacing="12" Margin="0,0,12,0">
+            <Grid Classes="form" ColumnDefinitions="190,*" RowDefinitions="Auto,Auto,Auto,Auto" ColumnSpacing="12" RowSpacing="12" Margin="0,0,12,0">
               <TextBlock Classes="label" Grid.Row="0" Text="{Binding Labels.Language}"/>
               <ComboBox x:Name="LanguageBox" Grid.Row="0" Grid.Column="1" Width="220" ItemsSource="{Binding Languages}" SelectedIndex="{Binding LanguageIndex, Mode=TwoWay}"/>
-              <TextBlock Classes="label" Grid.Row="1" Text="{Binding Labels.FontSize}"/>
-              <NumericUpDown x:Name="FontBox" Grid.Row="1" Grid.Column="1" Minimum="8" Maximum="40" Increment="1" FormatString="0" Value="{Binding FontSize, Mode=TwoWay}"/>
-              <CheckBox x:Name="UpdatesBox" Grid.Row="2" Content="{Binding Labels.CheckUpdates}" IsChecked="{Binding CheckUpdates, Mode=TwoWay}"/>
+              <TextBlock Classes="label" Grid.Row="1" Text="{Binding Labels.Theme}"/>
+              <ComboBox x:Name="ThemeBox" Grid.Row="1" Grid.Column="1" Width="220" ItemsSource="{Binding Themes}" SelectedIndex="{Binding ThemeIndex, Mode=TwoWay}"/>
+              <TextBlock Classes="label" Grid.Row="2" Text="{Binding Labels.FontSize}"/>
+              <NumericUpDown x:Name="FontBox" Grid.Row="2" Grid.Column="1" Minimum="8" Maximum="40" Increment="1" FormatString="0" Value="{Binding FontSize, Mode=TwoWay}"/>
+              <CheckBox x:Name="UpdatesBox" Grid.Row="3" Content="{Binding Labels.CheckUpdates}" IsChecked="{Binding CheckUpdates, Mode=TwoWay}"/>
             </Grid>
           </ScrollViewer>
           <ScrollViewer x:Name="PanelsPage" HorizontalScrollBarVisibility="Disabled" IsVisible="{Binding SelectedCategory.Id, Converter={x:Static ObjectConverters.Equal}, ConverterParameter=panels}">

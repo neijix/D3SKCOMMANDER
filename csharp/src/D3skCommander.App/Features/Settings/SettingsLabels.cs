@@ -34,9 +34,21 @@ public sealed class SettingsLabels
         Cancel = text.Get("cancel");
         LanguageEnglish = text.Get("settings.language_en");
         LanguageFrench = text.Get("settings.language_fr");
+        Theme = text.Get("settings.theme");
+        ThemeSystem = text.Get("settings.theme_system");
+        ThemeLight = text.Get("settings.theme_light");
+        ThemeDark = text.Get("settings.theme_dark");
     }
 
     public string Language { get; }
+
+    public string Theme { get; }
+
+    public string ThemeSystem { get; }
+
+    public string ThemeLight { get; }
+
+    public string ThemeDark { get; }
 
     public string FontSize { get; }
 

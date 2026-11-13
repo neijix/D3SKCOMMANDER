@@ -438,5 +438,17 @@
   "cmd.preview_panel": {
     "en": "Preview mode (this panel)",
     "fr": "Mode aperçu (ce panneau)"
+  },
+  "cmd.theme_system": {
+    "en": "Theme: follow the system",
+    "fr": "Thème : suivre le système"
+  },
+  "cmd.theme_light": {
+    "en": "Light theme",
+    "fr": "Thème clair"
+  },
+  "cmd.theme_dark": {
+    "en": "Dark theme",
+    "fr": "Thème sombre"
   }
 }

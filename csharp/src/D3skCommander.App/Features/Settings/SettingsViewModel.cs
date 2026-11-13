@@ -15,7 +15,7 @@ namespace D3skCommander.App.Features.Settings;
 
 /// <summary>
 /// The settings window's draft of <see cref="Preferences"/>. Apply copies the stored preferences, sets
-/// the fields shown here and saves; the dark-mode field is not shown (the app follows the OS theme).
+/// the fields shown here and saves; the v0.1 dark-mode field is not shown (<see cref="Preferences.Theme"/> is).
 /// </summary>
 public sealed partial class SettingsViewModel : ObservableObject, IShellWidget
 {
@@ -31,6 +31,10 @@ public sealed partial class SettingsViewModel : ObservableObject, IShellWidget
 
     [ObservableProperty]
     private int _languageIndex;
+
+    /// <summary>Index in <see cref="Themes"/>, in <see cref="ThemeMode"/> order.</summary>
+    [ObservableProperty]
+    private int _themeIndex;
 
     [ObservableProperty]
     private decimal? _fontSize;
@@ -184,6 +188,8 @@ public sealed partial class SettingsViewModel : ObservableObject, IShellWidget
 
     public IReadOnlyList<string> Languages => [Labels.LanguageEnglish, Labels.LanguageFrench];
 
+    public IReadOnlyList<string> Themes => [Labels.ThemeSystem, Labels.ThemeLight, Labels.ThemeDark];
+
     public string FolderText => _text.Get("settings.folder_current").Replace("{path}", _settings.Directory, StringComparison.Ordinal);
 
     /// <summary>Raised by OK: the window closes itself.</summary>
@@ -196,6 +202,7 @@ public sealed partial class SettingsViewModel : ObservableObject, IShellWidget
     {
         var next = PreferencesCopy.Of(_settings.Preferences.Current);
         next.Language = LanguageIndex == 1 ? Language.Fr : Language.En;
+        next.Theme = ThemeModes.All[Math.Clamp(ThemeIndex, 0, ThemeModes.All.Count - 1)];
         next.FontSize = (float)Math.Clamp(FontSize ?? (decimal)Preferences.DefaultFontSize, MinFontSize, MaxFontSize);
         next.ShowHidden = ShowHidden;
         next.UseTrash = UseTrash;
@@ -330,6 +337,7 @@ public sealed partial class SettingsViewModel : ObservableObject, IShellWidget
     private void Load(Preferences current)
     {
         LanguageIndex = current.Language == Language.Fr ? 1 : 0;
+        ThemeIndex = Math.Max(0, ThemeModes.All.ToList().IndexOf(current.Theme));
         FontSize = (decimal)current.FontSize;
         ShowHidden = current.ShowHidden;
         UseTrash = current.UseTrash;

@@ -113,4 +113,7 @@ public enum CommandId
     OpenInNewTab,
     OpenInOtherPanel,
     PreviewPanel,
+    ThemeSystem,
+    ThemeLight,
+    ThemeDark,
 }

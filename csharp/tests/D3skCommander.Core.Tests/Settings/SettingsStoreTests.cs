@@ -25,6 +25,7 @@ public class SettingsStoreTests
         {
             Language = Language.Fr,
             DarkMode = false,
+            Theme = ThemeMode.Dark,
             FontSize = 15.5f,
             ShowHidden = true,
             UseTrash = false,
@@ -341,6 +342,7 @@ public class SettingsStoreTests
     {
         Assert.Equal(Languages.Detect(), preferences.Language);
         Assert.True(preferences.DarkMode);
+        Assert.Equal(ThemeMode.System, preferences.Theme);
         Assert.Equal(Preferences.DefaultFontSize, preferences.FontSize);
         Assert.False(preferences.ShowHidden);
         Assert.True(preferences.UseTrash);
@@ -371,6 +373,7 @@ public class SettingsStoreTests
     {
         Assert.Equal(expected.Language, actual.Language);
         Assert.Equal(expected.DarkMode, actual.DarkMode);
+        Assert.Equal(expected.Theme, actual.Theme);
         Assert.Equal(expected.FontSize, actual.FontSize);
         Assert.Equal(expected.ShowHidden, actual.ShowHidden);
         Assert.Equal(expected.UseTrash, actual.UseTrash);
