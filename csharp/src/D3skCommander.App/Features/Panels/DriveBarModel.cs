@@ -1,16 +1,17 @@
 using D3skCommander.App.Features.Drives;
 using D3skCommander.Core.FileSystem;
 using D3skCommander.Core.Localization;
+using D3skCommander.Core.Panels;
 using D3skCommander.Core.Settings;
 
 namespace D3skCommander.App.Features.Panels;
 
 /// <summary>
-/// One button of the drive bar: a drive (a network one when <see cref="Network"/> is set), or a favorite folder when
+/// One button of the drive bar: Home (<see cref="Home"/>, first, held at <c>computer:</c>), a drive (a network one when <see cref="Network"/> is set), or a favorite folder when
 /// <see cref="Favorite"/> is set. <see cref="Holds"/>
 /// marks the drive that holds the panel's folder.
 /// </summary>
-public sealed record DriveButton(string Path, string Text, string Tip, bool Holds, bool Favorite = false, bool Network = false);
+public sealed record DriveButton(string Path, string Text, string Tip, bool Holds, bool Favorite = false, bool Network = false, bool Home = false);
 
 /// <summary>
 /// The buttons above a panel. The volumes are polled on a worker every few seconds; <see cref="Update"/>
@@ -60,7 +61,10 @@ public sealed class DriveBarModel
         _path = path;
         _favorites = favorites.Select(item => (item.Name, item.Path)).ToArray();
         var holder = DriveList.Holding(drives, path);
-        var next = new List<DriveButton>(drives.Count + favorites.Count);
+        var next = new List<DriveButton>(drives.Count + favorites.Count + 1)
+        {
+            new(ComputerAddress.Text, _text.Get("computer.menu"), _text.Get("computer.menu"), ComputerAddress.IsAddress(path), Home: true),
+        };
         foreach (var drive in drives)
         {
             next.Add(new DriveButton(drive.Path, DriveList.ShortName(drive.Path), TipOf(drive), ReferenceEquals(drive, holder), Network: drive.Network));

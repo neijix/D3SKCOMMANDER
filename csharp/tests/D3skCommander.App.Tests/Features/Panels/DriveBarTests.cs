@@ -24,12 +24,12 @@ public class DriveBarTests
         using var rig = await Rig.Opened();
 
         var buttons = rig.View.DriveButtons;
-        Assert.Equal(2, buttons.Count);
-        Assert.Equal(rig.FolderB, (string?)buttons[1].Tag);
-        Assert.Contains("held", buttons[0].Classes);
-        Assert.DoesNotContain("held", buttons[1].Classes);
-        Assert.Contains(rig.FolderA, ToolTip.GetTip(buttons[0])?.ToString());
-        Assert.Contains("free of", ToolTip.GetTip(buttons[0])?.ToString());
+        Assert.Equal(3, buttons.Count);
+        Assert.Equal(rig.FolderB, (string?)buttons[2].Tag);
+        Assert.Contains("held", buttons[1].Classes);
+        Assert.DoesNotContain("held", buttons[2].Classes);
+        Assert.Contains(rig.FolderA, ToolTip.GetTip(buttons[1])?.ToString());
+        Assert.Contains("free of", ToolTip.GetTip(buttons[1])?.ToString());
     }
 
     [AvaloniaFact]
@@ -37,11 +37,11 @@ public class DriveBarTests
     {
         using var rig = await Rig.Opened();
 
-        rig.View.DriveButtons[1].RaiseEvent(new RoutedEventArgs(Button.ClickEvent));
+        rig.View.DriveButtons[2].RaiseEvent(new RoutedEventArgs(Button.ClickEvent));
         await rig.WaitUntil(() => rig.Workspace.Read(PanelSide.Left).Path == rig.FolderB);
-        await rig.WaitUntil(() => rig.View.DriveButtons[1].Classes.Contains("held"));
+        await rig.WaitUntil(() => rig.View.DriveButtons[2].Classes.Contains("held"));
 
-        Assert.DoesNotContain("held", rig.View.DriveButtons[0].Classes);
+        Assert.DoesNotContain("held", rig.View.DriveButtons[1].Classes);
     }
 
     [AvaloniaFact]
@@ -74,21 +74,39 @@ public class DriveBarTests
     {
         var bar = new DriveBarModel(new FakeDrives(new DriveEntry("/a", "Alpha", "ext4", 10, 100)), TextCatalog.Load(Language.En, Language.En));
         List<HotlistItem> favorites = [new("Projects", "/a/projects"), new("", "/a/music/")];
-        for (var i = 0; i < 200 && bar.Buttons.Count < 3; i++)
+        for (var i = 0; i < 200 && bar.Buttons.Count < 4; i++)
         {
             bar.Update("/a", favorites);
             await Task.Delay(10, TestContext.Current.CancellationToken);
         }
 
-        Assert.Equal(["/a", "/a/projects", "/a/music/"], bar.Buttons.Select(b => b.Path));
-        Assert.Equal([false, true, true], bar.Buttons.Select(b => b.Favorite));
-        Assert.Equal("Projects", bar.Buttons[1].Text);
-        Assert.Equal("music", bar.Buttons[2].Text);
+        Assert.Equal(["computer:", "/a", "/a/projects", "/a/music/"], bar.Buttons.Select(b => b.Path));
+        Assert.Equal([false, false, true, true], bar.Buttons.Select(b => b.Favorite));
+        Assert.Equal("Projects", bar.Buttons[2].Text);
+        Assert.Equal("music", bar.Buttons[3].Text);
 
         favorites[0].Name = "Work";
         Assert.True(bar.Update("/a", favorites));
-        Assert.Equal("Work", bar.Buttons[1].Text);
+        Assert.Equal("Work", bar.Buttons[2].Text);
         Assert.False(bar.Update("/a", favorites));
+    }
+
+    [AvaloniaFact]
+    public async Task HomeComesFirstWithTheHouseAndIsHeldOnlyAtHome()
+    {
+        using var rig = await Rig.Opened();
+
+        var home = rig.View.DriveButtons[0];
+        Assert.Equal("computer:", (string?)home.Tag);
+        Assert.Contains("home", home.Classes);
+        Assert.DoesNotContain("held", home.Classes);
+        Assert.Equal("Home", Avalonia.Automation.AutomationProperties.GetName(home));
+
+        var bar = new DriveBarModel(new FakeDrives(), TextCatalog.Load(Language.Fr, Language.En));
+        Assert.True(bar.Update("computer:"));
+        Assert.Equal(new DriveButton("computer:", "Accueil", "Accueil", Holds: true, Home: true), Assert.Single(bar.Buttons));
+        Assert.True(bar.Update("/a"));
+        Assert.False(bar.Buttons[0].Holds);
     }
 
     [Fact]
@@ -97,13 +115,13 @@ public class DriveBarTests
         var bar = new DriveBarModel(
             new FakeDrives(new DriveEntry("/", "/", "ext4", 10, 100), new DriveEntry("/mnt/nas", "nas", "cifs", 10, 100, Network: true)),
             TextCatalog.Load(Language.En, Language.En));
-        for (var i = 0; i < 200 && bar.Buttons.Count < 2; i++)
+        for (var i = 0; i < 200 && bar.Buttons.Count < 3; i++)
         {
             bar.Update("/");
             await Task.Delay(10, TestContext.Current.CancellationToken);
         }
 
-        Assert.Equal([false, true], bar.Buttons.Select(b => b.Network));
+        Assert.Equal([false, false, true], bar.Buttons.Select(b => b.Network));
     }
 
     private sealed class FakeDrives(params DriveEntry[] list) : IDriveSource
@@ -157,7 +175,7 @@ public class DriveBarTests
             var rig = new Rig(a, b);
             await rig.Workspace.OpenAsync(a, a, TestContext.Current.CancellationToken);
             rig._window.Show();
-            await rig.WaitUntil(() => rig.View.DriveButtons.Count == 2);
+            await rig.WaitUntil(() => rig.View.DriveButtons.Count == 3);
             return rig;
         }
 

@@ -51,6 +51,7 @@ public sealed partial class PanelPaneView
             button.Classes.Set("held", item.Holds);
             button.Classes.Set("favorite", item.Favorite);
             button.Classes.Set("network", item.Network);
+            button.Classes.Set("home", item.Home);
             ToolTip.SetTip(button, item.Tip);
             AutomationProperties.SetName(button, item.Text);
             var path = item.Path;
@@ -70,7 +71,7 @@ public sealed partial class PanelPaneView
         }
     }
 
-    // A favorite shows the gold star before its name; a drive, a disk or network glyph in the button's colour before its letter.
+    // A favorite shows the gold star before its name; Home, the house; a drive, a disk or network glyph in the button's colour before its letter.
     private static StackPanel ContentOf(DriveButton item, Button button)
     {
         Control icon;
@@ -80,7 +81,7 @@ public sealed partial class PanelPaneView
         }
         else
         {
-            var glyph = new Avalonia.Controls.Shapes.Path { Data = PanelBarIcons.DriveGlyph(item.Network), Width = 16, Height = 16, Stretch = Stretch.None };
+            var glyph = new Avalonia.Controls.Shapes.Path { Data = PanelBarIcons.DriveGlyph(item.Network, item.Home), Width = 16, Height = 16, Stretch = Stretch.None };
             glyph.Bind(Shape.FillProperty, button.GetObservable(TemplatedControl.ForegroundProperty));
             icon = glyph;
         }
@@ -103,7 +104,7 @@ public sealed partial class PanelPaneView
         public static readonly SameShape Instance = new();
 
         public bool Equals(DriveButton? x, DriveButton? y) =>
-            x is not null && y is not null && x.Path == y.Path && x.Text == y.Text && x.Holds == y.Holds && x.Favorite == y.Favorite && x.Network == y.Network;
+            x is not null && y is not null && x.Path == y.Path && x.Text == y.Text && x.Holds == y.Holds && x.Favorite == y.Favorite && x.Network == y.Network && x.Home == y.Home;
 
         public int GetHashCode(DriveButton? obj) => obj?.Path.GetHashCode(StringComparison.Ordinal) ?? 0;
     }

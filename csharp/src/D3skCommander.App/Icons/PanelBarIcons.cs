@@ -31,8 +31,8 @@ public static class PanelBarIcons
         [CommandId.PreviewPanel] = Eye,
     };
 
-    /// <summary>The glyph before a drive bar button: a network drive or a local one.</summary>
-    public static Geometry DriveGlyph(bool network) => Geometry.Parse(network ? Network : Drive);
+    /// <summary>The glyph before a drive bar button: Home, a network drive or a local one.</summary>
+    public static Geometry DriveGlyph(bool network, bool home = false) => Geometry.Parse(home ? House : network ? Network : Drive);
 
     /// <summary>The glyph of a panel bar command, or null when it has none.</summary>
     public static Geometry? For(CommandId command) =>
