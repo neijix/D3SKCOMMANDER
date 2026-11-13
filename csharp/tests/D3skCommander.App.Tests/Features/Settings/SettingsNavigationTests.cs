@@ -23,6 +23,7 @@ public class SettingsNavigationTests
     private static readonly string[] ListEditorIds =
     [
         SettingsCategories.Columns,
+        SettingsCategories.Favorites,
         SettingsCategories.FavoriteTabs,
         SettingsCategories.FileAssociations,
         SettingsCategories.Toolbar,
@@ -31,7 +32,7 @@ public class SettingsNavigationTests
     [AvaloniaTheory]
     [InlineData(Language.En)]
     [InlineData(Language.Fr)]
-    public void TheSidebarListsTheElevenCategoriesInOrderWithLocalizedNames(Language language)
+    public void TheSidebarListsTheTwelveCategoriesInOrderWithLocalizedNames(Language language)
     {
         var text = Localizer.Load(settingsLanguage: language, systemLanguage: language);
         using var app = new App(text);
@@ -40,7 +41,7 @@ public class SettingsNavigationTests
         var list = Find<ListBox>(window, "CategoryList");
         var names = list.Items.OfType<SettingsCategoryItem>().ToList();
 
-        Assert.Equal(11, names.Count);
+        Assert.Equal(12, names.Count);
         Assert.Equal(SettingsCategories.All.Select(c => c.Id), names.Select(n => n.Id));
         Assert.Equal(SettingsCategories.All.Select(c => text.Get(c.NameKey)), names.Select(n => n.Name));
         Assert.Equal(SettingsCategories.General, ((SettingsCategoryItem)list.SelectedItem!).Id);
@@ -70,7 +71,7 @@ public class SettingsNavigationTests
         var window = app.OpenSettings();
         var list = Find<ListBox>(window, "CategoryList");
 
-        list.SelectedIndex = 7;
+        list.SelectedIndex = 8;
 
         Assert.Equal(SettingsCategories.Toolbar, Model(window).SelectedCategory.Id);
         Assert.True(Page(window, SettingsCategories.Toolbar).IsVisible);
@@ -171,6 +172,7 @@ public class SettingsNavigationTests
     [AvaloniaTheory]
     [InlineData(CommandId.EditColumnSets, SettingsCategories.Columns)]
     [InlineData(CommandId.CustomizeToolbar, SettingsCategories.Toolbar)]
+    [InlineData(CommandId.ManageFavorites, SettingsCategories.Favorites)]
     [InlineData(CommandId.ManageFavoriteTabs, SettingsCategories.FavoriteTabs)]
     [InlineData(CommandId.EditFileAssociations, SettingsCategories.FileAssociations)]
     public void ADeepLinkOpensOrSwitchesTheWindowToItsPage(CommandId command, string category)

@@ -23,6 +23,7 @@ public class SettingsFieldPagesTests
         (SettingsCategories.FileOperations, ["TrashBox", "ConfirmBox", "TrashFallbackBox", "LogBox"]),
         (SettingsCategories.Programs, ["EditorBox", "TerminalBox"]),
         (SettingsCategories.Columns, ["ColumnSetsSection"]),
+        (SettingsCategories.Favorites, ["HotlistSection"]),
         (SettingsCategories.FavoriteTabs, ["FavoritesSection"]),
         (SettingsCategories.FileAssociations, ["AssociationsSection"]),
         (SettingsCategories.Toolbar, ["ToolbarSection"]),

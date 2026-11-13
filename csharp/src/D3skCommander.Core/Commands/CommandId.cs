@@ -116,4 +116,5 @@ public enum CommandId
     ThemeSystem,
     ThemeLight,
     ThemeDark,
+    ManageFavorites,
 }

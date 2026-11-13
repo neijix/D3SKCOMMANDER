@@ -114,6 +114,7 @@ public sealed partial class SettingsViewModel : ObservableObject, IShellWidget
         ColumnSets = new ColumnSetsEditorModel(text, dialogs, settings.Preferences.Current.AllColumnSets());
         Associations = new AssociationsEditorModel(text, settings.Preferences.Current.Associations);
         Favorites = new FavoriteTabsEditorModel(text, dialogs, settings.FavoriteTabs.Current, settings.Preferences.Current.FavoriteTabsMode);
+        Hotlist = new HotlistEditorModel(text, dialogs, settings.Hotlist.Current);
         Load(settings.Preferences.Current);
         Toolbar = new ToolbarEditorModel(text, settings.Preferences.Current.Toolbar, UserCommandNames());
         Categories = [.. SettingsCategories.All.Select(c => new SettingsCategoryItem(c.Id, text.Get(c.NameKey)))];
@@ -126,6 +127,7 @@ public sealed partial class SettingsViewModel : ObservableObject, IShellWidget
         ColumnSets.DraftChanged += OnEditorChanged;
         Associations.DraftChanged += OnEditorChanged;
         Favorites.DraftChanged += OnEditorChanged;
+        Hotlist.DraftChanged += OnEditorChanged;
         Toolbar.DraftChanged += OnEditorChanged;
         _ready = true;
         RefreshDraftState();
@@ -147,6 +149,9 @@ public sealed partial class SettingsViewModel : ObservableObject, IShellWidget
 
     /// <summary>The Favorite tabs section: saved tab sets and the restore mode.</summary>
     public FavoriteTabsEditorModel Favorites { get; }
+
+    /// <summary>The Favorites section: the hotlist of folders and files to rename, remove and reorder.</summary>
+    public HotlistEditorModel Hotlist { get; }
 
     /// <summary>The Toolbar section: the buttons of the main toolbar.</summary>
     public ToolbarEditorModel Toolbar { get; }
@@ -173,7 +178,8 @@ public sealed partial class SettingsViewModel : ObservableObject, IShellWidget
                 _settings.Preferences.Current,
                 _settings.FavoriteTabs.Current,
                 BuildCandidate(),
-                Favorites.Result());
+                Favorites.Result())
+                || !Hotlist.Result().SameItems(_settings.Hotlist.Current);
         }
     }
 
@@ -240,6 +246,12 @@ public sealed partial class SettingsViewModel : ObservableObject, IShellWidget
             favorites))
         {
             _settings.FavoriteTabs.Save(favorites);
+        }
+
+        var hotlist = Hotlist.Result();
+        if (!hotlist.SameItems(_settings.Hotlist.Current))
+        {
+            _settings.Hotlist.Save(hotlist);
         }
 
         _settings.Preferences.Save(next);

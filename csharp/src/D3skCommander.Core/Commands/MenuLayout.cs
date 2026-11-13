@@ -78,6 +78,7 @@ internal static class MenuLayout
         CommandId.Hotlist,
         CommandId.AddHotlist,
         CommandId.AddToFavorites,
+        CommandId.ManageFavorites,
         CommandId.History,
         CommandId.GoToContainingFolder,
         null,

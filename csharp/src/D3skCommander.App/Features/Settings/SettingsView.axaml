@@ -66,6 +66,9 @@
           <Grid x:Name="ColumnsPage" IsVisible="{Binding SelectedCategory.Id, Converter={x:Static ObjectConverters.Equal}, ConverterParameter=columns}">
             <s:ColumnSetsEditor x:Name="ColumnSetsSection" DataContext="{Binding ColumnSets}"/>
           </Grid>
+          <Grid x:Name="FavoritesPage" IsVisible="{Binding SelectedCategory.Id, Converter={x:Static ObjectConverters.Equal}, ConverterParameter=favorites}">
+            <s:HotlistEditor x:Name="HotlistSection" DataContext="{Binding Hotlist}"/>
+          </Grid>
           <Grid x:Name="FavoriteTabsPage" IsVisible="{Binding SelectedCategory.Id, Converter={x:Static ObjectConverters.Equal}, ConverterParameter=favorite-tabs}">
             <s:FavoriteTabsEditor x:Name="FavoritesSection" DataContext="{Binding Favorites}"/>
           </Grid>

@@ -1,0 +1,24 @@
+<UserControl xmlns="https://github.com/avaloniaui"
+             xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+             xmlns:s="using:D3skCommander.App.Features.Settings"
+             x:Class="D3skCommander.App.Features.Settings.HotlistEditor"
+             x:DataType="s:HotlistEditorModel">
+  <Grid ColumnDefinitions="*,Auto" ColumnSpacing="8">
+    <Panel Grid.Column="0">
+      <ListBox x:Name="HotlistList" MinHeight="120" ItemsSource="{Binding Rows}" SelectedItem="{Binding SelectedRow, Mode=TwoWay}">
+        <ListBox.ItemTemplate>
+          <DataTemplate x:DataType="s:HotlistRow">
+            <TextBlock Text="{Binding Display}" TextTrimming="CharacterEllipsis" ToolTip.Tip="{Binding Path}"/>
+          </DataTemplate>
+        </ListBox.ItemTemplate>
+      </ListBox>
+      <TextBlock x:Name="HotlistEmpty" Foreground="Gray" Margin="10,8" IsHitTestVisible="False" IsVisible="{Binding IsEmpty}" Text="{Binding EmptyText}"/>
+    </Panel>
+    <StackPanel Grid.Column="1" Spacing="4">
+      <Button x:Name="HotlistRenameButton" HorizontalAlignment="Stretch" Content="{Binding RenameCaption}" Command="{Binding RenameCommand}"/>
+      <Button x:Name="HotlistRemoveButton" HorizontalAlignment="Stretch" Content="{Binding RemoveCaption}" Command="{Binding RemoveCommand}"/>
+      <Button x:Name="HotlistUpButton" HorizontalAlignment="Stretch" Content="{Binding UpCaption}" Command="{Binding MoveUpCommand}"/>
+      <Button x:Name="HotlistDownButton" HorizontalAlignment="Stretch" Content="{Binding DownCaption}" Command="{Binding MoveDownCommand}"/>
+    </StackPanel>
+  </Grid>
+</UserControl>

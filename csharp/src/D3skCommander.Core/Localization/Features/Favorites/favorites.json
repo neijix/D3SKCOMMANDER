@@ -66,5 +66,17 @@
   "favorites.mode_add": {
     "en": "Add after the open tabs",
     "fr": "Ajouter après les onglets ouverts"
+  },
+  "hotlist.title": {
+    "en": "Favorites",
+    "fr": "Favoris"
+  },
+  "hotlist.empty": {
+    "en": "No favorites yet.",
+    "fr": "Aucun favori pour l'instant."
+  },
+  "hotlist.remove": {
+    "en": "Remove",
+    "fr": "Retirer"
   }
 }

@@ -450,5 +450,9 @@
   "cmd.theme_dark": {
     "en": "Dark theme",
     "fr": "Thème sombre"
+  },
+  "cmd.manage_favorites": {
+    "en": "Manage favorites…",
+    "fr": "Gérer les favoris…"
   }
 }

@@ -45,7 +45,7 @@ public sealed class SettingsCommands
     {
         ArgumentNullException.ThrowIfNull(shell);
         shell.Handle(CommandId.Settings, () => _tools.Open(ToolKind.Settings));
-        foreach (var command in new[] { CommandId.EditColumnSets, CommandId.CustomizeToolbar, CommandId.ManageFavoriteTabs, CommandId.EditFileAssociations })
+        foreach (var command in new[] { CommandId.EditColumnSets, CommandId.CustomizeToolbar, CommandId.ManageFavorites, CommandId.ManageFavoriteTabs, CommandId.EditFileAssociations })
         {
             var category = SettingsCategories.ForCommand(command)!;
             shell.Handle(command, () =>

@@ -13,6 +13,7 @@ public static class SettingsCategories
     public const string FileOperations = "file-operations";
     public const string Programs = "programs";
     public const string Columns = "columns";
+    public const string Favorites = "favorites";
     public const string FavoriteTabs = "favorite-tabs";
     public const string FileAssociations = "file-associations";
     public const string Toolbar = "toolbar";
@@ -27,6 +28,7 @@ public static class SettingsCategories
         new(FileOperations, "settings.cat_file_ops"),
         new(Programs, "settings.cat_programs"),
         new(Columns, "settings.cat_columns"),
+        new(Favorites, "hotlist.title"),
         new(FavoriteTabs, "favorites.title"),
         new(FileAssociations, "assoc.title"),
         new(Toolbar, "toolbar.title"),
@@ -42,6 +44,7 @@ public static class SettingsCategories
         {
             CommandId.EditColumnSets => Columns,
             CommandId.CustomizeToolbar => Toolbar,
+            CommandId.ManageFavorites => Favorites,
             CommandId.ManageFavoriteTabs => FavoriteTabs,
             CommandId.EditFileAssociations => FileAssociations,
             _ => null,

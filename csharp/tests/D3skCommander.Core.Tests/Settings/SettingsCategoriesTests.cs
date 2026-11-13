@@ -9,10 +9,10 @@ namespace D3skCommander.Core.Tests.Settings;
 public class SettingsCategoriesTests
 {
     [Fact]
-    public void ElevenCategoriesInTheDesignOrder()
+    public void TwelveCategoriesInTheDesignOrder()
     {
         Assert.Equal(
-            ["general", "panels", "file-operations", "programs", "columns", "favorite-tabs",
+            ["general", "panels", "file-operations", "programs", "columns", "favorites", "favorite-tabs",
              "file-associations", "toolbar", "user-commands", "quick-find-index", "settings-folder"],
             SettingsCategories.All.Select(c => c.Id));
     }
@@ -20,8 +20,8 @@ public class SettingsCategoriesTests
     [Fact]
     public void IdsAndNameKeysAreUnique()
     {
-        Assert.Equal(11, SettingsCategories.All.Select(c => c.Id).Distinct().Count());
-        Assert.Equal(11, SettingsCategories.All.Select(c => c.NameKey).Distinct().Count());
+        Assert.Equal(12, SettingsCategories.All.Select(c => c.Id).Distinct().Count());
+        Assert.Equal(12, SettingsCategories.All.Select(c => c.NameKey).Distinct().Count());
     }
 
     [Theory]
@@ -43,12 +43,12 @@ public class SettingsCategoriesTests
     {
         var en = Localizer.Load(settingsLanguage: Language.En, systemLanguage: Language.En);
         Assert.Equal(
-            ["General", "Panels", "File operations", "Programs", "Columns", "Favorite tabs",
+            ["General", "Panels", "File operations", "Programs", "Columns", "Favorites", "Favorite tabs",
              "File associations", "Toolbar", "User commands", "Quick find index", "Settings folder"],
             SettingsCategories.All.Select(c => en.Get(c.NameKey, Language.En)));
         Assert.Equal("Onglets favoris", en.Get("favorites.title", Language.Fr));
-        Assert.Equal("Barre d'outils", en.Get(SettingsCategories.All[7].NameKey, Language.Fr));
-        Assert.Equal("Associations de fichiers", en.Get(SettingsCategories.All[6].NameKey, Language.Fr));
+        Assert.Equal("Barre d'outils", en.Get(SettingsCategories.All[8].NameKey, Language.Fr));
+        Assert.Equal("Associations de fichiers", en.Get(SettingsCategories.All[7].NameKey, Language.Fr));
     }
 
     [Fact]
@@ -56,6 +56,7 @@ public class SettingsCategoriesTests
     {
         Assert.Equal("columns", SettingsCategories.ForCommand(CommandId.EditColumnSets)?.Id);
         Assert.Equal("toolbar", SettingsCategories.ForCommand(CommandId.CustomizeToolbar)?.Id);
+        Assert.Equal("favorites", SettingsCategories.ForCommand(CommandId.ManageFavorites)?.Id);
         Assert.Equal("favorite-tabs", SettingsCategories.ForCommand(CommandId.ManageFavoriteTabs)?.Id);
         Assert.Equal("file-associations", SettingsCategories.ForCommand(CommandId.EditFileAssociations)?.Id);
     }
@@ -63,7 +64,7 @@ public class SettingsCategoriesTests
     [Fact]
     public void EveryOtherCommandHasNoCategory()
     {
-        CommandId[] linked = [CommandId.EditColumnSets, CommandId.CustomizeToolbar, CommandId.ManageFavoriteTabs, CommandId.EditFileAssociations];
+        CommandId[] linked = [CommandId.EditColumnSets, CommandId.CustomizeToolbar, CommandId.ManageFavorites, CommandId.ManageFavoriteTabs, CommandId.EditFileAssociations];
         foreach (var command in Enum.GetValues<CommandId>().Except(linked))
             Assert.Null(SettingsCategories.ForCommand(command));
     }

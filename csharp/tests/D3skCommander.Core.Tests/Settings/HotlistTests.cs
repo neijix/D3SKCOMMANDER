@@ -99,4 +99,26 @@ public class HotlistTests
 
         Assert.Equal(["B", "New"], hotlist.Items.Select(i => i.Name));
     }
+
+    [Fact]
+    public void ACloneIsRenamedMovedAndTrimmedWithoutTouchingTheOriginal()
+    {
+        var saved = new Hotlist { Items = [new HotlistItem("A", "/a"), new HotlistItem("B", "/b"), new HotlistItem("C", "/c")] };
+        var draft = saved.Clone();
+        Assert.True(draft.SameItems(saved));
+
+        Assert.True(draft.Rename(1, "  Bee "));
+        Assert.False(draft.Rename(1, "  "));
+        Assert.False(draft.Rename(5, "x"));
+        Assert.True(draft.Move(2, -2));
+        Assert.False(draft.Move(0, -1));
+        Assert.False(draft.Move(2, 1));
+        Assert.True(draft.RemoveAt(1));
+        Assert.False(draft.RemoveAt(-1));
+
+        Assert.Equal(["C", "Bee"], draft.Items.Select(i => i.Name));
+        Assert.Equal(["/c", "/b"], draft.Items.Select(i => i.Path));
+        Assert.Equal(["A", "B", "C"], saved.Items.Select(i => i.Name));
+        Assert.False(draft.SameItems(saved));
+    }
 }
