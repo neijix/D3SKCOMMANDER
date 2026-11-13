@@ -11,6 +11,7 @@ namespace D3skCommander.App.Features.Panels;
 public sealed partial class PanelPaneModel
 {
     private bool _treeShown;
+    private bool _treeRootsAsked;
     private string? _treePath;
     private int _treeGeneration = -1;
 
@@ -57,7 +58,14 @@ public sealed partial class PanelPaneModel
         TreeWidth = _panels.TreeWidth(_side);
         if (ComputerAddress.IsAddress(snap.Path))
         {
-            // Computer is no tree node: the tree keeps the last folder selected.
+            // Computer is no tree node: the tree keeps the last folder selected. A panel that starts
+            // there still needs the roots, which only a follow would read otherwise.
+            if (ShowTree && Tree.Roots.Count == 0 && !_treeRootsAsked)
+            {
+                _treeRootsAsked = true;
+                _ = Tree.LoadRootsAsync();
+            }
+
             return;
         }
 

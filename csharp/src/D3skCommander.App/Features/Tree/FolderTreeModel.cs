@@ -182,7 +182,7 @@ public sealed partial class FolderTreeModel : ObservableObject
         var list = new List<(string, string, FileKind)>();
         if (_home.Length > 0 && Directory.Exists(_home))
         {
-            list.Add((_text.Get("tree.home"), _home, FileKind.Folder));
+            list.Add((_text.Get("tree.home"), _home, FileKind.Home));
         }
 
         try

@@ -12,6 +12,9 @@ public enum FileKind
     Folder,
     Drive,
     NetworkDrive,
+
+    /// <summary>The user's home folder as a folder tree root (never a panel entry).</summary>
+    Home,
     Link,
     Archive,
     Image,

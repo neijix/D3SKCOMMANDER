@@ -18,6 +18,7 @@ using D3skCommander.Core.Commands;
 using D3skCommander.Core.FileKinds;
 using D3skCommander.Core.FileSystem;
 using D3skCommander.Core.Localization;
+using D3skCommander.Core.Panels;
 using D3skCommander.Core.Providers;
 using D3skCommander.Core.Settings;
 using D3skCommander.Core.Tree;
@@ -79,6 +80,17 @@ public class FolderTreeTests
         Assert.False(rig.Tree.Find(rig.Path("a", "b"))!.IsExpanded);
         Assert.Equal(["a", "z"], rig.Tree.Find(rig.Root)!.Children.Select(c => c.Name));
         Assert.Equal(PanelSide.Left, rig.Pane.Side);
+    }
+
+    [AvaloniaFact]
+    public async Task APanelThatStartsAtHomeStillReadsTheTreeRoots()
+    {
+        // Opened waits until the roots hold the temp drive: before the fix they stayed empty at Home.
+        using var rig = await Rig.Opened(ComputerAddress.Text);
+
+        Assert.True(ComputerAddress.IsAddress(rig.Workspace.Read(PanelSide.Left).Path));
+        Assert.Equal(FileKind.Home, rig.Tree.Roots[0].Icon);
+        Assert.Null(rig.Tree.Selected);
     }
 
     [AvaloniaFact]
@@ -172,7 +184,7 @@ public class FolderTreeTests
     }
 
     [AvaloniaFact]
-    public async Task DriveRootsShowADriveOrNetworkIconAndTheHomeAFolder()
+    public async Task DriveRootsShowADriveOrNetworkIconAndTheHomeAHouse()
     {
         var home = Directory.CreateTempSubdirectory("d3sk-tree-icons-").FullName;
         try
@@ -181,7 +193,7 @@ public class FolderTreeTests
             var tree = new FolderTreeModel(
                 new FolderTreeLoader(new LocalFileSystemProvider()), drives, TextCatalog.Load(Language.En, Language.En), () => false, _ => { }, home);
             await tree.LoadRootsAsync();
-            Assert.Equal([FileKind.Folder, FileKind.Drive, FileKind.NetworkDrive], tree.Roots.Select(r => r.Icon));
+            Assert.Equal([FileKind.Home, FileKind.Drive, FileKind.NetworkDrive], tree.Roots.Select(r => r.Icon));
         }
         finally
         {
@@ -256,13 +268,14 @@ public class FolderTreeTests
 
         public void Press(PhysicalKey key) => Host.KeyPressQwerty(key, RawInputModifiers.None);
 
-        public static async Task<Rig> Opened()
+        /// <summary>The left panel at <paramref name="left"/> (default: the temp root), its tree shown and its roots read.</summary>
+        public static async Task<Rig> Opened(string? left = null)
         {
             var root = Directory.CreateTempSubdirectory("d3sk-tree-app-").FullName;
             Directory.CreateDirectory(System.IO.Path.Combine(root, "a", "b"));
             Directory.CreateDirectory(System.IO.Path.Combine(root, "z"));
             var rig = new Rig(root);
-            await rig.Workspace.OpenAsync(root, root, TestContext.Current.CancellationToken);
+            await rig.Workspace.OpenAsync(left ?? root, root, TestContext.Current.CancellationToken);
             rig.Workspace.ToggleTree(PanelSide.Left);
             rig.Host.Show();
             await rig.WaitUntil(() => rig.Tree.Roots.Any(r => r.Path == root));

@@ -9,7 +9,7 @@ namespace D3skCommander.App.Icons;
 /// </summary>
 public static class PanelBarIcons
 {
-    private const string House = "M8,1.5 L15,8 h-2 v6 h-3.5 v-4 h-3 v4 h-3.5 v-6 h-2 z";
+    internal const string House = "M8,1.5 L15,8 h-2 v6 h-3.5 v-4 h-3 v4 h-3.5 v-6 h-2 z";
     private const string Drive = "F0 M1,3.5 h14 v9 h-14z M2.5,5 h11 v3.2 h-11z M10.6,9.6 h2.6 v1.5 h-2.6z";
     private const string Up = "M8,1.5 L14,7.5 L10.2,7.5 L10.2,14.5 L5.8,14.5 L5.8,7.5 L2,7.5 Z";
     private const string Star = "M8,1.1 L9.76,5.97 L14.94,6.14 L10.85,9.33 L12.29,14.31 L8,11.4 L3.71,14.31 L5.15,9.33 L1.06,6.14 L6.24,5.97 Z";
