@@ -10,7 +10,8 @@ public sealed record NetConnectRequest(
     Share? Share,
     Credentials? Credentials,
     string? Letter,
-    string? Problem);
+    string? Problem,
+    bool Remember = false);
 
 /// <summary>The connect dialog's fields, and the check of what was typed before anything runs.</summary>
 public sealed class NetConnectForm
@@ -23,18 +24,27 @@ public sealed class NetConnectForm
     private readonly TextDialogField _domain;
     private readonly TextDialogField _password;
     private readonly TextDialogField? _letter;
+    private readonly CheckDialogField? _remember;
+    private readonly bool _serverLogin;
     private DialogForm? _form;
 
-    public NetConnectForm(ILocalizer text, IReadOnlyList<string> recent, bool driveLetter)
+    /// <param name="serverLogin">A bare server may be typed, and its login kept by the OS credential store (Windows).</param>
+    public NetConnectForm(ILocalizer text, IReadOnlyList<string> recent, bool driveLetter, bool serverLogin = false)
     {
         ArgumentNullException.ThrowIfNull(text);
         ArgumentNullException.ThrowIfNull(recent);
         _text = text;
+        _serverLogin = serverLogin;
         _recent = recent.ToArray();
         _address = new TextDialogField(text.Get("net.address"));
         _user = new TextDialogField(text.Get("net.user"));
         _domain = new TextDialogField(text.Get("net.domain"));
-        _password = new TextDialogField(text.Get("net.password"), "", password: true);
+        _password = new TextDialogField(text.Get(serverLogin ? "net.password_plain" : "net.password"), "", password: true);
+        if (serverLogin)
+        {
+            _remember = new CheckDialogField(text.Get("net.remember"));
+        }
+
         if (driveLetter)
         {
             _letter = new TextDialogField(text.Get("net.letter"));
@@ -67,12 +77,17 @@ public sealed class NetConnectForm
         fields.Add(_user);
         fields.Add(_domain);
         fields.Add(_password);
+        if (_remember is not null)
+        {
+            fields.Add(_remember);
+        }
+
         if (_letter is not null)
         {
             fields.Add(_letter);
         }
 
-        fields.Add(new NoteDialogField(_text.Get("net.hint")));
+        fields.Add(new NoteDialogField(_text.Get(_serverLogin ? "net.hint_server" : "net.hint")));
         _form = new DialogForm(_text.Get("cmd.net_connect"), fields, _ => _address.Text.Trim().Length > 0);
         return _form;
     }
@@ -80,7 +95,7 @@ public sealed class NetConnectForm
     public NetConnectRequest Read()
     {
         var address = _address.Text.Trim();
-        var parsed = NetDrive.Parse(address);
+        var parsed = NetDrive.Parse(address, _serverLogin);
         if (!parsed.IsSuccess)
         {
             return Bad(address, _text.Get("net.bad_address") + "\n" + Describe(parsed.Error!.Message));
@@ -106,7 +121,18 @@ public sealed class NetConnectForm
         }
 
         var credentials = new Credentials(user.Length > 0 ? user : share.User ?? "", _domain.Text.Trim(), _password.Text);
-        return new NetConnectRequest(address, share, credentials, letter, null);
+        if (share.Name.Length == 0 && letter is not null)
+        {
+            return Bad(address, _text.Get("net.letter_needs_share"));
+        }
+
+        var remember = _remember is { IsChecked: true };
+        if (remember && credentials.User.Length == 0)
+        {
+            return Bad(address, _text.Get("net.remember_needs_user"));
+        }
+
+        return new NetConnectRequest(address, share, credentials, letter, null, remember);
     }
 
     private string Describe(string message)

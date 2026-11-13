@@ -75,6 +75,59 @@ public class NetDrivesCommandTests
     }
 
     [AvaloniaFact]
+    public async Task AServerAloneLogsInAndTheTickedLoginIsSaved()
+    {
+        using var harness = await Harness.Open();
+        harness.Runner.SupportsServerLogin = true;
+        var pending = harness.Commands.ConnectAsync();
+        var shown = await harness.Dialogs.WaitShownAsync();
+        var fields = shown.Form!.Fields.OfType<TextDialogField>().ToList();
+        fields[0].Text = "\\\\192.168.1.15\\";
+        fields[1].Text = "anna";
+        fields[3].Text = "s3cret-pass";
+        shown.Form.Fields.OfType<CheckDialogField>().Single().IsChecked = true;
+        harness.Dialogs.Answer(DialogResult.Ok());
+        await pending;
+
+        var call = Assert.Single(harness.Runner.Connects);
+        Assert.Equal("192.168.1.15", call.Share.Server);
+        Assert.Equal("", call.Share.Name);
+        Assert.Null(call.Letter);
+        var saved = Assert.Single(harness.Runner.Remembered);
+        Assert.Equal("192.168.1.15", saved.Server);
+        Assert.Equal("anna", saved.Credentials.User);
+    }
+
+    [AvaloniaFact]
+    public async Task AServerLoginNeedsAUserToBeSavedAndNoDriveLetter()
+    {
+        using var harness = await Harness.Open();
+        harness.Runner.SupportsServerLogin = true;
+        var pending = harness.Commands.ConnectAsync();
+        var shown = await harness.Dialogs.WaitShownAsync();
+        var fields = shown.Form!.Fields.OfType<TextDialogField>().ToList();
+        fields[0].Text = "\\\\nas";
+        fields[4].Text = "z";
+        harness.Dialogs.Answer(DialogResult.Ok());
+        var letter = await harness.Dialogs.WaitShownAsync();
+        Assert.Equal(harness.Text.Get("net.letter_needs_share"), letter.Text);
+        harness.Dialogs.Answer(DialogResult.Ok());
+        var again = await harness.Dialogs.WaitShownAsync();
+        again.Form!.Fields.OfType<TextDialogField>().ToList()[4].Text = "";
+        again.Form.Fields.OfType<CheckDialogField>().Single().IsChecked = true;
+        harness.Dialogs.Answer(DialogResult.Ok());
+        var user = await harness.Dialogs.WaitShownAsync();
+        Assert.Equal(harness.Text.Get("net.remember_needs_user"), user.Text);
+        harness.Dialogs.Answer(DialogResult.Ok());
+        await harness.Dialogs.WaitShownAsync();
+        harness.Dialogs.Answer(DialogResult.Cancel());
+        await pending;
+
+        Assert.Empty(harness.Runner.Connects);
+        Assert.Empty(harness.Runner.Remembered);
+    }
+
+    [AvaloniaFact]
     public async Task RecentAddressesAreOfferedAndFillTheAddress()
     {
         using var harness = await Harness.Open();
@@ -132,6 +185,16 @@ public class NetDrivesCommandTests
         public string Mount { get; set; } = "";
 
         public bool SupportsDriveLetter => true;
+
+        public bool SupportsServerLogin { get; set; }
+
+        public List<(string Server, Credentials Credentials)> Remembered { get; } = [];
+
+        public FileResult<string> Remember(string server, Credentials credentials)
+        {
+            Remembered.Add((server, credentials));
+            return FileResult<string>.Ok(server);
+        }
 
         public FileResult<string> Connect(Share share, Credentials credentials, string? letter)
         {

@@ -1,3 +1,4 @@
+using D3skCommander.Core.NetDrives;
 using D3skCommander.Core.Providers;
 
 namespace D3skCommander.Core.Panels;
@@ -52,7 +53,7 @@ public sealed class Location : IEquatable<Location>
     public override string ToString() => Path;
 
     /// <summary>
-    /// The folder above this one. A path root gives the Computer address, which has none; a
+    /// The folder above this one. A path root gives the Computer address, which has none (a Windows share root gives its server, <c>\\server\</c>); a
     /// location with its own provider (results, branch) ends at its real root as before.
     /// </summary>
     public Location? Parent()
@@ -60,6 +61,11 @@ public sealed class Location : IEquatable<Location>
         if (Provider is null && ComputerAddress.IsAddressOrUnder(Path))
         {
             return ComputerAddress.IsAddress(Path) ? null : new Location(ComputerAddress.Text);
+        }
+
+        if (Provider is null && OperatingSystem.IsWindows() && UncPath.ShareServer(Path) is { } server)
+        {
+            return new Location(UncPath.ServerRoot(server));
         }
 
         var parent = ParentPath(Path);

@@ -62,5 +62,29 @@
   "net.choose_disconnect": {
     "en": "Choose the network drive to disconnect.",
     "fr": "Choisissez le lecteur réseau à déconnecter."
+  },
+  "net.password_plain": {
+    "en": "Password",
+    "fr": "Mot de passe"
+  },
+  "net.remember": {
+    "en": "Remember this login in Windows Credential Manager",
+    "fr": "Mémoriser cette connexion dans le Gestionnaire d'identification Windows"
+  },
+  "net.hint_server": {
+    "en": "Examples: \\\\server (all its shares), \\\\server\\share, smb://user@server/share. Unticked, the password is not saved.",
+    "fr": "Exemples : \\\\serveur (tous ses partages), \\\\serveur\\partage, smb://utilisateur@serveur/partage. Non coché, le mot de passe n'est pas enregistré."
+  },
+  "net.letter_needs_share": {
+    "en": "A drive letter needs a share: \\\\server\\share.",
+    "fr": "Une lettre de lecteur demande un partage : \\\\serveur\\partage."
+  },
+  "net.remember_needs_user": {
+    "en": "Type a user name to remember this login.",
+    "fr": "Saisissez un nom d'utilisateur pour mémoriser cette connexion."
+  },
+  "net.remember_failed": {
+    "en": "Connected, but Windows did not save the login.",
+    "fr": "Connecté, mais Windows n'a pas enregistré la connexion."
   }
 }

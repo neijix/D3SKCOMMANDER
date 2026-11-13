@@ -2,6 +2,7 @@ using System.Runtime.CompilerServices;
 using D3skCommander.Core.Common;
 using D3skCommander.Core.FileSystem;
 using D3skCommander.Core.Localization;
+using D3skCommander.Core.NetDrives;
 using D3skCommander.Core.Panels;
 
 namespace D3skCommander.Core.Providers;
@@ -170,7 +171,7 @@ public sealed class ComputerFileSystemProvider : FileSystemProvider
     {
         try
         {
-            return path.Length > 0 && Directory.Exists(path);
+            return path.Length > 0 && UncPath.FolderExists(path);
         }
         catch (Exception ex) when (ex is IOException or UnauthorizedAccessException)
         {

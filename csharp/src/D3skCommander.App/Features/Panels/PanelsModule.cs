@@ -4,6 +4,7 @@ using D3skCommander.App.Features.Drives;
 using D3skCommander.App.Features.NetDrives;
 using D3skCommander.App.Shell;
 using D3skCommander.Core.Localization;
+using D3skCommander.Core.NetDrives;
 using D3skCommander.Core.Providers;
 using Microsoft.Extensions.DependencyInjection;
 
@@ -48,7 +49,8 @@ public sealed class PanelsModule : IShellModule
                 new LocalFileSystemProvider(),
                 new ComputerFileSystemProvider(sources, provider.GetRequiredService<ILocalizer>()),
                 sources,
-                provider.GetRequiredService<ComputerOptions>().RemovablePrefixes);
+                provider.GetRequiredService<ComputerOptions>().RemovablePrefixes,
+                servers: OperatingSystem.IsWindows() ? new ServerFileSystemProvider(new OsServerShares()) : null);
         });
         services.AddSingleton<PanelWorkspace>();
         services.AddSingleton<IPanelWorkspace>(provider => provider.GetRequiredService<PanelWorkspace>());

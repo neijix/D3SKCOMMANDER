@@ -93,6 +93,10 @@ internal sealed class DrivesHarness : IDisposable
     {
         public bool SupportsDriveLetter => false;
 
+        public bool SupportsServerLogin => false;
+
+        public FileResult<string> Remember(string server, Credentials credentials) => throw new NotSupportedException();
+
         public FileResult<string> Connect(Share share, Credentials credentials, string? letter) =>
             throw new NotSupportedException();
 

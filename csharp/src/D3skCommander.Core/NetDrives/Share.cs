@@ -37,7 +37,7 @@ public sealed record Share(string Scheme, string? User, string Server, string Na
 
 /// <summary>
 /// What the user typed to log in. Any field may be empty (guest, or the current login).
-/// The password is never written to a store and never placed on a command line.
+/// The password is never placed on a command line; only Windows Credential Manager may keep it, when asked.
 /// </summary>
 public sealed class Credentials
 {

@@ -1,6 +1,7 @@
 using System.Runtime.CompilerServices;
 using D3skCommander.Core.Common;
 using D3skCommander.Core.FileSystem;
+using D3skCommander.Core.NetDrives;
 using D3skCommander.Core.Panels;
 
 namespace D3skCommander.Core.Providers;
@@ -9,6 +10,8 @@ namespace D3skCommander.Core.Providers;
 /// The provider every panel browses through: the Computer address, and any path under it, goes to the
 /// read-only Computer provider; every other path goes to the local provider unchanged, except that a listing
 /// whose path goes up to Computer (<see cref="ComputerAddress.GoesUp"/>) has exactly one ".." row, to the address.
+/// On Windows, with a servers provider, a server root (<c>\\server\</c>) is listed by it and a share root's
+/// single ".." row leads to its server instead.
 /// </summary>
 public sealed class PanelFileSystemProvider : IFileSystemProvider
 {
@@ -18,17 +21,20 @@ public sealed class PanelFileSystemProvider : IFileSystemProvider
     private readonly IFileSystemProvider _local;
     private readonly IFileSystemProvider _computer;
     private readonly IComputerSources _sources;
+    private readonly IFileSystemProvider? _servers;
     private readonly string[] _prefixes;
     private readonly bool _windows;
 
     /// <param name="prefixes">Removable-mount prefixes; default <see cref="DefaultPrefixes"/>.</param>
     /// <param name="windows">Case-insensitive paths and drive roots; default: the current OS.</param>
+    /// <param name="servers">Lists <c>\\server\</c> on Windows; null: a server root goes to the local provider.</param>
     public PanelFileSystemProvider(
         IFileSystemProvider local,
         IFileSystemProvider computer,
         IComputerSources sources,
         IEnumerable<string>? prefixes = null,
-        bool? windows = null)
+        bool? windows = null,
+        IFileSystemProvider? servers = null)
     {
         ArgumentNullException.ThrowIfNull(local);
         ArgumentNullException.ThrowIfNull(computer);
@@ -36,6 +42,7 @@ public sealed class PanelFileSystemProvider : IFileSystemProvider
         _local = local;
         _computer = computer;
         _sources = sources;
+        _servers = servers;
         _prefixes = [.. prefixes ?? DefaultPrefixes];
         _windows = windows ?? OperatingSystem.IsWindows();
     }
@@ -48,9 +55,9 @@ public sealed class PanelFileSystemProvider : IFileSystemProvider
         [EnumeratorCancellation] CancellationToken cancellationToken)
     {
         ArgumentException.ThrowIfNullOrEmpty(directory);
-        if (ComputerAddress.IsAddressOrUnder(directory))
+        if (ComputerAddress.IsAddressOrUnder(directory) || IsServerRoot(directory))
         {
-            await foreach (var item in _computer.ListAsync(directory, showHidden, cancellationToken).ConfigureAwait(false))
+            await foreach (var item in Route(directory).ListAsync(directory, showHidden, cancellationToken).ConfigureAwait(false))
             {
                 yield return item;
             }
@@ -59,7 +66,8 @@ public sealed class PanelFileSystemProvider : IFileSystemProvider
         }
 
         var listing = _local.ListAsync(directory, showHidden, cancellationToken);
-        if (!GoesUpToComputer(directory))
+        var up = UpTarget(directory);
+        if (up is null)
         {
             await foreach (var item in listing.ConfigureAwait(false))
             {
@@ -69,15 +77,15 @@ public sealed class PanelFileSystemProvider : IFileSystemProvider
             yield break;
         }
 
-        // The ".." row to Computer comes first and stands in for the local one; a failed listing gets none,
-        // and a listing with no rows still gets the one.
+        // The ".." row to Computer (or to the server) comes first and stands in for the local one; a failed
+        // listing gets none, and a listing with no rows still gets the one.
         var first = true;
         var failed = false;
         await foreach (var item in listing.ConfigureAwait(false))
         {
             if (first && item.IsSuccess)
             {
-                yield return ParentRow();
+                yield return ParentRow(up);
             }
 
             first = false;
@@ -90,12 +98,12 @@ public sealed class PanelFileSystemProvider : IFileSystemProvider
 
         if (first && !failed)
         {
-            yield return ParentRow();
+            yield return ParentRow(up);
         }
     }
 
-    private static FileResult<Entry> ParentRow() =>
-        FileResult<Entry>.Ok(new Entry("..", ComputerAddress.Text, true, false, true, 0, null, false, false, ""));
+    private static FileResult<Entry> ParentRow(string target) =>
+        FileResult<Entry>.Ok(new Entry("..", target, true, false, true, 0, null, false, false, ""));
 
     public Task<FileResult<Entry>> GetEntryAsync(string path, CancellationToken cancellationToken) =>
         Route(path).GetEntryAsync(path, cancellationToken);
@@ -118,7 +126,26 @@ public sealed class PanelFileSystemProvider : IFileSystemProvider
     private IFileSystemProvider Route(string path)
     {
         ArgumentException.ThrowIfNullOrEmpty(path);
-        return ComputerAddress.IsAddressOrUnder(path) ? _computer : _local;
+        if (ComputerAddress.IsAddressOrUnder(path))
+        {
+            return _computer;
+        }
+
+        return IsServerRoot(path) ? _servers! : _local;
+    }
+
+    private bool IsServerRoot(string path) => _servers is not null && _windows && UncPath.Server(path) is not null;
+
+    // Where the single ".." row of a listing leads when it replaces the local one: a share root goes up to its
+    // server (when servers are listed), any other root or removable mount to Computer; null keeps the local row.
+    private string? UpTarget(string path)
+    {
+        if (_servers is not null && _windows && UncPath.ShareServer(path) is { } server)
+        {
+            return UncPath.ServerRoot(server);
+        }
+
+        return GoesUpToComputer(path) ? ComputerAddress.Text : null;
     }
 
     // A path root always goes up; any other path only when it is a mount under a prefix. The OS mount points

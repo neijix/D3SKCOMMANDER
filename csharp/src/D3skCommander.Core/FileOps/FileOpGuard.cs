@@ -1,3 +1,4 @@
+using D3skCommander.Core.NetDrives;
 using D3skCommander.Core.Panels;
 
 namespace D3skCommander.Core.FileOps;
@@ -40,9 +41,10 @@ public static class FileOpGuard
             }
         }
 
-        return changes && ComputerAddress.IsAddress(activeFolder);
+        return changes && (ComputerAddress.IsAddress(activeFolder) || UncPath.Server(activeFolder) is not null);
     }
 
-    /// <summary>True when a chosen target folder is the Computer address or a path under it.</summary>
-    public static bool IsTargetRefused(string? targetFolder) => ComputerAddress.IsAddressOrUnder(targetFolder);
+    /// <summary>True when a chosen target folder is the Computer address, a path under it, or a server root (<c>\\server\</c>, its list of shares).</summary>
+    public static bool IsTargetRefused(string? targetFolder) =>
+        ComputerAddress.IsAddressOrUnder(targetFolder) || UncPath.Server(targetFolder) is not null;
 }

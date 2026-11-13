@@ -1,5 +1,6 @@
 using D3skCommander.App.Controls.FileList;
 using D3skCommander.Core.FileSystem;
+using D3skCommander.Core.NetDrives;
 using D3skCommander.Core.Panels;
 using D3skCommander.Core.Settings;
 
@@ -18,8 +19,8 @@ public sealed partial class PanelWorkspace
         }
 
         var session = _settings.Session.Current;
-        var left = PanelSession.Restore(session.Left, home, Directory.Exists);
-        var right = PanelSession.Restore(session.Right, home, Directory.Exists);
+        var left = PanelSession.Restore(session.Left, home, UncPath.FolderExists);
+        var right = PanelSession.Restore(session.Right, home, UncPath.FolderExists);
         _leftView = ListView(left.View);
         _rightView = ListView(right.View);
         await OpenCore(left, right, cancellationToken).ConfigureAwait(false);

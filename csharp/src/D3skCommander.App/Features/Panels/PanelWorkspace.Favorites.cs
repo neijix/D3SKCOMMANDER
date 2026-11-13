@@ -1,5 +1,6 @@
 using D3skCommander.App.Shell;
 using D3skCommander.Core.FileSystem;
+using D3skCommander.Core.NetDrives;
 using D3skCommander.Core.Panels;
 
 namespace D3skCommander.App.Features.Panels;
@@ -40,7 +41,7 @@ public sealed partial class PanelWorkspace
                 return;
             }
 
-            var plan = FavoriteTabsPlan.Restore(set, mode, _left.Tabs.Count, _right.Tabs.Count, Directory.Exists, LocalFileSystem.HomeDirectory());
+            var plan = FavoriteTabsPlan.Restore(set, mode, _left.Tabs.Count, _right.Tabs.Count, UncPath.FolderExists, LocalFileSystem.HomeDirectory());
             _left = await ApplyAsync(_left, plan.Left, linked.Token).ConfigureAwait(false);
             _right = await ApplyAsync(_right, plan.Right, linked.Token).ConfigureAwait(false);
             if (plan.Left.View is { } leftView)

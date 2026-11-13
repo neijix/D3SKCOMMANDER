@@ -17,13 +17,21 @@ internal static class WindowsNet
     private const int ErrorMoreData = 234;
     private const int ErrorNoMoreItems = 259;
     private const int SessionCredentialConflict = 1219;
+    internal const string IpcShare = "IPC$";
 
     [SupportedOSPlatform("windows")]
     public static FileResult<string> Connect(Share share, Credentials credentials, string? letter)
     {
-        var user = UserName(credentials);
+        // A server without a share logs in through its IPC$ share: the session then serves every share.
+        var server = share.Name.Length == 0;
+        if (server && letter is not null)
+        {
+            return FileResult<string>.Fail(Message("a drive letter needs a share: \\\\server\\share"));
+        }
+
+        var user = NetDrive.WindowsUser(credentials);
         var password = credentials.Password.Length == 0 ? null : credentials.Password;
-        var remote = Wide(share.Unc());
+        var remote = Wide(server ? UncPath.ShareRoot(share.Server, IpcShare) : share.Unc());
         var local = Wide(letter);
         var userPtr = Wide(user);
         var passwordPtr = Wide(password);
@@ -41,7 +49,7 @@ internal static class WindowsNet
                 return FileResult<string>.Fail(OperationError(code));
             }
 
-            var root = letter is null ? share.Unc() + "\\" : letter + "\\";
+            var root = server ? UncPath.ServerRoot(share.Server) : letter is null ? share.Unc() + "\\" : letter + "\\";
             return FileResult<string>.Ok(root);
         }
         finally
@@ -56,7 +64,8 @@ internal static class WindowsNet
     [SupportedOSPlatform("windows")]
     public static FileResult<string> Disconnect(string path)
     {
-        var root = NetDrive.WindowsRoot(path);
+        var server = UncPath.Server(path);
+        var root = server is null ? NetDrive.WindowsRoot(path) : UncPath.ShareRoot(server, IpcShare);
         if (root is null)
         {
             return FileResult<string>.Fail(Message(path + " is not on a network drive"));
@@ -149,23 +158,8 @@ internal static class WindowsNet
             }
 
             var local = ReadString(item.LocalName);
-            shares.Add(new ConnectedShare(remote, local ?? remote));
+            shares.Add(NetDrive.ConnectedFromWnet(remote, local));
         }
-    }
-
-    private static string? UserName(Credentials credentials)
-    {
-        if (credentials.User.Length == 0)
-        {
-            return null;
-        }
-
-        if (credentials.Domain.Length == 0)
-        {
-            return credentials.User;
-        }
-
-        return credentials.Domain + "\\" + credentials.User;
     }
 
     private static IntPtr Wide(string? text) =>

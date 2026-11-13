@@ -2,6 +2,7 @@ using D3skCommander.App.Controls.FileList;
 using D3skCommander.App.Shell;
 using D3skCommander.Core.Common;
 using D3skCommander.Core.FileSystem;
+using D3skCommander.Core.NetDrives;
 using D3skCommander.Core.Panels;
 
 namespace D3skCommander.App.Features.Panels;
@@ -414,6 +415,11 @@ public sealed partial class PanelWorkspace
         if (ComputerAddress.IsAddress(text))
         {
             return ComputerAddress.Text;
+        }
+
+        if (OperatingSystem.IsWindows() && UncPath.Server(text) is { } server)
+        {
+            return UncPath.ServerRoot(server);
         }
 
         if (text == "~")

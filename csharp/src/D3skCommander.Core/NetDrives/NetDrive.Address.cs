@@ -5,7 +5,8 @@ namespace D3skCommander.Core.NetDrives;
 
 /// <summary>
 /// Network drives: parse a share address, ask the OS to mount it, and list what is connected.
-/// The password goes to the tool's standard input, or to WNet in memory. It is never saved.
+/// The password goes to the tool's standard input, or to WNet in memory. The app never saves it; on Windows the
+/// user may ask Windows Credential Manager to keep a server login (<see cref="Remember"/>).
 /// </summary>
 public static partial class NetDrive
 {
@@ -15,7 +16,13 @@ public static partial class NetDrive
     /// Reads a share address. Without a scheme it is an SMB share
     /// (<c>\\server\share</c>, <c>//server/share</c> or <c>server/share</c>). <c>cifs://</c> is SMB.
     /// </summary>
-    public static FileResult<Share> Parse(string input)
+    public static FileResult<Share> Parse(string input) => Parse(input, serverOnly: false);
+
+    /// <summary>
+    /// Same; with <paramref name="serverOnly"/> an SMB address may stop at the server (<c>\\server</c>): the share
+    /// name is then empty, and connecting logs in to the whole server (Windows).
+    /// </summary>
+    public static FileResult<Share> Parse(string input, bool serverOnly)
     {
         ArgumentNullException.ThrowIfNull(input);
         var text = input.Trim();
@@ -56,7 +63,7 @@ public static partial class NetDrive
         }
 
         var name = parts.Length > 1 ? parts[1] : "";
-        if (name.Length == 0 && scheme is "smb" or "afp")
+        if (name.Length == 0 && (scheme == "afp" || (scheme == "smb" && !serverOnly)))
         {
             return Fail<Share>("missing share name: \\\\server\\share");
         }

@@ -60,6 +60,39 @@ public static partial class NetDrive
         return FileResult<string>.Ok(share.Inside(mounted.Value));
     }
 
+    /// <summary>
+    /// Asks Windows Credential Manager to keep the login for <paramref name="server"/>, so Windows logs in by itself
+    /// next time (a favorite on <c>\\server\</c> after a restart). Only on Windows and with a user name.
+    /// </summary>
+    public static FileResult<string> Remember(string server, Credentials credentials)
+    {
+        ArgumentException.ThrowIfNullOrEmpty(server);
+        ArgumentNullException.ThrowIfNull(credentials);
+        if (!OperatingSystem.IsWindows())
+        {
+            return Fail<string>("saving a login needs Windows");
+        }
+
+        var user = WindowsUser(credentials);
+        if (user is null)
+        {
+            return Fail<string>("a user name is needed to save a login");
+        }
+
+        return WindowsCredentials.Save(server, user, credentials.Password);
+    }
+
+    /// <summary><c>domain\user</c>, <c>user</c>, or null without a user name.</summary>
+    internal static string? WindowsUser(Credentials credentials)
+    {
+        if (credentials.User.Length == 0)
+        {
+            return null;
+        }
+
+        return credentials.Domain.Length == 0 ? credentials.User : credentials.Domain + "\\" + credentials.User;
+    }
+
     /// <summary>Unmounts the network drive <paramref name="path"/> is on and gives what was disconnected.</summary>
     public static FileResult<string> Disconnect(string path)
     {
@@ -115,6 +148,11 @@ public static partial class NetDrive
         if (OperatingSystem.IsWindows())
         {
             return MountWindows(share, credentials, letter);
+        }
+
+        if (share.Name.Length == 0 && share.Scheme is "smb" or "afp")
+        {
+            return Fail<string>("missing share name: \\\\server\\share");
         }
 
         if (OperatingSystem.IsMacOS())

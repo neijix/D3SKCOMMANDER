@@ -1,3 +1,4 @@
+using D3skCommander.Core.NetDrives;
 using D3skCommander.Core.Panels;
 using D3skCommander.Core.Settings;
 
@@ -146,7 +147,7 @@ public sealed partial class PanelCommands
         _settings.Hotlist.Save(hotlist);
     }
 
-    private static HotlistTarget Probe(HotlistItem item) => HotlistTarget.Resolve(item, Directory.Exists, File.Exists);
+    private static HotlistTarget Probe(HotlistItem item) => HotlistTarget.Resolve(item, UncPath.FolderExists, File.Exists);
 
     private string Label(HotlistItem item, HotlistTarget target)
     {

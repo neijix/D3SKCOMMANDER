@@ -1,4 +1,5 @@
 using D3skCommander.Core.FileSystem;
+using D3skCommander.Core.NetDrives;
 using D3skCommander.Core.Providers;
 
 namespace D3skCommander.Core.Panels;
@@ -135,7 +136,7 @@ public sealed class Panel
         var tabs = new List<Tab>();
         for (var i = 0; i < paths.Count; i++)
         {
-            if (!ComputerAddress.IsAddress(paths[i]) && !Directory.Exists(paths[i]))
+            if (!ComputerAddress.IsAddress(paths[i]) && !UncPath.FolderExists(paths[i]))
             {
                 continue;
             }

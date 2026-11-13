@@ -11,7 +11,8 @@ using D3skCommander.Core.NetDrives;
 
 namespace D3skCommander.App.Features.NetDrives;
 
-/// <summary>Connect and disconnect network drives. The OS calls run as jobs; the password is never kept.</summary>
+/// <summary>Connect and disconnect network drives. The OS calls run as jobs; the app never keeps the password (the OS
+/// credential store may, when the user ticks Remember).</summary>
 public sealed class NetDrivesCommands
 {
     private readonly IPanelWorkspace _panels;
@@ -87,7 +88,7 @@ public sealed class NetDrivesCommands
 
     private async Task ConnectCore()
     {
-        var form = new NetConnectForm(_text, _settings.Session.Current.NetShares, _runner.SupportsDriveLetter);
+        var form = new NetConnectForm(_text, _settings.Session.Current.NetShares, _runner.SupportsDriveLetter, _runner.SupportsServerLogin);
         while (await _dialogs.ShowFormAsync(form.Build()).ConfigureAwait(false))
         {
             var request = form.Read();
@@ -105,11 +106,17 @@ public sealed class NetDrivesCommands
     private async Task Mount(NetConnectRequest request)
     {
         FileResult<string>? outcome = null;
+        FileResult<string>? saved = null;
         var job = _jobs.Start(
             _text.Get("net.job_connect") + " " + request.Address,
             (_, _) =>
             {
                 outcome = _runner.Connect(request.Share!, request.Credentials!, request.Letter);
+                if (outcome.Value.IsSuccess && request.Remember)
+                {
+                    saved = _runner.Remember(request.Share!.Server, request.Credentials!);
+                }
+
                 return Task.CompletedTask;
             });
         await job.Completion.ConfigureAwait(false);
@@ -123,6 +130,10 @@ public sealed class NetDrivesCommands
         session.NetShares = NetDrive.Remember(session.NetShares, request.Address).ToList();
         _settings.Session.Save(session);
         await _panels.GoAsync(_panels.ActiveSide, outcome.Value.Value).ConfigureAwait(false);
+        if (saved is { IsSuccess: false } failed)
+        {
+            await Fail(_text.Get("net.remember_failed") + "\n" + ErrorLines.Describe(_text, failed.Error!)).ConfigureAwait(false);
+        }
     }
 
     private async Task DisconnectCore()
