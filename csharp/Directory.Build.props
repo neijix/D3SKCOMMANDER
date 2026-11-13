@@ -2,7 +2,7 @@
   <!-- Single place for the version and repository URL; exposed as assembly metadata
        (AssemblyInformationalVersion, RepositoryUrl via AssemblyMetadata). -->
   <PropertyGroup>
-    <Version>0.3.9</Version>
+    <Version>0.3.10</Version>
     <RepositoryUrl>https://github.com/neijix/D3SKCOMMANDER</RepositoryUrl>
     <RepositoryType>git</RepositoryType>
     <TargetFramework>net10.0</TargetFramework>
