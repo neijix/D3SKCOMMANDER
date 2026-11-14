@@ -15,6 +15,7 @@
       <TextBlock x:Name="HotlistEmpty" Foreground="Gray" Margin="10,8" IsHitTestVisible="False" IsVisible="{Binding IsEmpty}" Text="{Binding EmptyText}"/>
     </Panel>
     <StackPanel Grid.Column="1" Spacing="4">
+      <Button x:Name="HotlistAddButton" HorizontalAlignment="Stretch" Content="{Binding AddCaption}" Command="{Binding AddCommand}"/>
       <Button x:Name="HotlistRenameButton" HorizontalAlignment="Stretch" Content="{Binding RenameCaption}" Command="{Binding RenameCommand}"/>
       <Button x:Name="HotlistRemoveButton" HorizontalAlignment="Stretch" Content="{Binding RemoveCaption}" Command="{Binding RemoveCommand}"/>
       <Button x:Name="HotlistUpButton" HorizontalAlignment="Stretch" Content="{Binding UpCaption}" Command="{Binding MoveUpCommand}"/>

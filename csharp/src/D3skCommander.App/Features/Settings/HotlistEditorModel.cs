@@ -13,7 +13,7 @@ public sealed record HotlistRow(string Name, string Path)
     public string Display => Name + "  —  " + Path;
 }
 
-/// <summary>The "Favorites" section of the settings window: a draft of the hotlist to rename, remove and reorder.</summary>
+/// <summary>The "Favorites" section of the settings window: a draft of the hotlist to add to, rename, remove and reorder.</summary>
 public sealed partial class HotlistEditorModel : ObservableObject
 {
     private readonly ILocalizer _text;
@@ -55,6 +55,26 @@ public sealed partial class HotlistEditorModel : ObservableObject
 
     /// <summary>The favorites the draft holds now.</summary>
     public Hotlist Result() => _draft.Clone();
+
+    public string AddCaption => _text.Get("hotlist.add");
+
+    /// <summary>Asks for a path (a network server or share works even when no panel can open it now), then a name.</summary>
+    [RelayCommand]
+    public async Task AddAsync()
+    {
+        var typed = await _dialogs.AskTextAsync(Title, _text.Get("hotlist.add_path")).ConfigureAwait(true);
+        if (HotlistPath.Clean(typed) is not { } path)
+        {
+            return;
+        }
+
+        var name = await _dialogs.AskTextAsync(Title, _text.Get("hotlist.add_name"), HotlistPath.DefaultName(path)).ConfigureAwait(true);
+        if (!string.IsNullOrWhiteSpace(name))
+        {
+            _draft.Add(new HotlistItem(name.Trim(), path));
+            Changed(_draft.Items.Count - 1);
+        }
+    }
 
     [RelayCommand]
     public async Task RenameAsync()

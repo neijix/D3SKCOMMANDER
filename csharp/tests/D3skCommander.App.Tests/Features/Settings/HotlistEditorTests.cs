@@ -5,7 +5,7 @@ using Xunit;
 
 namespace D3skCommander.App.Tests.Features.Settings;
 
-/// <summary>The Favorites page renames, removes and reorders the hotlist; Apply saves it, Cancel leaves it.</summary>
+/// <summary>The Favorites page adds, renames, removes and reorders the hotlist; Apply saves it, Cancel leaves it.</summary>
 public class HotlistEditorTests
 {
     [AvaloniaFact]
@@ -43,6 +43,42 @@ public class HotlistEditorTests
         Assert.Equal(["Annual report", "Work"], harness.Settings.Hotlist.Current.Items.Select(i => i.Name));
         Assert.Equal(["/home/r.pdf", "/var/work"], harness.Settings.Hotlist.Current.Items.Select(i => i.Path));
         Assert.False(model.IsDirty);
+    }
+
+    [AvaloniaFact]
+    public async Task AddSavesATypedNetworkServerUnderItsName()
+    {
+        using var harness = new SettingsHarness();
+        var model = harness.NewView();
+        var page = model.Hotlist;
+
+        var adding = page.AddAsync();
+        await harness.Dialogs.WaitShownAsync();
+        harness.Dialogs.Answer(DialogResult.Ok(@" \\192.168.1.15 "));
+        var naming = await harness.Dialogs.WaitShownAsync();
+        Assert.Equal("192.168.1.15", naming.InitialText);
+        harness.Dialogs.Answer(DialogResult.Ok("192.168.1.15"));
+        await adding.WaitAsync(TimeSpan.FromSeconds(10), TestContext.Current.CancellationToken);
+
+        Assert.Equal("192.168.1.15", page.SelectedRow?.Name);
+        Assert.True(model.IsDirty);
+        model.Apply();
+        var saved = Assert.Single(harness.Settings.Hotlist.Current.Items);
+        Assert.Equal(("192.168.1.15", @"\\192.168.1.15\"), (saved.Name, saved.Path));
+    }
+
+    [AvaloniaFact]
+    public async Task AddWithNothingTypedAddsNothing()
+    {
+        using var harness = new SettingsHarness();
+        var page = harness.NewView().Hotlist;
+
+        var adding = page.AddAsync();
+        await harness.Dialogs.WaitShownAsync();
+        harness.Dialogs.Answer(DialogResult.Ok("  "));
+        await adding.WaitAsync(TimeSpan.FromSeconds(10), TestContext.Current.CancellationToken);
+
+        Assert.Empty(page.Rows);
     }
 
     [AvaloniaFact]

@@ -78,5 +78,17 @@
   "hotlist.remove": {
     "en": "Remove",
     "fr": "Retirer"
+  },
+  "hotlist.add": {
+    "en": "Add…",
+    "fr": "Ajouter…"
+  },
+  "hotlist.add_path": {
+    "en": "Folder, file or network path (for example \\\\server\\share)",
+    "fr": "Dossier, fichier ou chemin réseau (par exemple \\\\serveur\\partage)"
+  },
+  "hotlist.add_name": {
+    "en": "Name of the favorite",
+    "fr": "Nom du favori"
   }
 }
