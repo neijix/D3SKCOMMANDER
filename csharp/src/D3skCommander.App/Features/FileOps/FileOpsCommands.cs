@@ -91,7 +91,7 @@ public sealed partial class FileOpsCommands : IPathDeleter
 
         try
         {
-            var capture = _panels.Capture();
+            var capture = await _panels.CaptureAsync().ConfigureAwait(false);
             if (capture is null)
             {
                 return;
@@ -126,7 +126,7 @@ public sealed partial class FileOpsCommands : IPathDeleter
         try
         {
             var title = _text.Get(kind == FileOpKind.Move ? "cmd.move" : "cmd.copy");
-            var capture = _panels.Capture();
+            var capture = await _panels.CaptureAsync().ConfigureAwait(false);
             var op = kind == FileOpKind.Move ? GuardedOp.Move : GuardedOp.Copy;
             if (capture is not null && await Refused(op, capture.ActiveDirectory, null, title).ConfigureAwait(false))
             {

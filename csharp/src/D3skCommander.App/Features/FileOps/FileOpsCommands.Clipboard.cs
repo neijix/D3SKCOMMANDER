@@ -12,7 +12,7 @@ public sealed partial class FileOpsCommands
 
     public async Task ClipAsync(bool cut)
     {
-        var capture = _panels.Capture();
+        var capture = await _panels.CaptureAsync().ConfigureAwait(false);
         if (cut && capture is not null && await Refused(GuardedOp.Cut, capture.ActiveDirectory, null, _text.Get("cmd.clip_cut")).ConfigureAwait(false))
         {
             return;
@@ -39,7 +39,7 @@ public sealed partial class FileOpsCommands
         var into = _panels.ContextTarget is { Kind: ContextTargetKind.Folder, EntryPath: { } folder } ? folder : null;
         try
         {
-            var capture = _panels.Capture();
+            var capture = await _panels.CaptureAsync().ConfigureAwait(false);
             if (capture is null)
             {
                 return;

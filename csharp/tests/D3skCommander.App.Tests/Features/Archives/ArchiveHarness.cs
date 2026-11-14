@@ -35,14 +35,14 @@ internal sealed class ArchiveHarness : IDisposable
 
     public ArchiveCommands Commands { get; }
 
-    public static async Task<ArchiveHarness> Open(FakeDialogService dialogs)
+    public static async Task<ArchiveHarness> Open(FakeDialogService dialogs, IFileSystemProvider? provider = null)
     {
         ArgumentNullException.ThrowIfNull(dialogs);
         var root = Directory.CreateTempSubdirectory("d3sk-archives-").FullName;
         Directory.CreateDirectory(Path.Combine(root, "left"));
         Directory.CreateDirectory(Path.Combine(root, "right"));
         var text = Localizer.Load(settingsLanguage: Language.En, systemLanguage: Language.En);
-        var workspace = new PanelWorkspace(new LocalFileSystemProvider(), new IdlePicker());
+        var workspace = new PanelWorkspace(provider ?? new LocalFileSystemProvider(), new IdlePicker());
         await workspace.OpenAsync(Path.Combine(root, "left"), Path.Combine(root, "right"), TestContext.Current.CancellationToken);
         var commands = new ArchiveCommands(workspace, dialogs, text, new ArchiveService(new JobService()));
         return new ArchiveHarness(root, text, workspace, commands);

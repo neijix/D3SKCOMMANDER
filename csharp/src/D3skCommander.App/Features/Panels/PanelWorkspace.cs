@@ -157,25 +157,50 @@ public sealed partial class PanelWorkspace : IPanelWorkspace, IDisposable
 
         try
         {
-            var active = TabOf(_active);
-            var other = TabOf(Other(_active));
-            if (active is null || other is null)
-            {
-                return null;
-            }
-
-            var sources = new List<string>();
-            foreach (var entry in active.Targets())
-            {
-                sources.Add(entry.Path);
-            }
-
-            return new PanelCapture(sources, active.Location.Path, other.Location.Path);
+            return CaptureHeld();
         }
         finally
         {
             _nav.Release();
         }
+    }
+
+    public async Task<PanelCapture?> CaptureAsync(CancellationToken cancellationToken = default)
+    {
+        if (_left is null || _right is null)
+        {
+            return null;
+        }
+
+        using var linked = CancellationTokenSource.CreateLinkedTokenSource(_lifetime.Token, cancellationToken);
+        await _nav.WaitAsync(linked.Token).ConfigureAwait(false);
+        try
+        {
+            return CaptureHeld();
+        }
+        finally
+        {
+            _nav.Release();
+        }
+    }
+
+    // Callers hold _nav.
+    private PanelCapture? CaptureHeld()
+    {
+        var active = TabOf(_active);
+        var other = TabOf(Other(_active));
+        if (active is null || other is null)
+        {
+            return null;
+        }
+
+        var sources = new List<string>();
+        foreach (var entry in active.Targets())
+        {
+            sources.Add(entry.Path);
+        }
+
+        return new PanelCapture(sources, active.Location.Path, other.Location.Path);
     }
 
     private async Task OpenQuiet()

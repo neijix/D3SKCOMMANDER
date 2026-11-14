@@ -89,6 +89,34 @@ public class ArchiveCommandTests
     }
 
     [AvaloniaFact]
+    public async Task UnpackPressedWhileAFolderReloadsWaitsForItInsteadOfDoingNothing()
+    {
+        var dialogs = new FakeDialogService();
+        var disk = new GatedProvider();
+        using var harness = await ArchiveHarness.Open(dialogs, disk);
+        await harness.AddFileAsync(harness.Left, "a.txt", "alpha");
+        var archive = Path.Combine(harness.Left, "a.zip");
+        Assert.True(ArchiveIo.Create(archive, ArchiveKind.Zip, [Path.Combine(harness.Left, "a.txt")], 6).IsSuccess);
+        await harness.Workspace.RefreshAsync(TestContext.Current.CancellationToken);
+        harness.Select(PanelSide.Left, "a.zip");
+
+        var entered = disk.HoldNextListing();
+        var reload = harness.Workspace.RefreshAsync(TestContext.Current.CancellationToken);
+        await entered.WaitAsync(TimeSpan.FromSeconds(5), TestContext.Current.CancellationToken);
+        Assert.Null(harness.Workspace.Capture());
+        var pending = harness.Commands.UnpackAsync();
+        disk.Release();
+        await reload.WaitAsync(TimeSpan.FromSeconds(5), TestContext.Current.CancellationToken);
+
+        var shown = await dialogs.WaitShownAsync();
+        var dest = Assert.IsType<FolderDialogField>(shown.Form!.Fields[1]);
+        Assert.Equal(harness.Right, dest.Path);
+        dialogs.Answer(DialogResult.Ok());
+        await pending;
+        Assert.Equal("alpha", await File.ReadAllTextAsync(Path.Combine(harness.Right, "a.txt"), TestContext.Current.CancellationToken));
+    }
+
+    [AvaloniaFact]
     public async Task BackupZipsTheSelectionToADatedNameInTheOtherPanel()
     {
         var dialogs = new FakeDialogService();

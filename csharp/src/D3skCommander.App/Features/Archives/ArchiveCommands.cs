@@ -67,7 +67,7 @@ public sealed partial class ArchiveCommands
 
     private async Task BackupCore(CancellationToken cancellationToken)
     {
-        var capture = _panels.Capture();
+        var capture = await _panels.CaptureAsync().ConfigureAwait(false);
         if (capture is null)
         {
             return;

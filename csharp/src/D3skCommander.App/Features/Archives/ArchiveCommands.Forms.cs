@@ -10,7 +10,7 @@ public sealed partial class ArchiveCommands
     private async Task PackCore(CancellationToken cancellationToken)
     {
         var title = _text.Get("cmd.pack");
-        var capture = _panels.Capture();
+        var capture = await _panels.CaptureAsync().ConfigureAwait(false);
         if (capture is null)
         {
             return;
@@ -69,7 +69,7 @@ public sealed partial class ArchiveCommands
     private async Task UnpackCore(CancellationToken cancellationToken)
     {
         var title = _text.Get("cmd.unpack");
-        var capture = _panels.Capture();
+        var capture = await _panels.CaptureAsync().ConfigureAwait(false);
         if (capture is null)
         {
             return;

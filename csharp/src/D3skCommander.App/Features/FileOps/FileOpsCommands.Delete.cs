@@ -13,7 +13,7 @@ public sealed partial class FileOpsCommands
     /// <summary>Delete follows the preferences; DeletePermanent always removes the files.</summary>
     public async Task DeleteAsync(CommandId command = CommandId.Delete)
     {
-        var capture = _panels.Capture();
+        var capture = await _panels.CaptureAsync().ConfigureAwait(false);
         await DeleteAsync(command, capture?.ActiveDirectory, capture?.Sources ?? []).ConfigureAwait(false);
     }
 

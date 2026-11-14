@@ -16,6 +16,9 @@ public interface IPanelWorkspace
     /// <summary>The active selection and both folders, or null when a listing is in progress.</summary>
     PanelCapture? Capture();
 
+    /// <summary>The active selection and both folders, after any listing in progress has finished (a key press during a reload is not dropped).</summary>
+    Task<PanelCapture?> CaptureAsync(CancellationToken cancellationToken = default) => Task.FromResult(Capture());
+
     Task<bool> GoAsync(PanelSide side, string path, CancellationToken cancellationToken = default);
 
     /// <summary>
