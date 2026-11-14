@@ -1,5 +1,7 @@
 using D3skCommander.App.Shell;
+using D3skCommander.Core.NetDrives;
 using Microsoft.Extensions.DependencyInjection;
+using Microsoft.Extensions.DependencyInjection.Extensions;
 
 namespace D3skCommander.App.Features.DiskUsage;
 
@@ -17,6 +19,7 @@ public sealed class DiskUsageModule : IShellModule
     public static void Register(IServiceCollection services)
     {
         ArgumentNullException.ThrowIfNull(services);
+        services.TryAddSingleton<IServerShares, OsServerShares>();
         services.AddSingleton<DiskUsageViewModel>();
         services.AddSingleton<DiskUsageCommands>();
         services.AddSingleton<DiskUsageModule>();

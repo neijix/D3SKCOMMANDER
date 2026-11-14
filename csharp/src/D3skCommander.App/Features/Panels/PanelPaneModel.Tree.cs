@@ -11,7 +11,6 @@ namespace D3skCommander.App.Features.Panels;
 public sealed partial class PanelPaneModel
 {
     private bool _treeShown;
-    private bool _treeRootsAsked;
     private string? _treePath;
     private int _treeGeneration = -1;
 
@@ -39,7 +38,7 @@ public sealed partial class PanelPaneModel
 
     private void InitTree(IDriveSource? drives, ILocalizer text)
     {
-        Tree = new FolderTreeModel(_panels.TreeLoader(), drives, text, () => _panels.ShowHidden, GoFromTree);
+        Tree = new FolderTreeModel(_panels.TreeLoader(), drives, text, () => _panels.ShowHidden, GoFromTree, () => _panels.Favorites);
         ShowTree = _panels.ShowTree(_side);
         TreeWidth = _panels.TreeWidth(_side);
     }
@@ -56,23 +55,16 @@ public sealed partial class PanelPaneModel
     {
         ShowTree = _panels.ShowTree(_side);
         TreeWidth = _panels.TreeWidth(_side);
-        if (ComputerAddress.IsAddress(snap.Path))
-        {
-            // Computer is no tree node: the tree keeps the last folder selected. A panel that starts
-            // there still needs the roots, which only a follow would read otherwise.
-            if (ShowTree && Tree.Roots.Count == 0 && !_treeRootsAsked)
-            {
-                _treeRootsAsked = true;
-                _ = Tree.LoadRootsAsync();
-            }
-
-            return;
-        }
-
         if (!ShowTree || snap.Path.Length == 0)
         {
             _treeShown = false;
             return;
+        }
+
+        if (Tree.Roots.Count > 0 && Tree.FavoritesChanged())
+        {
+            // A favorite was added or removed in Settings: the roots under the line follow.
+            _ = Tree.LoadRootsAsync();
         }
 
         if (!_treeShown || snap.Path != _treePath)

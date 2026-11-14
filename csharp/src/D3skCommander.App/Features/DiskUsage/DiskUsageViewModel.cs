@@ -9,6 +9,7 @@ using D3skCommander.App.Shell;
 using D3skCommander.Core.DiskUsage;
 using D3skCommander.Core.FileSystem;
 using D3skCommander.Core.Localization;
+using D3skCommander.Core.NetDrives;
 using D3skCommander.Core.Panels;
 
 namespace D3skCommander.App.Features.DiskUsage;
@@ -29,6 +30,8 @@ public sealed partial class DiskUsageViewModel : ObservableObject, IShellWidget
     private long _generation;
     private IReadOnlyList<string>? _drives;
     private IReadOnlyList<string> _skip = [];
+    private string _rootName = "";
+    private bool _drivesEstimate;
 
     [ObservableProperty]
     private SizeNode? _current;
@@ -107,7 +110,24 @@ public sealed partial class DiskUsageViewModel : ObservableObject, IShellWidget
         ArgumentNullException.ThrowIfNull(skip);
         _drives = drives;
         _skip = skip;
+        _rootName = _text.Get("computer.title");
+        _drivesEstimate = true;
         return Start(ComputerAddress.Text);
+    }
+
+    /// <summary>
+    /// Scans every share of a network server (<c>\\server\</c>, which has no folder of its own) under one root named
+    /// after the server. The shares may sit on one volume: the progress has no estimate. Rescan repeats it.
+    /// </summary>
+    public Task BeginSharesAsync(string server, IReadOnlyList<string> shares)
+    {
+        ArgumentException.ThrowIfNullOrEmpty(server);
+        ArgumentNullException.ThrowIfNull(shares);
+        _drives = shares;
+        _skip = [];
+        _rootName = server;
+        _drivesEstimate = false;
+        return Start(server);
     }
 
     private Task Start(string folder)
@@ -131,7 +151,7 @@ public sealed partial class DiskUsageViewModel : ObservableObject, IShellWidget
         Status = string.Format(CultureInfo.InvariantCulture, _text.Get("diskusage.scanning"), "0");
         var progress = new Progress<ScanProgress>(value => OnProgress(generation, value));
         ScanTask = RunAsync(folder, progress, generation, cancel.Token);
-        _ = EstimateAsync(folder, _drives, generation, cancel.Token);
+        _ = EstimateAsync(folder, _drivesEstimate ? _drives : null, generation, cancel.Token);
         return ScanTask;
     }
 
@@ -196,9 +216,9 @@ public sealed partial class DiskUsageViewModel : ObservableObject, IShellWidget
         }
 
         var path = node.Kind == SizeNodeKind.SmallFiles ? Current?.Path ?? node.Path : node.Path;
-        if (ComputerAddress.IsAddress(path))
+        if (ComputerAddress.IsAddress(path) || UncPath.Server(path) is not null)
         {
-            return await _panels.GoAsync(_panels.ActiveSide, ComputerAddress.Text).ConfigureAwait(true);
+            return await _panels.GoAsync(_panels.ActiveSide, path).ConfigureAwait(true);
         }
 
         return await _panels.RevealAsync(path).ConfigureAwait(true);
@@ -278,7 +298,7 @@ public sealed partial class DiskUsageViewModel : ObservableObject, IShellWidget
         {
             var drives = _drives;
             var skip = _skip;
-            var name = _text.Get("computer.title");
+            var name = _rootName;
             var tree = await Task.Run(
                     () => drives is null
                         ? DiskUsageScanner.Scan(folder, progress, cancel)

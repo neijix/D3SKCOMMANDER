@@ -90,18 +90,15 @@ public class FolderTreeTests
 
         Assert.True(ComputerAddress.IsAddress(rig.Workspace.Read(PanelSide.Left).Path));
         Assert.Equal(FileKind.Home, rig.Tree.Roots[0].Icon);
-        Assert.Null(rig.Tree.Selected);
+        await rig.WaitUntil(() => ReferenceEquals(rig.Tree.Selected, rig.Tree.Roots[0]));
     }
 
     [AvaloniaFact]
     public async Task APathUnderNoRootClearsTheSelection()
     {
-        var home = Environment.GetFolderPath(Environment.SpecialFolder.UserProfile);
-        var parent = FolderTree.RootFor(Path.GetTempPath(), [home]) is null ? Path.GetTempPath() : AppContext.BaseDirectory;
-        Assert.SkipWhen(FolderTree.RootFor(parent, [home]) is not null, "every writable folder is under the home folder, a tree root");
         using var rig = await Rig.Opened();
         await rig.WaitUntil(() => rig.Tree.Selected?.Path == rig.Root);
-        var elsewhere = Directory.CreateDirectory(Path.Combine(parent, "d3sk-tree-away-" + Guid.NewGuid().ToString("N"))).FullName;
+        var elsewhere = Directory.CreateDirectory(Path.Combine(Path.GetTempPath(), "d3sk-tree-away-" + Guid.NewGuid().ToString("N"))).FullName;
         try
         {
             await rig.Workspace.GoAsync(PanelSide.Left, elsewhere, TestContext.Current.CancellationToken);
@@ -184,20 +181,69 @@ public class FolderTreeTests
     }
 
     [AvaloniaFact]
-    public async Task DriveRootsShowADriveOrNetworkIconAndTheHomeAHouse()
+    public async Task TheRootsAreHomeTheDrivesALineAndTheFavoritesThatExist()
     {
-        var home = Directory.CreateTempSubdirectory("d3sk-tree-icons-").FullName;
+        var folder = Directory.CreateTempSubdirectory("d3sk-tree-fav-").FullName;
         try
         {
             var drives = new FakeDrives(new DriveEntry("C:\\", "", "NTFS", 1, 2), new DriveEntry("N:\\", "nas", "NTFS", 1, 2, Network: true));
+            List<HotlistItem> favorites =
+            [
+                new("work", folder),
+                new("gone", Path.Combine(folder, "missing")),
+                new("home", ComputerAddress.Text),
+            ];
+            var went = new List<string>();
             var tree = new FolderTreeModel(
-                new FolderTreeLoader(new LocalFileSystemProvider()), drives, TextCatalog.Load(Language.En, Language.En), () => false, _ => { }, home);
+                new FolderTreeLoader(new LocalFileSystemProvider()), drives, TextCatalog.Load(Language.En, Language.En), () => false, went.Add, () => favorites);
             await tree.LoadRootsAsync();
-            Assert.Equal([FileKind.Home, FileKind.Drive, FileKind.NetworkDrive], tree.Roots.Select(r => r.Icon));
+
+            Assert.Equal([FolderNodeKind.Place, FolderNodeKind.Folder, FolderNodeKind.Folder, FolderNodeKind.Separator, FolderNodeKind.Folder], tree.Roots.Select(r => r.Kind));
+            Assert.Equal([FileKind.Home, FileKind.Drive, FileKind.NetworkDrive], tree.Roots.Take(3).Select(r => r.Icon));
+            Assert.Equal("Home", tree.Roots[0].Name);
+            var favorite = tree.Roots[4];
+            Assert.True(favorite.IsFavorite);
+            Assert.Equal(("work", folder), (favorite.Name, favorite.Path));
+            Assert.Empty(tree.Roots[0].Children);
+
+            tree.Open(tree.Roots[3]);
+            tree.Open(tree.Roots[0]);
+            Assert.Equal([ComputerAddress.Text], went);
         }
         finally
         {
-            Directory.Delete(home, true);
+            Directory.Delete(folder, true);
+        }
+    }
+
+    [AvaloniaFact]
+    public async Task ANewFavoriteJoinsTheRootsAndTheOpenNodesStayOpen()
+    {
+        var folder = Directory.CreateTempSubdirectory("d3sk-tree-fav-").FullName;
+        try
+        {
+            var drives = new FakeDrives(new DriveEntry(folder, "Temp", "ext4", 1, 2));
+            var favorites = new List<HotlistItem>();
+            var tree = new FolderTreeModel(
+                new FolderTreeLoader(new LocalFileSystemProvider()), drives, TextCatalog.Load(Language.En, Language.En), () => false, _ => { }, () => favorites);
+            await tree.LoadRootsAsync();
+            var drive = tree.Roots[1];
+            Assert.Equal(2, tree.Roots.Count);
+            Assert.False(tree.FavoritesChanged());
+
+            favorites.Add(new HotlistItem("again", folder));
+            Assert.True(tree.FavoritesChanged());
+            await tree.LoadRootsAsync();
+
+            Assert.Same(drive, tree.Roots[1]);
+            Assert.Equal([FolderNodeKind.Separator, FolderNodeKind.Folder], tree.Roots.Skip(2).Select(r => r.Kind));
+            Assert.False(tree.FavoritesChanged());
+            await tree.FollowAsync(folder);
+            Assert.Same(drive, tree.Selected);
+        }
+        finally
+        {
+            Directory.Delete(folder, true);
         }
     }
 

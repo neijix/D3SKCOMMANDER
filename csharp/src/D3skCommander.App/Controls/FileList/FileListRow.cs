@@ -109,6 +109,9 @@ public sealed class FileListRow : INotifyPropertyChanged
 
     public bool IsParent => Source is Entry entry && entry.IsParent;
 
+    /// <summary>The first row of a group after another one (Home: the favorites under the drives): a line above it.</summary>
+    public bool StartsGroup { get; internal set; }
+
     public bool IsLink => Source is Entry entry && entry.IsLink;
 
     public bool IsHidden => Source is Entry entry && entry.Hidden;

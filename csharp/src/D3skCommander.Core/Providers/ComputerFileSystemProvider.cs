@@ -34,10 +34,10 @@ public sealed class ComputerFileSystemProvider : FileSystemProvider
     public IReadOnlyList<string> LocalDrivePaths() => Build().Where(entry => entry.Group == 1).Select(entry => entry.Path).ToList();
 
     /// <summary>
-    /// What disk usage scans for the cursor row: the drive or network drive it names, else every local drive.
+    /// What disk usage scans for the cursor row: the drive, network drive or favorite it names, else every local drive.
     /// </summary>
     public ComputerScanTarget ScanTarget(Entry? cursor) =>
-        cursor is { IsParent: false, Group: 1 or 2 } && !string.IsNullOrEmpty(cursor.Path)
+        cursor is { IsParent: false, Group: 1 or 2 or 4 } && !string.IsNullOrEmpty(cursor.Path)
             ? new ComputerScanTarget(cursor.Path, [])
             : new ComputerScanTarget(null, LocalDrivePaths());
 

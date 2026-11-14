@@ -20,6 +20,7 @@ public sealed class FileListRowView : Grid
     private static readonly IBrush TrackBrush = new SolidColorBrush(Color.FromArgb(70, 128, 128, 128));
     private static readonly IBrush FillBrush = new SolidColorBrush(Color.FromRgb(38, 160, 218));
     private static readonly IBrush FullBrush = new SolidColorBrush(Color.FromRgb(218, 38, 38));
+    private static readonly IBrush GroupLineBrush = new SolidColorBrush(Color.FromArgb(220, 150, 150, 150));
 
     // A drive this full turns its bar red, as the OS file explorer does.
     private const double FullFraction = 0.9;
@@ -27,6 +28,7 @@ public sealed class FileListRowView : Grid
     private readonly List<TextBlock> _blocks = [];
     private Border? _fillTrack;
     private Border? _fill;
+    private Border? _groupLine;
     private FileListRow? _row;
     private TextBox? _editor;
     private FileKindIconControl? _icon;
@@ -159,10 +161,24 @@ public sealed class FileListRowView : Grid
         _icon = null;
         _fillTrack = null;
         _fill = null;
+        _groupLine = null;
         for (var i = 0; i < columns.Count; i++)
         {
             AddCell(columns[i], i);
         }
+
+        // The line above the first row of a group (Home: between the drives and the favorites).
+        _groupLine = new Border
+        {
+            Name = "GroupLine",
+            IsVisible = false,
+            Height = 1,
+            Background = GroupLineBrush,
+            VerticalAlignment = VerticalAlignment.Top,
+            Margin = new Thickness(4, 0),
+        };
+        Grid.SetColumnSpan(_groupLine, Math.Max(1, columns.Count));
+        Children.Add(_groupLine);
     }
 
     private void AddCell(FileListColumn column, int index)
@@ -272,6 +288,11 @@ public sealed class FileListRowView : Grid
 
         ApplyIcon();
         ApplyFill();
+        if (_groupLine is not null)
+        {
+            _groupLine.IsVisible = _row.StartsGroup;
+        }
+
         ApplyFlags();
         ApplyEditor(false);
         ToolTip.SetTip(this, _row.Key.Length == 0 ? null : _row.Key);

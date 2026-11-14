@@ -169,10 +169,10 @@ public class ComputerProviderTests
         var rows = await List(provider);
         Assert.Equal("/", provider.ScanTarget(rows[0]).Folder);
         Assert.Equal("/mnt/nas", provider.ScanTarget(rows[1]).Folder);
-        var other = provider.ScanTarget(rows[2]);
-        Assert.Null(other.Folder);
-        Assert.Equal(["/"], other.Drives);
-        Assert.Null(provider.ScanTarget(null).Folder);
+        Assert.Equal(temp.Path, provider.ScanTarget(rows[2]).Folder); // a favorite scans itself, not the drives
+        var none = provider.ScanTarget(null);
+        Assert.Null(none.Folder);
+        Assert.Equal(["/"], none.Drives);
     }
 
     [Theory]

@@ -109,6 +109,10 @@ public sealed partial class FileListControl : UserControl
 
     public double RowOpacity(int index) => RowViewAt(index)?.Opacity ?? 1;
 
+    /// <summary>Whether a realized row draws the line above it that opens a group (Home: the favorites under the drives).</summary>
+    public bool RowHasGroupLine(int index) =>
+        RowViewAt(index)?.GetVisualChildren().OfType<Border>().Any(border => border.Name == "GroupLine" && border.IsVisible) ?? false;
+
     public IReadOnlyList<string> RenderedCells(int index) => RowViewAt(index)?.RenderedCells() ?? [];
 
     /// <summary>The row's rename editor, once the row is realized and being edited.</summary>

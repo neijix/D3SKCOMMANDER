@@ -1,3 +1,4 @@
+using D3skCommander.Core.Panels;
 using D3skCommander.Core.Tree;
 
 namespace D3skCommander.App.Features.Tree;
@@ -20,15 +21,13 @@ public sealed partial class FolderTreeModel
                 return;
             }
 
-            var root = FolderTree.RootFor(path, Roots.Select(r => r.Path));
-            var node = root is null ? null : Roots.First(r => FolderTree.SamePath(r.Path, root));
-            if (root is null || node is null)
+            if (RootNodeFor(path) is not ({ } node, { } root))
             {
                 Select(null);
                 return;
             }
 
-            var chain = FolderTree.ChainFrom(root, path);
+            var chain = node.Kind == FolderNodeKind.Folder ? FolderTree.ChainFrom(root, path) : [root];
             for (var i = 1; i < chain.Count; i++)
             {
                 await LoadAsync(node).ConfigureAwait(true);
@@ -65,12 +64,12 @@ public sealed partial class FolderTreeModel
             return;
         }
 
-        var root = FolderTree.RootFor(path, Roots.Select(r => r.Path));
-        var node = root is null ? null : Roots.FirstOrDefault(r => FolderTree.SamePath(r.Path, root));
-        if (root is null || node is null)
+        if (RootNodeFor(path) is not ({ } found, { } root) || found.Kind != FolderNodeKind.Folder)
         {
             return;
         }
+
+        FolderTreeNode? node = found;
 
         foreach (var step in FolderTree.ChainFrom(root, path).Skip(1))
         {
@@ -91,11 +90,15 @@ public sealed partial class FolderTreeModel
     public FolderTreeNode? Find(string path)
     {
         ArgumentNullException.ThrowIfNull(path);
-        var root = FolderTree.RootFor(path, Roots.Select(r => r.Path));
-        var node = root is null ? null : Roots.FirstOrDefault(r => FolderTree.SamePath(r.Path, root));
-        if (root is null)
+        if (RootNodeFor(path) is not ({ } found, { } root))
         {
             return null;
+        }
+
+        FolderTreeNode? node = found;
+        if (found.Kind != FolderNodeKind.Folder)
+        {
+            return node;
         }
 
         foreach (var step in FolderTree.ChainFrom(root, path).Skip(1))
@@ -106,13 +109,41 @@ public sealed partial class FolderTreeModel
         return node;
     }
 
+    // The root that holds the path: Home for computer:, else the drive (longest match), else a favorite (a server
+    // favorite holds only itself). Drives come first so a favorite under a drive opens in place under that drive.
+    private (FolderTreeNode Node, string Root)? RootNodeFor(string path)
+    {
+        if (ComputerAddress.IsAddress(path))
+        {
+            var home = Roots.FirstOrDefault(r => r.Kind == FolderNodeKind.Place && ComputerAddress.IsAddress(r.Path));
+            return home is null ? null : (home, home.Path);
+        }
+
+        foreach (var favorites in new[] { false, true })
+        {
+            var place = favorites ? Roots.FirstOrDefault(r => r.IsFavorite && r.Kind == FolderNodeKind.Place && FolderTree.SamePath(r.Path, path)) : null;
+            if (place is not null)
+            {
+                return (place, place.Path);
+            }
+
+            var folders = Roots.Where(r => r.IsFavorite == favorites && r.Kind == FolderNodeKind.Folder).ToList();
+            if (FolderTree.RootFor(path, folders.Select(r => r.Path)) is { } root)
+            {
+                return (folders.First(r => FolderTree.SamePath(r.Path, root)), root);
+            }
+        }
+
+        return null;
+    }
+
     // Selecting never navigates (arrow keys only move the selection), so following the panel cannot loop.
     private void Select(FolderTreeNode? node) => Selected = node;
 
     private async Task EnsureRootsAsync(string path)
     {
         var known = Roots.Count > 0;
-        var matched = known && FolderTree.RootFor(path, Roots.Select(r => r.Path)) is not null;
+        var matched = known && RootNodeFor(path) is not null;
         if (!known || (!matched && DateTimeOffset.UtcNow - _rootsRead > RootsEvery))
         {
             await LoadRootsAsync().ConfigureAwait(true);

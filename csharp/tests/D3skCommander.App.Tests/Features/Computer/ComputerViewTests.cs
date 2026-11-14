@@ -3,6 +3,7 @@ using D3skCommander.App.Dialogs;
 using D3skCommander.App.Features.Computer;
 using D3skCommander.App.Features.Drives;
 using D3skCommander.App.Features.Panels;
+using D3skCommander.App.Features.Tree;
 using D3skCommander.App.Shell;
 using D3skCommander.Core.Commands;
 using D3skCommander.Core.FileSystem;
@@ -81,7 +82,7 @@ public class ComputerViewTests
     }
 
     [AvaloniaFact]
-    public async Task TheTreeKeepsItsLastFolderAtComputerAndTheContextMenuIsTheRemoteOne()
+    public async Task TheTreeSelectsHomeAtComputerAndTheContextMenuIsTheRemoteOne()
     {
         using var rig = await Rig.Open();
         var pane = new PanelPaneModel(
@@ -98,13 +99,14 @@ public class ComputerViewTests
         {
             pane.Tick();
             await Until(() => pane.Tree.Selected is not null);
-            var selected = pane.Tree.Selected;
-
             await rig.Panels.ParentAsync(TestContext.Current.CancellationToken);
-            pane.Tick();
-            await Task.Delay(100, TestContext.Current.CancellationToken);
+            await Until(() =>
+            {
+                pane.Tick();
+                return pane.Tree.Selected is { Kind: FolderNodeKind.Place } home && ComputerAddress.IsAddress(home.Path);
+            });
 
-            Assert.Same(selected, pane.Tree.Selected);
+            Assert.Same(pane.Tree.Roots[0], pane.Tree.Selected);
             var empty = rig.Panels.ContextTargetFor(PanelSide.Left, emptySpace: true)!;
             Assert.Equal(PanelProviderKind.Remote, empty.Provider);
             var row = rig.Panels.ContextTargetFor(PanelSide.Left, emptySpace: false)!;

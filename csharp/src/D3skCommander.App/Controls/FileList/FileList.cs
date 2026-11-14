@@ -372,9 +372,13 @@ public sealed partial class FileList : IShellWidget
         var built = _entries is IReadOnlyCollection<Entry> known ? new List<FileListRow>(known.Count) : [];
         if (_entries is not null)
         {
+            Entry? above = null;
             foreach (var entry in _entries)
             {
-                built.Add(FileListEntryRows.Create(entry, View, _columns, _localizer));
+                var row = FileListEntryRows.Create(entry, View, _columns, _localizer);
+                row.StartsGroup = EntryGroups.StartsGroup(above, entry);
+                built.Add(row);
+                above = entry;
             }
         }
 

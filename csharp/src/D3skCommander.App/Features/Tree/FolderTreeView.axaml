@@ -14,6 +14,7 @@
         <Setter Property="IsExpanded" Value="{Binding IsExpanded, Mode=TwoWay}"/>
         <Setter Property="MinHeight" Value="22"/>
         <Setter Property="Padding" Value="0"/>
+        <Setter Property="IsEnabled" Value="{Binding !IsSeparator}"/>
       </Style>
       <Style Selector="TextBlock.placeholder">
         <Setter Property="Opacity" Value="0.55"/>
@@ -25,7 +26,10 @@
         <Grid ColumnDefinitions="Auto,*" ToolTip.Tip="{Binding Name}">
           <icons:FileKindIconControl Kind="{Binding Icon}" Margin="0,0,4,0" VerticalAlignment="Center" IsVisible="{Binding !IsPlaceholder}"/>
           <TextBlock Grid.Column="1" VerticalAlignment="Center" TextTrimming="CharacterEllipsis" Text="{Binding Name}"
-                     Classes.placeholder="{Binding IsPlaceholder}"/>
+                     Classes.placeholder="{Binding IsPlaceholder}" IsVisible="{Binding !IsSeparator}"/>
+          <!-- The line between the drives and the favorites. -->
+          <Border Grid.ColumnSpan="2" Height="1" Margin="0,0,8,0" VerticalAlignment="Center" IsVisible="{Binding IsSeparator}"
+                  Background="{DynamicResource SystemControlForegroundBaseLowBrush}"/>
         </Grid>
       </TreeDataTemplate>
     </TreeView.ItemTemplate>

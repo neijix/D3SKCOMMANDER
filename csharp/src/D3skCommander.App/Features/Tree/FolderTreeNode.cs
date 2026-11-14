@@ -4,12 +4,18 @@ using D3skCommander.Core.FileKinds;
 
 namespace D3skCommander.App.Features.Tree;
 
-/// <summary>What a tree row stands for: a real folder, or a dim placeholder under a node.</summary>
+/// <summary>What a tree row stands for: a real folder, a place opened without children, a line, or a dim placeholder.</summary>
 public enum FolderNodeKind
 {
     Folder,
     Loading,
     NoAccess,
+
+    /// <summary>A root the panel opens but the tree does not expand: Home (<c>computer:</c>), a network server.</summary>
+    Place,
+
+    /// <summary>The line between the drives and the favorites.</summary>
+    Separator,
 }
 
 /// <summary>
@@ -45,7 +51,13 @@ public sealed partial class FolderTreeNode : ObservableObject
     /// <summary>The icon before the name: a folder, or a drive / network drive glyph on a root.</summary>
     public FileKind Icon { get; init; } = FileKind.Folder;
 
-    public bool IsPlaceholder => Kind != FolderNodeKind.Folder;
+    /// <summary>A root that comes from the favorites (under the line), not from the drives.</summary>
+    public bool IsFavorite { get; init; }
+
+    /// <summary>Nowhere to go: the loading and no-access rows, and the line.</summary>
+    public bool IsPlaceholder => Kind is FolderNodeKind.Loading or FolderNodeKind.NoAccess or FolderNodeKind.Separator;
+
+    public bool IsSeparator => Kind == FolderNodeKind.Separator;
 
     public ObservableCollection<FolderTreeNode> Children { get; } = [];
 

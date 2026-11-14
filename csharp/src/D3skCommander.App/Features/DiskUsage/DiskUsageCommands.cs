@@ -1,9 +1,11 @@
+using System.Globalization;
 using D3skCommander.App.Dialogs;
 using D3skCommander.App.Features.Panels;
 using D3skCommander.App.Shell;
 using D3skCommander.App.ToolWindows;
 using D3skCommander.Core.Commands;
 using D3skCommander.Core.Localization;
+using D3skCommander.Core.NetDrives;
 using D3skCommander.Core.Panels;
 using D3skCommander.Core.Providers;
 
@@ -21,6 +23,7 @@ public sealed class DiskUsageCommands
     private readonly IDialogService _dialogs;
     private readonly ILocalizer _text;
     private readonly IComputerSources _sources;
+    private readonly IServerShares _servers;
 
     public DiskUsageCommands(
         IPanelWorkspace panels,
@@ -28,8 +31,11 @@ public sealed class DiskUsageCommands
         DiskUsageViewModel window,
         IDialogService dialogs,
         ILocalizer text,
-        IComputerSources sources)
+        IComputerSources sources,
+        IServerShares servers)
     {
+        ArgumentNullException.ThrowIfNull(servers);
+        _servers = servers;
         ArgumentNullException.ThrowIfNull(panels);
         ArgumentNullException.ThrowIfNull(tools);
         ArgumentNullException.ThrowIfNull(window);
@@ -63,10 +69,14 @@ public sealed class DiskUsageCommands
                 var target = new ComputerFileSystemProvider(_sources, _text).ScanTarget(cursor);
                 return (target, target.Folder is null ? _sources.MountPoints() : []);
             }).ConfigureAwait(true);
-            _tools.Open(ToolKind.DiskUsage);
-            await (scan.Folder is { } drive
-                ? _window.BeginAsync(drive)
-                : _window.BeginDrivesAsync(scan.Drives, mounts)).ConfigureAwait(true);
+            if (scan.Folder is null)
+            {
+                _tools.Open(ToolKind.DiskUsage);
+                await _window.BeginDrivesAsync(scan.Drives, mounts).ConfigureAwait(true);
+                return;
+            }
+
+            await BeginAsync(scan.Folder).ConfigureAwait(true);
             return;
         }
 
@@ -77,11 +87,32 @@ public sealed class DiskUsageCommands
             return;
         }
 
-        _tools.Open(ToolKind.DiskUsage);
-        await _window.BeginAsync(target).ConfigureAwait(true);
+        await BeginAsync(target).ConfigureAwait(true);
     }
 
-    /// <summary>The folder under the cursor, else the folder shown; null when that is not a local folder.</summary>
+    // A network server root (\\server\) has no folder of its own: its shares are listed (off the UI thread) and scanned.
+    private async Task BeginAsync(string folder)
+    {
+        if (UncPath.Server(folder) is { } server && !Directory.Exists(folder))
+        {
+            var shares = await Task.Run(() => ServerScan.ShareRoots(folder, _servers)).ConfigureAwait(true);
+            if (shares is not { IsSuccess: true } listed)
+            {
+                var failed = string.Format(CultureInfo.InvariantCulture, _text.Get("diskusage.failed"), folder);
+                await _dialogs.ShowMessageAsync(_text.Get("tool.diskusage.title"), failed).ConfigureAwait(true);
+                return;
+            }
+
+            _tools.Open(ToolKind.DiskUsage);
+            await _window.BeginSharesAsync(UncPath.ServerRoot(server), listed.Value).ConfigureAwait(true);
+            return;
+        }
+
+        _tools.Open(ToolKind.DiskUsage);
+        await _window.BeginAsync(folder).ConfigureAwait(true);
+    }
+
+    /// <summary>The folder under the cursor, else the folder shown; null when that is not a local folder or a server.</summary>
     private string? TargetFolder()
     {
         var snapshot = _panels.Read(_panels.ActiveSide);
@@ -95,6 +126,6 @@ public sealed class DiskUsageCommands
             }
         }
 
-        return folder.Length > 0 && Directory.Exists(folder) ? folder : null;
+        return folder.Length > 0 && (Directory.Exists(folder) || UncPath.Server(folder) is not null) ? folder : null;
     }
 }
