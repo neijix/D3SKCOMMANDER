@@ -272,8 +272,14 @@ public sealed partial class PanelPaneModel : ObservableObject, IShellWidget
     }
 
     // Space marked a folder: its size is measured as a job (the row key is the folder path).
-    private void OnDirectoryMarked(object? sender, FileListRow row) =>
-        _panels.RequestFolderSize(_side, _panels.Read(_side).Path, row.Key);
+    // The mark reaches the workspace first: the measured size publishes a new listing, and one
+    // that lands before the next beat would otherwise rebind the rows without the mark.
+    private void OnDirectoryMarked(object? sender, FileListRow row)
+    {
+        var snap = _panels.Read(_side);
+        PushSelection(snap);
+        _panels.RequestFolderSize(_side, snap.Path, row.Key);
+    }
 
     private void PushSelection(PanelSnapshot snap)
     {

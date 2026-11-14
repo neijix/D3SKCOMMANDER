@@ -344,11 +344,14 @@ public sealed partial class PanelWorkspace : IPanelWorkspace, IDisposable
             }
         }
 
-        var next = Read(side) with
+        var snap = Read(side);
+        var next = snap with
         {
             Cursor = cursor,
             Selected = copy.Count,
             Marked = copy,
+            // The marks changed, so their size did too (a folder measured before it was marked counts).
+            SelectedBytes = copy.Count > 0 ? PanelTotals.MarkedBytes(snap.Entries, copy) : 0UL,
         };
         if (side == PanelSide.Left)
         {

@@ -34,6 +34,20 @@ public class PanelSizesStatusTests
     }
 
     [AvaloniaFact]
+    public async Task AFolderMeasuredBeforeItsMarkArrivesCountsInTheMarkedSize()
+    {
+        using var rig = await Rig.Open();
+        var sub = Path.Combine(rig.Work, "sub");
+
+        await rig.Workspace.ApplyFolderSizeAsync(PanelSide.Left, rig.Work, sub, 3000UL, TestContext.Current.CancellationToken);
+        rig.Workspace.ApplySelection(PanelSide.Left, rig.Index("sub"), [sub]);
+
+        Assert.Equal(3000UL, rig.Workspace.Read(PanelSide.Left).SelectedBytes);
+        rig.Pane.Tick();
+        Assert.StartsWith("1 / 2 selected · 2.9 KB / 2.9 KB", rig.Pane.StatusText, StringComparison.Ordinal);
+    }
+
+    [AvaloniaFact]
     public async Task WithAutoFolderSizesOnAFolderSizeAppearsWithoutAKeyPress()
     {
         using var rig = await Rig.Open(autoSizes: true);

@@ -231,7 +231,7 @@ public class PanelPaneTests
         using var rig = await Rig.Opened();
         rig.Click(rig.Left, rig.Index(PanelSide.Left, "b.txt"), RawInputModifiers.Control);
 
-        Assert.StartsWith("1 / 4 selected · 0 B / 3 B", rig.Left.StatusText, StringComparison.Ordinal);
+        Assert.StartsWith("1 / 4 selected · 1 B / 3 B", rig.Left.StatusText, StringComparison.Ordinal);
         Assert.StartsWith("0 / 4 selected", rig.Right.StatusText, StringComparison.Ordinal);
         Assert.Contains("active", rig.Status(rig.LeftView).Classes);
         Assert.DoesNotContain("active", rig.Status(rig.RightView).Classes);
