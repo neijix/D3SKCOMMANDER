@@ -39,6 +39,7 @@ public sealed partial class MainWindow
         Toolbar = BuildWidgets(shell.ToolbarWidgets);
         UnderPanels = BuildWidgets(shell.UnderPanels);
         BesidePanels = BuildWidgets(shell.BesidePanels);
+        BetweenPanels = BuildWidgets(shell.BetweenPanels);
         MenuBarTrailing = BuildWidgets(shell.MenuBarTrailing);
         LeftPanel.Content = BuildOne(shell.LeftPanel);
         RightPanel.Content = BuildOne(shell.RightPanel);
@@ -69,6 +70,8 @@ public sealed partial class MainWindow
     public IReadOnlyList<IShellWidget> UnderPanels { get; }
 
     public IReadOnlyList<IShellWidget> BesidePanels { get; }
+
+    public IReadOnlyList<IShellWidget> BetweenPanels { get; }
 
     public IReadOnlyList<IShellWidget> MenuBarTrailing { get; }
 

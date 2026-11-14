@@ -125,6 +125,7 @@ internal static class CommandLabelKeys
         "cmd.theme_light",
         "cmd.theme_dark",
         "cmd.manage_favorites",
+        "cmd.show_middle_bar",
     ];
 
     private static string[] Merge(string[] early, string[] late)

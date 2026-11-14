@@ -102,38 +102,7 @@ public sealed partial class ToolbarModel : ObservableObject
     /// <summary>Builds <see cref="Buttons"/> again, asking the shell which commands can run now.</summary>
     public void Refresh()
     {
-        Buttons = [.. _items.Select(Describe)];
+        Buttons = [.. _items.Select(item => ToolbarButton.Describe(item, _text, _shell))];
         ButtonsChanged?.Invoke();
-    }
-
-    private ToolbarButton Describe(ToolbarItem item)
-    {
-        var enabled = item.Kind != ToolbarItemKind.Command
-            || item.Command is not CommandId command
-            || _shell is null
-            || _shell.CanExecute(command);
-        return new ToolbarButton(item, item.EffectiveIcon(), TooltipOf(item), enabled);
-    }
-
-    /// <summary>The user's text, else the command's label and its key, else the name of what the button starts.</summary>
-    private string TooltipOf(ToolbarItem item)
-    {
-        if (item.Tooltip.Length > 0)
-        {
-            return item.Tooltip;
-        }
-
-        if (item.Kind == ToolbarItemKind.Command && item.Command is CommandId command)
-        {
-            var label = _text.Get(CommandCatalog.LabelKey(command));
-            return CommandCatalog.PrimaryGesture(command) is Gesture gesture ? label + " (" + gesture.Format() + ")" : label;
-        }
-
-        if (item.Kind == ToolbarItemKind.UserCommand)
-        {
-            return item.UserCommandName;
-        }
-
-        return item.Kind == ToolbarItemKind.Program ? Path.GetFileName(item.Program.TrimEnd('/', '\\')) : "";
     }
 }

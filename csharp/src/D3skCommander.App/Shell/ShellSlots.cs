@@ -13,4 +13,7 @@ public enum ShellRegion
     Toolbar,
     UnderPanels,
     BesidePanels,
+
+    /// <summary>A narrow column between the left and the right panel.</summary>
+    BetweenPanels,
 }

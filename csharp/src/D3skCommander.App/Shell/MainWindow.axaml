@@ -14,11 +14,12 @@
     <TextBlock x:Name="StatusLine" DockPanel.Dock="Bottom" Margin="8,2" Text="{Binding StatusText}"/>
     <StackPanel x:Name="UnderHost" DockPanel.Dock="Bottom"/>
     <StackPanel x:Name="BesideHost" DockPanel.Dock="Right" Width="180" IsVisible="False"/>
-    <Grid ColumnDefinitions="*,*">
+    <Grid ColumnDefinitions="*,Auto,*">
       <Border Grid.Column="0" Margin="4" BorderThickness="1" BorderBrush="{DynamicResource SystemControlForegroundBaseLowBrush}">
         <ContentControl x:Name="LeftSlot"/>
       </Border>
-      <Border Grid.Column="1" Margin="4" BorderThickness="1" BorderBrush="{DynamicResource SystemControlForegroundBaseLowBrush}">
+      <StackPanel x:Name="BetweenHost" Grid.Column="1" VerticalAlignment="Stretch"/>
+      <Border Grid.Column="2" Margin="4" BorderThickness="1" BorderBrush="{DynamicResource SystemControlForegroundBaseLowBrush}">
         <ContentControl x:Name="RightSlot"/>
       </Border>
     </Grid>

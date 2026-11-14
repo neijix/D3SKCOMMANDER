@@ -45,18 +45,22 @@ public sealed class ToolbarView : Border
         _row.Children.Clear();
         foreach (var button in _model.Buttons)
         {
-            _row.Children.Add(button.IsSeparator ? Rule() : Create(button));
+            _row.Children.Add(button.IsSeparator ? Rule(this, Orientation.Horizontal) : Create(button, _model.Press));
         }
     }
 
-    private Border Rule()
+    /// <summary>A thin rule between groups: upright in a row, flat in a column.</summary>
+    internal static Border Rule(Control owner, Orientation bar)
     {
-        var rule = new Border { Width = 1, Height = 20, Margin = new Thickness(5, 0), VerticalAlignment = VerticalAlignment.Center };
-        rule.Bind(BackgroundProperty, this.GetResourceObservable(RuleBrush));
+        var rule = bar == Orientation.Horizontal
+            ? new Border { Width = 1, Height = 20, Margin = new Thickness(5, 0), VerticalAlignment = VerticalAlignment.Center }
+            : new Border { Height = 1, Width = 20, Margin = new Thickness(0, 5), HorizontalAlignment = HorizontalAlignment.Center };
+        rule.Bind(BackgroundProperty, owner.GetResourceObservable(RuleBrush));
         return rule;
     }
 
-    private Button Create(ToolbarButton button)
+    /// <summary>A flat icon button with the entry's tooltip; a click calls <paramref name="press"/>.</summary>
+    internal static Button Create(ToolbarButton button, Action<ToolbarButton> press)
     {
         var icon = new PathIcon { Data = ToolbarGlyphs.For(button.Icon), Width = 16, Height = 16 };
         var control = new Button
@@ -74,7 +78,7 @@ public sealed class ToolbarView : Border
         };
         ToolTip.SetTip(control, button.Tooltip);
         AutomationProperties.SetName(control, button.Tooltip);
-        control.Click += (_, _) => _model.Press(button);
+        control.Click += (_, _) => press(button);
         return control;
     }
 }

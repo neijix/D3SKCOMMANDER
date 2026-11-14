@@ -38,6 +38,7 @@ public class SettingsStoreTests
             IndexRefreshHours = 6,
             ShowDriveBar = false,
             ShowToolbar = false,
+            ShowMiddleBar = false,
             FavoriteTabsMode = FavoriteRestoreMode.Add,
             ShowTreeLeft = true,
             ShowTreeRight = true,
@@ -355,6 +356,7 @@ public class SettingsStoreTests
         Assert.Equal(24, preferences.IndexRefreshHours);
         Assert.True(preferences.ShowDriveBar);
         Assert.True(preferences.ShowToolbar);
+        Assert.True(preferences.ShowMiddleBar);
         Assert.Equal(FavoriteRestoreMode.Replace, preferences.FavoriteTabsMode);
         Assert.False(preferences.ShowTreeLeft);
         Assert.False(preferences.ShowTreeRight);
@@ -386,6 +388,7 @@ public class SettingsStoreTests
         Assert.Equal(expected.IndexRefreshHours, actual.IndexRefreshHours);
         Assert.Equal(expected.ShowDriveBar, actual.ShowDriveBar);
         Assert.Equal(expected.ShowToolbar, actual.ShowToolbar);
+        Assert.Equal(expected.ShowMiddleBar, actual.ShowMiddleBar);
         Assert.Equal(expected.FavoriteTabsMode, actual.FavoriteTabsMode);
         Assert.Equal(expected.ShowTreeLeft, actual.ShowTreeLeft);
         Assert.Equal(expected.ShowTreeRight, actual.ShowTreeRight);

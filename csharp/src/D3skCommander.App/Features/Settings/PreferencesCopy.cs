@@ -17,6 +17,7 @@ public static class PreferencesCopy
             ShowHidden = source.ShowHidden,
             ShowDriveBar = source.ShowDriveBar,
             ShowToolbar = source.ShowToolbar,
+            ShowMiddleBar = source.ShowMiddleBar,
             ShowTreeLeft = source.ShowTreeLeft,
             ShowTreeRight = source.ShowTreeRight,
             TreeWidthLeft = source.TreeWidthLeft,

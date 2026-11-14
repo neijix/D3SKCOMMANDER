@@ -15,6 +15,7 @@ public sealed class ShellContributions : IShellContributions
     private readonly List<Func<IShellWidget>> _toolbar = [];
     private readonly List<Func<IShellWidget>> _under = [];
     private readonly List<Func<IShellWidget>> _beside = [];
+    private readonly List<Func<IShellWidget>> _between = [];
     private readonly TimeProvider _time;
     private readonly object _statusLock = new();
     private Func<IShellWidget>? _left;
@@ -50,6 +51,8 @@ public sealed class ShellContributions : IShellContributions
     public IReadOnlyList<Func<IShellWidget>> UnderPanels => _under;
 
     public IReadOnlyList<Func<IShellWidget>> BesidePanels => _beside;
+
+    public IReadOnlyList<Func<IShellWidget>> BetweenPanels => _between;
 
     public void ApplyModules(IEnumerable<IShellModule> modules)
     {
@@ -237,22 +240,15 @@ public sealed class ShellContributions : IShellContributions
     public void AddRegion(ShellRegion region, Func<IShellWidget> build)
     {
         ArgumentNullException.ThrowIfNull(build);
-        if (region == ShellRegion.Toolbar)
+        var widgets = region switch
         {
-            _toolbar.Add(build);
-        }
-        else if (region == ShellRegion.UnderPanels)
-        {
-            _under.Add(build);
-        }
-        else if (region == ShellRegion.BesidePanels)
-        {
-            _beside.Add(build);
-        }
-        else
-        {
-            throw new ArgumentOutOfRangeException(nameof(region), region, "Unknown shell region.");
-        }
+            ShellRegion.Toolbar => _toolbar,
+            ShellRegion.UnderPanels => _under,
+            ShellRegion.BesidePanels => _beside,
+            ShellRegion.BetweenPanels => _between,
+            _ => throw new ArgumentOutOfRangeException(nameof(region), region, "Unknown shell region."),
+        };
+        widgets.Add(build);
     }
 
     private List<CommandId?> ExtrasFor(string menuKey)

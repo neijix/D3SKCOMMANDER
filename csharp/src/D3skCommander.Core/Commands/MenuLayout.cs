@@ -117,6 +117,7 @@ internal static class MenuLayout
         CommandId.ToggleHidden,
         CommandId.ToggleDriveBar,
         CommandId.ShowToolbar,
+        CommandId.ShowMiddleBar,
         CommandId.ToggleTree,
         CommandId.ToggleTreeLeft,
         CommandId.ToggleTreeRight,

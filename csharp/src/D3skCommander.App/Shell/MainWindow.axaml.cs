@@ -36,6 +36,7 @@ public sealed partial class MainWindow : Window
         Fill(UnderHost, UnderPanels);
         Fill(BesideHost, BesidePanels);
         BesideHost.IsVisible = BesidePanels.Count > 0;
+        Fill(BetweenHost, BetweenPanels);
         ShowSlot(LeftSlot, LeftPanel);
         ShowSlot(RightSlot, RightPanel);
         AutomationProperties.SetName(StatusLine, _localizer.Get("shell.status"));

@@ -64,6 +64,9 @@ public sealed class Preferences
     /// <summary>The main toolbar between the menu bar and the panels.</summary>
     public bool ShowToolbar { get; set; } = true;
 
+    /// <summary>The column of command buttons between the two panels.</summary>
+    public bool ShowMiddleBar { get; set; } = true;
+
     /// <summary>What choosing a favorite set of tabs does with the open tabs.</summary>
     public FavoriteRestoreMode FavoriteTabsMode { get; set; } = FavoriteRestoreMode.Replace;
 

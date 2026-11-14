@@ -20,7 +20,9 @@ internal static class LayoutGeometry
         var screen = new Rect(window.ClientSize);
         var left = Box(window, "LeftSlot");
         var right = Box(window, "RightSlot");
-        var area = screen.Width - (beside ? BesideWidth : 0);
+        // The button column between the panels takes its own width out of the two halves.
+        var middle = Box(window, "BetweenHost").Width;
+        var area = screen.Width - (beside ? BesideWidth : 0) - middle;
         var half = area / 2;
         AssertInside(screen, left, what + ": left panel");
         AssertInside(screen, right, what + ": right panel");
@@ -30,8 +32,8 @@ internal static class LayoutGeometry
         if (!beside)
         {
             // Each panel fills its half of the whole width, less its own margins (about 10 px).
-            Assert.InRange(left.Width, screen.Width / 2 - 12, screen.Width / 2);
-            Assert.InRange(right.Width, screen.Width / 2 - 12, screen.Width / 2);
+            Assert.InRange(left.Width, half - 12, half);
+            Assert.InRange(right.Width, half - 12, half);
             Assert.InRange(right.Right, screen.Width - 12, screen.Width);
         }
 

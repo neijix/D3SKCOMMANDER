@@ -35,6 +35,8 @@ What works today:
   right-click menu or cycled with Ctrl+F7, and edited in Settings;
 - a toolbar under the menu that you fill in Settings (right-click it to customize): built-in
   commands, your own commands or programs, with separators;
+- a column of buttons between the two panels (view, edit, copy, move, pack, unpack, new folder,
+  delete, compare panels, compare files, synchronize), hidden from Show > Button bar between the panels;
 - a folder tree beside each panel (Ctrl+Shift+T) that follows the panel's folder;
 - favorite tabs: both panels' tabs saved under a name (Ctrl+Alt+S) and reopened from
   Show > Favorite tabs, replacing or adding to the open tabs;

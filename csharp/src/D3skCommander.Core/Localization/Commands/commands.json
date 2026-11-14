@@ -454,5 +454,9 @@
   "cmd.manage_favorites": {
     "en": "Manage favorites…",
     "fr": "Gérer les favoris…"
+  },
+  "cmd.show_middle_bar": {
+    "en": "Button bar between the panels",
+    "fr": "Barre de boutons entre les panneaux"
   }
 }
