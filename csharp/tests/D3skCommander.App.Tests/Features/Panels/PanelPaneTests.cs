@@ -294,6 +294,35 @@ public class PanelPaneTests
         Assert.Equal((Path.Combine(rig.Directory, "a.txt"), "z.txt"), renames[0]);
     }
 
+    [AvaloniaFact]
+    public async Task AFolderReloadDuringARenameKeepsTheEditorAndCommitsTheTypedName()
+    {
+        using var rig = await Rig.Opened();
+        var renames = new List<(string Path, string Name)>();
+        rig.Workspace.Commit = (path, name) => { renames.Add((path, name)); return Task.CompletedTask; };
+        rig.Left.List.CursorIndex = Index(rig.Workspace.Read(PanelSide.Left), "a.txt");
+        rig.LeftView.Focus();
+        rig.Workspace.Begin();
+        rig.Settle();
+        rig.Window.KeyTextInput("deck");
+
+        // The folder changes on disk while the name is typed: the reload must not close the editor.
+        var before = rig.Workspace.Read(PanelSide.Left).Generation;
+        File.WriteAllText(Path.Combine(rig.Directory, "new.tmp"), "x");
+        await rig.Workspace.RefreshAsync(TestContext.Current.CancellationToken);
+        Assert.NotEqual(before, rig.Workspace.Read(PanelSide.Left).Generation);
+        rig.Left.Tick();
+        rig.Settle();
+
+        Assert.True(rig.Left.List.IsRenaming);
+        Assert.IsType<TextBox>(TopLevel.GetTopLevel(rig.Window)!.FocusManager!.GetFocusedElement());
+        rig.Window.KeyTextInput(".zip");
+        rig.Key(Key.Enter);
+        await rig.WaitUntil(() => renames.Count == 1);
+        Assert.Equal((Path.Combine(rig.Directory, "a.txt"), "deck.zip"), renames[0]);
+        await rig.WaitUntil(() => rig.Left.List.CellText(Index(rig.Workspace.Read(PanelSide.Left), "new.tmp"), 0) == "new");
+    }
+
     private static int Index(PanelSnapshot snap, string name)
     {
         for (var i = 0; i < snap.Entries.Count; i++)

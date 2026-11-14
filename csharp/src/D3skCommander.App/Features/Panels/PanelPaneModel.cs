@@ -27,6 +27,7 @@ public sealed partial class PanelPaneModel : ObservableObject, IShellWidget
     private bool _shown;
     private double _width;
     private int _generation = -1;
+    private string? _boundPath;
     private int _seenFailure = -1;
     [ObservableProperty]
     private string _path = "";
@@ -110,10 +111,17 @@ public sealed partial class PanelPaneModel : ObservableObject, IShellWidget
     {
         _panels.PollWhenDue();
         var snap = _panels.Read(_side);
-        if (snap.Generation != _generation)
+        // A reload of the folder being renamed in waits for the edit to end: rebuilding the rows
+        // would close the name editor and drop what the user typed.
+        if (HoldsForRename(snap))
+        {
+            Refresh(snap);
+        }
+        else if (snap.Generation != _generation)
         {
             Bind(snap);
             _generation = snap.Generation;
+            _boundPath = snap.Path;
         }
         else
         {
@@ -185,6 +193,9 @@ public sealed partial class PanelPaneModel : ObservableObject, IShellWidget
 
     /// <summary>Whether the list takes a key: only the active side, and never with Ctrl or Super held.</summary>
     public bool AcceptsKey(bool control, bool super) => _panels.ActiveSide == _side && !control && !super;
+
+    private bool HoldsForRename(PanelSnapshot snap) =>
+        List.IsRenaming && snap.Generation != _generation && string.Equals(snap.Path, _boundPath, StringComparison.Ordinal);
 
     private void Bind(PanelSnapshot snap)
     {
