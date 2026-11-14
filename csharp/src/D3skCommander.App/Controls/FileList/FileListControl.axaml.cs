@@ -45,6 +45,42 @@ public sealed partial class FileListControl : UserControl
         ShowTable();
     }
 
+    /// <summary>
+    /// True on the passive panel: its cursor row turns a faint grey, so the one blue cursor
+    /// is the file a command (pack, copy, delete...) acts on.
+    /// </summary>
+    public static readonly StyledProperty<bool> IsCursorDimmedProperty =
+        AvaloniaProperty.Register<FileListControl, bool>(nameof(IsCursorDimmed));
+
+    public bool IsCursorDimmed
+    {
+        get => GetValue(IsCursorDimmedProperty);
+        set => SetValue(IsCursorDimmedProperty, value);
+    }
+
+    /// <summary>The background a realized row or tile draws, or null when it is not realized.</summary>
+    public IBrush? CursorBackgroundAt(int index) =>
+        _list.ThumbsActive ? TileAt(index)?.Background : RowViewAt(index)?.Background;
+
+    protected override void OnPropertyChanged(AvaloniaPropertyChangedEventArgs change)
+    {
+        base.OnPropertyChanged(change);
+        if (change.Property != IsCursorDimmedProperty)
+        {
+            return;
+        }
+
+        foreach (var row in Rows.GetRealizedContainers().SelectMany(c => c.GetVisualDescendants().OfType<FileListRowView>()))
+        {
+            row.RefreshFlags();
+        }
+
+        foreach (var tile in RealizedTiles())
+        {
+            tile.RefreshFlags();
+        }
+    }
+
     /// <summary>The rules behind the control: entries, view, marks, cursor and rename.</summary>
     public FileList List => _list;
 

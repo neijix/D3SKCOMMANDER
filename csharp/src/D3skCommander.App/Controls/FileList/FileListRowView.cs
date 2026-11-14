@@ -15,7 +15,6 @@ namespace D3skCommander.App.Controls.FileList;
 public sealed class FileListRowView : Grid
 {
     private static readonly IBrush MarkedBrush = new SolidColorBrush(Color.FromRgb(200, 30, 20));
-    private static readonly IBrush CursorBrush = new SolidColorBrush(Color.FromArgb(110, 70, 140, 255));
 
     private static readonly IBrush TrackBrush = new SolidColorBrush(Color.FromArgb(70, 128, 128, 128));
     private static readonly IBrush FillBrush = new SolidColorBrush(Color.FromRgb(38, 160, 218));
@@ -59,6 +58,9 @@ public sealed class FileListRowView : Grid
     internal TextBox? Editor => _editor is { IsVisible: true } ? _editor : null;
 
     internal void FocusEditor() => ApplyEditor(true);
+
+    /// <summary>Redraws the cursor and marks (the list's dimmed state changed).</summary>
+    internal void RefreshFlags() => ApplyFlags();
 
     protected override void OnAttachedToVisualTree(VisualTreeAttachmentEventArgs e)
     {
@@ -330,7 +332,7 @@ public sealed class FileListRowView : Grid
             }
         }
 
-        Background = _row.IsCursor ? CursorBrush : Brushes.Transparent;
+        Background = FileListLayout.CursorBackground(_row.IsCursor, this.FindAncestorOfType<FileListControl>()?.IsCursorDimmed == true);
         Opacity = _row.IsHidden ? 0.5 : 1;
         Classes.Set("marked", _row.IsMarked);
         Classes.Set("cursor", _row.IsCursor);

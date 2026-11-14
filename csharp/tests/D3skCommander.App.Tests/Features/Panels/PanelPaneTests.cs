@@ -61,6 +61,26 @@ public class PanelPaneTests
     }
 
     [AvaloniaFact]
+    public async Task OnlyTheActiveSideDrawsTheBlueCursor()
+    {
+        using var rig = await Rig.Opened();
+        var left = rig.LeftView.Files;
+        var right = rig.RightView.Files;
+        Assert.False(left.IsCursorDimmed);
+        Assert.True(right.IsCursorDimmed);
+        var blue = left.CursorBackgroundAt(left.List.CursorIndex);
+
+        rig.Click(rig.Right, rig.Index(PanelSide.Right, "b.txt"));
+        await rig.WaitUntil(() => left.IsCursorDimmed);
+
+
+        Assert.False(right.IsCursorDimmed);
+        Assert.Same(blue, right.CursorBackgroundAt(right.List.CursorIndex));
+        Assert.NotSame(blue, left.CursorBackgroundAt(left.List.CursorIndex));
+        Assert.NotEqual(Avalonia.Media.Brushes.Transparent, left.CursorBackgroundAt(left.List.CursorIndex));
+    }
+
+    [AvaloniaFact]
     public async Task ANewListingShowsWithoutInputWithColumnsFittedToTheWidth()
     {
         using var rig = await Rig.Opened();

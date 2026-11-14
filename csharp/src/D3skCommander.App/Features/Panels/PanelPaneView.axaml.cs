@@ -39,6 +39,14 @@ public sealed partial class PanelPaneView : UserControl
         _files = new FileListControl(model.List)
         {
             AcceptKey = e => model.AcceptsKey(e.KeyModifiers.HasFlag(KeyModifiers.Control), e.KeyModifiers.HasFlag(KeyModifiers.Meta)),
+            IsCursorDimmed = !model.IsActive,
+        };
+        model.PropertyChanged += (_, e) =>
+        {
+            if (e.PropertyName == nameof(PanelPaneModel.IsActive))
+            {
+                Files.IsCursorDimmed = !model.IsActive;
+            }
         };
         _files.KeyHandled += (_, _) => model.Sync();
         _files.EnterPressed += (_, _) => _ = model.OpenEntryAsync();

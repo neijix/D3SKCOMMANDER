@@ -4,6 +4,7 @@ using Avalonia.Controls;
 using Avalonia.Layout;
 using Avalonia.Media;
 using Avalonia.Media.Imaging;
+using Avalonia.VisualTree;
 using D3skCommander.App.Icons;
 using D3skCommander.Core.FileSystem;
 
@@ -13,7 +14,6 @@ namespace D3skCommander.App.Controls.FileList;
 public sealed class FileListTileView : Border
 {
     private static readonly IBrush MarkedBrush = new SolidColorBrush(Color.FromRgb(200, 30, 20));
-    private static readonly IBrush CursorBrush = new SolidColorBrush(Color.FromArgb(110, 70, 140, 255));
 
     private readonly FileKindIconControl _icon = new(40);
     private readonly Image _picture = new() { Stretch = Stretch.Uniform, IsVisible = false };
@@ -89,6 +89,15 @@ public sealed class FileListTileView : Border
 
     private void OnRowChanged(object? sender, PropertyChangedEventArgs e) => ApplyFlags();
 
+    /// <summary>Redraws the cursor and marks (the list's dimmed state changed).</summary>
+    internal void RefreshFlags() => ApplyFlags();
+
+    protected override void OnAttachedToVisualTree(VisualTreeAttachmentEventArgs e)
+    {
+        base.OnAttachedToVisualTree(e);
+        ApplyFlags();
+    }
+
     private void ApplyFlags()
     {
         if (_row is null)
@@ -96,7 +105,7 @@ public sealed class FileListTileView : Border
             return;
         }
 
-        Background = _row.IsCursor ? CursorBrush : Brushes.Transparent;
+        Background = FileListLayout.CursorBackground(_row.IsCursor, this.FindAncestorOfType<FileListControl>()?.IsCursorDimmed == true);
         Opacity = _row.IsHidden ? 0.5 : 1;
         if (_row.IsMarked)
         {

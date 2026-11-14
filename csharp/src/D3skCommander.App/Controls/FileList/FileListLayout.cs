@@ -1,9 +1,19 @@
 using Avalonia.Controls;
+using Avalonia.Media;
 
 namespace D3skCommander.App.Controls.FileList;
 
 internal static class FileListLayout
 {
+    /// <summary>The cursor row of the list that has the focus.</summary>
+    public static readonly IBrush CursorBrush = new SolidColorBrush(Color.FromArgb(110, 70, 140, 255));
+
+    /// <summary>The cursor row of the other panel: a faint grey, so only one row reads as "the file I act on".</summary>
+    public static readonly IBrush DimCursorBrush = new SolidColorBrush(Color.FromArgb(45, 160, 160, 160));
+
+    public static IBrush CursorBackground(bool isCursor, bool dimmed) =>
+        !isCursor ? Brushes.Transparent : dimmed ? DimCursorBrush : CursorBrush;
+
     public const double RowHeight = 22;
 
     public const double HeaderHeight = 24;
